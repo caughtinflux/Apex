@@ -5,35 +5,35 @@
 
 - (STKIconLayout *)layoutForIcons:(NSArray *)icons
 {
-	NSAssert((icons != nil), (@"You must pass in a non-nil array to -[STKIconLayoutHandler layoutForIcons:]"));
+    NSAssert((icons != nil), (@"You must pass in a non-nil array to -[STKIconLayoutHandler layoutForIcons:]"));
 
-	NSMutableArray *topIcons    = [NSMutableArray arrayWithCapacity:icons.count / 3.0]; // 0
-	NSMutableArray *rightIcons  = [NSMutableArray arrayWithCapacity:icons.count / 3.0]; // 1
-	NSMutableArray *bottomIcons = [NSMutableArray arrayWithCapacity:icons.count / 3.0]; // 2
-	NSMutableArray *leftIcons   = [NSMutableArray arrayWithCapacity:icons.count / 3.0]; // 3
+    NSMutableArray *topIcons    = [NSMutableArray array]; // 0
+    NSMutableArray *bottomIcons = [NSMutableArray array]; // 1
+    NSMutableArray *leftIcons   = [NSMutableArray array]; // 2
+    NSMutableArray *rightIcons  = [NSMutableArray array]; // 3
 
-	for (NSUInteger i = 0; i < icons.count; i++) {
-		NSInteger layoutLocation = ((NSInteger)i % 4);
-		switch (layoutLocation) {
-			case 0:
-				[topIcons addObject:icons[i]];
-				break;
+    for (NSUInteger i = 0; i < icons.count; i++) {
+        NSInteger layoutLocation = ((NSInteger)i % 4); // ALL THE MAGIC IS HERE. MATH IS AWESOME
+        switch (layoutLocation) {
+            case 0:
+                [topIcons addObject:icons[i]];
+                break;
 
-			case 1:
-				[rightIcons addObject:icons[i]];
-				break;
+            case 1:
+                [bottomIcons addObject:icons[i]];
+                break;
 
-			case 2:
-				[bottomIcons addObject:icons[i]];
-				break;
+            case 2:
+                [leftIcons addObject:icons[i]];
+                break;
 
-			case 3:
-				[leftIcons addObject:icons[i]];
-				break;
-		}
-	}
+            case 3:
+                [rightIcons addObject:icons[i]];
+                break;
+        }
+    }
 
-	return [STKIconLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons];
+    return [STKIconLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons];
 }
 
 @end
