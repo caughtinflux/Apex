@@ -1,0 +1,1353 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"loca",
+				"location	STKIconLocation *"
+			],
+			[
+				"icon",
+				"iconIndex	NSUInteger"
+			],
+			[
+				"SBI",
+				"SBIcon	class"
+			],
+			[
+				"STKIcon",
+				"STKIconLocation	typedef"
+			],
+			[
+				"launc",
+				"launchIcon:(SBIcon *)	void"
+			],
+			[
+				"objc_getClass",
+				"objc_getClass(const char *name)	id"
+			],
+			[
+				"def",
+				"defaultDelegate	STKIconViewDelegate *"
+			],
+			[
+				"dispatch_once",
+				"dispatch_once_t	typedef"
+			],
+			[
+				"cont",
+				"controller	SBIconController *"
+			],
+			[
+				"NSA",
+				"NSArray	class"
+			],
+			[
+				"SBIcon",
+				"SBIconListView	class"
+			],
+			[
+				"NSNot",
+				"NSNotFound	enum <anonymous>"
+			],
+			[
+				"SBIconView",
+				"SBIconViewDelegate"
+			],
+			[
+				"BKSWor",
+				"BKSWorkspaceDelegate"
+			],
+			[
+				"QSCamera",
+				"QSCameraDevice	typedef"
+			],
+			[
+				"UIImage",
+				"UIImageView	class"
+			],
+			[
+				"QSVide",
+				"QSVideoInterfacePreviewImageChangedNotification	NSString *const"
+			],
+			[
+				"QSVideoInter",
+				"QSVideoInterfacePreviewImageChangedNotification	NSString *const"
+			],
+			[
+				"QSV",
+				"QSVideoInterfacePreviewImageChangedNotification	NSString *const"
+			],
+			[
+				"de",
+				"defaultCenter	id"
+			],
+			[
+				"AVCaptureDataOu",
+				"AVCaptureVideoDataOutput	class"
+			],
+			[
+				"ca",
+				"canAddOutput:(AVCaptureOutput *)	BOOL"
+			],
+			[
+				"_con",
+				"_configureDataOutput	BOOL"
+			],
+			[
+				"_fil",
+				"_fileOutput	AVCaptureMovieFileOutput *"
+			],
+			[
+				"AVCaptureVide",
+				"AVCaptureVideoDataOutput	class"
+			],
+			[
+				"FOU",
+				"FOUNDATION_EXTERN	macro"
+			],
+			[
+				"g",
+				"videoGravity	NSString *"
+			],
+			[
+				"AVCaptureVideo",
+				"AVCaptureVideoPreviewLayer	class"
+			],
+			[
+				"AVCaptureV",
+				"AVCaptureVideoDataOutput	class"
+			],
+			[
+				"AVCaptureSessionP",
+				"AVCaptureSessionPresetMedium	NSString *const"
+			],
+			[
+				"v",
+				"videoQuality	NSString *"
+			],
+			[
+				"UIUSE",
+				"UIUserInterfaceIdiomPhone	enum UIUserInterfaceIdiom"
+			],
+			[
+				"mas",
+				"masksToBounds	BOOL"
+			],
+			[
+				"AVLayerVideo",
+				"AVLayerVideoGravityResizeAspectFill	NSString *const"
+			],
+			[
+				"vi",
+				"videoPreviewLayer	AVCaptureVideoPreviewLayer *"
+			],
+			[
+				"_vide",
+				"_videoInterface	QSVideoInterface *"
+			],
+			[
+				"initW",
+				"initWithSession:(AVCaptureSession *)	id"
+			],
+			[
+				"f",
+				"frame	CGRect"
+			],
+			[
+				"SBIconModel",
+				"SBIconModelDelegate"
+			],
+			[
+				"applicationOp",
+				"applicationOpenURL:(id) publicURLsOnly:(BOOL)	void"
+			],
+			[
+				"alert",
+				"alertView:(UIAlertView *) clickedButtonAtIndex:(NSInteger)	void"
+			],
+			[
+				"Overlay",
+				"overlayView"
+			],
+			[
+				"_cur",
+				"_currentCaptureMode	QSCaptureMode"
+			],
+			[
+				"QSCap",
+				"QSCaptureModeVideo	QSCaptureMode"
+			],
+			[
+				"_video",
+				"_videoStoppedManually	BOOL"
+			],
+			[
+				"AVAudioSessionCategoryOp",
+				"AVAudioSessionCategoryOptionMixWithOthers	enum AVAudioSessionCategoryOptions"
+			],
+			[
+				"setCate",
+				"setCategory:(NSString *) withOptions:(AVAudioSessionCategoryOptions) error:(NSError **)	BOOL"
+			],
+			[
+				"AVAudioSessionCategoryPl",
+				"AVAudioSessionCategoryPlayAndRecord	NSString *const"
+			],
+			[
+				"AVAudioSe",
+				"AVAudioSessionCategoryPlayback	NSString *const"
+			],
+			[
+				"setAudioCa",
+				"setCategory:(NSString *) withOptions:(AVAudioSessionCategoryOptions) error:(NSError **)	BOOL"
+			],
+			[
+				"isRead",
+				"isReady	BOOL"
+			],
+			[
+				"AVCaptureSession",
+				"AVCaptureSessionPresetMedium	NSString *const"
+			],
+			[
+				"STring",
+				"STRING_FROM_BOOL	macro"
+			],
+			[
+				"s",
+				"sharedInstance	id"
+			],
+			[
+				"QSC",
+				"QSCopyHashFromFileAtPath(CFStringRef path)	NSString *"
+			],
+			[
+				"CFStrin",
+				"CFStringRef	typedef"
+			],
+			[
+				"pref",
+				"prefsPlistPath"
+			],
+			[
+				"plist",
+				"plistlib"
+			],
+			[
+				"la",
+				"latestBuild"
+			],
+			[
+				"pl",
+				"plistlib"
+			],
+			[
+				"late",
+				"latestBuild"
+			],
+			[
+				"_labe",
+				"_labelHideTimerFired:(NSTimer *)	void"
+			],
+			[
+				"_labl",
+				"_labelHideTimer	NSTimer *"
+			],
+			[
+				"_restart",
+				"_restartLabelHideTimer	void"
+			],
+			[
+				"al",
+				"alpha	CGFloat"
+			],
+			[
+				"AVCaptureSessionPre",
+				"AVCaptureSessionPresetLow	NSString *const"
+			],
+			[
+				"high",
+				"highPreset	NSString *"
+			],
+			[
+				"AVSessi",
+				"AVCaptureSessionPresetHigh"
+			],
+			[
+				"AVCaptureSess",
+				"AVCaptureSessionPresetLow	NSString *const"
+			],
+			[
+				"initWith",
+				"initWithObjects:(id), ..., nil	id"
+			],
+			[
+				"AVCaptureSessionPres",
+				"AVCaptureSessionPresetLow	NSString *const"
+			],
+			[
+				"arrayWithO",
+				"arrayWithObjects:(id), ..., nil	id"
+			],
+			[
+				"arrayWithOb",
+				"arrayWithObjects:(const id *) count:(NSUInteger)	id"
+			],
+			[
+				"AVMediaTyp",
+				"AVMediaTypeVideo	NSString *const"
+			],
+			[
+				"com",
+				"completedImageName =	NSString *"
+			],
+			[
+				"kRec",
+				"kRecordFailedImageName	macro"
+			],
+			[
+				"remove",
+				"removeItemAtURL:(NSURL *) error:(NSError **)	BOOL"
+			],
+			[
+				"CFUUID",
+				"CFUUIDRef	typedef"
+			],
+			[
+				"all",
+				"allowsSelection	BOOL"
+			],
+			[
+				"setVide",
+				"setVideoFlashMode:(QSFlashMode)	void"
+			],
+			[
+				"link",
+				"linkFile"
+			],
+			[
+				"quick",
+				"quickshoot_md5"
+			],
+			[
+				"EHO",
+				"ECHO_END"
+			],
+			[
+				"ve",
+				"versionSuffix"
+			],
+			[
+				"file",
+				"filepath"
+			],
+			[
+				"_re",
+				"_recordingLightImageView	UIImageView *"
+			],
+			[
+				"curr",
+				"_currentCaptureMode	QSCaptureMode"
+			],
+			[
+				"kREc",
+				"kRecordOffImageName	macro"
+			],
+			[
+				"_cu",
+				"_currentCaptureMode	QSCaptureMode"
+			],
+			[
+				"versio",
+				"versionString"
+			],
+			[
+				"vers",
+				"versionString"
+			],
+			[
+				"version",
+				"versionSuffix"
+			],
+			[
+				"latest",
+				"latestVersion"
+			],
+			[
+				"_curre",
+				"_currentRecordingImageName	NSString *"
+			],
+			[
+				"kRe",
+				"kRecordOnImageName	macro"
+			],
+			[
+				"initWit",
+				"initWithImage:(UIImage *)	id"
+			],
+			[
+				"QSCapture",
+				"QSCaptureModePhoto	QSCaptureMode"
+			],
+			[
+				"SBDevi",
+				"SBDeviceLockViewOwner"
+			],
+			[
+				"sqr",
+				"sqrtf(float)	float"
+			],
+			[
+				"UIGE",
+				"UIGestureRecognizerState	enum"
+			],
+			[
+				"UIGes",
+				"UIGestureRecognizerState	enum"
+			],
+			[
+				"init",
+				"initWithTarget:(id) action:(SEL)	id"
+			],
+			[
+				"M_P",
+				"M_PI	macro"
+			],
+			[
+				"UIDeviceOrientationLan",
+				"UIDeviceOrientationLandscapeRight	enum UIDeviceOrientation"
+			],
+			[
+				"UIDeviceOrientationLa",
+				"UIDeviceOrientationLandscapeLeft	enum UIDeviceOrientation"
+			],
+			[
+				"M_",
+				"M_PI	macro"
+			],
+			[
+				"t",
+				"transform	CGAffineTransform"
+			],
+			[
+				"addObbserv",
+				"addObserver:(NSObject *) toObjectsAtIndexes:(NSIndexSet *) forKeyPath:(NSString *) options:(NSKeyValueObservingOptions) context:(void *)	void"
+			],
+			[
+				"UIView",
+				"UIViewAutoresizingFlexibleWidth	enum UIViewAutoresizing"
+			],
+			[
+				"UIViewAutoresizing",
+				"UIViewAutoresizingFlexibleHeight	enum UIViewAutoresizing"
+			],
+			[
+				"aut",
+				"autoresizingMask	UIViewAutoresizing"
+			],
+			[
+				"na",
+				"navigationItem	UINavigationItem *"
+			],
+			[
+				"ECHO",
+				"ECHO_END"
+			],
+			[
+				"stringWit",
+				"stringWithCString"
+			],
+			[
+				"lat",
+				"latestVersionFile"
+			],
+			[
+				"pr",
+				"projects"
+			],
+			[
+				"co",
+				"code"
+			],
+			[
+				"package",
+				"packagesDir"
+			],
+			[
+				"titleF",
+				"tableView:(UITableView *) titleForHeaderInSection:(NSInteger)	NSString *"
+			],
+			[
+				"UITableViewCellStyle",
+				"UITableViewCellStyleDefault	enum <anonymous>"
+			],
+			[
+				"UITableViewSt",
+				"UITableViewStyle	typedef"
+			],
+			[
+				"tableView",
+				"tableView:(UITableView *) cellForRowAtIndexPath:(NSIndexPath *)	UITableViewCell *"
+			],
+			[
+				"UITableViewStyle",
+				"UITableViewStyleGrouped	enum <anonymous>"
+			],
+			[
+				"PSTextView",
+				"PSTextViewTableCell	class"
+			],
+			[
+				"_isCapt",
+				"_isCapturingVideo	BOOL"
+			],
+			[
+				"UIUserInterfaceI",
+				"UIUserInterfaceIdiomPhone	enum UIUserInterfaceIdiom"
+			],
+			[
+				"UIUSer",
+				"UIUserInterfaceIdiomPhone	enum UIUserInterfaceIdiom"
+			],
+			[
+				"UIUser",
+				"UIUserInterfaceIdiomPad	enum UIUserInterfaceIdiom"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "Packages/Python/Python.sublime-build",
+	"command_palette":
+	{
+		"height": 27.0,
+		"selected_items":
+		[
+			[
+				"packa",
+				"Package Control: Install Package"
+			],
+			[
+				"git ch",
+				"Git: Change Branch"
+			],
+			[
+				"aa",
+				"z:AAAPackageDev: New Build System"
+			],
+			[
+				"",
+				"BracketHighlighter: Toggle Global Enable"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"Instal",
+				"Package Control: Install Package"
+			],
+			[
+				"git",
+				"Git: Commit history"
+			],
+			[
+				"brose",
+				"SFTP: Browse Server…"
+			],
+			[
+				"br",
+				"SFTP: Browse Server…"
+			],
+			[
+				"Snippet: int",
+				"Snippet: template <typename ${1:_InputIter}>"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"sft",
+				"SFTP: Browse Server…"
+			],
+			[
+				"subime",
+				"Preferences: SublimeClang Settings – Default"
+			],
+			[
+				"sftp",
+				"SFTP: Browse Server…"
+			],
+			[
+				"bros",
+				"SFTP: Browse Server…"
+			],
+			[
+				"brow",
+				"SFTP: Browse Server…"
+			],
+			[
+				"ed",
+				"SFTP: Edit Server…"
+			],
+			[
+				"brows",
+				"SFTP: Browse Server…"
+			],
+			[
+				"Br",
+				"SFTP: Browse Server…"
+			],
+			[
+				"S",
+				"SFTP: Browse Server…"
+			],
+			[
+				"bro",
+				"SFTP: Browse Server…"
+			],
+			[
+				"Install ",
+				"Package Control: Install Package"
+			],
+			[
+				"add",
+				"Project: Add Folder"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Discover Packages"
+			]
+		],
+		"width": 593.0
+	},
+	"console":
+	{
+		"height": 125.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/aditya/code/projects/stacks/Tweak.xm",
+		"/Users/aditya/code/projects/stacks/STKIconHelper.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListView.h",
+		"/Users/aditya/code/projects/stacks/STKIconViewDelegate.m",
+		"/Users/aditya/code/projects/stacks/STKIconHelper.m",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconModel.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewDelegate-Protocol.h",
+		"/Users/aditya/code/projects/stacks/STKIconViewDelegate.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewMap.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIcon.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconIndexMutableList.h",
+		"/opt/theos/include/SpringBoard/SBIconController.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconScrollView.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconContentView.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListModel.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconObserver-Protocol.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconIndexMutableListObserver-Protocol.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/NSIndexPath-SBIconIndex.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewMapDelegate-Protocol.h",
+		"/Users/aditya/code/projects/stacks/libMobileGestalt.h",
+		"/Users/aditya/code/projects/stacks/Makefile",
+		"/Users/aditya/code/projects/stacks/libmobilegestalt.h",
+		"/Users/aditya/code/random/scoper/Tweak.xm",
+		"/Users/aditya/code/tlsof/main.mm",
+		"/Users/aditya/Desktop/UIKitDump/UIButton.h",
+		"/Users/aditya/Desktop/UIKitDump/UIButtonContent.h",
+		"/Users/aditya/Desktop/UIKitDump/UINavigationController.h",
+		"/Users/aditya/code/projects/quickshootpro/QSActivatorListener.m",
+		"/Users/aditya/code/projects/quickshootpro/Tweak.xm",
+		"/Users/aditya/code/projects/lastcontroller/Tweak.xm",
+		"/Users/aditya/code/projects/quickshootpro/QSActivatorListener.",
+		"/Users/aditya/code/projects/libworkspace/LibWorkspace.m",
+		"/Users/aditya/Desktop/BKSWorkspaceDelegate-Protocol.h",
+		"/opt/theos/include/SpringBoard/SBWorkspace.h",
+		"/Users/aditya/Desktop/BBSDump/BKSWorkspace.h",
+		"/Users/aditya/Desktop/BBSDump/BKSApplication.h",
+		"/Users/aditya/Desktop/BBSDump/BKSApplication",
+		"/Users/aditya/Desktop/BBSDump/BKSWorkspace",
+		"/opt/theos/include/SpringBoard/SBWorkspaceTransactionDelegate-Protocol.h",
+		"/Users/aditya/code/tlsof/proc_info.h",
+		"/Users/aditya/Desktop/custom_lsof_output.txt",
+		"/Users/aditya/code/projects/quickshootpro/QSCameraController.m",
+		"/Users/aditya/Desktop/Search_Dump/SPSearchQuery.h",
+		"/opt/theos/include/SpringBoard/SBSearchController.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBSearchModel.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/Search/SPSearchAgent.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SPSearchAgentDelegate-Protocol.h",
+		"/Users/aditya/code/projects/quickshootpro/QSVideoInterface.h",
+		"/Users/aditya/code/projects/quickshootpro/QSIconOverlayView.h",
+		"/Users/aditya/code/projects/quickshootpro/QSIconOverlayView.m",
+		"/Users/aditya/code/projects/quickshootpro/QSCameraController.h",
+		"/Users/aditya/code/projects/quickshootpro/Makefile",
+		"/Users/aditya/code/projects/quickshootpro/QSVideoInterface.m",
+		"/Users/aditya/code/projects/quickshootpro/layout/DEBIAN/control",
+		"/opt/theos/include/SpringBoard/SBFolder.h",
+		"/opt/theos/include/SpringBoard/SBIconListModel.h",
+		"/opt/theos/include/SpringBoard/SBFolderIconListModel.h",
+		"/Users/aditya/code/projects/quickshoot/quickshoot.sublime-workspace",
+		"/Users/aditya/Desktop/PBEDump/PBFilter.h",
+		"/Users/aditya/Desktop/PBEDump/PBMirrorFilter.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/PhotoLibrary/PLCameraController.h",
+		"/Users/aditya/code/projects/quickshootpro/QSCameraOptionsWindow.m",
+		"/Users/aditya/code/projects/quickshootpro/QSConstants.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBIconModelStore-Protocol.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBIconListModel.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBIconModel.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBDefaultIconModelStore.h",
+		"/opt/theos/include/SpringBoard/NSObject.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/NSObject-Protocol.h",
+		"/Users/aditya/code/projects/quickshootpro/QSConstants.m",
+		"/Users/aditya/code/projects/quickshootpro/qsprefs/Resources/QSPrefs.plist",
+		"/Users/aditya/Desktop/iOS-6-SpringBoard-Headers/SBApplication.h",
+		"/Users/aditya/Desktop/iOS-6-SpringBoard-Headers/SBSystemLocalNotificationAlert.h",
+		"/Users/aditya/Desktop/iOS-6-SpringBoard-Headers/CDStructures.h",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/Objective-C/Objective-C.tmLanguage",
+		"/Users/aditya/code/projects/quickshootpro/QSCameraOptionsWindow.h",
+		"/Users/aditya/code/projects/quickshootpro/QSActivatorListener.h",
+		"/Users/aditya/code/projects/quickshootpro/Tweak.mm",
+		"/Users/aditya/code/projects/quickshootpro/qsprefs/QSAboutTableViewController.m",
+		"/Users/aditya/code/winterboard/Application.mm",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBScreenFlash.h",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/Objective-C/Objective-C++.tmLanguage",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/ASCII Decorator/Default (OSX).sublime-keymap",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/ASCII Decorator/ASCII Decorator.sublime-settings",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBApplication.h",
+		"/Users/aditya/Desktop/QuickShootPro_Disclaimer",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBApplicationController.h",
+		"/opt/theos/include/SpringBoard/SBUIController.h",
+		"/Users/aditya/code/projects/quickshootpro/qsprefs/QSPrefs.mm",
+		"/opt/theos/makefiles/package.mk",
+		"/Users/aditya/code/projects/quickshootpro/updatemd5.sh",
+		"/Users/aditya/code/random/camtests/Tweak.xm",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/PhotoLibraryServices/PLDiskController.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/UIKit/UIRemoteView.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/UIKit/UIRemoteApplication.h",
+		"/Users/aditya/Desktop/rs_SHSH_fetch_crash",
+		"/Users/aditya/code/projects/quickshootpro/updatebuild.py",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/PhotoLibrary/PLCameraControllerDelegate-Protocol.h",
+		"/Users/aditya/code/projects/quickshootpro/LibstatusBar.h",
+		"/Users/aditya/code/projects/quickshootpro/qsprefs/Makefile",
+		"/Users/aditya/code/projects/quickshootpro/qsprefs/NSTask.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/CoreFoundation/CFUserNotification.h",
+		"/Users/aditya/code/projects/quickshootpro/QSLink.h",
+		"/Users/aditya/code/projects/quickshootpro/updatemd5.py",
+		"/Users/aditya/code/projects/quickshootpro/linkupdate.py",
+		"/opt/theos/makefiles/instance/rules.mk",
+		"/opt/theos/makefiles/messages.mk",
+		"/opt/theos/makefiles/instance/tweak.mk",
+		"/opt/theos/makefiles/master/tweak.mk",
+		"/Users/aditya/code/projects/quickshootpro/updateversion.py",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBIcon.h",
+		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBIconIndexNode-Protocol.h",
+		"/Users/aditya/Desktop/winterboard/makefile",
+		"/Users/aditya/Desktop/winterboard/make",
+		"/Users/aditya/code/projects/quickshootpro/qspropreferences/Makefile",
+		"/Users/aditya/code/projects/quickshootpro/qspropreferences/Resources/QSProPreferences.plist",
+		"/Users/aditya/code/projects/quickshootpro/qsprefs/entry.plist",
+		"/Users/aditya/code/projects/quickshootpro/qsprefs/Resources/Info.plist",
+		"/Users/aditya/code/projects/quickshootpro/qspropreferences/QSProPreferences.mm",
+		"/Users/aditya/code/projects/quickshootpro/qspropreferences/Resources/QSPrefs.plist",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Theos_Tweak.sublime-build",
+		"/Users/aditya/code/projects/quickshootpro/QSInformationKit.h",
+		"/Users/aditya/code/projects/quickshootpro/linkupdate.sh",
+		"/Users/aditya/Desktop/lolwat.py",
+		"/Users/aditya/dropbox_uploader.sh"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			"originFor",
+			"applicationIconFor",
+			"model",
+			"- (NSString *)model",
+			"launch",
+			"launchAppli",
+			"(int)",
+			"int",
+			"struct CGPoint",
+			"double",
+			"struct CGAffineTransform",
+			"struct CGRect",
+			"float",
+			"unsigned int",
+			"icons",
+			"lay",
+			"rela",
+			"35",
+			"setAlpha",
+			"icon",
+			"SBIcon",
+			"icon",
+			"index",
+			"getX:",
+			"iconAt",
+			"index",
+			"column",
+			"columnFor",
+			"rowFor",
+			"columnFor",
+			"iconWith",
+			"iconWigth",
+			"forIcon",
+			"location",
+			"indexFor",
+			"current",
+			"listView",
+			"iconView",
+			"iconListView",
+			"SBIconIndexMutableListObserver",
+			"node",
+			"struct CGRect",
+			"struct CGSize",
+			"struct CATransform3D",
+			"struct CGPoint",
+			"float",
+			"int ",
+			"int",
+			"unsigned int",
+			"iconState",
+			"struct CGAffineTransform",
+			"struct UIEdgeInsets",
+			"struct CGPoint",
+			"float",
+			"int",
+			"unsigned int",
+			"struct CGRect",
+			"struct CGSize",
+			"kMG",
+			"Adding VC",
+			"setDisappearingViewController",
+			"proc_pidinfo",
+			"searchController",
+			"_previewLayer",
+			"usePreviewLayer",
+			"_previewLayer",
+			"SHOW_USER",
+			"max",
+			"number",
+			"maxi",
+			"max",
+			"numberOfIcons",
+			"Session",
+			"running",
+			"obj c",
+			"ena",
+			"An error occured",
+			"an error occured",
+			"CC_",
+			"location",
+			"list",
+			"anti-blur",
+			"com.caughtinflux.quickshootpro.",
+			"com.caughtinflux.quickshootpro.a",
+			"com.caughtinflux.quickshootpro.app",
+			"com.quickshootpro.",
+			"com.quickshootpro.a",
+			"com.apple.camera",
+			"struct CGRect",
+			"end",
+			"((@)(interface|protocol)(?!.+;)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*((:)(?:\\s*)([A-Za-z][A-Za-z0-9]*))?(\\s|\\n)?",
+			"instancetype",
+			"%)",
+			"%(",
+			"%((",
+			"interface",
+			"new",
+			"return",
+			"interface",
+			"self",
+			"release",
+			"modifier",
+			"super",
+			"optional",
+			"private",
+			"protocol",
+			"interface-or-protocol",
+			"interface-or-protocol.objc",
+			"meta.interface-or-protocol.objc",
+			"protocol|",
+			"@(protocol",
+			"storage.type.objc",
+			"@(protocol)",
+			"function | return",
+			"support.function.r",
+			"support.function",
+			"support.",
+			"support.re",
+			"i(",
+			"i)",
+			"return",
+			"keyword",
+			"URL",
+			"UI",
+			"UIView",
+			"@protocol",
+			"protocol",
+			"NSString"
+		],
+		"highlight": false,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"(NSInteger)",
+			"NSInteger",
+			"NSInt",
+			"NSInteger",
+			"CGPoint",
+			"NSTimeInterval",
+			"CGAffineTransform",
+			"CGRect",
+			"CGFloat",
+			"NSUInteger",
+			"40",
+			"CGRect",
+			"CGSize",
+			"CATransform3D",
+			"CGPoint",
+			"CGFloat",
+			"NSInteger ",
+			"NSInteger",
+			"NSUInteger",
+			"CGAffineTransform",
+			"UIEdgeInsets",
+			"CGPoint",
+			"CGFloat",
+			"NSInteger",
+			"NSUInteger",
+			"CGRect",
+			"CGSize",
+			"(NSString *)kMG",
+			"CGFloat",
+			"CGRect",
+			"NSUInteger",
+			"_flashButton",
+			"com.caughtinflux.qsproprefs",
+			"NSLog(@\"QS: %@, %@\", NSStringFromSelector(_cmd), arg1);",
+			"_enabled",
+			"NCXKCDController",
+			"strong"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 34.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.clang":
+	{
+		"height": 100.0
+	},
+	"output.exec":
+	{
+		"height": 100.0
+	},
+	"output.git":
+	{
+		"height": 100.0
+	},
+	"output.sftp":
+	{
+		"height": 100.0
+	},
+	"replace":
+	{
+		"height": 64.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"sbiconlis",
+				"theos/include/SpringBoard/SBIconListView.h"
+			],
+			[
+				"sbiconmod",
+				"theos/include/SpringBoard/SBIconModel.h"
+			],
+			[
+				"sbiconcontro",
+				"theos/include/SpringBoard/SBIconController.h"
+			],
+			[
+				"sbuicont",
+				"theos/include/SpringBoard/SBUIController.h"
+			],
+			[
+				"sbiconviewde",
+				"theos/include/SpringBoard/SBIconViewDelegate-Protocol.h"
+			],
+			[
+				"sbiconview",
+				"theos/include/SpringBoard/SBIconView.h"
+			],
+			[
+				"sbiconlist",
+				"theos/include/SpringBoard/SBIconListView.h"
+			],
+			[
+				"sbiconviewma",
+				"theos/include/SpringBoard/SBIconViewMap.h"
+			],
+			[
+				"sbiconmodel",
+				"theos/include/SpringBoard/SBIconModel.h"
+			],
+			[
+				"sbicon",
+				"theos/include/SpringBoard/SBIconViewMap.h"
+			],
+			[
+				"sbiconlistv",
+				"theos/include/SpringBoard/SBIconListView.h"
+			],
+			[
+				"sbiconindex",
+				"theos/include/SpringBoard/SBIconIndexMutableListObserver-Protocol.h"
+			],
+			[
+				"sbiconob",
+				"theos/include/SpringBoard/SBIconObserver-Protocol.h"
+			],
+			[
+				"sbiconviewm",
+				"theos/include/SpringBoard/SBIconViewMapDelegate-Protocol.h"
+			],
+			[
+				"sbiconc",
+				"theos/include/SpringBoard/SBIconContentView.h"
+			],
+			[
+				"spsearchage",
+				"theos/include/SpringBoard/SPSearchAgentDelegate-Protocol.h"
+			],
+			[
+				"spsea",
+				"theos/include/Search/SPSearchAgent.h"
+			],
+			[
+				"sbsear",
+				"theos/include/SpringBoard/SBSearchModel.h"
+			],
+			[
+				"plcamer",
+				"theos/include/PhotoLibrary/PLCameraController.h"
+			],
+			[
+				"sbiconmodels",
+				"theos/include/SpringBoard/SBIconModelStore-Protocol.h"
+			],
+			[
+				"theos/include/springbnsobject-protocol.h",
+				"theos/include/SpringBoard/NSObject-Protocol.h"
+			],
+			[
+				"sbiconli",
+				"theos/include/SpringBoard/SBIconListModel.h"
+			],
+			[
+				"qspres",
+				"qsprefs/Resources/QSPrefs.plist"
+			],
+			[
+				"sbscree",
+				"theos/include/SpringBoard/SBScreenFlash.h"
+			],
+			[
+				"sbappl",
+				"theos/include/SpringBoard/SBApplication.h"
+			],
+			[
+				"plcameracon",
+				"theos/include/PhotoLibrary/PLCameraController.h"
+			],
+			[
+				"plcameracontroll",
+				"theos/include/PhotoLibrary/PLCameraController.h"
+			],
+			[
+				"sbapplicat",
+				"theos/include/SpringBoard/SBApplication.h"
+			],
+			[
+				"sbapplicationcontr",
+				"theos/include/SpringBoard/SBApplicationController.h"
+			],
+			[
+				"pldi",
+				"theos/include/PhotoLibraryServices/PLDiskController.h"
+			],
+			[
+				"uiremotea",
+				"theos/include/UIKit/UIRemoteApplication.h"
+			],
+			[
+				"uiremote",
+				"theos/include/UIKit/UIRemoteView.h"
+			],
+			[
+				"plcameracontro",
+				"theos/include/PhotoLibrary/PLCameraController.h"
+			],
+			[
+				"plcamerconte",
+				"theos/include/PhotoLibrary/PLCameraControllerDelegate-Protocol.h"
+			],
+			[
+				"cfusern",
+				"theos/include/CoreFoundation/CFUserNotification.h"
+			],
+			[
+				"sbiconindexn",
+				"theos/include/SpringBoard/SBIconIndexNode-Protocol.h"
+			],
+			[
+				"qsprefs",
+				"qsprefs/Resources/QSPrefs.plist"
+			],
+			[
+				"sbdevicelockow",
+				"theos/include/SpringBoard/SBDeviceLockViewOwner-Protocol.h"
+			],
+			[
+				"sbshowcasecontrollerow",
+				"theos/include/SpringBoard/SBShowcaseControllerOwner-Protocol.h"
+			],
+			[
+				"sbdispl",
+				"theos/include/SpringBoard/SBDisplayProtocol-Protocol.h"
+			],
+			[
+				"sbaler",
+				"theos/include/SpringBoard/SBAlert.h"
+			],
+			[
+				"sbawaycontroller",
+				"theos/include/SpringBoard/SBAwayController.h"
+			],
+			[
+				"sbappcon",
+				"theos/include/SpringBoard/SBAppContextHostManager.h"
+			],
+			[
+				"sbhostw",
+				"theos/include/SpringBoard/SBHostWrapperView.h"
+			],
+			[
+				"qspre",
+				"qsprefs/Resources/QSPrefs.plist"
+			],
+			[
+				"qsa",
+				"qsprefs/QSAboutTableViewController.m"
+			],
+			[
+				"nstask",
+				"theos/include/UIFoundation/NSAttributedString-NSAttributedStringKitAdditions.h"
+			],
+			[
+				"qsabout",
+				"qsprefs/QSAboutListController.mm"
+			],
+			[
+				"pstext",
+				"theos/include/Preferences/PSTextView.h"
+			],
+			[
+				"pstextview",
+				"theos/include/Preferences/PSTextViewTableCell.h"
+			],
+			[
+				"psta",
+				"theos/include/Preferences/PSTableCell.h"
+			],
+			[
+				"pslis",
+				"theos/include/Preferences/PSListController.h"
+			],
+			[
+				"qsupdat",
+				"debs/qsprefs/obj/debug/QSPrefs.bundle/QSAboutListSpecifiers.plist"
+			],
+			[
+				"upda",
+				"updatemd5.sh"
+			],
+			[
+				"upd",
+				"updatemd5.sh"
+			],
+			[
+				"twea",
+				"Tweak.xm"
+			],
+			[
+				"qsprefs.",
+				"qsprefs/Resources/QSPrefs.plist"
+			],
+			[
+				"qsabou",
+				"qsprefs/Resources/QSAboutListSpecifiers.plist"
+			],
+			[
+				"psspeci",
+				"theos/include/Preferences/PSSpecifier.h"
+			],
+			[
+				"pstablecell",
+				"theos/include/Preferences/PSTableCell.h"
+			],
+			[
+				"pstextviewl",
+				"theos/include/Preferences/PSTextViewTableCell.h"
+			],
+			[
+				"pslistc",
+				"theos/include/Preferences/PSListController.h"
+			],
+			[
+				"pslist",
+				"theos/include/Preferences/PSListController.h"
+			],
+			[
+				"sbuicontr",
+				"theos/include/SpringBoard/SBUIController.h"
+			],
+			[
+				"sbleafi",
+				"theos/include/SpringBoard/SBLeafIcon.h"
+			],
+			[
+				"sbapplicationicon",
+				"theos/include/SpringBoard/SBApplicationIcon.h"
+			],
+			[
+				"spring",
+				"theos/include/SpringBoard/SpringBoard.h"
+			],
+			[
+				"qsab",
+				"qsprefs/Resources/QSAboutListSpecifiers.plist"
+			],
+			[
+				"qsp",
+				"qsprefs/QSPrefs.mm"
+			],
+			[
+				"sbiconmode",
+				"theos/include/SpringBoard/SBIconModel.h"
+			],
+			[
+				"qscon",
+				"QSConstants.m"
+			],
+			[
+				"qspr",
+				"qsprefs/Resources/QSPrefs.plist"
+			],
+			[
+				"qspref",
+				"qsprefs/QSPrefs.mm"
+			],
+			[
+				"make",
+				"Makefile"
+			],
+			[
+				"qsprefs.pl",
+				"qsprefs/Resources/QSPrefs.plist"
+			],
+			[
+				"",
+				"/Users/aditya/code/CS6.00x/meh.py"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": false,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 221.0,
+	"status_bar_visible": true
+}

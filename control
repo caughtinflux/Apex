@@ -1,0 +1,9 @@
+Package: com.a3tweaks.stacks
+Name: Stacks
+Depends: mobilesubstrate
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: An awesome MobileSubstrate tweak!
+Maintainer: Sentry & flux
+Author: Sentry & flux
+Section: Tweaks
