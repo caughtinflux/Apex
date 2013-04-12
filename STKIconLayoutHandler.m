@@ -12,7 +12,7 @@
 	NSMutableArray *bottomIcons = [NSMutableArray arrayWithCapacity:icons.count / 3.0]; // 2
 	NSMutableArray *leftIcons   = [NSMutableArray arrayWithCapacity:icons.count / 3.0]; // 3
 
-	for (NSUInteger i = 0; i <= icons.count; i++) {
+	for (NSUInteger i = 0; i < icons.count; i++) {
 		NSInteger layoutLocation = ((NSInteger)i % 4);
 		switch (layoutLocation) {
 			case 0:
