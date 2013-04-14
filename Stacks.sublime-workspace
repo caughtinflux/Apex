@@ -4,20 +4,144 @@
 		"selected_items":
 		[
 			[
-				"loca",
-				"location	STKIconLocation *"
+				"NSTime",
+				"NSTimeInterval	typedef"
 			],
 			[
-				"icon",
-				"iconIndex	NSUInteger"
+				"displac",
+				"displacedRightIcons	NSMutableArray *"
+			],
+			[
+				"displaced",
+				"displacedBottomIcons	NSMutableArray *"
+			],
+			[
+				"inde",
+				"indexForX:(NSUInteger) Y:(NSUInteger) forOrientation:(int)	NSUInteger"
 			],
 			[
 				"SBI",
 				"SBIcon	class"
 			],
 			[
+				"NSM",
+				"NSMutableArray	class"
+			],
+			[
+				"arr",
+				"array	id"
+			],
+			[
+				"STK",
+				"STKIconLayout	class"
+			],
+			[
 				"STKIcon",
-				"STKIconLocation	typedef"
+				"STKIconLayout	class"
+			],
+			[
+				"SBIconView",
+				"SBIconViewMap"
+			],
+			[
+				"stat",
+				"statusBarOrientation	UIInterfaceOrientation"
+			],
+			[
+				"index",
+				"index(const char *, int)	char *"
+			],
+			[
+				"arra",
+				"arrayWithCapacity:(NSUInteger)	id"
+			],
+			[
+				"NSAss",
+				"NSAssert(condition, desc, ...)	macro"
+			],
+			[
+				"num",
+				"numbersLists"
+			],
+			[
+				"STKPositionTo",
+				"STKPositionTouchingRight	STKPosition"
+			],
+			[
+				"STKPostion",
+				"STKPositionTouchingLeft	STKPosition"
+			],
+			[
+				"STKP",
+				"STKPositionTouchingTop	STKPosition"
+			],
+			[
+				"STKPo",
+				"STKPositionDock	STKPosition"
+			],
+			[
+				"QSPositionT",
+				"QSPositionTouchingRight	QSPosition"
+			],
+			[
+				"QSPositionTou",
+				"QSPositionTouchingLeft	QSPosition"
+			],
+			[
+				"QSPo",
+				"QSPositionDock	QSPosition"
+			],
+			[
+				"QS",
+				"QSPositionTouchingBottom	QSPosition"
+			],
+			[
+				"QSPositionTouc",
+				"QSPositionTouchingRight	QSPosition"
+			],
+			[
+				"QSPositionTo",
+				"QSPositionTouchingTop	QSPosition"
+			],
+			[
+				"QSP",
+				"QSPosition	typedef"
+			],
+			[
+				"pre",
+				"prevMin	double"
+			],
+			[
+				"prevm",
+				"prevMax	double"
+			],
+			[
+				"addO",
+				"addObject:(id)	void"
+			],
+			[
+				"NSI",
+				"NSInteger	typedef"
+			],
+			[
+				"c",
+				"count	NSUInteger"
+			],
+			[
+				"NSMut",
+				"NSMutableDictionary	class"
+			],
+			[
+				"NSAssert",
+				"NSAssert(condition, desc, ...)	macro"
+			],
+			[
+				"loca",
+				"location	STKIconLocation *"
+			],
+			[
+				"icon",
+				"iconIndex	NSUInteger"
 			],
 			[
 				"launc",
@@ -50,10 +174,6 @@
 			[
 				"NSNot",
 				"NSNotFound	enum <anonymous>"
-			],
-			[
-				"SBIconView",
-				"SBIconViewDelegate"
 			],
 			[
 				"BKSWor",
@@ -394,126 +514,6 @@
 			[
 				"SBDevi",
 				"SBDeviceLockViewOwner"
-			],
-			[
-				"sqr",
-				"sqrtf(float)	float"
-			],
-			[
-				"UIGE",
-				"UIGestureRecognizerState	enum"
-			],
-			[
-				"UIGes",
-				"UIGestureRecognizerState	enum"
-			],
-			[
-				"init",
-				"initWithTarget:(id) action:(SEL)	id"
-			],
-			[
-				"M_P",
-				"M_PI	macro"
-			],
-			[
-				"UIDeviceOrientationLan",
-				"UIDeviceOrientationLandscapeRight	enum UIDeviceOrientation"
-			],
-			[
-				"UIDeviceOrientationLa",
-				"UIDeviceOrientationLandscapeLeft	enum UIDeviceOrientation"
-			],
-			[
-				"M_",
-				"M_PI	macro"
-			],
-			[
-				"t",
-				"transform	CGAffineTransform"
-			],
-			[
-				"addObbserv",
-				"addObserver:(NSObject *) toObjectsAtIndexes:(NSIndexSet *) forKeyPath:(NSString *) options:(NSKeyValueObservingOptions) context:(void *)	void"
-			],
-			[
-				"UIView",
-				"UIViewAutoresizingFlexibleWidth	enum UIViewAutoresizing"
-			],
-			[
-				"UIViewAutoresizing",
-				"UIViewAutoresizingFlexibleHeight	enum UIViewAutoresizing"
-			],
-			[
-				"aut",
-				"autoresizingMask	UIViewAutoresizing"
-			],
-			[
-				"na",
-				"navigationItem	UINavigationItem *"
-			],
-			[
-				"ECHO",
-				"ECHO_END"
-			],
-			[
-				"stringWit",
-				"stringWithCString"
-			],
-			[
-				"lat",
-				"latestVersionFile"
-			],
-			[
-				"pr",
-				"projects"
-			],
-			[
-				"co",
-				"code"
-			],
-			[
-				"package",
-				"packagesDir"
-			],
-			[
-				"titleF",
-				"tableView:(UITableView *) titleForHeaderInSection:(NSInteger)	NSString *"
-			],
-			[
-				"UITableViewCellStyle",
-				"UITableViewCellStyleDefault	enum <anonymous>"
-			],
-			[
-				"UITableViewSt",
-				"UITableViewStyle	typedef"
-			],
-			[
-				"tableView",
-				"tableView:(UITableView *) cellForRowAtIndexPath:(NSIndexPath *)	UITableViewCell *"
-			],
-			[
-				"UITableViewStyle",
-				"UITableViewStyleGrouped	enum <anonymous>"
-			],
-			[
-				"PSTextView",
-				"PSTextViewTableCell	class"
-			],
-			[
-				"_isCapt",
-				"_isCapturingVideo	BOOL"
-			],
-			[
-				"UIUserInterfaceI",
-				"UIUserInterfaceIdiomPhone	enum UIUserInterfaceIdiom"
-			],
-			[
-				"UIUSer",
-				"UIUserInterfaceIdiomPhone	enum UIUserInterfaceIdiom"
-			],
-			[
-				"UIUser",
-				"UIUserInterfaceIdiomPad	enum UIUserInterfaceIdiom"
 			]
 		]
 	},
@@ -640,19 +640,36 @@
 	},
 	"file_history":
 	[
-		"/Users/aditya/code/projects/stacks/Tweak.xm",
-		"/Users/aditya/code/projects/stacks/STKIconHelper.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplication.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBDockIconListView.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListView.h",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
+		"/Users/aditya/code/projects/stacks/Tweak.xm",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBTelephonyManager.h",
+		"/Users/aditya/code/projects/stacks/theos/include/Weather/WeatherPreferences.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIcon.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconRotationContainer.h",
+		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
+		"/Users/aditya/code/projects/prev_stacks/STKIconHelper.m",
+		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
+		"/Users/aditya/code/projects/prev_stacks/libMobileGestalt.h",
+		"/Users/aditya/Desktop/palindrome.py",
+		"/Users/aditya/code/projects/stacks/Makefile",
+		"/Users/aditya/code/projects/stacks/.gitignore",
+		"/Users/aditya/code/projects/stacks/STKConstants.m",
+		"/Users/aditya/code/projects/stacks/STKConstants.h",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/Alignment/Default (OSX).sublime-keymap",
+		"/Users/aditya/code/projects/stacks/STKIconHelper.h",
 		"/Users/aditya/code/projects/stacks/STKIconViewDelegate.m",
 		"/Users/aditya/code/projects/stacks/STKIconHelper.m",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconModel.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewDelegate-Protocol.h",
 		"/Users/aditya/code/projects/stacks/STKIconViewDelegate.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewMap.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIcon.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconIndexMutableList.h",
 		"/opt/theos/include/SpringBoard/SBIconController.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconScrollView.h",
@@ -663,7 +680,6 @@
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/NSIndexPath-SBIconIndex.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewMapDelegate-Protocol.h",
 		"/Users/aditya/code/projects/stacks/libMobileGestalt.h",
-		"/Users/aditya/code/projects/stacks/Makefile",
 		"/Users/aditya/code/projects/stacks/libmobilegestalt.h",
 		"/Users/aditya/code/random/scoper/Tweak.xm",
 		"/Users/aditya/code/tlsof/main.mm",
@@ -751,23 +767,7 @@
 		"/opt/theos/makefiles/instance/rules.mk",
 		"/opt/theos/makefiles/messages.mk",
 		"/opt/theos/makefiles/instance/tweak.mk",
-		"/opt/theos/makefiles/master/tweak.mk",
-		"/Users/aditya/code/projects/quickshootpro/updateversion.py",
-		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBIcon.h",
-		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBIconIndexNode-Protocol.h",
-		"/Users/aditya/Desktop/winterboard/makefile",
-		"/Users/aditya/Desktop/winterboard/make",
-		"/Users/aditya/code/projects/quickshootpro/qspropreferences/Makefile",
-		"/Users/aditya/code/projects/quickshootpro/qspropreferences/Resources/QSProPreferences.plist",
-		"/Users/aditya/code/projects/quickshootpro/qsprefs/entry.plist",
-		"/Users/aditya/code/projects/quickshootpro/qsprefs/Resources/Info.plist",
-		"/Users/aditya/code/projects/quickshootpro/qspropreferences/QSProPreferences.mm",
-		"/Users/aditya/code/projects/quickshootpro/qspropreferences/Resources/QSPrefs.plist",
-		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Theos_Tweak.sublime-build",
-		"/Users/aditya/code/projects/quickshootpro/QSInformationKit.h",
-		"/Users/aditya/code/projects/quickshootpro/linkupdate.sh",
-		"/Users/aditya/Desktop/lolwat.py",
-		"/Users/aditya/dropbox_uploader.sh"
+		"/opt/theos/makefiles/master/tweak.mk"
 	],
 	"find":
 	{
@@ -782,9 +782,33 @@
 	},
 	"find_state":
 	{
-		"case_sensitive": true,
+		"case_sensitive": false,
 		"find_history":
 		[
+			"call",
+			"number",
+			"current",
+			"call",
+			"incoming",
+			"originFor",
+			"temp",
+			"_uninstalled",
+			"struct CGSize",
+			"dock",
+			"float",
+			"unsigned int",
+			"struct CGRect",
+			"struct CGPoint",
+			"CGPoint",
+			"dockIconListView",
+			"dock",
+			"Dock",
+			"dock",
+			"inDock",
+			"number",
+			"columns",
+			"getX",
+			"QSPosition",
 			"originFor",
 			"applicationIconFor",
 			"model",
@@ -888,38 +912,21 @@
 			"release",
 			"modifier",
 			"super",
-			"optional",
-			"private",
-			"protocol",
-			"interface-or-protocol",
-			"interface-or-protocol.objc",
-			"meta.interface-or-protocol.objc",
-			"protocol|",
-			"@(protocol",
-			"storage.type.objc",
-			"@(protocol)",
-			"function | return",
-			"support.function.r",
-			"support.function",
-			"support.",
-			"support.re",
-			"i(",
-			"i)",
-			"return",
-			"keyword",
-			"URL",
-			"UI",
-			"UIView",
-			"@protocol",
-			"protocol",
-			"NSString"
+			"optional"
 		],
-		"highlight": false,
+		"highlight": true,
 		"in_selection": false,
 		"preserve_case": false,
 		"regex": false,
 		"replace_history":
 		[
+			"CGSize",
+			"CGSizew",
+			"CGFloat",
+			"NSUInteger",
+			"CGRect",
+			"CGPoint",
+			"STKPosition",
 			"(NSInteger)",
 			"NSInteger",
 			"NSInt",
@@ -1030,8 +1037,52 @@
 		"selected_items":
 		[
 			[
+				"sbiconvi",
+				"theos/include/SpringBoard/SBIconView.h"
+			],
+			[
+				"sbtel",
+				"theos/include/SpringBoard/SBTelephonyManager.h"
+			],
+			[
+				"sbiconview",
+				"theos/include/SpringBoard/SBIconView.h"
+			],
+			[
+				"weather",
+				"theos/include/Weather/WeatherPreferences.h"
+			],
+			[
+				"sbappli",
+				"theos/include/SpringBoard/SBApplication.h"
+			],
+			[
+				"sbiconre",
+				"theos/include/SpringBoard/SBIconRotationContainer.h"
+			],
+			[
+				"sbicon.h",
+				"theos/include/SpringBoard/SBIcon.h"
+			],
+			[
+				"sbdockiconl",
+				"theos/include/SpringBoard/SBDockIconListView.h"
+			],
+			[
+				"sbiconcontroller",
+				"theos/include/SpringBoard/SBIconController.h"
+			],
+			[
+				"sbiconl",
+				"theos/include/SpringBoard/SBIconListView.h"
+			],
+			[
 				"sbiconlis",
 				"theos/include/SpringBoard/SBIconListView.h"
+			],
+			[
+				"sbiconcontr",
+				"theos/include/SpringBoard/SBIconController.h"
 			],
 			[
 				"sbiconmod",
@@ -1048,10 +1099,6 @@
 			[
 				"sbiconviewde",
 				"theos/include/SpringBoard/SBIconViewDelegate-Protocol.h"
-			],
-			[
-				"sbiconview",
-				"theos/include/SpringBoard/SBIconView.h"
 			],
 			[
 				"sbiconlist",
