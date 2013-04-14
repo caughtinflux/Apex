@@ -18,4 +18,7 @@ extern NSString * const STKTweakName;
 // For instance 248 in the range [0, 320] -> something 0.0 -> 0.1
 extern double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax);
 
+// Wrapper function
+extern double STKAlphaFromDistance(double distance);
+
 #endif
