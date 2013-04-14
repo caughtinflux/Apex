@@ -8,3 +8,6 @@ Stacks_FILES = STKConstants.m STKIconLayout.m STKIconLayoutHandler.m STKStackMan
 Stacks_FRAMEWORKS = Foundation UIKit CoreGraphics QuartzCore
 
 include $(THEOS_MAKE_PATH)/tweak.mk
+
+before-install::
+	$(ECHO_NOTHING)echo `date`$(ECHO_END)

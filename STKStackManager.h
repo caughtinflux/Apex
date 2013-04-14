@@ -1,13 +1,16 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <SpringBoard/SBIconView.h>
+
 
 @class SBIcon;
+@interface STKStackManager : NSObject <SBIconViewDelegate>
 
-@interface STKStackManager : NSObject
+typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 
 @property(nonatomic, readonly) BOOL hasSetup;
 
-- (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons;
+- (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons interactionHandler:(STKInteractionHandler)handler;
 - (void)setupView;
 - (void)touchesDraggedForDistance:(CGFloat)distance;
 

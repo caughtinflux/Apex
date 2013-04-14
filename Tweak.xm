@@ -15,11 +15,12 @@
 #import <SpringBoard/SBIconView.h>
 #import <SpringBoard/SBIconListView.h>
 #import <SpringBoard/SBDockIconListView.h>
+#import <SpringBoard/SBUIController.h>
 
 #pragma mark - Variables
 static char            *_panGRKey;
 static STKStackManager *_stackManager;
-static CGFloat          _previousVelocity;
+static CGFloat          _previousDistance;
 
 #pragma mark - Function Declarations
 static NSArray * STKGetStackIcons(void);
@@ -44,9 +45,15 @@ static NSArray * STKGetStackIcons(void);
 %new
 - (void)stk_panned:(UIPanGestureRecognizer *)sender
 {
+    if ([[%c(SBIconController) sharedInstance] isEditing]) {
+        return;     
+    }
+
     if (sender.state == UIGestureRecognizerStateBegan) {
         if (!_stackManager) {
-            _stackManager = [[STKStackManager alloc] initWithCentralIcon:self.icon stackIcons:STKGetStackIcons()];
+            _stackManager = [[STKStackManager alloc] initWithCentralIcon:self.icon stackIcons:STKGetStackIcons() interactionHandler:^(SBIconView *tappedIconView) {
+                [(SBUIController *)[%c(SBUIController) sharedInstance] launchIcon:tappedIconView.icon];
+            }];
             [_stackManager setupView];
         }
     }
@@ -54,18 +61,16 @@ static NSArray * STKGetStackIcons(void);
         CGPoint point = [sender locationInView:[[%c(SBIconController) sharedInstance] currentRootIconList]];
         CGFloat distance = sqrtf(((point.x - self.center.x) * (point.x - self.center.x)) + ((point.y - self.center.y)  * (point.y - self.center.y))); // distance formula
         
-        CGPoint velocity = [gestureRecognizer velocityInView:[[%c(SBIconController) sharedInstance] currentRootIconList]];
-        if (!(((velocity.x * _previousVelocity.x) + (velocity.y * _previousVelocity.y)) > 0)) {
-            // Current pan is in a direction opposite to last, invert distance...
+        if (distance < _previousDistance) {
             distance = -distance;
         }
-        _previousVelocity = velocity;
-
+        _previousDistance = fabsf(distance);
+        
         CLog(@"Distance: %.2f", distance);
         [_stackManager touchesDraggedForDistance:distance];
     }
     if (sender.state == UIGestureRecognizerStateEnded) {
-
+        [_stackManager touchesEnded];
     }
 }
 
