@@ -21,16 +21,19 @@
 static char            *_panGRKey;
 static STKStackManager *_stackManager;
 static CGFloat          _previousDistance;
+static CGPoint          _startPoint;
 
 #pragma mark - Function Declarations
-static NSArray * STKGetStackIcons(void);
+// static NSArray * STKIconsWithStack(void);
+static NSArray * STKGetStackIconsForIcon(SBIcon *icon);
+// static void      STKAddGestureRecognizerToIcons(NSArray *icons);
 
 #pragma mark - SBIconView Hook
 %hook SBIconView
 - (void)setIcon:(SBIcon *)icon
 {
     %orig();
-    if ([STKGetStackIcons() containsObject:[icon leafIdentifier]]) {
+    if ([STKGetStackIconsForIcon(icon) containsObject:[icon leafIdentifier]] || !([self.icon.leafIdentifier isEqualToString:@"com.apple.mobileslideshow"])) {
         // Make sure the recognizer is not added to icons in the stack;
         return;
     }
@@ -51,22 +54,22 @@ static NSArray * STKGetStackIcons(void);
 
     if (sender.state == UIGestureRecognizerStateBegan) {
         if (!_stackManager) {
-            _stackManager = [[STKStackManager alloc] initWithCentralIcon:self.icon stackIcons:STKGetStackIcons() interactionHandler:^(SBIconView *tappedIconView) {
+            _stackManager = [[STKStackManager alloc] initWithCentralIcon:self.icon stackIcons:STKGetStackIconsForIcon(self.icon) interactionHandler:^(SBIconView *tappedIconView) {
                 [(SBUIController *)[%c(SBUIController) sharedInstance] launchIcon:tappedIconView.icon];
             }];
             [_stackManager setupView];
+            _startPoint = [sender locationInView:[[%c(SBIconController) sharedInstance] currentRootIconList]];
         }
     }
-    if (sender.state == UIGestureRecognizerStateChanged) {
+    else if (sender.state == UIGestureRecognizerStateChanged) {
         CGPoint point = [sender locationInView:[[%c(SBIconController) sharedInstance] currentRootIconList]];
-        CGFloat distance = sqrtf(((point.x - self.center.x) * (point.x - self.center.x)) + ((point.y - self.center.y)  * (point.y - self.center.y))); // distance formula
+        CGFloat distance = sqrtf(((point.x - _startPoint.x) * (point.x - _startPoint.x)) + ((point.y - _startPoint.y)  * (point.y - _startPoint.y))); // distance formula
         
         if (distance < _previousDistance) {
             distance = -distance;
         }
         _previousDistance = fabsf(distance);
         
-        CLog(@"Distance: %.2f", distance);
         [_stackManager touchesDraggedForDistance:distance];
     }
     if (sender.state == UIGestureRecognizerStateEnded) {
@@ -75,8 +78,16 @@ static NSArray * STKGetStackIcons(void);
 }
 
 %end
+%hook SpringBoard
+%new
+- (id)__stkman
+{
+    return _stackManager;
+}
+%end    
 
-static NSArray * STKGetStackIcons(void)
+
+static NSArray * STKGetStackIconsForIcon(SBIcon *icon)
 {
     SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
     return @[[model applicationIconForDisplayIdentifier:@"com.apple.mobiletimer"],
