@@ -21,9 +21,12 @@ static NSString * const STKStackLeftIconsKey   = @"lefticons";
 static NSString * const STKStackRightIconsKey  = @"righticons";
 
 #define kEnablingThreshold   55
-#define kMaximumDisplacement 80
+#define kMaximumDisplacement 85
 #define kAnimationDuration   0.2
+#define kDisabledIconAlpha   0.4
 
+
+#pragma mark - Private Method Declarations
 @interface STKStackManager ()
 {
     SBIcon               *_centralIcon;
@@ -31,7 +34,6 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     STKIconLayout        *_disappearingIconsLayout;
     STKIconLayoutHandler *_handler;
     NSMapTable           *_iconViewsTable;
-    BOOL                  _isExpanded;
     CGFloat               _lastSwipeDistance;
     CGFloat               _currentIconDisplacement;
     STKInteractionHandler _interactionHandler;
@@ -47,6 +49,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 - (CGFloat)_distanceFromCentre:(CGPoint)centre;
 
 @end
+
 
 @implementation STKStackManager
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons interactionHandler:(STKInteractionHandler)handler
@@ -83,6 +86,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     return nil;
 }
 
+#pragma mark - Adding Stack Icons
 - (void)setupView
 {
     [_appearingIconsLayout enumerateThroughAllIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
@@ -123,6 +127,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     }];
 }
 
+#pragma mark - Moving Icons
 - (void)touchesDraggedForDistance:(CGFloat)distance
 {
     if (distance > 0 && _currentIconDisplacement >= kMaximumDisplacement) {
@@ -142,6 +147,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     CLog(@"_currentIconDisplacement: %f", _currentIconDisplacement);
 }
 
+#pragma mark - Decision Methods
 - (void)touchesEnded
 {
     if (_currentIconDisplacement >= kEnablingThreshold) {
@@ -194,12 +200,21 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     }];
 
     // Move stack icons
+    CGRect centralFrame = [self _getIconViewForIcon:_centralIcon].frame;
+
     [(NSArray *)[_iconViewsTable objectForKey:STKStackTopIconsKey] enumerateObjectsUsingBlock:^(SBIconView *iconView, NSUInteger idx, BOOL *stop) {
         CGRect newFrame = iconView.frame;
         CGPoint targetOrigin = [self _getTargetOriginForIconAtPosition:STKLayoutPositionTop distanceFromCentre:idx + 1];
         iconView.alpha = 1.f;
-        if (((newFrame.origin.y - distance) > targetOrigin.y) && (!((newFrame.origin.y - distance) > [self _getIconViewForIcon:_centralIcon].frame.origin.y))) {
+        if (((newFrame.origin.y - distance) > targetOrigin.y) && (!((newFrame.origin.y - distance) > centralFrame.origin.y))) {
             newFrame.origin.y -= distance;
+        }
+        // If it's going beyond the acceptable limit, make it stick to the max position. The same thing is done in all the iterations below
+        else if ((newFrame.origin.y - distance) < targetOrigin.y) {
+            newFrame.origin = targetOrigin;
+        }
+        else if ((newFrame.origin.y - distance) > centralFrame.origin.y) {
+            newFrame = [self _getIconViewForIcon:_centralIcon].frame;
         }
         iconView.frame = newFrame;
     }];
@@ -208,8 +223,14 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         CGRect newFrame = iconView.frame;
         CGPoint targetOrigin = [self _getTargetOriginForIconAtPosition:STKLayoutPositionBottom distanceFromCentre:idx + 1];
         iconView.alpha = 1.f;
-        if ((newFrame.origin.y + distance) < targetOrigin.y && (!((newFrame.origin.y + distance) < [self _getIconViewForIcon:_centralIcon].frame.origin.y))) {
+        if ((newFrame.origin.y + distance) < targetOrigin.y && (!((newFrame.origin.y + distance) < centralFrame.origin.y))) {
             newFrame.origin.y += distance;
+        }
+        else if ((newFrame.origin.y + distance) > targetOrigin.y) {
+            newFrame.origin = targetOrigin;
+        }
+        else if ((newFrame.origin.y + distance) < centralFrame.origin.y) {
+            newFrame = centralFrame;
         }
         iconView.frame = newFrame;
     }];
@@ -218,8 +239,14 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         CGRect newFrame = iconView.frame;
         CGPoint targetOrigin = [self _getTargetOriginForIconAtPosition:STKLayoutPositionLeft distanceFromCentre:idx + 1];
         iconView.alpha = 1.f;
-        if (((newFrame.origin.x - distance) > targetOrigin.x) && (!((newFrame.origin.x - distance) > [self _getIconViewForIcon:_centralIcon].frame.origin.x))) {
+        if (((newFrame.origin.x - distance) > targetOrigin.x) && (!((newFrame.origin.x - distance) > centralFrame.origin.x))) {
             newFrame.origin.x -= distance;
+        }
+        else if ((newFrame.origin.x - distance) < targetOrigin.x) {
+            newFrame.origin = targetOrigin;
+        }
+        else if ((newFrame.origin.x - distance) > centralFrame.origin.x) {
+            newFrame = centralFrame;
         }
         iconView.frame = newFrame;
     }];
@@ -228,8 +255,14 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         CGRect newFrame = iconView.frame;
         CGPoint targetOrigin = [self _getTargetOriginForIconAtPosition:STKLayoutPositionRight distanceFromCentre:idx + 1];
         iconView.alpha = 1.f;
-        if (((newFrame.origin.x + distance) < targetOrigin.x) && (!((newFrame.origin.x + distance) < [self _getIconViewForIcon:_centralIcon].frame.origin.x))) {
+        if (((newFrame.origin.x + distance) < targetOrigin.x) && (!((newFrame.origin.x + distance) < centralFrame.origin.x))) {
             newFrame.origin.x += distance;
+        }
+        else if ((newFrame.origin.x + distance) > targetOrigin.x) {
+            newFrame.origin = targetOrigin;
+        }
+        else if ((newFrame.origin.x + distance) < centralFrame.origin.x) {
+            newFrame = centralFrame;
         }
         iconView.frame = newFrame;
     }];
@@ -263,7 +296,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         }];
 
         [_disappearingIconsLayout enumerateThroughAllIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
-            [self _getIconViewForIcon:icon].alpha = 0;
+            [self _getIconViewForIcon:icon].alpha = kDisabledIconAlpha;
         }];
     } completion:^(BOOL finished) {
         if (finished) {

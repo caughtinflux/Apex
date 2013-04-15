@@ -9,6 +9,7 @@
 typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 
 @property(nonatomic, readonly) BOOL hasSetup;
+@property(nonatomic, readonly) BOOL isExpanded;
 
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons interactionHandler:(STKInteractionHandler)handler;
 - (void)setupView;
