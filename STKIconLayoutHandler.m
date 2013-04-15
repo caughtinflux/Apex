@@ -9,7 +9,17 @@
 #import <SpringBoard/SBIconViewMap.h>
 #import <SpringBoard/SBIconView.h>
 
+#define kCurrentOrientation [UIApplication sharedApplication].statusBarOrientation
+
 @interface STKIconLayoutHandler ()
+
+- (NSArray *)_iconsAboveIcon:(SBIcon *)icon;
+- (NSArray *)_iconsBelowIcon:(SBIcon *)icon;
+- (NSArray *)_iconsLeftOfIcon:(SBIcon *)icon;
+- (NSArray *)_iconsRightOfIcon:(SBIcon *)icon;
+- (NSArray *)_iconsInColumnWithX:(NSUInteger)x;
+- (NSArray *)_iconsInRowWithY:(NSUInteger)y;
+
 @end
 
 @implementation STKIconLayoutHandler
@@ -76,54 +86,29 @@
     return [STKIconLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons];
 }
 
-- (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)icon usingLayout:(STKIconLayout *)layout;
+- (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)centralIcon usingLayout:(STKIconLayout *)layout;
 {
-    // Now, STKIconLayout's arrays do ***not*** have more than two icons.
-    // In this case, `layout` contains the apps that will appear.
-    // We have to return the icons that have to make way for the ones in `layout`.
-    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];    
+    NSArray * __block displacedTopIcons    = nil;
+    NSArray * __block displacedBottomIcons = nil;
+    NSArray * __block displacedLeftIcons   = nil;
+    NSArray * __block displacedRightIcons  = nil;
     
-    NSMutableArray *displacedTopIcons    = [NSMutableArray array];
-    NSMutableArray *displacedBottomIcons = [NSMutableArray array];
-    NSMutableArray *displacedLeftIcons   = [NSMutableArray array];
-    NSMutableArray *displacedRightIcons  = [NSMutableArray array];
-
-    STKIconCoordinates *coordinates = [self copyCoordinatesForIcon:icon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
-    DLog(@"coordinates for main icon: x: %i y: %i index: %i", coordinates->xPos, coordinates->yPos, coordinates->index);
-    for (SBIcon *icon in layout.topIcons) {
-        // Explanation:
-        // Here, the magic is in the Y: argument. The Y position of the icon will be the yPos of the central icon - (index of `icon` + 1)
-        // For example:
-        // If index: 0 and yPos == 2, then the Y coordinate of the icon to be moved should be 1. Hence, the formula becomes (2 - (0 + 1)) == 1
-        // Simple :P
-        NSUInteger iconIndex = [listView indexForX:coordinates->xPos Y:(coordinates->yPos - ([layout.topIcons indexOfObject:icon] + 1)) forOrientation:[UIApplication sharedApplication].statusBarOrientation];
-        if ((iconIndex < [listView icons].count) && (iconIndex != NSNotFound)) {
-            [displacedTopIcons addObject:[listView icons][iconIndex]];
+    [layout enumerateThroughAllIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
+        switch (position) {
+            case STKLayoutPositionTop:
+                displacedTopIcons = [self _iconsAboveIcon:centralIcon];
+                break;
+            case STKLayoutPositionBottom:
+                displacedBottomIcons = [self _iconsBelowIcon:centralIcon];
+                break;
+            case STKLayoutPositionLeft:
+                displacedLeftIcons = [self _iconsLeftOfIcon:centralIcon];
+                break;
+            case STKLayoutPositionRight:
+                displacedRightIcons = [self _iconsRightOfIcon:centralIcon];
+                break;
         }
-    }
-    // Similarly...
-    for (SBIcon *icon in layout.bottomIcons) {
-        NSUInteger iconIndex = [listView indexForX:coordinates->xPos Y:(coordinates->yPos + ([layout.bottomIcons indexOfObject:icon] + 1)) forOrientation:[UIApplication sharedApplication].statusBarOrientation];
-        if ((iconIndex < [listView icons].count) && (iconIndex != NSNotFound)) {
-            [displacedBottomIcons addObject:[listView icons][iconIndex]];
-        }
-    }
-
-    for (SBIcon *icon in layout.leftIcons) {
-        NSUInteger iconIndex = [listView indexForX:(coordinates->xPos - ([layout.leftIcons indexOfObject:icon] + 1)) Y:coordinates->yPos forOrientation:[UIApplication sharedApplication].statusBarOrientation];
-        if ((iconIndex < [listView icons].count) && (iconIndex != NSNotFound)) {
-            [displacedLeftIcons addObject:[listView icons][iconIndex]];
-        }
-    }
-    
-    for (SBIcon *icon in layout.rightIcons) {
-        NSUInteger iconIndex = [listView indexForX:(coordinates->xPos + ([layout.rightIcons indexOfObject:icon] + 1)) Y:coordinates->yPos forOrientation:[UIApplication sharedApplication].statusBarOrientation];
-        if ((iconIndex < [listView icons].count) && (iconIndex != NSNotFound)) {
-            [displacedRightIcons addObject:[listView icons][iconIndex]];
-        }
-    }
-
-    free(coordinates);
+    }];
 
     STKIconLayout *displacedIconsLayout = [STKIconLayout layoutWithIconsAtTop:displacedTopIcons bottom:displacedBottomIcons left:displacedLeftIcons right:displacedRightIcons];
     return displacedIconsLayout;
@@ -131,7 +116,7 @@
 
 - (STKIconCoordinates *)copyCoordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation
 {
-    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];    
+    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
 
     NSUInteger iconIndex, iconX, iconY;
     [listView iconAtPoint:[listView originForIcon:icon] index:&iconIndex];
@@ -143,6 +128,72 @@
     coordinates->index = iconIndex;
 
     return coordinates;
+}
+
+- (NSArray *)_iconsAboveIcon:(SBIcon *)icon
+{
+    STKIconCoordinates *coordinates = [self copyCoordinatesForIcon:icon withOrientation:kCurrentOrientation];
+    NSArray *ret = [[self _iconsInColumnWithX:coordinates->xPos] subarrayWithRange:NSMakeRange(0, coordinates->yPos)];
+    free(coordinates);
+    return ret;
+}
+
+- (NSArray *)_iconsBelowIcon:(SBIcon *)icon
+{
+    STKIconCoordinates *coordinates = [self copyCoordinatesForIcon:icon withOrientation:kCurrentOrientation];
+    NSArray *iconsInColumn = [self _iconsInColumnWithX:coordinates->xPos];
+    
+    NSRange range;
+    range.location = coordinates->yPos + 1;
+    range.length = iconsInColumn.count - (coordinates->yPos + 1);
+
+    return [iconsInColumn subarrayWithRange:range];
+}
+
+- (NSArray *)_iconsLeftOfIcon:(SBIcon *)icon
+{
+    STKIconCoordinates *coordinates = [self copyCoordinatesForIcon:icon withOrientation:kCurrentOrientation];
+    NSArray *iconsInRow = [self _iconsInRowWithY:coordinates->yPos];
+    
+    NSRange range;
+    range.location = 0;
+    range.length = coordinates->xPos;
+
+    return [iconsInRow subarrayWithRange:range];
+}
+
+- (NSArray *)_iconsRightOfIcon:(SBIcon *)icon
+{
+    STKIconCoordinates *coordinates = [self copyCoordinatesForIcon:icon withOrientation:kCurrentOrientation];
+    NSArray *iconsInRow = [self _iconsInRowWithY:coordinates->yPos];
+    
+    NSRange range;
+    range.location = coordinates->xPos + 1;
+    range.length = iconsInRow.count - (coordinates->xPos + 1);
+
+    return [iconsInRow subarrayWithRange:range];
+}
+
+- (NSArray *)_iconsInColumnWithX:(NSUInteger)x 
+{
+    NSMutableArray *icons = [NSMutableArray array];
+    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
+    for (NSUInteger i = 0; i <= ([listView iconRowsForCurrentOrientation] - 1); i++) {
+        SBIcon *icon = [listView icons][([listView indexForX:x Y:i forOrientation:[UIApplication sharedApplication].statusBarOrientation])];
+        [icons addObject:icon];
+    }
+    return icons;
+}
+
+- (NSArray *)_iconsInRowWithY:(NSUInteger)y
+{
+    NSMutableArray *icons = [NSMutableArray array];
+    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
+    for (NSUInteger i = 0; i <= ([listView iconColumnsForCurrentOrientation] - 1); i++) {
+        SBIcon *icon = [listView icons][([listView indexForX:i Y:y forOrientation:[UIApplication sharedApplication].statusBarOrientation])];
+        [icons addObject:icon];
+    }
+    return icons;
 }
 
 @end
