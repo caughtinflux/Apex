@@ -78,13 +78,6 @@ static NSArray * STKGetStackIconsForIcon(SBIcon *icon);
 }
 
 %end
-%hook SpringBoard
-%new
-- (id)__stkman
-{
-    return _stackManager;
-}
-%end    
 
 
 static NSArray * STKGetStackIconsForIcon(SBIcon *icon)
