@@ -10,8 +10,6 @@
 - (instancetype)initWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons
 {
     if ((self = [super init])) {
-        NSAssert((topIcons.count <= 2 || bottomIcons.count <= 2 || leftIcons.count <= 2 || rightIcons.count <= 2), (@"STKIconLayout can only accept arrays with 2 or less icons on each side"));
-        
         _topIcons    = [topIcons copy];
         _bottomIcons = [bottomIcons copy];
         _leftIcons   = [leftIcons copy];
