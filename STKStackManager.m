@@ -34,36 +34,46 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     STKIconLayout        *_disappearingIconsLayout;
     STKIconLayoutHandler *_handler;
     NSMapTable           *_iconViewsTable;
+    STKInteractionHandler _interactionHandler;
+
     CGFloat               _lastSwipeDistance;
     CGFloat               _currentIconDisplacement;
-    STKInteractionHandler _interactionHandler;
 }
 
 - (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance;
 - (void)_animateToOpenPosition;
 - (void)_animateToClosedPosition;
 - (SBIconView *)_getIconViewForIcon:(SBIcon *)icon;
-- (NSUInteger)_locationMaskForIcon:(SBIcon *)icon;
+- (STKPositionMask)_locationMaskForIcon:(SBIcon *)icon;
 - (void)_setAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral disableInteraction:(BOOL)disableInteraction;
+
+// Returns the target origin for icons in the stack at the moment.
 - (CGPoint)_getTargetOriginForIconAtPosition:(STKLayoutPosition)position distanceFromCentre:(NSInteger)distance;
+
+// This method manually calculates where the displaced icons should go. Index is the index of the icon from the central icon, with the closest starting from zero.
+- (CGPoint)_getDisplacedOriginForIcon:(SBIcon *)icon atIndex:(NSUInteger)index withPosition:(STKLayoutPosition)position;
+
+// Returns the distance of a point from the central icon's centre, calculated using distance formula
 - (CGFloat)_distanceFromCentre:(CGPoint)centre;
 
 @end
 
 
 @implementation STKStackManager
-- (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons interactionHandler:(STKInteractionHandler)handler
+- (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons interactionHandler:(STKInteractionHandler)interactionHandler
 {
     if ((self = [super init])) {
+        [icons retain]; // Make sure it's not released until we're done with it
+
         _centralIcon             = [centralIcon retain];
         _handler                 = [[STKIconLayoutHandler alloc] init];
-        _interactionHandler      = [handler copy];
+        _interactionHandler      = [interactionHandler copy];
         _appearingIconsLayout    = [[_handler layoutForIcons:icons aroundIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
         _disappearingIconsLayout = [[_handler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
         _iconViewsTable          = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsStrongMemory valueOptions:NSPointerFunctionsStrongMemory capacity:4];
+        _interactionHandler      = [_interactionHandler copy];
 
-        CLog(@"_appearingIconsLayout t: %@ b: %@ l: %@ r:%@", _appearingIconsLayout.topIcons, _appearingIconsLayout.bottomIcons, _appearingIconsLayout.leftIcons, _appearingIconsLayout.rightIcons);
-        CLog(@"_disappearingIconsLayout t: %@ b: %@ l: %@ r:%@", _disappearingIconsLayout.topIcons, _disappearingIconsLayout.bottomIcons, _disappearingIconsLayout.leftIcons, _disappearingIconsLayout.rightIcons);
+        [icons release];
     }
     return self;
 }
@@ -137,14 +147,25 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         // if -ve
         return;
     }
-    distance *= 0.1; // factor this shit daooooon    
+    distance *= 0.1; // factor this shit daooooon
+
     [self _moveAllIconsInRespectiveDirectionsByDistance:distance];
     
     _lastSwipeDistance = distance;
     _currentIconDisplacement += distance;
+}
 
-    CLog(@"last swipe distance: %f", _lastSwipeDistance);
-    CLog(@"_currentIconDisplacement: %f", _currentIconDisplacement);
+- (void)recalculateLayoutsWithStackIcons:(NSArray *)icons
+{
+    [icons retain];
+
+    [_appearingIconsLayout release];
+    [_disappearingIconsLayout release];
+    
+    _appearingIconsLayout    = [[_handler layoutForIcons:icons aroundIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
+    _disappearingIconsLayout = [[_handler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
+
+    [icons release];
 }
 
 #pragma mark - Decision Methods
@@ -166,12 +187,10 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     [self _animateToClosedPosition];
     [listView setIconsNeedLayout];
     [listView layoutIconsIfNeeded:kAnimationDuration domino:YES];
-    for (SBIcon *icon in [listView icons]) {
-        [[self _getIconViewForIcon:icon] setAlpha:1.0];
-    }
 }
 
-#pragma mark - Private Methods
+#pragma mark - Private Methods Begin
+#pragma mark - Move ALL the things
 - (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance
 {
     // Move icons currently on display to make way for stack icons
@@ -268,6 +287,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     }];
 }
 
+#pragma mark - Open Completion Animation
 - (void)_animateToOpenPosition
 {
     [UIView animateWithDuration:kAnimationDuration animations:^{
@@ -295,8 +315,11 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
                 iconView.frame = newFrame;
         }];
 
-        [_disappearingIconsLayout enumerateThroughAllIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
-            [self _getIconViewForIcon:icon].alpha = kDisabledIconAlpha;
+        [_disappearingIconsLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
+            SBIconView *iconView = [self _getIconViewForIcon:icon];
+            CGRect newFrame = iconView.frame;
+            newFrame.origin = [self _getDisplacedOriginForIcon:icon atIndex:index withPosition:position];
+            iconView.frame = newFrame;
         }];
     } completion:^(BOOL finished) {
         if (finished) {
@@ -305,6 +328,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     }];
 }
 
+#pragma mark - Close Animation
 - (void)_animateToClosedPosition
 {
     [UIView animateWithDuration:kAnimationDuration animations:^{
@@ -315,25 +339,22 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
                 iconView.alpha = 0.f;
             }
         }
-
-        [_disappearingIconsLayout enumerateThroughAllIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
-            [self _getIconViewForIcon:icon].alpha = 1;
-        }];
     } completion:^(BOOL finished) {
         if (finished) {
-            _isExpanded = YES;
+            _isExpanded = NO;
         }
     }];
 }
 
+#pragma mark - Helper Methods
 - (SBIconView *)_getIconViewForIcon:(SBIcon *)icon
 {
     return [[objc_getClass("SBIconViewMap") homescreenMap] iconViewForIcon:icon];
 }
 
-- (NSUInteger)_locationMaskForIcon:(SBIcon *)icon
+- (STKPositionMask)_locationMaskForIcon:(SBIcon *)icon
 {
-    NSUInteger mask = 0x0;
+    STKPositionMask mask = 0x0;
     
     if (!icon) {
         return mask;
@@ -411,6 +432,42 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     }
 }
 
+- (CGPoint)_getDisplacedOriginForIcon:(SBIcon *)icon atIndex:(NSUInteger)index withPosition:(STKLayoutPosition)position
+{
+    // Calculate the positions manually, as -[SBIconListView originForIconAtX:Y:] only gives coordinates that will be on screen.
+    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
+    SBIconView *iconView = [self _getIconViewForIcon:icon];
+    
+    CGPoint originalOrigin = [listView originForIcon:icon]; // Use the original location as a reference, as the iconview might have been displaced.
+    CGRect originalFrame = (CGRect){{originalOrigin.x, originalOrigin.y}, {iconView.frame.size.width, iconView.frame.size.height}};
+    
+    CGPoint returnPoint;
+    switch (position) {
+        case STKLayoutPositionTop: {
+            returnPoint.x = originalFrame.origin.x;
+            returnPoint.y = originalFrame.origin.y - ((originalFrame.size.height + [listView verticalIconPadding]));
+            break;
+        }
+        case STKLayoutPositionBottom: {
+            returnPoint.x = originalFrame.origin.x;
+            returnPoint.y = originalFrame.origin.y + ((originalFrame.size.height + [listView verticalIconPadding]));    
+            break;
+        }
+        case STKLayoutPositionLeft: {
+            returnPoint.y = originalFrame.origin.y;
+            returnPoint.x = originalFrame.origin.x - ((originalFrame.size.width + [listView horizontalIconPadding]));
+            break;
+        }
+        case STKLayoutPositionRight: {
+            returnPoint.y = originalFrame.origin.y;
+            returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView horizontalIconPadding]));
+            break;
+        }
+    }
+    
+    return returnPoint;
+}
+
 - (CGFloat)_distanceFromCentre:(CGPoint)point
 {
     SBIconView *iconView = [self _getIconViewForIcon:_centralIcon];
@@ -420,9 +477,11 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #pragma mark - SBIconViewDelegate
 - (void)iconTapped:(SBIconView *)iconView
 {
+    iconView.highlighted = YES;
     if (_interactionHandler) {
         _interactionHandler(iconView);
     }
+    iconView.highlighted = NO;
 }
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
