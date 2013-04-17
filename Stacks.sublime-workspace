@@ -4,6 +4,94 @@
 		"selected_items":
 		[
 			[
+				"addOb",
+				"addObserver:(id) selector:(SEL) name:(NSString *) object:(id)	void"
+			],
+			[
+				"NSNot",
+				"NSNotificationCenter	class"
+			],
+			[
+				"index",
+				"index	NSUInteger"
+			],
+			[
+				"co",
+				"count	NSUInteger"
+			],
+			[
+				"STKL",
+				"STKLayoutPositionRight	STKLayoutPosition"
+			],
+			[
+				"STKLa",
+				"STKLayoutPositionLeft	STKLayoutPosition"
+			],
+			[
+				"l",
+				"leftIcons	NSArray *"
+			],
+			[
+				"id",
+				"idx	NSUInteger"
+			],
+			[
+				"ret",
+				"returnPoint	CGPoint"
+			],
+			[
+				"icon",
+				"iconView	SBIconView *"
+			],
+			[
+				"STKLayoutPos",
+				"STKLayoutPositionLeft	STKLayoutPosition"
+			],
+			[
+				"CGPoin",
+				"CGPointZero	const CGPoint"
+			],
+			[
+				"displace",
+				"displacedRightIcons	NSArray *"
+			],
+			[
+				"ni",
+				"nil	macro"
+			],
+			[
+				"SBI",
+				"SBIcon	class"
+			],
+			[
+				"ran",
+				"range	NSRange"
+			],
+			[
+				"STKIcon",
+				"STKIconCoordinates	typedef"
+			],
+			[
+				"NSMake",
+				"NSMakeRange(NSUInteger loc, NSUInteger len)	NSRange"
+			],
+			[
+				"icons",
+				"iconColumnsForCurrentOrientation	NSUInteger"
+			],
+			[
+				"curr",
+				"currentOrientation	UIInterfaceOrientation"
+			],
+			[
+				"s",
+				"sharedApplication	UIApplication *"
+			],
+			[
+				"max",
+				"maxVisibleIconRowsInterfaceOrientation:(int)	NSUInteger"
+			],
+			[
 				"_isE",
 				"_isExpanded	BOOL"
 			],
@@ -24,16 +112,8 @@
 				"_animateToOpenPosition	void"
 			],
 			[
-				"STKLa",
-				"STKLayoutPositionRight	STKLayoutPosition"
-			],
-			[
 				"STKLayoutPo",
 				"STKLayoutPositionBottom	STKLayoutPosition"
-			],
-			[
-				"STKL",
-				"STKLayoutPositionTop	STKLayoutPosition"
 			],
 			[
 				"STKStack",
@@ -152,10 +232,6 @@
 				"SBIconListView	class"
 			],
 			[
-				"icon",
-				"iconView	SBIconView *"
-			],
-			[
 				"r",
 				"rightIcons	NSArray *"
 			],
@@ -180,10 +256,6 @@
 				"indexForX:(NSUInteger) Y:(NSUInteger) forOrientation:(int)	NSUInteger"
 			],
 			[
-				"SBI",
-				"SBIcon	class"
-			],
-			[
 				"NSM",
 				"NSMutableArray	class"
 			],
@@ -192,20 +264,12 @@
 				"array	id"
 			],
 			[
-				"STKIcon",
-				"STKIconLayout	class"
-			],
-			[
 				"SBIconView",
 				"SBIconViewMap"
 			],
 			[
 				"stat",
 				"statusBarOrientation	UIInterfaceOrientation"
-			],
-			[
-				"index",
-				"index(const char *, int)	char *"
 			],
 			[
 				"arra",
@@ -322,10 +386,6 @@
 			[
 				"SBIcon",
 				"SBIconListView	class"
-			],
-			[
-				"NSNot",
-				"NSNotFound	enum <anonymous>"
 			],
 			[
 				"BKSWor",
@@ -454,71 +514,19 @@
 			[
 				"_video",
 				"_videoStoppedManually	BOOL"
-			],
-			[
-				"AVAudioSessionCategoryOp",
-				"AVAudioSessionCategoryOptionMixWithOthers	enum AVAudioSessionCategoryOptions"
-			],
-			[
-				"setCate",
-				"setCategory:(NSString *) withOptions:(AVAudioSessionCategoryOptions) error:(NSError **)	BOOL"
-			],
-			[
-				"AVAudioSessionCategoryPl",
-				"AVAudioSessionCategoryPlayAndRecord	NSString *const"
-			],
-			[
-				"AVAudioSe",
-				"AVAudioSessionCategoryPlayback	NSString *const"
-			],
-			[
-				"setAudioCa",
-				"setCategory:(NSString *) withOptions:(AVAudioSessionCategoryOptions) error:(NSError **)	BOOL"
-			],
-			[
-				"isRead",
-				"isReady	BOOL"
-			],
-			[
-				"AVCaptureSession",
-				"AVCaptureSessionPresetMedium	NSString *const"
-			],
-			[
-				"STring",
-				"STRING_FROM_BOOL	macro"
-			],
-			[
-				"s",
-				"sharedInstance	id"
-			],
-			[
-				"QSC",
-				"QSCopyHashFromFileAtPath(CFStringRef path)	NSString *"
-			],
-			[
-				"CFStrin",
-				"CFStringRef	typedef"
-			],
-			[
-				"pref",
-				"prefsPlistPath"
-			],
-			[
-				"plist",
-				"plistlib"
-			],
-			[
-				"la",
-				"latestBuild"
-			],
-			[
-				"pl",
-				"plistlib"
 			]
 		]
 	},
 	"buffers":
 	[
+		{
+			"file": "/Users/aditya/code/projects/fluxbot/fluxbot.py",
+			"settings":
+			{
+				"buffer_size": 1899,
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "Packages/Python/Python.sublime-build",
 	"command_palette":
@@ -640,23 +648,25 @@
 	},
 	"file_history":
 	[
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListView.h",
-		"/Users/aditya/code/projects/stacks/STKConstants.m",
 		"/Users/aditya/code/projects/stacks/Tweak.xm",
-		"/Users/aditya/code/projects/stacks/STKStackManager.m",
-		"/Users/aditya/code/projects/flagpaint/HBFPColorArt.h",
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
 		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewDelegate-Protocol.h",
 		"/Users/aditya/code/projects/stacks/STKStackManager.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
+		"/Users/aditya/code/projects/stacks/STKStackManager.m",
+		"/Users/aditya/code/projects/stacks/STKConstants.h",
+		"/Users/aditya/code/projects/stacks/STKConstants.m",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
 		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListView.h",
+		"/Users/aditya/code/projects/stacks/layout/Library/Application Support/Stacks.bundle/Info.plist",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListModel.h",
+		"/Users/aditya/code/projects/flagpaint/HBFPColorArt.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewDelegate-Protocol.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIcon.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplicationIcon.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListModel.h",
 		"/opt/theos/include/SpringBoard/SpringBoard.h",
 		"/Users/aditya/code/projects/prev_stacks/Tweak.xm",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplication.h",
@@ -669,7 +679,6 @@
 		"/Users/aditya/Desktop/palindrome.py",
 		"/Users/aditya/code/projects/stacks/Makefile",
 		"/Users/aditya/code/projects/stacks/.gitignore",
-		"/Users/aditya/code/projects/stacks/STKConstants.h",
 		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/Alignment/Default (OSX).sublime-keymap",
 		"/Users/aditya/code/projects/stacks/STKIconHelper.h",
 		"/Users/aditya/code/projects/stacks/STKIconViewDelegate.m",
@@ -766,8 +775,7 @@
 		"/Users/aditya/code/projects/quickshootpro/LibstatusBar.h",
 		"/Users/aditya/code/projects/quickshootpro/qsprefs/Makefile",
 		"/Users/aditya/code/projects/quickshootpro/qsprefs/NSTask.h",
-		"/Users/aditya/code/projects/quickshootpro/theos/include/CoreFoundation/CFUserNotification.h",
-		"/Users/aditya/code/projects/quickshootpro/QSLink.h"
+		"/Users/aditya/code/projects/quickshootpro/theos/include/CoreFoundation/CFUserNotification.h"
 	],
 	"find":
 	{
@@ -785,6 +793,18 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"jitter",
+			"editing",
+			"change",
+			"_locationMask",
+			"_getTargetOriginForIconAtPosition",
+			"editing",
+			"0.4",
+			"iconAt",
+			"move",
+			"icons",
+			"[UIApplication sharedApplication].statusBarOrientation",
+			"touches",
 			"_isExpanded",
 			"moveIcon",
 			"removeGhost",
@@ -900,19 +920,7 @@
 			"max",
 			"numberOfIcons",
 			"Session",
-			"running",
-			"obj c",
-			"ena",
-			"An error occured",
-			"an error occured",
-			"CC_",
-			"location",
-			"list",
-			"anti-blur",
-			"com.caughtinflux.quickshootpro.",
-			"com.caughtinflux.quickshootpro.a",
-			"com.caughtinflux.quickshootpro.app",
-			"com.quickshootpro."
+			"running"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -920,6 +928,8 @@
 		"regex": false,
 		"replace_history":
 		[
+			"kDisabledIconAlpha",
+			"currentOrientation",
 			"STKLayoutPosition",
 			"CGSize",
 			"CGSizew",
@@ -975,8 +985,83 @@
 	"groups":
 	[
 		{
+			"selected": 0,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "/Users/aditya/code/projects/fluxbot/fluxbot.py",
+					"settings":
+					{
+						"buffer_size": 1899,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"bh_regions":
+							[
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close"
+							],
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
 			]
 		}
 	],
@@ -1038,6 +1123,22 @@
 		"selected_items":
 		[
 			[
+				"sbiconview",
+				"theos/include/SpringBoard/SBIconView.h"
+			],
+			[
+				"sbiconcont",
+				"theos/include/SpringBoard/SBIconController.h"
+			],
+			[
+				"sbiconlist",
+				"theos/include/SpringBoard/SBIconListView.h"
+			],
+			[
+				"sbiconli",
+				"theos/include/SpringBoard/SBIconListView.h"
+			],
+			[
 				"sbiconlis",
 				"theos/include/SpringBoard/SBIconListView.h"
 			],
@@ -1062,20 +1163,12 @@
 				"theos/include/SpringBoard/SBApplicationIcon.h"
 			],
 			[
-				"sbiconview",
-				"theos/include/SpringBoard/SBIconView.h"
-			],
-			[
 				"sbiconcontro",
 				"theos/include/SpringBoard/SBIconController.h"
 			],
 			[
 				"sbiconlistview",
 				"theos/include/SpringBoard/SBIconListView.h"
-			],
-			[
-				"sbiconli",
-				"theos/include/SpringBoard/SBIconListModel.h"
 			],
 			[
 				"sbiconvi",
@@ -1116,10 +1209,6 @@
 			[
 				"sbuicont",
 				"theos/include/SpringBoard/SBUIController.h"
-			],
-			[
-				"sbiconlist",
-				"theos/include/SpringBoard/SBIconListView.h"
 			],
 			[
 				"sbiconviewma",
