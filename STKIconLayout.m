@@ -35,6 +35,8 @@
 
 - (void)enumerateThroughAllIconsUsingBlock:(void(^)(SBIcon *, STKLayoutPosition))block
 {
+    [block copy];
+
     for (SBIcon *icon in self.topIcons) {
         block(icon, STKLayoutPositionTop);
     }
@@ -47,6 +49,32 @@
     for (SBIcon *icon in self.rightIcons) {
         block(icon, STKLayoutPositionRight);
     }
+
+    [block release];
+}
+
+- (void)enumerateIconsUsingBlockWithIndexes:(void(^)(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block
+{
+    STKIconLayout __block *wSelf = self;
+    [block copy];
+
+    [self.topIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
+        block(icon, STKLayoutPositionTop, wSelf.topIcons, idx);
+    }];
+
+    [self.bottomIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
+        block(icon, STKLayoutPositionBottom, wSelf.topIcons, idx);
+    }];
+
+    [self.leftIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
+        block(icon, STKLayoutPositionLeft, wSelf.topIcons, idx);
+    }];
+
+    [self.rightIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
+        block(icon, STKLayoutPositionRight, wSelf.topIcons, idx);
+    }];
+
+    [block release];
 }
 
 - (NSString *)description
