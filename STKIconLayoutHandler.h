@@ -10,6 +10,8 @@ typedef enum {
     STKPositionDock           = 0x32
 } STKPosition;
 
+typedef NSUInteger STKPositionMask;
+
 typedef struct {
 	NSUInteger xPos;
 	NSUInteger yPos;
@@ -22,7 +24,7 @@ typedef struct {
 // Set the exact position by OR'ing the different values in the enum
 // It will just explode in your face if you do rubbish like setting both TouchingTop and TouchingBottom
 // I mean it.
-- (STKIconLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(NSUInteger)position;
+- (STKIconLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(STKPositionMask)position;
 
 // Returns an STKIconLayout object whose properties contain SBIcons to be faded out when the new icons are coming in
 // This, is plain magic.

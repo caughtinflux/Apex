@@ -24,7 +24,7 @@
 
 @implementation STKIconLayoutHandler
 
-- (STKIconLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(NSUInteger)position
+- (STKIconLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(STKPositionMask)position
 {
     NSAssert((icons != nil), (@"You must pass in a non-nil array to -[STKIconLayoutHandler layoutForIcons:]"));
 
@@ -39,7 +39,6 @@
         switch (layoutLocation) {
             case 0: {
                 if ((position & STKPositionTouchingTop) == STKPositionTouchingTop) {
-                    DLog(@"No place at the top, reassign to bottom");
                     [bottomIcons addObject:icons[i]];
                 }
                 else {
@@ -50,7 +49,6 @@
 
             case 1: {
                 if (((position & STKPositionTouchingBottom) == STKPositionTouchingBottom) || ((position & STKPositionDock) == STKPositionDock)) {
-                    DLog(@"No place at the bottom, add to top");
                     [topIcons addObject:icons[i]];
                 }
                 else {
@@ -61,7 +59,6 @@
 
             case 2: {
                 if ((position & STKPositionTouchingLeft) == STKPositionTouchingLeft) {
-                    DLog(@"No place on the left, reassign to right");
                     [rightIcons addObject:icons[i]];
                 }
                 else {
@@ -72,7 +69,6 @@
 
             case 3: {
                 if ((position & STKPositionTouchingRight) == STKPositionTouchingRight) {
-                    DLog(@"No place on the right, reassign to left");
                     [leftIcons addObject:icons[i]];
                 }
                 else {
@@ -179,8 +175,10 @@
     NSMutableArray *icons = [NSMutableArray array];
     SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
     for (NSUInteger i = 0; i <= ([listView iconRowsForCurrentOrientation] - 1); i++) {
-        SBIcon *icon = [listView icons][([listView indexForX:x Y:i forOrientation:[UIApplication sharedApplication].statusBarOrientation])];
-        [icons addObject:icon];
+        NSUInteger index = [listView indexForX:x Y:i forOrientation:[UIApplication sharedApplication].statusBarOrientation];
+        if (index < [listView icons].count) {
+            [icons addObject:[listView icons][index]];
+        }
     }
     return icons;
 }
@@ -190,8 +188,10 @@
     NSMutableArray *icons = [NSMutableArray array];
     SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
     for (NSUInteger i = 0; i <= ([listView iconColumnsForCurrentOrientation] - 1); i++) {
-        SBIcon *icon = [listView icons][([listView indexForX:i Y:y forOrientation:[UIApplication sharedApplication].statusBarOrientation])];
-        [icons addObject:icon];
+        NSUInteger index = [listView indexForX:i Y:y forOrientation:[UIApplication sharedApplication].statusBarOrientation];
+        if (index < [listView icons].count) {
+            [icons addObject:[listView icons][index]];
+        }
     }
     return icons;
 }
