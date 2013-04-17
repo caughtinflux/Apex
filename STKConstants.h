@@ -11,8 +11,9 @@
 
 @class NSString;
 extern NSString * const STKTweakName;
+extern NSString * const STKEditingStateChangedNotification;
 
-#define PREFS_PATH [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks.%@.plist"];
+#define PREFS_PATH [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks.%@.plist", STKTweakName];
 
 // Function to translate a number from one range to another
 // For instance 248 in the range [0, 320] -> something 0.0 -> 0.1

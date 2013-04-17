@@ -4,6 +4,7 @@
 #import <Foundation/Foundation.h>
 
 NSString * const STKTweakName = @"Stacks";
+NSString * const STKEditingStateChangedNotification = @"STKEditingStateChanged";
 
 double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax)
 {
@@ -18,5 +19,5 @@ double STKAlphaFromDistance(double distance)
 {
 	// Subtract from 1 to invert the scale
 	// Greater the distance, lower the alpha
-	return (STKScaleNumber(distance, 0.0, 100, 0.0, 1.0));
+	return (STKScaleNumber(distance, 0.0, 10, 0.0, 1.0));
 }
