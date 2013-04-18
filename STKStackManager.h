@@ -10,11 +10,12 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 
 @property(nonatomic, readonly) BOOL hasSetup;
 @property(nonatomic, readonly) BOOL isExpanded;
+@property(nonatomic, copy) STKInteractionHandler interactionHandler;
 
 // The interaction handler is called when an icon is tapped.
-- (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons interactionHandler:(STKInteractionHandler)handler;
+- (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons;
 
-// Setup view must be called ***only** once. This method adds creates and add iconviews underneath the central icon
+- (void)setupViewIfNecessary;
 - (void)setupView;
 
 - (void)touchesDraggedForDistance:(CGFloat)distance;

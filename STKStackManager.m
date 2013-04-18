@@ -8,6 +8,7 @@
 #import <SpringBoard/SpringBoard.h>
 #import <SpringBoard/SBIconController.h>
 #import <SpringBoard/SBApplicationIcon.h>
+#import <SpringBoard/SBRootFolder.h>
 #import <SpringBoard/SBIconModel.h>
 #import <SpringBoard/SBIconViewMap.h>
 #import <SpringBoard/SBIconView.h>
@@ -23,8 +24,8 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #define kEnablingThreshold   55
 #define kMaximumDisplacement 85
 #define kAnimationDuration   0.2
-#define kDisabledIconAlpha   0.4
-#define kBandingAllowance    12
+#define kDisabledIconAlpha   0.22
+#define kBandingAllowance    12 // Allow for the icons to stretch for up to 12 points beyond their target locations
 
 
 #pragma mark - Private Method Declarations
@@ -64,18 +65,16 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 @implementation STKStackManager 
 
 #pragma mark - Public Methods
-- (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons interactionHandler:(STKInteractionHandler)interactionHandler
+- (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
 {
     if ((self = [super init])) {
         [icons retain]; // Make sure it's not released until we're done with it
 
         _centralIcon             = [centralIcon retain];
         _handler                 = [[STKIconLayoutHandler alloc] init];
-        _interactionHandler      = [interactionHandler copy];
         _appearingIconsLayout    = [[_handler layoutForIcons:icons aroundIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
         _disappearingIconsLayout = [[_handler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
         _iconViewsTable          = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsStrongMemory valueOptions:NSPointerFunctionsStrongMemory capacity:4];
-        _interactionHandler      = [_interactionHandler copy];
 
         [icons release];
     }
@@ -84,6 +83,16 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 
 - (void)dealloc
 {
+    if (_hasSetup) {
+        // Remove the icon views if they're in superviews...
+        // Don't want shit hanging around
+        for (NSArray *iconViews in [[_iconViewsTable objectEnumerator] allObjects]) {
+            for (SBIconView *iconView in iconViews) {
+                [iconView removeFromSuperview];
+            }
+        }
+    }
+
     [_centralIcon release];
     [_handler release];
     [_interactionHandler release];
@@ -118,7 +127,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         SBIconView *iconView = [[[objc_getClass("SBIconView") alloc] initWithDefaultSize] autorelease];
         [iconView setIcon:icon];
         [iconView setDelegate:self];
-        SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
+        SBIconListView *listView = STKListViewForIcon(_centralIcon);
 
         SBIconView *centralIconView = [self _getIconViewForIcon:_centralIcon];
         [iconView setFrame:centralIconView.frame];
@@ -210,7 +219,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
  
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler
 {
-    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
+    SBIconListView *listView = STKListViewForIcon(_centralIcon);
     [self _animateToClosedPositionWithCompletionBlock:^{
         if (completionHandler) {
             completionHandler();
@@ -238,7 +247,9 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     }];
 }
 
-#pragma mark - Private Methods Begin
+
+#pragma mark - Private Methods
+
 #pragma mark - Move ALL the things
 - (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance
 {
@@ -472,7 +483,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     }
 
     STKIconLayoutHandler *handler = [[STKIconLayoutHandler alloc] init];
-    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
+    SBIconListView *listView = STKListViewForIcon(_centralIcon);
     STKIconCoordinates *coordinates = [handler copyCoordinatesForIcon:icon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
     [handler release];
 
@@ -579,6 +590,8 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         iconView.alpha = alpha;
         iconView.userInteractionEnabled = !disableInteraction;
     }
+    SBIconListView *dockView = [[objc_getClass("SBIconController") sharedInstance] dock];
+    [dockView setAlphaForAllIcons:alpha];
 }
 
 - (CGFloat)_distanceFromCentre:(CGPoint)point

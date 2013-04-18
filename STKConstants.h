@@ -9,7 +9,8 @@
 	#define CLog(...)
 #endif
 
-@class NSString;
+@class NSString, SBIconListView, SBIcon;
+
 extern NSString * const STKTweakName;
 extern NSString * const STKEditingStateChangedNotification;
 
@@ -23,5 +24,7 @@ extern double STKScaleNumber(double numToScale, double prevMin, double prevMax, 
 
 // Wrapper function
 extern double STKAlphaFromDistance(double distance);
+
+extern SBIconListView * STKListViewForIcon(SBIcon *icon);
 
 #endif
