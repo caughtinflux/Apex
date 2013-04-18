@@ -84,6 +84,16 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 
 - (void)dealloc
 {
+    if (_hasSetup) {
+        // Remove the icon views if they're in superviews...
+        // Don't want shit hanging around
+        for (NSArray *iconViews in [[_iconViewsTable objectEnumerator] allObjects]) {
+            for (SBIconView *iconView in iconViews) {
+                [iconView removeFromSuperview];
+            }
+        }
+    }
+
     [_centralIcon release];
     [_handler release];
     [_interactionHandler release];

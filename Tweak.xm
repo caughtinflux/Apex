@@ -18,29 +18,34 @@
 #import <SpringBoard/SBDockIconListView.h>
 #import <SpringBoard/SBUIController.h>
 
-#pragma mark - Variables
-static char            *_panGRKey;
-static char            *_stackManagerKey;
-static STKStackManager *_stackManager;
-static CGFloat          _previousDistance;
-static CGPoint          _startPoint;
-static BOOL             _previousEditingState;
 
-#pragma mark - Function Declarations
+#pragma mark - Declarations
+static char *_panGRKey;
+static char *_stackManagerKey;
+
+static CGFloat _previousDistance;
+static CGPoint _startPoint;
+static BOOL    _previousEditingState;
+
 // returns an NSArray of SBIcon object that are in a stack under `icon`.
 static NSArray * STKGetStackIconsForIcon(SBIcon *icon);
 
 // Returns an array of bundle IDs
 static NSArray * STKGetIconsWithStack(void);
 
-static void      STKAddPanRecognizerToIconView(SBIconView *iconView);
-static void      STKRemovePanRecognizerFromIconView(SBIconView *iconView);
+// Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
+static STKStackManager * STKSetupManagerForView(SBIconView *iconView);
 
-// Inline Functions,  prevent function overhead if called too much.
+static void STKAddPanRecognizerToIconView(SBIconView *iconView);
+static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
+
+// Inline Functions,  prevents function overhead if called too much.
 static inline UIPanGestureRecognizer * STKGetGestureRecognizerForView(SBIconView *iconView);
-static inline STKStackManager        * STKGetStackManagerForView(SBIconView *iconView);
+static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
+
 
 #pragma mark - SBIconView Hook
+
 %hook SBIconView
 - (void)setIcon:(SBIcon *)icon
 {
@@ -65,33 +70,34 @@ static inline STKStackManager        * STKGetStackManagerForView(SBIconView *ico
 - (void)stk_panned:(UIPanGestureRecognizer *)sender
 {
     if (sender.state == UIGestureRecognizerStateBegan) {
-        if (!_stackManager) {
-            _stackManager = [[STKStackManager alloc] initWithCentralIcon:self.icon stackIcons:STKGetStackIconsForIcon(self.icon) interactionHandler:^(SBIconView *tappedIconView) {
-                [_stackManager closeStackSettingCentralIcon:tappedIconView.icon completion:^{
-                    [(SBUIController *)[%c(SBUIController) sharedInstance] launchIcon:tappedIconView.icon];
-                }];
-            }];
+        STKStackManager *stackManager = STKManagerForView(self);
+        if (!stackManager) {
+            stackManager = STKSetupManagerForView(self);
         }
-        [_stackManager setupViewIfNecessary];
+        [stackManager setupViewIfNecessary];
         _startPoint = [sender locationInView:[[%c(SBIconController) sharedInstance] currentRootIconList]];
     }
+
     else if (sender.state == UIGestureRecognizerStateChanged) {
+        STKStackManager *stackManager = STKManagerForView(self); // The manager had better exist by this point, or something went horribly wrong
+
         CGPoint point = [sender locationInView:[[%c(SBIconController) sharedInstance] currentRootIconList]];
         CGFloat distance = sqrtf(((point.x - _startPoint.x) * (point.x - _startPoint.x)) + ((point.y - _startPoint.y)  * (point.y - _startPoint.y))); // distance formula
         
         if (distance < _previousDistance) {
             distance = -distance;
         }
-        if (_stackManager.isExpanded) {
+        if (stackManager.isExpanded) {
             distance = -distance;
         }
 
         _previousDistance = fabsf(distance);
         
-        [_stackManager touchesDraggedForDistance:distance];
+        [stackManager touchesDraggedForDistance:distance];
     }
-    if (sender.state == UIGestureRecognizerStateEnded) {
-        [_stackManager touchesEnded];
+
+    else if (sender.state == UIGestureRecognizerStateEnded) {
+        [STKManagerForView(self) touchesEnded];
     }
 }
 
@@ -104,8 +110,8 @@ static inline STKStackManager        * STKGetStackManagerForView(SBIconView *ico
         STKRemovePanRecognizerFromIconView(self);
     }
     else if (!panRecognizer) {
-        // Not editing, no recognizer, add ALL the things!
-        [_stackManager recalculateLayoutsWithStackIcons:STKGetStackIconsForIcon(self.icon)];
+        // Not editing, no recognizer, add ALL the things, and make sure that the manager fixes it's shit.
+        [STKManagerForView(self) recalculateLayoutsWithStackIcons:STKGetStackIconsForIcon(self.icon)];
         STKAddPanRecognizerToIconView(self);
     }
 }
@@ -124,6 +130,7 @@ static inline STKStackManager        * STKGetStackManagerForView(SBIconView *ico
     [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
 }
 %end
+
 
 #pragma mark - Static Function Definitions
 static NSArray * STKGetIconsWithStack(void)
@@ -156,11 +163,33 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
     objc_setAssociatedObject(iconView, &_panGRKey, nil, OBJC_ASSOCIATION_ASSIGN);
 }
 
-#pragma mark - Inliners Definitions
+static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
+{
+    DLog(@"");
+    STKStackManager *stackManager = nil;
+    stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:STKGetStackIconsForIcon(iconView.icon) interactionHandler:^(SBIconView *tappedIconView) {
+                        [stackManager closeStackSettingCentralIcon:tappedIconView.icon completion:^{
+                            [(SBUIController *)[%c(SBUIController) sharedInstance] launchIcon:tappedIconView.icon];
+                        }];
+                    }];
+    objc_setAssociatedObject(iconView, &_stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN);
+    [stackManager release];
+
+    return stackManager;
+}
+
+
+#pragma mark - Inliner Definitions
 static inline UIPanGestureRecognizer * STKGetGestureRecognizerForView(SBIconView *iconView)
 {
     return objc_getAssociatedObject(iconView, &_panGRKey);
 }
+
+static inline STKStackManager * STKManagerForView(SBIconView *iconView)
+{
+    return objc_getAssociatedObject(iconView, &_stackManagerKey);
+}
+
 
 #pragma mark - Constructor
 %ctor
