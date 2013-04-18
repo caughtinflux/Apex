@@ -587,6 +587,8 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         iconView.alpha = alpha;
         iconView.userInteractionEnabled = !disableInteraction;
     }
+    SBIconListView *dockView = [[objc_getClass("SBIconController") sharedInstance] dock];
+    [dockView setAlphaForAllIcons:alpha];
 }
 
 - (CGFloat)_distanceFromCentre:(CGPoint)point
