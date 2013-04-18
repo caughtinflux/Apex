@@ -12,6 +12,9 @@
 #define kCurrentOrientation [UIApplication sharedApplication].statusBarOrientation
 
 @interface STKIconLayoutHandler ()
+{
+    SBIconListView *_centralIconListView;
+}
 
 - (NSArray *)_iconsAboveIcon:(SBIcon *)icon;
 - (NSArray *)_iconsBelowIcon:(SBIcon *)icon;
@@ -89,6 +92,8 @@
     NSArray * __block displacedLeftIcons   = nil;
     NSArray * __block displacedRightIcons  = nil;
     
+    _centralIconListView = STKListViewForIcon(centralIcon);
+
     [layout enumerateThroughAllIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
         switch (position) {
             case STKLayoutPositionTop:
@@ -112,7 +117,7 @@
 
 - (STKIconCoordinates *)copyCoordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation
 {
-    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
+    SBIconListView *listView = STKListViewForIcon(icon);
 
     NSUInteger iconIndex, iconX, iconY;
     [listView iconAtPoint:[listView originForIcon:icon] index:&iconIndex];
@@ -173,11 +178,10 @@
 - (NSArray *)_iconsInColumnWithX:(NSUInteger)x 
 {
     NSMutableArray *icons = [NSMutableArray array];
-    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
-    for (NSUInteger i = 0; i <= ([listView iconRowsForCurrentOrientation] - 1); i++) {
-        NSUInteger index = [listView indexForX:x Y:i forOrientation:[UIApplication sharedApplication].statusBarOrientation];
-        if (index < [listView icons].count) {
-            [icons addObject:[listView icons][index]];
+    for (NSUInteger i = 0; i <= ([_centralIconListView iconRowsForCurrentOrientation] - 1); i++) {
+        NSUInteger index = [_centralIconListView indexForX:x Y:i forOrientation:[UIApplication sharedApplication].statusBarOrientation];
+        if (index < [_centralIconListView icons].count) {
+            [icons addObject:[_centralIconListView icons][index]];
         }
     }
     return icons;
@@ -186,11 +190,10 @@
 - (NSArray *)_iconsInRowWithY:(NSUInteger)y
 {
     NSMutableArray *icons = [NSMutableArray array];
-    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
-    for (NSUInteger i = 0; i <= ([listView iconColumnsForCurrentOrientation] - 1); i++) {
-        NSUInteger index = [listView indexForX:i Y:y forOrientation:[UIApplication sharedApplication].statusBarOrientation];
-        if (index < [listView icons].count) {
-            [icons addObject:[listView icons][index]];
+    for (NSUInteger i = 0; i <= ([_centralIconListView iconColumnsForCurrentOrientation] - 1); i++) {
+        NSUInteger index = [_centralIconListView indexForX:i Y:y forOrientation:[UIApplication sharedApplication].statusBarOrientation];
+        if (index < [_centralIconListView icons].count) {
+            [icons addObject:[_centralIconListView icons][index]];
         }
     }
     return icons;

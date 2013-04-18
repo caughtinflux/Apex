@@ -42,6 +42,7 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
 // Inline Functions,  prevents function overhead if called too much.
 static inline UIPanGestureRecognizer * STKGetGestureRecognizerForView(SBIconView *iconView);
 static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
+static inline void                     STKRemoveManagerForView(SBIconView *iconView);
 
 
 #pragma mark - SBIconView Hook
@@ -109,7 +110,7 @@ static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
     if (isEditing && panRecognizer) {
         STKRemovePanRecognizerFromIconView(self);
     }
-    else if (!panRecognizer) {
+    else if (!panRecognizer && !isEditing) {
         // Not editing, no recognizer, add ALL the things, and make sure that the manager fixes it's shit.
         [STKManagerForView(self) recalculateLayoutsWithStackIcons:STKGetStackIconsForIcon(self.icon)];
         STKAddPanRecognizerToIconView(self);
@@ -191,6 +192,10 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
     return objc_getAssociatedObject(iconView, &_stackManagerKey);
 }
 
+static inline void STKRemoveManagerForView(SBIconView *iconView)
+{
+    objc_setAssociatedObject(iconView, &_stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN);
+}
 
 #pragma mark - Constructor
 %ctor

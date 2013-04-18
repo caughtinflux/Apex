@@ -8,6 +8,7 @@
 #import <SpringBoard/SpringBoard.h>
 #import <SpringBoard/SBIconController.h>
 #import <SpringBoard/SBApplicationIcon.h>
+#import <SpringBoard/SBRootFolder.h>
 #import <SpringBoard/SBIconModel.h>
 #import <SpringBoard/SBIconViewMap.h>
 #import <SpringBoard/SBIconView.h>
@@ -126,7 +127,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         SBIconView *iconView = [[[objc_getClass("SBIconView") alloc] initWithDefaultSize] autorelease];
         [iconView setIcon:icon];
         [iconView setDelegate:self];
-        SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
+        SBIconListView *listView = STKListViewForIcon(_centralIcon);
 
         SBIconView *centralIconView = [self _getIconViewForIcon:_centralIcon];
         [iconView setFrame:centralIconView.frame];
@@ -218,7 +219,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
  
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler
 {
-    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
+    SBIconListView *listView = STKListViewForIcon(_centralIcon);
     [self _animateToClosedPositionWithCompletionBlock:^{
         if (completionHandler) {
             completionHandler();
@@ -246,7 +247,9 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     }];
 }
 
-#pragma mark - Private Methods Begin
+
+#pragma mark - Private Methods
+
 #pragma mark - Move ALL the things
 - (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance
 {
@@ -480,7 +483,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     }
 
     STKIconLayoutHandler *handler = [[STKIconLayoutHandler alloc] init];
-    SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
+    SBIconListView *listView = STKListViewForIcon(_centralIcon);
     STKIconCoordinates *coordinates = [handler copyCoordinatesForIcon:icon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
     [handler release];
 
