@@ -23,8 +23,8 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #define kEnablingThreshold   55
 #define kMaximumDisplacement 85
 #define kAnimationDuration   0.2
-#define kDisabledIconAlpha   0.4
-#define kBandingAllowance    12
+#define kDisabledIconAlpha   0.22
+#define kBandingAllowance    12 // Allow for the icons to stretch for up to 12 points beyond their target locations
 
 
 #pragma mark - Private Method Declarations
