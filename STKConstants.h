@@ -15,6 +15,8 @@ extern NSString * const STKEditingStateChangedNotification;
 
 #define PREFS_PATH [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks.%@.plist", STKTweakName];
 
+#define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
+
 // Function to translate a number from one range to another
 // For instance 248 in the range [0, 320] -> something 0.0 -> 0.1
 extern double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax);
