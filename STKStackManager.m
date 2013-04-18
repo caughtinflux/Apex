@@ -64,18 +64,16 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 @implementation STKStackManager 
 
 #pragma mark - Public Methods
-- (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons interactionHandler:(STKInteractionHandler)interactionHandler
+- (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
 {
     if ((self = [super init])) {
         [icons retain]; // Make sure it's not released until we're done with it
 
         _centralIcon             = [centralIcon retain];
         _handler                 = [[STKIconLayoutHandler alloc] init];
-        _interactionHandler      = [interactionHandler copy];
         _appearingIconsLayout    = [[_handler layoutForIcons:icons aroundIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
         _disappearingIconsLayout = [[_handler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
         _iconViewsTable          = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsStrongMemory valueOptions:NSPointerFunctionsStrongMemory capacity:4];
-        _interactionHandler      = [_interactionHandler copy];
 
         [icons release];
     }

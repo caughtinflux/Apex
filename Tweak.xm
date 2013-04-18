@@ -167,11 +167,12 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 {
     DLog(@"");
     STKStackManager *stackManager = nil;
-    stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:STKGetStackIconsForIcon(iconView.icon) interactionHandler:^(SBIconView *tappedIconView) {
-                        [stackManager closeStackSettingCentralIcon:tappedIconView.icon completion:^{
-                            [(SBUIController *)[%c(SBUIController) sharedInstance] launchIcon:tappedIconView.icon];
-                        }];
-                    }];
+    stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:STKGetStackIconsForIcon(iconView.icon)];
+    stackManager.interactionHandler = ^(SBIconView *tappedIconView) { 
+                                            [stackManager closeStackSettingCentralIcon:tappedIconView.icon completion:^{
+                                                [(SBUIController *)[%c(SBUIController) sharedInstance] launchIcon:tappedIconView.icon];
+                                            }];
+                                        };
     objc_setAssociatedObject(iconView, &_stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN);
     [stackManager release];
 
