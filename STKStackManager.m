@@ -39,8 +39,8 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     NSMapTable           *_iconViewsTable;
     STKInteractionHandler _interactionHandler;
 
-    CGFloat               _lastSwipeDistance;
     CGFloat               _currentIconDisplacement;
+    CGFloat               _lastDistanceFromCenter;
     BOOL                  _didSetupView;
 }
 
@@ -167,13 +167,14 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #pragma mark - Moving Icons
 - (void)touchesDraggedForDistance:(CGFloat)distance
 {
+    // CLog(@"Distance changed: %.2f", distance);
     if ((distance < 0 && _currentIconDisplacement <= 0) || (_isExpanded)) {
         return;
     }
 
-    distance *= 0.1; // factor this shit daooooon
     [self _moveAllIconsInRespectiveDirectionsByDistance:distance];
-    
+    [self _setAlphaForAllIcons:STKAlphaFromDistance(_currentIconDisplacement) excludingCentralIcon:YES disableInteraction:NO];
+
     _currentIconDisplacement += distance;
 }
 
@@ -208,11 +209,12 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     if (_currentIconDisplacement >= kEnablingThreshold && (!_isExpanded)) {
         [self _setAlphaForAllIcons:kDisabledIconAlpha excludingCentralIcon:YES disableInteraction:YES];
         [self _animateToOpenPosition];
-        _currentIconDisplacement = 0;
     }
     else {
         [self closeStackWithCompletionHandler:nil];
     }
+
+    _currentIconDisplacement = 0;
 }
  
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler
@@ -343,6 +345,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
             newFrame = [self _getIconViewForIcon:_centralIcon].frame;
         }
         iconView.frame = newFrame;
+        _lastDistanceFromCenter = [self _distanceFromCentre:iconView.center];
     }];
 
     [(NSArray *)[_iconViewsTable objectForKey:STKStackBottomIconsKey] enumerateObjectsUsingBlock:^(SBIconView *iconView, NSUInteger idx, BOOL *stop) {
@@ -363,6 +366,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
             newFrame = centralFrame;
         }
         iconView.frame = newFrame;
+        _lastDistanceFromCenter = [self _distanceFromCentre:iconView.center];
     }];
 
     [(NSArray *)[_iconViewsTable objectForKey:STKStackLeftIconsKey] enumerateObjectsUsingBlock:^(SBIconView *iconView, NSUInteger idx, BOOL *stop) {
@@ -385,6 +389,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
             newFrame = centralFrame;
         }
         iconView.frame = newFrame;
+        _lastDistanceFromCenter = [self _distanceFromCentre:iconView.center];
     }];
 
     [(NSArray *)[_iconViewsTable objectForKey:STKStackRightIconsKey] enumerateObjectsUsingBlock:^(SBIconView *iconView, NSUInteger idx, BOOL *stop) {
@@ -406,9 +411,9 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
             newFrame = centralFrame;
         }
         iconView.frame = newFrame;
-    }];
 
-    [self _setAlphaForAllIcons:STKAlphaFromDistance(distance) excludingCentralIcon:YES disableInteraction:NO];
+        _lastDistanceFromCenter = [self _distanceFromCentre:iconView.center];
+    }];
 }
 
 #pragma mark - Open Completion Animation
@@ -502,6 +507,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         mask |= STKPositionTouchingTop;
     }
     if (coordinates->yPos == ([listView iconRowsForCurrentOrientation] - 1)) {
+        CLog(@"Got bottom touching icon! x: %i  y: %i idx: %i  rows - 1: %i", coordinates->xPos, coordinates->yPos, coordinates->index, [listView iconRowsForCurrentOrientation] - 1);
         mask |= STKPositionTouchingBottom;
     }
 
@@ -555,7 +561,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     CGRect originalFrame = (CGRect){{originalOrigin.x, originalOrigin.y}, {iconView.frame.size.width, iconView.frame.size.height}};
     
     CGPoint returnPoint;
-    NSArray *currentArray = ((position == STKLayoutPositionTop) ? _disappearingIconsLayout.topIcons : (position == STKLayoutPositionBottom) ? _disappearingIconsLayout.bottomIcons : (position == STKLayoutPositionLeft) ? _disappearingIconsLayout.leftIcons : _disappearingIconsLayout.rightIcons); // I LOVE THIS LOOOOLOLOLOLOLOOLOOOLOLOLOLOLOLOOLOLOLOLOLOLOLOLOLOLOLOLO
+    NSArray *currentArray = ((position == STKLayoutPositionTop) ? _disappearingIconsLayout.topIcons : (position == STKLayoutPositionBottom) ? _disappearingIconsLayout.bottomIcons : (position == STKLayoutPositionLeft) ? _disappearingIconsLayout.leftIcons : _disappearingIconsLayout.rightIcons); // I LOVE THIS 
 
     NSInteger multiplicationFactor = ((currentArray.count <= 1) ? 1 : currentArray.count - 1);
     switch (position) {

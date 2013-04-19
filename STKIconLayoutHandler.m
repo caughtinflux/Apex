@@ -51,8 +51,14 @@
             }
 
             case 1: {
-                if (((position & STKPositionTouchingBottom) == STKPositionTouchingBottom) || ((position & STKPositionDock) == STKPositionDock)) {
-                    [topIcons addObject:icons[i]];
+                if (((position & STKPositionTouchingBottom) == STKPositionTouchingBottom)  || ((position & STKPositionDock) == STKPositionDock)) {
+                    if (((position & STKPositionTouchingTop) == STKPositionTouchingTop) && ((position & STKPositionTouchingRight) == STKPositionTouchingRight)) {
+                        // BUGFIX
+                        [bottomIcons addObject:icons[i]];
+                    }
+                    else {
+                        [topIcons addObject:icons[i]];
+                    }
                 }
                 else {
                     [bottomIcons addObject:icons[i]];
@@ -61,7 +67,7 @@
             }
 
             case 2: {
-                if ((position & STKPositionTouchingLeft) == STKPositionTouchingLeft) {
+                if ((position & STKPositionTouchingLeft) == STKPositionTouchingLeft) {                    
                     [rightIcons addObject:icons[i]];
                 }
                 else {
@@ -81,7 +87,7 @@
             }
         }
     }
-
+    // CLog(@"TopIcons.count: %i, bottom: %i, left: %i, right: %i", topIcons.count, bottomIcons.count, leftIcons.count, rightIcons.count);
     return [STKIconLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons];
 }
 

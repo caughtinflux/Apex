@@ -23,9 +23,9 @@
 static char *_panGRKey;
 static char *_stackManagerKey;
 
-static CGFloat _previousDistance;
-static CGPoint _startPoint;
-static BOOL    _previousEditingState;
+static BOOL    _previousEditingState = NO;
+
+
 
 // returns an NSArray of SBIcon object that are in a stack under `icon`.
 static NSArray * STKGetStackIconsForIcon(SBIcon *icon);
@@ -51,17 +51,29 @@ static inline void                     STKRemoveManagerFromView(SBIconView *icon
 - (void)setIcon:(SBIcon *)icon
 {
     %orig();
+
+    if ([[%c(SBIconController) sharedInstance] isEditing]) {
+        // This method is also called ALL the fucking time. Stop shit from happening if editing, yeah?
+        return;
+    }
+
     UIPanGestureRecognizer *panRecognizer = STKGetGestureRecognizerForView(self);
+    
     if (!([STKGetIconsWithStack() containsObject:icon.leafIdentifier])) {
         // Make sure the recognizer is not added to icons in the stack
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
         if (panRecognizer) {
             STKRemovePanRecognizerFromIconView(self);
         }
+
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:STKHomescreenWillScrollNotification object:nil];
+
         return;
     }
+
+
     if (!panRecognizer) {
-        CLog(@"Gesture recognizer doesn't exist for icon: %@, adding", icon.leafIdentifier);
         STKAddPanRecognizerToIconView(self);
     }
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_editingStateChanged:) name:STKEditingStateChangedNotification object:nil];
@@ -76,39 +88,60 @@ static inline void                     STKRemoveManagerFromView(SBIconView *icon
     %orig();
 }
 
+
+static CGPoint _previousPoint        = CGPointZero;
+static CGPoint _initialPoint         = CGPointZero;
+static CGFloat _previousDistance     = 0.0f; // Contains the distance from the initial point.
 %new
 - (void)stk_panned:(UIPanGestureRecognizer *)sender
 {
+    if ([[%c(SBIconController) sharedInstance] isEditing]) {
+        return;
+    }
+
+    SBIconListView *view = [[%c(SBIconController) sharedInstance] currentRootIconList];
+
     if (sender.state == UIGestureRecognizerStateBegan) {
         STKStackManager *stackManager = STKManagerForView(self);
         if (!stackManager) {
             stackManager = STKSetupManagerForView(self);
         }
         [stackManager setupViewIfNecessary];
-        _startPoint = [sender locationInView:[[%c(SBIconController) sharedInstance] currentRootIconList]];
+
+        _initialPoint = [sender locationInView:view];
     }
 
     else if (sender.state == UIGestureRecognizerStateChanged) {
         STKStackManager *stackManager = STKManagerForView(self); // The manager had better exist by this point, or something went horribly wrong
 
-        CGPoint point = [sender locationInView:[[%c(SBIconController) sharedInstance] currentRootIconList]];
-        CGFloat distance = sqrtf(((point.x - _startPoint.x) * (point.x - _startPoint.x)) + ((point.y - _startPoint.y)  * (point.y - _startPoint.y))); // distance formula
-        
-        if (distance < _previousDistance) {
-            distance = -distance;
-        }
-        if (stackManager.isExpanded) {
-            distance = -distance;
+        if (CGPointEqualToPoint(_previousPoint, CGPointZero)) {
+            // Make sure the initial point is not zero, lawl.
+            _previousPoint = self.center;
         }
 
+        CGPoint point = [sender locationInView:view];
+        CGFloat change = sqrtf(((_previousPoint.x - point.x) * (_previousPoint.x - point.x)) + ((_previousPoint.y - point.y)  * (_previousPoint.y - point.y))); // distance formula
+
+
+        CGFloat distance = sqrtf(((_initialPoint.x - point.x) * (_initialPoint.x - point.x)) + ((_initialPoint.y - point.y)  * (_initialPoint.y - point.y))); // distance formula
+        if (distance < _previousDistance || stackManager.isExpanded) {
+            change = -change;
+        }
+
+        [stackManager touchesDraggedForDistance:change];
+
+        _previousPoint = point;
         _previousDistance = fabsf(distance);
-        
-        [stackManager touchesDraggedForDistance:distance];
     }
 
     else if (sender.state == UIGestureRecognizerStateEnded) {
         STKStackManager *manager = STKManagerForView(self);
         [manager touchesEnded];
+
+        // Reset the static vars
+        _previousPoint = CGPointZero;
+        _initialPoint = CGPointZero;
+        _previousDistance = 0.f;
     }
 }
 
@@ -116,13 +149,14 @@ static inline void                     STKRemoveManagerFromView(SBIconView *icon
 - (void)stk_editingStateChanged:(NSNotification *)notification
 {
     BOOL isEditing = [[%c(SBIconController) sharedInstance] isEditing];
-    UIPanGestureRecognizer *panRecognizer = STKGetGestureRecognizerForView(self);
-    if (isEditing && panRecognizer) {
+    
+    if (isEditing) {
         STKRemovePanRecognizerFromIconView(self);
     }
-    else if (!panRecognizer) {
+    else {
         STKAddPanRecognizerToIconView(self);
     }
+
     STKRemoveManagerFromView(self); // Remove the manager irrespective of whether the view exists or not
 }
 
@@ -183,7 +217,6 @@ static void STKAddPanRecognizerToIconView(SBIconView *iconView)
 
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
 {
-    DLog(@"");
     UIPanGestureRecognizer *recognizer = STKGetGestureRecognizerForView(iconView);
     [iconView removeGestureRecognizer:recognizer];
     objc_setAssociatedObject(iconView, &_panGRKey, nil, OBJC_ASSOCIATION_ASSIGN);
@@ -191,7 +224,6 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
 
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 {
-    DLog(@"");
     STKStackManager *stackManager = nil;
     stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:STKGetStackIconsForIcon(iconView.icon)];
     stackManager.interactionHandler = ^(SBIconView *tappedIconView) { 

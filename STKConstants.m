@@ -24,7 +24,7 @@ double STKAlphaFromDistance(double distance)
 {
 	// Subtract from 1 to invert the scale
 	// Greater the distance, lower the alpha
-	double alpha = (STKScaleNumber(distance, 0.0, 6.0, 1.0, 0.2));
+	double alpha = (STKScaleNumber(distance, 0.0, 85.0, 1.0, 0.2));
 	if (alpha < 0.2) {
 		alpha = 0.2;
 	}
