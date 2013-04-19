@@ -247,6 +247,10 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     }];
 }
 
+- (void)closeStack
+{
+    [self closeStackWithCompletionHandler:nil];
+}
 
 #pragma mark - Private Methods
 

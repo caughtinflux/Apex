@@ -13,6 +13,7 @@
 
 extern NSString * const STKTweakName;
 extern NSString * const STKEditingStateChangedNotification;
+extern NSString * const STKHomescreenWillScrollNotification;
 
 #define PREFS_PATH [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks.%@.plist", STKTweakName];
 

@@ -42,7 +42,7 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
 // Inline Functions,  prevents function overhead if called too much.
 static inline UIPanGestureRecognizer * STKGetGestureRecognizerForView(SBIconView *iconView);
 static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
-static inline void                     STKRemoveManagerForView(SBIconView *iconView);
+static inline void                     STKRemoveManagerFromView(SBIconView *iconView);
 
 
 #pragma mark - SBIconView Hook
@@ -65,6 +65,15 @@ static inline void                     STKRemoveManagerForView(SBIconView *iconV
         STKAddPanRecognizerToIconView(self);
     }
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_editingStateChanged:) name:STKEditingStateChangedNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_homescreenWillScroll:) name:STKHomescreenWillScrollNotification object:nil];
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:STKHomescreenWillScrollNotification object:nil];
+
+    %orig();
 }
 
 %new
@@ -98,7 +107,9 @@ static inline void                     STKRemoveManagerForView(SBIconView *iconV
     }
 
     else if (sender.state == UIGestureRecognizerStateEnded) {
-        [STKManagerForView(self) touchesEnded];
+        STKStackManager *manager = STKManagerForView(self);
+        CLog(@"Got manager: %@, sending touchesEnded", manager);
+        [manager touchesEnded];
     }
 }
 
@@ -110,10 +121,18 @@ static inline void                     STKRemoveManagerForView(SBIconView *iconV
     if (isEditing && panRecognizer) {
         STKRemovePanRecognizerFromIconView(self);
     }
-    else if (!panRecognizer && !isEditing) {
-        // Not editing, no recognizer, add ALL the things, and make sure that the manager fixes it's shit.
-        [STKManagerForView(self) recalculateLayoutsWithStackIcons:STKGetStackIconsForIcon(self.icon)];
+    else if (!panRecognizer) {
         STKAddPanRecognizerToIconView(self);
+    }
+    STKRemoveManagerFromView(self); // Remove the manager irrespective of whether the view exists or not
+}
+
+%new 
+- (void)stk_homescreenWillScroll:(NSNotification *)notification
+{
+    STKStackManager *manager = STKManagerForView(self);
+    if (manager.isExpanded) {
+        [manager closeStack];   
     }
 }
 
@@ -130,6 +149,13 @@ static inline void                     STKRemoveManagerForView(SBIconView *iconV
     _previousEditingState = isEditing;
     [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
 }
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    %orig();
+    [[NSNotificationCenter defaultCenter] postNotificationName:STKHomescreenWillScrollNotification object:nil];
+}
+
 %end
 
 
@@ -192,7 +218,7 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
     return objc_getAssociatedObject(iconView, &_stackManagerKey);
 }
 
-static inline void STKRemoveManagerForView(SBIconView *iconView)
+static inline void STKRemoveManagerFromView(SBIconView *iconView)
 {
     objc_setAssociatedObject(iconView, &_stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN);
 }

@@ -32,4 +32,6 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 // This method sets the central icon to `icon` until _after_ `handler` is called
 - (void)closeStackSettingCentralIcon:(SBIcon *)icon completion:(void(^)(void))handler;
 
+- (void)closeStack; // convenience method
+
 @end
