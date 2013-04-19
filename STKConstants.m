@@ -11,14 +11,13 @@
 
 NSString * const STKTweakName = @"Stacks";
 NSString * const STKEditingStateChangedNotification = @"STKEditingStateChanged";
+NSString * const STKHomescreenWillScrollNotification = @"STKHomescreenWillScrollNotification";
 
 double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax)
 {
-	double ret = ((numToScale - prevMin) * (newMax - newMin)) \
-			  /*-------------------------------------------------*/ /\
-				      ((prevMax - prevMin) + newMin);
-
-	return ret;
+	double oldRange = (prevMax - prevMin);
+	double newRange = (newMax - newMin);
+	return (((numToScale - prevMin) * newRange) / oldRange) + newMin;
 }
 
 double STKAlphaFromDistance(double distance)
