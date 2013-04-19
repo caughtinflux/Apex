@@ -26,6 +26,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #define kAnimationDuration   0.2
 #define kDisabledIconAlpha   0.22
 #define kBandingAllowance    12 // Allow for the icons to stretch for up to 12 points beyond their target locations
+#define kBandingFactor       0.6 // factor by which distance must be multipled after it crosses the threshold
 
 
 #pragma mark - Private Method Declarations
@@ -166,15 +167,13 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #pragma mark - Moving Icons
 - (void)touchesDraggedForDistance:(CGFloat)distance
 {
-    if (distance < 0 && _currentIconDisplacement <= 0) {
+    if ((distance < 0 && _currentIconDisplacement <= 0) || (_isExpanded)) {
         return;
     }
 
     distance *= 0.1; // factor this shit daooooon
-
     [self _moveAllIconsInRespectiveDirectionsByDistance:distance];
     
-    _lastSwipeDistance = distance;
     _currentIconDisplacement += distance;
 }
 
@@ -206,8 +205,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #pragma mark - Decision Methods
 - (void)touchesEnded
 {
-    CLog(@"Current displacement: %f, enabling threshold: %i", _currentIconDisplacement, kEnablingThreshold);
-    if (_currentIconDisplacement >= kEnablingThreshold) {
+    if (_currentIconDisplacement >= kEnablingThreshold && (!_isExpanded)) {
         [self _setAlphaForAllIcons:0.4f excludingCentralIcon:YES disableInteraction:YES]; // Set the alpha before animating to open position, as _animate to open position sets the disappearing icons' alphas to 0
         [self _animateToOpenPosition];
         _currentIconDisplacement = 0;
@@ -332,6 +330,8 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         CGPoint targetOrigin = [self _getTargetOriginForIconAtPosition:STKLayoutPositionTop distanceFromCentre:idx + 1];
         targetOrigin.y -= kBandingAllowance;
         iconView.alpha = 1.f;
+
+        CGPoint newCenter = iconView.center;
         
         if (((newFrame.origin.y - translatedDistance) > targetOrigin.y) && (!((newFrame.origin.y - translatedDistance) > centralFrame.origin.y))) {
             newFrame.origin.y -= translatedDistance;

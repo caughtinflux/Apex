@@ -93,7 +93,8 @@ static inline void                     STKRemoveManagerFromView(SBIconView *icon
 
         CGPoint point = [sender locationInView:[[%c(SBIconController) sharedInstance] currentRootIconList]];
         CGFloat distance = sqrtf(((point.x - _startPoint.x) * (point.x - _startPoint.x)) + ((point.y - _startPoint.y)  * (point.y - _startPoint.y))); // distance formula
-        
+        CLog(@"Y distance: %.2f", fabsf(point.y - _startPoint.y));
+        CLog(@"from formula: %.2f", distance);
         if (distance < _previousDistance) {
             distance = -distance;
         }
@@ -108,7 +109,6 @@ static inline void                     STKRemoveManagerFromView(SBIconView *icon
 
     else if (sender.state == UIGestureRecognizerStateEnded) {
         STKStackManager *manager = STKManagerForView(self);
-        CLog(@"Got manager: %@, sending touchesEnded", manager);
         [manager touchesEnded];
     }
 }
