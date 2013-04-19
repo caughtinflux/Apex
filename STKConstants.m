@@ -24,7 +24,11 @@ double STKAlphaFromDistance(double distance)
 {
 	// Subtract from 1 to invert the scale
 	// Greater the distance, lower the alpha
-	return  fabs(0.6 - (STKScaleNumber(distance, 0.0, 20.0, 0.4, 1.0)));
+	double alpha = (STKScaleNumber(distance, 0.0, 6.0, 1.0, 0.2));
+	if (alpha < 0.2) {
+		alpha = 0.2;
+	}
+	return alpha;
 }
 
 extern SBIconListView * STKListViewForIcon(SBIcon *icon)

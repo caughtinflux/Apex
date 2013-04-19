@@ -24,7 +24,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #define kEnablingThreshold   55
 #define kMaximumDisplacement 85
 #define kAnimationDuration   0.2
-#define kDisabledIconAlpha   0.22
+#define kDisabledIconAlpha   0.2
 #define kBandingAllowance    12 // Allow for the icons to stretch for up to 12 points beyond their target locations
 #define kBandingFactor       0.6 // factor by which distance must be multipled after it crosses the threshold
 
@@ -206,7 +206,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 - (void)touchesEnded
 {
     if (_currentIconDisplacement >= kEnablingThreshold && (!_isExpanded)) {
-        [self _setAlphaForAllIcons:0.4f excludingCentralIcon:YES disableInteraction:YES]; // Set the alpha before animating to open position, as _animate to open position sets the disappearing icons' alphas to 0
+        [self _setAlphaForAllIcons:kDisabledIconAlpha excludingCentralIcon:YES disableInteraction:YES];
         [self _animateToOpenPosition];
         _currentIconDisplacement = 0;
     }
@@ -331,7 +331,6 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         targetOrigin.y -= kBandingAllowance;
         iconView.alpha = 1.f;
 
-        CGPoint newCenter = iconView.center;
         
         if (((newFrame.origin.y - translatedDistance) > targetOrigin.y) && (!((newFrame.origin.y - translatedDistance) > centralFrame.origin.y))) {
             newFrame.origin.y -= translatedDistance;
@@ -408,6 +407,8 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
         }
         iconView.frame = newFrame;
     }];
+
+    [self _setAlphaForAllIcons:STKAlphaFromDistance(distance) excludingCentralIcon:YES disableInteraction:NO];
 }
 
 #pragma mark - Open Completion Animation

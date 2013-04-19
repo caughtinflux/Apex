@@ -9,3 +9,5 @@ debs/
 *.sublime*
 
 .theos/
+
+*.sublime-workspace
