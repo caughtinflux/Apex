@@ -4,6 +4,86 @@
 		"selected_items":
 		[
 			[
+				"new",
+				"newCenter	CGPoint"
+			],
+			[
+				"touched",
+				"touchesEnded"
+			],
+			[
+				"removeObser",
+				"removeObserver:(id) name:(NSString *) object:(id)	void"
+			],
+			[
+				"SBICon",
+				"SBIconListView"
+			],
+			[
+				"SBIcon",
+				"SBIconController	class"
+			],
+			[
+				"SBIc",
+				"SBIconController"
+			],
+			[
+				"setAlpha",
+				"setAlphaForAllIcons:(CGFloat)	void"
+			],
+			[
+				"iconIma",
+				"iconImageView	SBIconImageView *"
+			],
+			[
+				"mul",
+				"multiplicationFactor =	NSInteger"
+			],
+			[
+				"or",
+				"originalFrame	CGRect"
+			],
+			[
+				"curre",
+				"currentArray =	NSArray *"
+			],
+			[
+				"multi",
+				"multiplicationFactor	NSInteger"
+			],
+			[
+				"STKL",
+				"STKLayoutPositionLeft	STKLayoutPosition"
+			],
+			[
+				"STKLay",
+				"STKLayoutPositionTop	STKLayoutPosition"
+			],
+			[
+				"STKP",
+				"STKPosition	typedef"
+			],
+			[
+				"NSStringFrom",
+				"NSStringFromCGRect(CGRect rect)	NSString *"
+			],
+			[
+				"currentR",
+				"currentRootIconList	SBIconListView *"
+			],
+			[
+				"ori",
+				"originalOrigin	CGPoint"
+			],
+			[
+				"STKLa",
+				"STKLayoutPositionRight	STKLayoutPosition"
+			],
+			[
+				"STKPos",
+				"STKPositionMask	typedef"
+			],
+			[
 				"addOb",
 				"addObserver:(id) selector:(SEL) name:(NSString *) object:(id)	void"
 			],
@@ -18,14 +98,6 @@
 			[
 				"co",
 				"count	NSUInteger"
-			],
-			[
-				"STKL",
-				"STKLayoutPositionRight	STKLayoutPosition"
-			],
-			[
-				"STKLa",
-				"STKLayoutPositionLeft	STKLayoutPosition"
 			],
 			[
 				"l",
@@ -132,24 +204,12 @@
 				"icon	SBIcon *"
 			],
 			[
-				"or",
-				"originForIcon:(id)	CGPoint"
-			],
-			[
-				"ori",
-				"origin	CGPoint"
-			],
-			[
 				"fa",
 				"fabsf(float)	float"
 			],
 			[
 				"kMax",
 				"kMaximumSwipeDistance	macro"
-			],
-			[
-				"STKLay",
-				"STKLayoutPositionRight	STKLayoutPosition"
 			],
 			[
 				"_dis",
@@ -292,10 +352,6 @@
 				"STKPositionTouchingLeft	STKPosition"
 			],
 			[
-				"STKP",
-				"STKPositionTouchingTop	STKPosition"
-			],
-			[
 				"STKPo",
 				"STKPositionDock	STKPosition"
 			],
@@ -384,10 +440,6 @@
 				"NSArray	class"
 			],
 			[
-				"SBIcon",
-				"SBIconListView	class"
-			],
-			[
 				"BKSWor",
 				"BKSWorkspaceDelegate"
 			],
@@ -462,76 +514,16 @@
 			[
 				"UIUSE",
 				"UIUserInterfaceIdiomPhone	enum UIUserInterfaceIdiom"
-			],
-			[
-				"mas",
-				"masksToBounds	BOOL"
-			],
-			[
-				"AVLayerVideo",
-				"AVLayerVideoGravityResizeAspectFill	NSString *const"
-			],
-			[
-				"vi",
-				"videoPreviewLayer	AVCaptureVideoPreviewLayer *"
-			],
-			[
-				"_vide",
-				"_videoInterface	QSVideoInterface *"
-			],
-			[
-				"initW",
-				"initWithSession:(AVCaptureSession *)	id"
-			],
-			[
-				"f",
-				"frame	CGRect"
-			],
-			[
-				"SBIconModel",
-				"SBIconModelDelegate"
-			],
-			[
-				"applicationOp",
-				"applicationOpenURL:(id) publicURLsOnly:(BOOL)	void"
-			],
-			[
-				"alert",
-				"alertView:(UIAlertView *) clickedButtonAtIndex:(NSInteger)	void"
-			],
-			[
-				"Overlay",
-				"overlayView"
-			],
-			[
-				"_cur",
-				"_currentCaptureMode	QSCaptureMode"
-			],
-			[
-				"QSCap",
-				"QSCaptureModeVideo	QSCaptureMode"
-			],
-			[
-				"_video",
-				"_videoStoppedManually	BOOL"
 			]
 		]
 	},
 	"buffers":
 	[
-		{
-			"file": "/Users/aditya/code/projects/fluxbot/fluxbot.py",
-			"settings":
-			{
-				"buffer_size": 1899,
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "Packages/Python/Python.sublime-build",
 	"command_palette":
 	{
-		"height": 27.0,
+		"height": 392.0,
 		"selected_items":
 		[
 			[
@@ -648,29 +640,43 @@
 	},
 	"file_history":
 	[
-		"/Users/aditya/code/projects/stacks/Tweak.xm",
-		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
 		"/Users/aditya/code/projects/stacks/STKStackManager.h",
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
 		"/Users/aditya/code/projects/stacks/STKStackManager.m",
-		"/Users/aditya/code/projects/stacks/STKConstants.h",
-		"/Users/aditya/code/projects/stacks/STKConstants.m",
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
-		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
+		"/Users/aditya/code/projects/stacks/Tweak.xm",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListView.h",
-		"/Users/aditya/code/projects/stacks/layout/Library/Application Support/Stacks.bundle/Info.plist",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListModel.h",
-		"/Users/aditya/code/projects/flagpaint/HBFPColorArt.h",
+		"/Users/aditya/code/projects/stacks/STKConstants.m",
+		"/opt/theos/include/SpringBoard/SBIconController.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
+		"/Users/aditya/code/projects/stacks/STKConstants.h",
+		"/var/folders/2c/g0wpjpqn1h347vh9l9_nblnw0000gp/T/Messages/Transfers/auxos1-1.png",
+		"/opt/theos/include/SpringBoard/SBIconView.h",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBFolder.h",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewDelegate-Protocol.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIcon.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBRootFolder.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListModel.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
+		"/opt/theos/include/SpringBoard/SBIconModel.h",
+		"/opt/theos/include/SpringBoard/SBIconModel",
+		"/opt/theos/include/SpringBoard/SBUIController.h",
+		"/opt/theos/include/SpringBoard/SBIcon.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewMap.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconModel.h",
+		"/opt/theos/include/SpringBoard/SBIconListModel.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBDockIconListView.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplicationIcon.h",
+		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
+		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
+		"/Users/aditya/code/projects/fluxbot/fluxbot.py",
+		"/Users/aditya/code/projects/stacks/layout/Library/Application Support/Stacks.bundle/Info.plist",
+		"/Users/aditya/code/projects/flagpaint/HBFPColorArt.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
 		"/opt/theos/include/SpringBoard/SpringBoard.h",
 		"/Users/aditya/code/projects/prev_stacks/Tweak.xm",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplication.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBDockIconListView.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBTelephonyManager.h",
 		"/Users/aditya/code/projects/stacks/theos/include/Weather/WeatherPreferences.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconRotationContainer.h",
@@ -683,11 +689,8 @@
 		"/Users/aditya/code/projects/stacks/STKIconHelper.h",
 		"/Users/aditya/code/projects/stacks/STKIconViewDelegate.m",
 		"/Users/aditya/code/projects/stacks/STKIconHelper.m",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconModel.h",
 		"/Users/aditya/code/projects/stacks/STKIconViewDelegate.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewMap.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconIndexMutableList.h",
-		"/opt/theos/include/SpringBoard/SBIconController.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconScrollView.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconContentView.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconObserver-Protocol.h",
@@ -729,7 +732,6 @@
 		"/Users/aditya/code/projects/quickshootpro/QSVideoInterface.m",
 		"/Users/aditya/code/projects/quickshootpro/layout/DEBIAN/control",
 		"/opt/theos/include/SpringBoard/SBFolder.h",
-		"/opt/theos/include/SpringBoard/SBIconListModel.h",
 		"/opt/theos/include/SpringBoard/SBFolderIconListModel.h",
 		"/Users/aditya/code/projects/quickshoot/quickshoot.sublime-workspace",
 		"/Users/aditya/Desktop/PBEDump/PBFilter.h",
@@ -761,21 +763,11 @@
 		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBApplication.h",
 		"/Users/aditya/Desktop/QuickShootPro_Disclaimer",
 		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBApplicationController.h",
-		"/opt/theos/include/SpringBoard/SBUIController.h",
 		"/Users/aditya/code/projects/quickshootpro/qsprefs/QSPrefs.mm",
 		"/opt/theos/makefiles/package.mk",
 		"/Users/aditya/code/projects/quickshootpro/updatemd5.sh",
 		"/Users/aditya/code/random/camtests/Tweak.xm",
-		"/Users/aditya/code/projects/quickshootpro/theos/include/PhotoLibraryServices/PLDiskController.h",
-		"/Users/aditya/code/projects/quickshootpro/theos/include/UIKit/UIRemoteView.h",
-		"/Users/aditya/code/projects/quickshootpro/theos/include/UIKit/UIRemoteApplication.h",
-		"/Users/aditya/Desktop/rs_SHSH_fetch_crash",
-		"/Users/aditya/code/projects/quickshootpro/updatebuild.py",
-		"/Users/aditya/code/projects/quickshootpro/theos/include/PhotoLibrary/PLCameraControllerDelegate-Protocol.h",
-		"/Users/aditya/code/projects/quickshootpro/LibstatusBar.h",
-		"/Users/aditya/code/projects/quickshootpro/qsprefs/Makefile",
-		"/Users/aditya/code/projects/quickshootpro/qsprefs/NSTask.h",
-		"/Users/aditya/code/projects/quickshootpro/theos/include/CoreFoundation/CFUserNotification.h"
+		"/Users/aditya/code/projects/quickshootpro/theos/include/PhotoLibraryServices/PLDiskController.h"
 	],
 	"find":
 	{
@@ -793,6 +785,60 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"alpha",
+			"search",
+			"alpha",
+			"_lastSw",
+			"page",
+			"scroll",
+			"listView",
+			"rootFolder",
+			"iconlistfor",
+			"showDock",
+			"iconlistcontain",
+			"scroll",
+			"iconAppears",
+			"- (BOOL)iconAppears",
+			"rootIcon",
+			"max",
+			"maxVisib",
+			"identifier",
+			"icons",
+			"position",
+			"forIcon",
+			"state",
+			"page",
+			"(int)",
+			"(int-",
+			"int",
+			"listFor",
+			"listViewIndex",
+			"unsigned int",
+			"indexForIcon",
+			"index",
+			"page",
+			"visible",
+			"icon",
+			"iconList",
+			"dock",
+			"- ()dock",
+			"- (id)dock",
+			"dock",
+			"dockList",
+			"_stackManager",
+			"hidden",
+			"image",
+			"_currentIconDisplacement",
+			"Log",
+			"5",
+			"distance",
+			"switcher",
+			"STKGetStackIconsForIcon",
+			"iconView.frame",
+			"iconView.frame.origin",
+			"_distanceFromCentre",
+			"padding",
+			"_handler",
 			"jitter",
 			"editing",
 			"change",
@@ -866,61 +912,7 @@
 			"rela",
 			"35",
 			"setAlpha",
-			"icon",
-			"SBIcon",
-			"icon",
-			"index",
-			"getX:",
-			"iconAt",
-			"index",
-			"column",
-			"columnFor",
-			"rowFor",
-			"columnFor",
-			"iconWith",
-			"iconWigth",
-			"forIcon",
-			"location",
-			"indexFor",
-			"current",
-			"listView",
-			"iconView",
-			"iconListView",
-			"SBIconIndexMutableListObserver",
-			"node",
-			"struct CGRect",
-			"struct CGSize",
-			"struct CATransform3D",
-			"struct CGPoint",
-			"float",
-			"int ",
-			"int",
-			"unsigned int",
-			"iconState",
-			"struct CGAffineTransform",
-			"struct UIEdgeInsets",
-			"struct CGPoint",
-			"float",
-			"int",
-			"unsigned int",
-			"struct CGRect",
-			"struct CGSize",
-			"kMG",
-			"Adding VC",
-			"setDisappearingViewController",
-			"proc_pidinfo",
-			"searchController",
-			"_previewLayer",
-			"usePreviewLayer",
-			"_previewLayer",
-			"SHOW_USER",
-			"max",
-			"number",
-			"maxi",
-			"max",
-			"numberOfIcons",
-			"Session",
-			"running"
+			"icon"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -928,6 +920,12 @@
 		"regex": false,
 		"replace_history":
 		[
+			"_centralIconListView",
+			"NSUInteger",
+			"kBandingExtension",
+			"translatedDistance",
+			"originalFrame",
+			"originalOrigin",
 			"kDisabledIconAlpha",
 			"currentOrientation",
 			"STKLayoutPosition",
@@ -985,83 +983,8 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "/Users/aditya/code/projects/fluxbot/fluxbot.py",
-					"settings":
-					{
-						"buffer_size": 1899,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"bh_regions":
-							[
-								"bh_regex",
-								"bh_regex_center",
-								"bh_regex_open",
-								"bh_regex_close",
-								"bh_double_quote",
-								"bh_double_quote_center",
-								"bh_double_quote_open",
-								"bh_double_quote_close",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_default",
-								"bh_default_center",
-								"bh_default_open",
-								"bh_default_close",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_round",
-								"bh_round_center",
-								"bh_round_open",
-								"bh_round_close",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_single_quote",
-								"bh_single_quote_center",
-								"bh_single_quote_open",
-								"bh_single_quote_close"
-							],
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
 			]
 		}
 	],
@@ -1123,23 +1046,79 @@
 		"selected_items":
 		[
 			[
-				"sbiconview",
-				"theos/include/SpringBoard/SBIconView.h"
-			],
-			[
-				"sbiconcont",
+				"sbiconcontro",
 				"theos/include/SpringBoard/SBIconController.h"
 			],
 			[
-				"sbiconlist",
+				"sbiconlis",
 				"theos/include/SpringBoard/SBIconListView.h"
+			],
+			[
+				"sbfol",
+				"theos/include/SpringBoard/SBFolder.h"
+			],
+			[
+				"sbiconlistmod",
+				"theos/include/SpringBoard/SBIconListModel.h"
+			],
+			[
+				"sbroot",
+				"theos/include/SpringBoard/SBRootFolder.h"
+			],
+			[
+				"sbiconcontroller",
+				"theos/include/SpringBoard/SBIconController.h"
+			],
+			[
+				"sbicon.",
+				"theos/include/SpringBoard/SBIcon.h"
 			],
 			[
 				"sbiconli",
 				"theos/include/SpringBoard/SBIconListView.h"
 			],
 			[
-				"sbiconlis",
+				"sbiconview",
+				"theos/include/SpringBoard/SBIconView.h"
+			],
+			[
+				"sbiconviewmap",
+				"theos/include/SpringBoard/SBIconViewMap.h"
+			],
+			[
+				"sbiconmodel",
+				"theos/include/SpringBoard/SBIconModel.h"
+			],
+			[
+				"sbiconlist",
+				"theos/include/SpringBoard/SBIconListView.h"
+			],
+			[
+				"sbiconcont",
+				"theos/include/SpringBoard/SBIconController.h"
+			],
+			[
+				"sbdockic",
+				"theos/include/SpringBoard/SBDockIconListView.h"
+			],
+			[
+				"sbicon.h",
+				"theos/include/SpringBoard/SBIcon.h"
+			],
+			[
+				"sbiconviewdele",
+				"theos/include/SpringBoard/SBIconViewDelegate-Protocol.h"
+			],
+			[
+				"sbapplication",
+				"theos/include/SpringBoard/SBApplicationIcon.h"
+			],
+			[
+				"sbiconlistview",
+				"theos/include/SpringBoard/SBIconListView.h"
+			],
+			[
+				"sbiconlistv",
 				"theos/include/SpringBoard/SBIconListView.h"
 			],
 			[
@@ -1155,20 +1134,8 @@
 				"theos/include/SpringBoard/SBIconListView.h"
 			],
 			[
-				"sbicon.h",
-				"theos/include/SpringBoard/SBIcon.h"
-			],
-			[
 				"sbapplicationi",
 				"theos/include/SpringBoard/SBApplicationIcon.h"
-			],
-			[
-				"sbiconcontro",
-				"theos/include/SpringBoard/SBIconController.h"
-			],
-			[
-				"sbiconlistview",
-				"theos/include/SpringBoard/SBIconListView.h"
 			],
 			[
 				"sbiconvi",
@@ -1195,10 +1162,6 @@
 				"theos/include/SpringBoard/SBDockIconListView.h"
 			],
 			[
-				"sbiconcontroller",
-				"theos/include/SpringBoard/SBIconController.h"
-			],
-			[
 				"sbiconcontr",
 				"theos/include/SpringBoard/SBIconController.h"
 			],
@@ -1215,16 +1178,8 @@
 				"theos/include/SpringBoard/SBIconViewMap.h"
 			],
 			[
-				"sbiconmodel",
-				"theos/include/SpringBoard/SBIconModel.h"
-			],
-			[
 				"sbicon",
 				"theos/include/SpringBoard/SBIconViewMap.h"
-			],
-			[
-				"sbiconlistv",
-				"theos/include/SpringBoard/SBIconListView.h"
 			],
 			[
 				"sbiconindex",
