@@ -4,6 +4,38 @@
 		"selected_items":
 		[
 			[
+				"_las",
+				"_lastDistanceFromCenter	CGFloat"
+			],
+			[
+				"_last",
+				"_lastDistanceFromCenter"
+			],
+			[
+				"STKPositionTo",
+				"STKPositionTouchingRight	STKPosition"
+			],
+			[
+				"STKPositionTou",
+				"STKPositionTouchingRight	STKPosition"
+			],
+			[
+				"STKPositionTouching",
+				"STKPositionTouchingTop	STKPosition"
+			],
+			[
+				"sw",
+				"swipeRecognizer	UISwipeGestureRecognizer *"
+			],
+			[
+				"swi",
+				"closeOnSwipe	BOOL"
+			],
+			[
+				"UISw",
+				"UISwipeGestureRecognizer	class"
+			],
+			[
 				"new",
 				"newCenter	CGPoint"
 			],
@@ -344,10 +376,6 @@
 				"numbersLists"
 			],
 			[
-				"STKPositionTo",
-				"STKPositionTouchingRight	STKPosition"
-			],
-			[
 				"STKPostion",
 				"STKPositionTouchingLeft	STKPosition"
 			],
@@ -486,34 +514,6 @@
 			[
 				"AVCaptureVide",
 				"AVCaptureVideoDataOutput	class"
-			],
-			[
-				"FOU",
-				"FOUNDATION_EXTERN	macro"
-			],
-			[
-				"g",
-				"videoGravity	NSString *"
-			],
-			[
-				"AVCaptureVideo",
-				"AVCaptureVideoPreviewLayer	class"
-			],
-			[
-				"AVCaptureV",
-				"AVCaptureVideoDataOutput	class"
-			],
-			[
-				"AVCaptureSessionP",
-				"AVCaptureSessionPresetMedium	NSString *const"
-			],
-			[
-				"v",
-				"videoQuality	NSString *"
-			],
-			[
-				"UIUSE",
-				"UIUserInterfaceIdiomPhone	enum UIUserInterfaceIdiom"
 			]
 		]
 	},
@@ -640,17 +640,18 @@
 	},
 	"file_history":
 	[
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
 		"/Users/aditya/code/projects/stacks/STKStackManager.h",
-		"/Users/aditya/code/projects/stacks/STKStackManager.m",
 		"/Users/aditya/code/projects/stacks/Tweak.xm",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListView.h",
+		"/Users/aditya/code/projects/stacks/STKStackManager.m",
 		"/Users/aditya/code/projects/stacks/STKConstants.m",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListView.h",
 		"/opt/theos/include/SpringBoard/SBIconController.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
 		"/Users/aditya/code/projects/stacks/STKConstants.h",
 		"/var/folders/2c/g0wpjpqn1h347vh9l9_nblnw0000gp/T/Messages/Transfers/auxos1-1.png",
 		"/opt/theos/include/SpringBoard/SBIconView.h",
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBFolder.h",
 		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewDelegate-Protocol.h",
@@ -669,7 +670,6 @@
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplicationIcon.h",
 		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
 		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
 		"/Users/aditya/code/projects/fluxbot/fluxbot.py",
 		"/Users/aditya/code/projects/stacks/layout/Library/Application Support/Stacks.bundle/Info.plist",
 		"/Users/aditya/code/projects/flagpaint/HBFPColorArt.h",
@@ -782,9 +782,15 @@
 	},
 	"find_state":
 	{
-		"case_sensitive": false,
+		"case_sensitive": true,
 		"find_history":
 		[
+			"_previousPoint",
+			"_currentIconDisplacement",
+			"_distanceFromCentre",
+			"targetOriginFor",
+			"DisplacedIcon",
+			"forDisplacedIcon",
 			"alpha",
 			"search",
 			"alpha",
@@ -906,13 +912,7 @@
 			"struct CGAffineTransform",
 			"struct CGRect",
 			"float",
-			"unsigned int",
-			"icons",
-			"lay",
-			"rela",
-			"35",
-			"setAlpha",
-			"icon"
+			"unsigned int"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -920,6 +920,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"_initialPoint",
 			"_centralIconListView",
 			"NSUInteger",
 			"kBandingExtension",

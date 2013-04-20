@@ -19,13 +19,10 @@
 #import <SpringBoard/SBUIController.h>
 
 
+
 #pragma mark - Declarations
 static char *_panGRKey;
 static char *_stackManagerKey;
-
-static BOOL    _previousEditingState = NO;
-
-
 
 // returns an NSArray of SBIcon object that are in a stack under `icon`.
 static NSArray * STKGetStackIconsForIcon(SBIcon *icon);
@@ -39,10 +36,20 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView);
 static void STKAddPanRecognizerToIconView(SBIconView *iconView);
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
 
-// Inline Functions,  prevents function overhead if called too much.
+
+// Inline Functions, prevent overhead if called too much.
 static inline UIPanGestureRecognizer * STKGetGestureRecognizerForView(SBIconView *iconView);
 static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
 static inline void                     STKRemoveManagerFromView(SBIconView *iconView);
+
+#pragma mark - Direction !
+typedef enum {
+    STKRecognizerDirectionUp   = 0xf007ba11,
+    STKRecognizerDirectionDown = 0x50f7ba11,
+    STKRecognizerDirectionNone = 0x0ddba11
+} STKRecognizerDirection;
+// Returns the direction - top or bottom - for a given velocity
+static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 
 
 #pragma mark - SBIconView Hook
@@ -89,9 +96,11 @@ static inline void                     STKRemoveManagerFromView(SBIconView *icon
 }
 
 
-static CGPoint _previousPoint        = CGPointZero;
-static CGPoint _initialPoint         = CGPointZero;
-static CGFloat _previousDistance     = 0.0f; // Contains the distance from the initial point.
+static CGPoint                _previousPoint    = CGPointZero;
+static CGPoint                _initialPoint     = CGPointZero;
+static CGFloat                _previousDistance = 0.0f; // Contains the distance from the initial point.
+static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; // Stores the direction of the current pan.
+
 %new
 - (void)stk_panned:(UIPanGestureRecognizer *)sender
 {
@@ -109,6 +118,7 @@ static CGFloat _previousDistance     = 0.0f; // Contains the distance from the i
         [stackManager setupViewIfNecessary];
 
         _initialPoint = [sender locationInView:view];
+        _currentDirection = STKDirectionFromVelocity([sender velocityInView:view]);
     }
 
     else if (sender.state == UIGestureRecognizerStateChanged) {
@@ -120,11 +130,24 @@ static CGFloat _previousDistance     = 0.0f; // Contains the distance from the i
         }
 
         CGPoint point = [sender locationInView:view];
-        CGFloat change = sqrtf(((_previousPoint.x - point.x) * (_previousPoint.x - point.x)) + ((_previousPoint.y - point.y)  * (_previousPoint.y - point.y))); // distance formula
+
+        BOOL hasCrossedInitial = YES;
+        if (_currentDirection == STKRecognizerDirectionUp) {
+            hasCrossedInitial = (point.y < _initialPoint.y);
+        }
+        else if (_currentDirection == STKRecognizerDirectionDown) {
+            hasCrossedInitial = (point.y > _initialPoint.y);
+        }
+
+        if (!hasCrossedInitial) {
+            return;
+        }
 
 
-        CGFloat distance = sqrtf(((_initialPoint.x - point.x) * (_initialPoint.x - point.x)) + ((_initialPoint.y - point.y)  * (_initialPoint.y - point.y))); // distance formula
+        CGFloat change = sqrtf(((_previousPoint.x - point.x) * (_previousPoint.x - point.x)) + ((_previousPoint.y - point.y)  * (_previousPoint.y - point.y))); // distance from _previousPoint
+        CGFloat distance = sqrtf(((_initialPoint.x - point.x) * (_initialPoint.x - point.x)) + ((_initialPoint.y - point.y)  * (_initialPoint.y - point.y))); // distance from original point
         if (distance < _previousDistance || stackManager.isExpanded) {
+            // The swipe is going to the opposite direction, so make sure the manager moves its views in the corresponding direction too
             change = -change;
         }
 
@@ -142,6 +165,7 @@ static CGFloat _previousDistance     = 0.0f; // Contains the distance from the i
         _previousPoint = CGPointZero;
         _initialPoint = CGPointZero;
         _previousDistance = 0.f;
+        _currentDirection = STKRecognizerDirectionNone;
     }
 }
 
@@ -171,14 +195,17 @@ static CGFloat _previousDistance     = 0.0f; // Contains the distance from the i
 
 %end
 
-%hook SBIconController 
+%hook SBIconController
 - (void)setIsEditing:(BOOL)isEditing
 {
     %orig(isEditing);
+
+    static BOOL _previousEditingState;
     if (_previousEditingState == isEditing) {
         // This method is called virtually every time you touch SpringBoard, don't do shit unecessarily
         return;
     }
+
     _previousEditingState = isEditing;
     [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
 }
@@ -237,6 +264,15 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
     return stackManager;
 }
 
+
+static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point)
+{
+    if (point.y == 0) {
+        return STKRecognizerDirectionNone;
+    }
+
+    return ((point.y < 0) ? STKRecognizerDirectionUp : STKRecognizerDirectionDown);
+}
 
 #pragma mark - Inliner Definitions
 static inline UIPanGestureRecognizer * STKGetGestureRecognizerForView(SBIconView *iconView)
