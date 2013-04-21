@@ -2,15 +2,15 @@
 #import <UIKit/UIKit.h>
 #import "STKConstants.h"
 
-typedef enum {
-    STKPositionTouchingTop    = 0x2,
-    STKPositionTouchingBottom = 0x4,
-    STKPositionTouchingLeft   = 0x8,
-    STKPositionTouchingRight  = 0x16,
-    STKPositionDock           = 0x32
-} STKPosition;
+typedef NS_OPTIONS(NSUInteger, STKPositionMask) {
+	STKPositionRegular        = 0,
+    STKPositionTouchingTop    = 1 << 0,
+    STKPositionTouchingBottom = 1 << 1,
+    STKPositionTouchingLeft   = 1 << 2,
+    STKPositionTouchingRight  = 1 << 3,
+    STKPositionDock           = 1 << 4
+};
 
-typedef NSUInteger STKPositionMask;
 
 typedef struct {
 	NSUInteger xPos;

@@ -10,6 +10,7 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 
 @property(nonatomic, readonly) BOOL hasSetup;
 @property(nonatomic, readonly) BOOL isExpanded;
+@property(nonatomic, readonly) CGFloat currentIconDistance; // Distance of all the icons from the center.
 @property(nonatomic, copy) STKInteractionHandler interactionHandler;
 
 // The interaction handler is called when an icon is tapped.
@@ -19,9 +20,6 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 - (void)setupView;
 
 - (void)touchesDraggedForDistance:(CGFloat)distance;
-
-// Reset icons' layouts when the central icon's position is changed by the user
-- (void)recalculateLayoutsWithStackIcons:(NSArray *)icons;
 
 // Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
 - (void)touchesEnded;

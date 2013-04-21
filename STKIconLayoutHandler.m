@@ -23,10 +23,11 @@
 - (NSArray *)_iconsInColumnWithX:(NSUInteger)x;
 - (NSArray *)_iconsInRowWithY:(NSUInteger)y;
 
+- (void)_logMask:(STKPositionMask)position;
+
 @end
 
 @implementation STKIconLayoutHandler
-
 - (STKIconLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(STKPositionMask)position
 {
     NSAssert((icons != nil), (@"You must pass in a non-nil array to -[STKIconLayoutHandler layoutForIcons:]"));
@@ -35,6 +36,9 @@
     NSMutableArray *bottomIcons = [NSMutableArray array]; // 1
     NSMutableArray *leftIcons   = [NSMutableArray array]; // 2
     NSMutableArray *rightIcons  = [NSMutableArray array]; // 3
+
+    [self _logMask:position];
+
 
     for (NSUInteger i = 0; i < icons.count; i++) {
         NSInteger layoutLocation = ((NSInteger)i % 4); // ALL THE MAGIC IS HERE. MATH IS AWESOME
@@ -91,7 +95,7 @@
     return [STKIconLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons];
 }
 
-- (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)centralIcon usingLayout:(STKIconLayout *)layout;
+- (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)centralIcon usingLayout:(STKIconLayout *)layout
 {
     NSArray * __block displacedTopIcons    = nil;
     NSArray * __block displacedBottomIcons = nil;
@@ -203,6 +207,22 @@
         }
     }
     return icons;
+}
+
+- (void)_logMask:(STKPositionMask)position
+{
+    if (position & STKPositionTouchingTop) {
+        CLog(@"STKPositionTouchingTop");
+    }
+    if (position & STKPositionTouchingBottom) {
+        CLog(@"STKPositionTouchingBottom");
+    }
+    if (position & STKPositionTouchingLeft){
+        CLog(@"STKPositionTouchingLeft");
+    }
+    if (position & STKPositionTouchingRight) {
+        CLog(@"STKPositionTouchingRight");
+    }
 }
 
 @end

@@ -19,7 +19,6 @@
 #import <SpringBoard/SBUIController.h>
 
 
-
 #pragma mark - Declarations
 static char *_panGRKey;
 static char *_stackManagerKey;
@@ -32,15 +31,18 @@ static NSArray * STKGetIconsWithStack(void);
 
 // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView);
+// Removes the manager from view, closing the stack if it was open
+static void              STKRemoveManagerFromView(SBIconView *iconView);
 
 static void STKAddPanRecognizerToIconView(SBIconView *iconView);
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
+
+// static void STKCleanupEverythingFromView(SBIconView *iconView);
 
 
 // Inline Functions, prevent overhead if called too much.
 static inline UIPanGestureRecognizer * STKGetGestureRecognizerForView(SBIconView *iconView);
 static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
-static inline void                     STKRemoveManagerFromView(SBIconView *iconView);
 
 #pragma mark - Direction !
 typedef enum {
@@ -72,6 +74,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
         if (panRecognizer) {
             STKRemovePanRecognizerFromIconView(self);
         }
+        STKRemoveManagerFromView(self); // Remove the manager irrespective of whether the view exists or not
 
         [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
         [[NSNotificationCenter defaultCenter] removeObserver:self name:STKHomescreenWillScrollNotification object:nil];
@@ -96,6 +99,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 }
 
 
+#define kTargetDistance ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 76.0f : 86.0f)
 static CGPoint                _previousPoint    = CGPointZero;
 static CGPoint                _initialPoint     = CGPointZero;
 static CGFloat                _previousDistance = 0.0f; // Contains the distance from the initial point.
@@ -125,21 +129,22 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         STKStackManager *stackManager = STKManagerForView(self); // The manager had better exist by this point, or something went horribly wrong
 
         if (CGPointEqualToPoint(_previousPoint, CGPointZero)) {
-            // Make sure the initial point is not zero, lawl.
-            _previousPoint = self.center;
+            // Make sure previous point is not zero.
+            _previousPoint = _initialPoint;
         }
 
         CGPoint point = [sender locationInView:view];
 
         BOOL hasCrossedInitial = YES;
+        // If the swipe is going beyond the point where it started from, stop the swipe.
         if (_currentDirection == STKRecognizerDirectionUp) {
-            hasCrossedInitial = (point.y < _initialPoint.y);
-        }
-        else if (_currentDirection == STKRecognizerDirectionDown) {
             hasCrossedInitial = (point.y > _initialPoint.y);
         }
+        else if (_currentDirection == STKRecognizerDirectionDown) {
+            hasCrossedInitial = (point.y < _initialPoint.y);
+        }
 
-        if (!hasCrossedInitial) {
+        if (hasCrossedInitial) {
             return;
         }
 
@@ -149,6 +154,10 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         if (distance < _previousDistance || stackManager.isExpanded) {
             // The swipe is going to the opposite direction, so make sure the manager moves its views in the corresponding direction too
             change = -change;
+        }
+
+        if ((change > 0) && ((stackManager.currentIconDistance) >= kTargetDistance)) {
+            change *= 0.1f;
         }
 
         [stackManager touchesDraggedForDistance:change];
@@ -209,15 +218,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     _previousEditingState = isEditing;
     [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
 }
-
-- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
-{
-    %orig();
-    [[NSNotificationCenter defaultCenter] postNotificationName:STKHomescreenWillScrollNotification object:nil];
-}
-
 %end
-
 
 #pragma mark - Static Function Definitions
 static NSArray * STKGetIconsWithStack(void)
@@ -264,6 +265,15 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
     return stackManager;
 }
 
+static void STKRemoveManagerFromView(SBIconView *iconView)
+{
+    STKStackManager *manager = STKManagerForView(iconView);
+    if (manager.isExpanded) {
+        [manager closeStack];   
+    }
+    objc_setAssociatedObject(iconView, &_stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN);
+}
+
 
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point)
 {
@@ -283,11 +293,6 @@ static inline UIPanGestureRecognizer * STKGetGestureRecognizerForView(SBIconView
 static inline STKStackManager * STKManagerForView(SBIconView *iconView)
 {
     return objc_getAssociatedObject(iconView, &_stackManagerKey);
-}
-
-static inline void STKRemoveManagerFromView(SBIconView *iconView)
-{
-    objc_setAssociatedObject(iconView, &_stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN);
 }
 
 #pragma mark - Constructor

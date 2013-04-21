@@ -1,4 +1,4 @@
-TARGET = iphone:clang:latest:6.0
+TARGET = iphone:clang
 DEBUG = 1
 
 include theos/makefiles/common.mk
