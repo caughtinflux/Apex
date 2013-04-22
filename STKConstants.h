@@ -10,12 +10,15 @@
 #endif
 
 #include <sys/sysctl.h>
+#import <Foundation/Foundation.h>
 
 @class NSString, SBIconListView, SBIcon;
 
 extern NSString * const STKTweakName;
 extern NSString * const STKEditingStateChangedNotification;
 extern NSString * const STKStackClosingEventNotification; // This notification is posted when something happens to make the stack close
+
+extern NSString * const SBLockStateChangeNotification;
 
 #define PREFS_PATH [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks.%@.plist", STKTweakName];
 
@@ -25,12 +28,13 @@ extern NSString * const STKStackClosingEventNotification; // This notification i
 // For instance 248 in the range [0, 320] -> something 0.0 -> 0.1
 extern inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax);
 
-// Wrapper function
-extern inline double STKAlphaFromDistance(double distance);
+// Wrapper functions
+extern inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance);
+extern inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance, BOOL isGhostly);
 
 extern SBIconListView * STKListViewForIcon(SBIcon *icon);
 
-extern unsigned int STKInfoForSpecifier(uint typeSpecifier);
-extern unsigned int STKGetCPUFrequency(void);
+extern NSUInteger STKInfoForSpecifier(uint typeSpecifier);
+extern NSUInteger STKGetCPUFrequency(void);
 
 #endif

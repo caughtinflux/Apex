@@ -13,6 +13,9 @@ NSString * const STKTweakName                       = @"Stacks";
 NSString * const STKEditingStateChangedNotification = @"STKEditingStateChanged";
 NSString * const STKStackClosingEventNotification   = @"STKStackClosingEvent";
 
+// SpringBoard constants
+NSString * const SBLockStateChangeNotification = @"com.apple.springboard.lockstate";
+
 inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax)
 {
     double oldRange = (prevMax - prevMin);
@@ -20,13 +23,22 @@ inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, 
     return (((numToScale - prevMin) * newRange) / oldRange) + newMin;
 }
 
-inline double STKAlphaFromDistance(double distance)
+inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance)
 {
-    // Subtract from 1 to invert the scale
-    // Greater the distance, lower the alpha
+    // Greater the distance, lower the alpha, therefore, switch places for newMax and newMin
     double alpha = (STKScaleNumber(distance, 0.0, 85.0, 1.0, 0.0));
     if (alpha < 0.0) {
         alpha = 0.0;
+    }
+    return alpha;
+}
+
+inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance, BOOL isGhostly)
+{
+    double newMax = (isGhostly ? 0.0 : 0.2);
+    double alpha = (STKScaleNumber(distance, 0.0, 85.0, 1.0, newMax));
+    if (alpha < newMax) {
+        alpha = newMax;
     }
     return alpha;
 }
@@ -50,7 +62,7 @@ NSUInteger STKInfoForSpecifier(uint typeSpecifier)
     int results;
     int mib[2] = {CTL_HW, typeSpecifier};
     sysctl(mib, 2, &results, &size, NULL, 0);
-    return (NSUInteger) results;
+    return (NSUInteger)results;
 }
 
 
