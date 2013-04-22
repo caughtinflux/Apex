@@ -291,7 +291,6 @@ static NSArray * STKGetStackIconsForIcon(SBIcon *icon)
 
 static void STKAddPanRecognizerToIconView(SBIconView *iconView)
 {
-    DLog(@"");
     UIPanGestureRecognizer *panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:iconView action:@selector(stk_panned:)] autorelease];
     [iconView addGestureRecognizer:panRecognizer];
     objc_setAssociatedObject(iconView, &_panGRKey, panRecognizer, OBJC_ASSOCIATION_ASSIGN);
@@ -299,7 +298,6 @@ static void STKAddPanRecognizerToIconView(SBIconView *iconView)
 
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
 {
-    DLog(@"");
     UIPanGestureRecognizer *recognizer = STKPanRecognizerForView(iconView);
     [iconView removeGestureRecognizer:recognizer];
     objc_setAssociatedObject(iconView, &_panGRKey, nil, OBJC_ASSOCIATION_ASSIGN);
@@ -307,7 +305,6 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
 
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 {
-    DLog(@"");
     STKStackManager *stackManager = nil;
     stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:STKGetStackIconsForIcon(iconView.icon)];
     stackManager.interactionHandler = ^(SBIconView *tappedIconView) { 
@@ -323,7 +320,6 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 
 static void STKRemoveManagerFromView(SBIconView *iconView)
 {
-    DLog(@"");
     STKStackManager *manager = STKManagerForView(iconView);
     if (manager.isExpanded) {
         [manager closeStack];   
