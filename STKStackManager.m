@@ -216,10 +216,6 @@ static BOOL __stackInMotion;
 
 - (void)touchesEnded
 {
-    if (_isExpanded) {
-        return;
-    }
-
     if (_lastDistanceFromCenter >= kEnablingThreshold && (!_isExpanded)) {
         [[objc_getClass("SBIconController") sharedInstance] setCurrentPageIconsGhostly:YES forRequester:2 skipIcon:_centralIcon];
         [self _animateToOpenPosition];

@@ -173,7 +173,7 @@ static UISwipeGestureRecognizer *_swipeRecognizer  = nil; // swipe recognizer to
         if (!_swipeRecognizer) {
             _swipeRecognizer = [[[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(stk_closeStackFromSwipe:)] autorelease];
             _swipeRecognizer.direction = (UISwipeGestureRecognizerDirectionUp | UISwipeGestureRecognizerDirectionDown);
-            [[[%c(SBIconController) sharedInstance] currentRootIconList] addGestureRecognizer:_swipeRecognizer];
+            [[[%c(SBUIController) sharedInstance] contentView] addGestureRecognizer:_swipeRecognizer];
         } 
 
         STKStackManager *manager = STKManagerForView(self);
