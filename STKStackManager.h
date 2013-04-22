@@ -2,11 +2,13 @@
 #import <UIKit/UIKit.h>
 #import <SpringBoard/SBIconView.h>
 
-
+typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 @class SBIcon;
+
 @interface STKStackManager : NSObject <SBIconViewDelegate>
 
-typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
++ (BOOL)anyStackOpen;
++ (BOOL)anyStackInMotion;
 
 @property(nonatomic, readonly) BOOL hasSetup;
 @property(nonatomic, readonly) BOOL isExpanded;
@@ -30,6 +32,8 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 // This method sets the central icon to `icon` until _after_ `handler` is called
 - (void)closeStackSettingCentralIcon:(SBIcon *)icon completion:(void(^)(void))handler;
 
-- (void)closeStack; // convenience method
+// convenience methods
+- (void)openStack;
+- (void)closeStack;
 
 @end
