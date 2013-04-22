@@ -77,6 +77,11 @@
     [block release];
 }
 
+- (NSArray *)iconsForPosition:(STKLayoutPosition)position
+{
+    return ((position == STKLayoutPositionTop) ? self.topIcons : (position == STKLayoutPositionBottom) ? self.bottomIcons : (position == STKLayoutPositionLeft) ? self.leftIcons : self.rightIcons);
+}
+
 - (NSString *)description
 {
     return [NSString stringWithFormat:@"%@ top.count: %i bottom.count: %i left.count: %i right.count: %i", [super description], _topIcons.count, _bottomIcons.count, _leftIcons.count, _rightIcons.count];

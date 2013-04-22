@@ -24,4 +24,6 @@ typedef enum {
 - (void)enumerateThroughAllIconsUsingBlock:(void(^)(SBIcon *, STKLayoutPosition))block;
 - (void)enumerateIconsUsingBlockWithIndexes:(void(^)(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block;
 
+- (NSArray *)iconsForPosition:(STKLayoutPosition)position;
+
 @end
