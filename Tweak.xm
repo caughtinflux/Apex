@@ -31,17 +31,17 @@ static NSArray * STKGetIconsWithStack(void);
 
 // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView);
+
 // Removes the manager from view, closing the stack if it was open
-static void              STKRemoveManagerFromView(SBIconView *iconView);
+static void STKRemoveManagerFromView(SBIconView *iconView);
 
 static void STKAddPanRecognizerToIconView(SBIconView *iconView);
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
 
-// static void STKCleanupEverythingFromView(SBIconView *iconView);
 
 
 // Inline Functions, prevent overhead if called too much.
-static inline UIPanGestureRecognizer * STKGetGestureRecognizerForView(SBIconView *iconView);
+static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconView);
 static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
 
 #pragma mark - Direction !
@@ -66,7 +66,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
         return;
     }
 
-    UIPanGestureRecognizer *panRecognizer = STKGetGestureRecognizerForView(self);
+    UIPanGestureRecognizer *panRecognizer = STKPanRecognizerForView(self);
     
     if (!([STKGetIconsWithStack() containsObject:icon.leafIdentifier])) {
         // Make sure the recognizer is not added to icons in the stack
@@ -77,7 +77,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
         STKRemoveManagerFromView(self); // Remove the manager irrespective of whether the view exists or not
 
         [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:STKHomescreenWillScrollNotification object:nil];
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:STKStackClosingEventNotification object:nil];
 
         return;
     }
@@ -86,15 +86,15 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
     if (!panRecognizer) {
         STKAddPanRecognizerToIconView(self);
     }
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_editingStateChanged:) name:STKEditingStateChangedNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_homescreenWillScroll:) name:STKHomescreenWillScrollNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_closeStack:) name:STKStackClosingEventNotification object:nil];
 }
 
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:STKHomescreenWillScrollNotification object:nil];
-
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:STKStackClosingEventNotification object:nil];
     %orig();
 }
 
@@ -190,16 +190,13 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         STKAddPanRecognizerToIconView(self);
     }
 
-    STKRemoveManagerFromView(self); // Remove the manager irrespective of whether the view exists or not
+    STKRemoveManagerFromView(self); // Remove the manager irrespective of whether the editing state
 }
 
 %new 
-- (void)stk_homescreenWillScroll:(NSNotification *)notification
+- (void)stk_closeStack:(NSNotification *)notification
 {
-    STKStackManager *manager = STKManagerForView(self);
-    if (manager.isExpanded) {
-        [manager closeStack];   
-    }
+    [STKManagerForView(self) closeStack];
 }
 
 %end
@@ -218,7 +215,23 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     _previousEditingState = isEditing;
     [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
 }
+
+- (void)iconWasTapped:(SBIcon *)icon
+{
+    if ([STKGetIconsWithStack() containsObject:icon.leafIdentifier]) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
+    }
+    EXECUTE_BLOCK_AFTER_DELAY(0.1, ^{ %orig(); } );
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    %orig();
+    [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
+}
+
 %end
+
 
 #pragma mark - Static Function Definitions
 static NSArray * STKGetIconsWithStack(void)
@@ -245,7 +258,7 @@ static void STKAddPanRecognizerToIconView(SBIconView *iconView)
 
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
 {
-    UIPanGestureRecognizer *recognizer = STKGetGestureRecognizerForView(iconView);
+    UIPanGestureRecognizer *recognizer = STKPanRecognizerForView(iconView);
     [iconView removeGestureRecognizer:recognizer];
     objc_setAssociatedObject(iconView, &_panGRKey, nil, OBJC_ASSOCIATION_ASSIGN);
 }
@@ -285,7 +298,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point)
 }
 
 #pragma mark - Inliner Definitions
-static inline UIPanGestureRecognizer * STKGetGestureRecognizerForView(SBIconView *iconView)
+static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconView)
 {
     return objc_getAssociatedObject(iconView, &_panGRKey);
 }

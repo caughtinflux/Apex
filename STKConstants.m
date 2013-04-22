@@ -9,9 +9,9 @@
 #import <objc/runtime.h>
 
 
-NSString * const STKTweakName = @"Stacks";
+NSString * const STKTweakName                       = @"Stacks";
 NSString * const STKEditingStateChangedNotification = @"STKEditingStateChanged";
-NSString * const STKHomescreenWillScrollNotification = @"STKHomescreenWillScrollNotification";
+NSString * const STKStackClosingEventNotification   = @"STKStackClosingEvent";
 
 inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax)
 {

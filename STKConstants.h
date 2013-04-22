@@ -15,7 +15,7 @@
 
 extern NSString * const STKTweakName;
 extern NSString * const STKEditingStateChangedNotification;
-extern NSString * const STKHomescreenWillScrollNotification;
+extern NSString * const STKStackClosingEventNotification; // This notification is posted when something happens to make the stack close
 
 #define PREFS_PATH [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks.%@.plist", STKTweakName];
 

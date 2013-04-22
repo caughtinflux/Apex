@@ -211,15 +211,12 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 }
  
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler
-{   
-    
+{
     [self _animateToClosedPositionWithCompletionBlock:^{
         if (completionHandler) {
             completionHandler();
         }
     }];
-
-    
 }
 
 - (void)closeStackSettingCentralIcon:(SBIcon *)icon completion:(void(^)(void))handler
@@ -387,6 +384,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
             }
         }
         iconView.frame = newFrame;
+        CLog(@"Moved icons by distance: %.2f", factoredDistance);
     }];
 
     // Move stack icons
