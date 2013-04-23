@@ -1,8 +1,12 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <SpringBoard/SBIconView.h>
-
+/*
+*	NOTE:
+*		This class ___will___ handle vertical swipes on the contentview to close itself..
+*/
 typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
+
 @class SBIcon;
 
 @interface STKStackManager : NSObject <SBIconViewDelegate>
@@ -13,7 +17,8 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 @property(nonatomic, readonly) BOOL hasSetup;
 @property(nonatomic, readonly) BOOL isExpanded;
 @property(nonatomic, readonly) CGFloat currentIconDistance; // Distance of all the icons from the center.
-@property(nonatomic, copy) STKInteractionHandler interactionHandler;
+
+@property(nonatomic, copy) STKInteractionHandler interactionHandler; // the tappedIconView is only passed if there indeed was a tapped icon view. This may be called even if the a swipe is detected on the content view, and the stack closes automagically.
 
 // The interaction handler is called when an icon is tapped.
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons;
@@ -35,5 +40,6 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 // convenience methods
 - (void)openStack;
 - (void)closeStack;
+- (void)closeStackAfterDelay:(NSTimeInterval)delay completion:(void(^)(void))completionBlock;
 
 @end
