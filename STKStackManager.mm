@@ -47,7 +47,6 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     BOOL                   _hasPreparedGhostlyIcons;
 
     UISwipeGestureRecognizer *_swipeRecognizer;
-    UITapGestureRecognizer   *_tapRecognizer;
 }
 
 - (void)_animateToOpenPosition;
