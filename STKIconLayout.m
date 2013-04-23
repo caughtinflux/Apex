@@ -82,6 +82,72 @@
     return ((position == STKLayoutPositionTop) ? self.topIcons : (position == STKLayoutPositionBottom) ? self.bottomIcons : (position == STKLayoutPositionLeft) ? self.leftIcons : self.rightIcons);
 }
 
+- (NSUInteger)totalIconCount
+{
+    return (self.topIcons.count + self.bottomIcons.count + self.leftIcons.count + self.rightIcons.count);
+}
+
+- (void)addIcon:(SBIcon *)icon toIconsAtPosition:(STKLayoutPosition)position
+{
+    if (!icon) {
+        return;
+    }
+    @synchronized(self) {
+        switch (position) {
+            case STKLayoutPositionTop: {
+                NSMutableArray *newTopIcons = [_topIcons mutableCopy];
+                if (!newTopIcons) {
+                    newTopIcons = [NSMutableArray new];
+                }
+                [newTopIcons addObject:icon];
+                
+                [_topIcons release];
+                _topIcons = [newTopIcons copy]; // We don't want a mutable array as an ivar
+                [newTopIcons release];
+                break;
+            }
+
+            case STKLayoutPositionBottom: {
+                NSMutableArray *newBottomIcons = [_bottomIcons mutableCopy];
+                if (!newBottomIcons) {
+                    newBottomIcons = [NSMutableArray new];
+                }
+                [newBottomIcons addObject:icon];
+
+                [_bottomIcons release];
+                _bottomIcons = [newBottomIcons copy];
+                [newBottomIcons release];
+                break;
+            }
+
+            case STKLayoutPositionLeft: {
+                NSMutableArray *newLeftIcons = [_leftIcons mutableCopy];
+                if (!newLeftIcons) {
+                    newLeftIcons = [NSMutableArray new];
+                }
+                [newLeftIcons addObject:icon];
+
+                [_leftIcons release];
+                _leftIcons = [newLeftIcons copy];
+                [newLeftIcons release];
+                break;
+            }
+            case STKLayoutPositionRight: {
+                NSMutableArray *newRightIcons = [_rightIcons mutableCopy];
+                if (!newRightIcons) {
+                    newRightIcons = [NSMutableArray new];
+                }
+                [newRightIcons addObject:icon];
+
+                [_rightIcons release];
+                _rightIcons = [newRightIcons copy];
+                [newRightIcons release];
+                break;
+            }
+        }
+    }
+}
+
 - (NSString *)description
 {
     return [NSString stringWithFormat:@"%@ top.count: %i bottom.count: %i left.count: %i right.count: %i", [super description], _topIcons.count, _bottomIcons.count, _leftIcons.count, _rightIcons.count];

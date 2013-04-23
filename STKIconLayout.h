@@ -26,4 +26,9 @@ typedef enum {
 
 - (NSArray *)iconsForPosition:(STKLayoutPosition)position;
 
+- (NSUInteger)totalIconCount;
+
+// This method is thread safe
+- (void)addIcon:(SBIcon *)icon toIconsAtPosition:(STKLayoutPosition)position;
+
 @end
