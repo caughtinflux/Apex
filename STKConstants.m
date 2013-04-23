@@ -8,6 +8,7 @@
 
 #import <objc/runtime.h>
 
+#include <sys/sysctl.h>
 
 NSString * const STKTweakName                       = @"Stacks";
 NSString * const STKEditingStateChangedNotification = @"STKEditingStateChanged";
@@ -26,7 +27,7 @@ inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, 
 inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance)
 {
     // Greater the distance, lower the alpha, therefore, switch places for newMax and newMin
-    double alpha = (STKScaleNumber(distance, 0.0, 85.0, 1.0, 0.0));
+    double alpha = (STKScaleNumber(distance, 0.0, kTargetDistance, 1.0, 0.0));
     if (alpha < 0.0) {
         alpha = 0.0;
     }
@@ -36,7 +37,7 @@ inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance
 inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance, BOOL isGhostly)
 {
     double newMax = (isGhostly ? 0.0 : 0.2);
-    double alpha = (STKScaleNumber(distance, 0.0, 85.0, 1.0, newMax));
+    double alpha = (STKScaleNumber(distance, 0.0, kTargetDistance, 1.0, newMax));
     if (alpha < newMax) {
         alpha = newMax;
     }

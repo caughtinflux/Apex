@@ -9,32 +9,41 @@
 	#define CLog(...)
 #endif
 
-#include <sys/sysctl.h>
 #import <Foundation/Foundation.h>
 
-@class NSString, SBIconListView, SBIcon;
 
-extern NSString * const STKTweakName;
-extern NSString * const STKEditingStateChangedNotification;
-extern NSString * const STKStackClosingEventNotification; // This notification is posted when something happens to make the stack close
-
-extern NSString * const SBLockStateChangeNotification;
-
-#define PREFS_PATH [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks.%@.plist", STKTweakName];
+#define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks.%@.plist", NSHomeDirectory(), STKTweakName];
 
 #define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
 
-// Function to translate a number from one range to another
-// For instance 248 in the range [0, 320] -> something 0.0 -> 0.1
-extern inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax);
+#define kTargetDistance ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 76.0f : 86.0f)
 
-// Wrapper functions
-extern inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance);
-extern inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance, BOOL isGhostly);
+@class NSString, SBIconListView, SBIcon;
 
-extern SBIconListView * STKListViewForIcon(SBIcon *icon);
+#ifdef __cplusplus 
+extern "C" {
+#endif
 
-extern NSUInteger STKInfoForSpecifier(uint typeSpecifier);
-extern NSUInteger STKGetCPUFrequency(void);
+	extern NSString * const STKTweakName;
+	extern NSString * const STKEditingStateChangedNotification;
+	extern NSString * const STKStackClosingEventNotification; // This notification is posted when something happens to make the stack close
+
+	extern NSString * const SBLockStateChangeNotification;
+
+	// Function to translate a number from one range to another
+	// For instance 248 in the range [0, 320] -> something 0.0 -> 0.1
+	extern inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax);
+
+	// Wrapper functions
+	extern inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance);
+	extern inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance, BOOL isGhostly);
+
+	extern SBIconListView * STKListViewForIcon(SBIcon *icon);
+
+	extern NSUInteger STKGetCPUFrequency(void);
+
+#ifdef __cplusplus 
+}
+#endif
 
 #endif
