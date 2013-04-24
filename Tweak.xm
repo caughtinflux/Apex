@@ -17,6 +17,8 @@
 #import <SpringBoard/SBIconListView.h>
 #import <SpringBoard/SBDockIconListView.h>
 #import <SpringBoard/SBUIController.h>
+#import <SpringBoard/SBApplicationController.h>
+#import <SpringBoard/SBApplication.h>
 
 
 #pragma mark - Declarations
@@ -291,10 +293,10 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
     stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:STKGetStackIconsForIcon(iconView.icon)];
     stackManager.interactionHandler = \
         ^(SBIconView *tappedIconView) {
-
             if (tappedIconView) {
-                [(SBUIController *)[%c(SBUIController) sharedInstance] launchIcon:tappedIconView.icon];
-                [stackManager closeStackAfterDelay:0.2 completion:^{
+                [stackManager closeStackSettingCentralIcon:tappedIconView.icon completion:^{
+                    SBApplication *tappedApp = [[%c(SBApplicationController) sharedInstance] applicationWithDisplayIdentifier:tappedIconView.icon.leafIdentifier];
+                    [(SBUIController *)[%c(SBUIController) sharedInstance] activateApplicationFromSwitcher:tappedApp];
                     STKRemoveManagerFromView(iconView);
                 }];
             }

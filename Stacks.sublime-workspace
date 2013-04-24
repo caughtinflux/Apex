@@ -4,6 +4,118 @@
 		"selected_items":
 		[
 			[
+				"SBIconV",
+				"SBIconView	class"
+			],
+			[
+				"icon",
+				"iconView	SBIconView *"
+			],
+			[
+				"shadow",
+				"shadowImageView	UIImageView *"
+			],
+			[
+				"UIImag",
+				"UIImageView	class"
+			],
+			[
+				"ob",
+				"objectEnumerator	NSEnumerator *"
+			],
+			[
+				"v",
+				"view	UIView *"
+			],
+			[
+				"_handl",
+				"_handleCloseGesture:(UIGestureRecognizer *)	void"
+			],
+			[
+				"nu",
+				"numberOfTapsRequired	NSUInteger"
+			],
+			[
+				"STKicon",
+				"STKIconLayout	class"
+			],
+			[
+				"NSMutabl",
+				"NSMutableArray	class"
+			],
+			[
+				"NSMuta",
+				"NSMutableArray	class"
+			],
+			[
+				"STKLa",
+				"STKLayoutPositionRight	STKLayoutPosition"
+			],
+			[
+				"STK",
+				"STKLayoutPositionBottom	STKLayoutPosition"
+			],
+			[
+				"STKl",
+				"STKLayoutPositionTop	STKLayoutPosition"
+			],
+			[
+				"STKL",
+				"STKLayoutPosition	typedef"
+			],
+			[
+				"STKIcon",
+				"STKIconLayout	class"
+			],
+			[
+				"en",
+				"enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index)block	void"
+			],
+			[
+				"cu",
+				"currentIconDistance"
+			],
+			[
+				"Stack",
+				"stackManager"
+			],
+			[
+				"acti",
+				"activateSwitcher"
+			],
+			[
+				"SBiconView",
+				"SBIconViewMap	class"
+			],
+			[
+				"_dis",
+				"_distanceRatio	CGFloat"
+			],
+			[
+				"_di",
+				"_distanceRatio	CGFloat"
+			],
+			[
+				"verical",
+				"verticalOrigin	CGPoint"
+			],
+			[
+				"enaum",
+				"enumerateObjectsWithOptions:(NSEnumerationOptions) usingBlock:^(id obj, NSUInteger idx, BOOL *stop)block	void"
+			],
+			[
+				"current",
+				"currentArray	NSArray *"
+			],
+			[
+				"SBicon",
+				"SBIconController"
+			],
+			[
+				"isEqualToS",
+				"isEqualToString:(NSString *)	BOOL"
+			],
+			[
 				"STKP",
 				"STKPositionMask	typedef"
 			],
@@ -62,10 +174,6 @@
 			[
 				"NSMutableD",
 				"NSMutableDictionary	class"
-			],
-			[
-				"current",
-				"currentListView	SBIconListView *"
 			],
 			[
 				"_distanceF",
@@ -144,10 +252,6 @@
 				"multiplicationFactor	NSInteger"
 			],
 			[
-				"STKL",
-				"STKLayoutPositionLeft	STKLayoutPosition"
-			],
-			[
 				"STKLay",
 				"STKLayoutPositionTop	STKLayoutPosition"
 			],
@@ -162,10 +266,6 @@
 			[
 				"ori",
 				"originalOrigin	CGPoint"
-			],
-			[
-				"STKLa",
-				"STKLayoutPositionRight	STKLayoutPosition"
 			],
 			[
 				"STKPos",
@@ -196,10 +296,6 @@
 				"returnPoint	CGPoint"
 			],
 			[
-				"icon",
-				"iconView	SBIconView *"
-			],
-			[
 				"STKLayoutPos",
 				"STKLayoutPositionLeft	STKLayoutPosition"
 			],
@@ -222,10 +318,6 @@
 			[
 				"ran",
 				"range	NSRange"
-			],
-			[
-				"STKIcon",
-				"STKIconCoordinates	typedef"
 			],
 			[
 				"NSMake",
@@ -292,14 +384,6 @@
 				"kMaximumSwipeDistance	macro"
 			],
 			[
-				"_dis",
-				"_disappearingIconsLayout	STKIconLayout *"
-			],
-			[
-				"en",
-				"enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop)block	void"
-			],
-			[
 				"STKLayou",
 				"STKLayoutPositionLeft	STKLayoutPosition"
 			],
@@ -346,10 +430,6 @@
 			[
 				"STKla",
 				"STKLayoutPositionTop	STKLayoutPosition"
-			],
-			[
-				"STK",
-				"STKLayoutPosition	typedef"
 			],
 			[
 				"STKStak",
@@ -434,112 +514,64 @@
 			[
 				"QSPo",
 				"QSPositionDock	QSPosition"
-			],
-			[
-				"QS",
-				"QSPositionTouchingBottom	QSPosition"
-			],
-			[
-				"QSPositionTouc",
-				"QSPositionTouchingRight	QSPosition"
-			],
-			[
-				"QSPositionTo",
-				"QSPositionTouchingTop	QSPosition"
-			],
-			[
-				"QSP",
-				"QSPosition	typedef"
-			],
-			[
-				"pre",
-				"prevMin	double"
-			],
-			[
-				"prevm",
-				"prevMax	double"
-			],
-			[
-				"addO",
-				"addObject:(id)	void"
-			],
-			[
-				"NSI",
-				"NSInteger	typedef"
-			],
-			[
-				"c",
-				"count	NSUInteger"
-			],
-			[
-				"NSMut",
-				"NSMutableDictionary	class"
-			],
-			[
-				"NSAssert",
-				"NSAssert(condition, desc, ...)	macro"
-			],
-			[
-				"loca",
-				"location	STKIconLocation *"
-			],
-			[
-				"launc",
-				"launchIcon:(SBIcon *)	void"
-			],
-			[
-				"objc_getClass",
-				"objc_getClass(const char *name)	id"
-			],
-			[
-				"def",
-				"defaultDelegate	STKIconViewDelegate *"
-			],
-			[
-				"dispatch_once",
-				"dispatch_once_t	typedef"
-			],
-			[
-				"cont",
-				"controller	SBIconController *"
-			],
-			[
-				"NSA",
-				"NSArray	class"
-			],
-			[
-				"BKSWor",
-				"BKSWorkspaceDelegate"
-			],
-			[
-				"QSCamera",
-				"QSCameraDevice	typedef"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
+			"file": "STKIconLayout.h",
+			"settings":
+			{
+				"buffer_size": 1233,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "STKIconLayout.m",
+			"settings":
+			{
+				"buffer_size": 5018,
+				"line_ending": "Unix"
+			}
+		},
+		{
 			"file": "Tweak.xm",
 			"settings":
 			{
-				"buffer_size": 10992,
+				"buffer_size": 12385,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "STKIconLayoutHandler.m",
+			"file": "STKStackManager.h",
 			"settings":
 			{
-				"buffer_size": 8203,
+				"buffer_size": 1711,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "STKIconLayoutHandler.h",
+			"file": "STKStackManager.mm",
 			"settings":
 			{
-				"buffer_size": 1195,
+				"buffer_size": 33471,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "STKConstants.h",
+			"settings":
+			{
+				"buffer_size": 1720,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "theos/include/SpringBoard/SBIconView.h",
+			"settings":
+			{
+				"buffer_size": 5751,
 				"line_ending": "Unix"
 			}
 		}
@@ -547,9 +579,13 @@
 	"build_system": "Packages/Python/Python.sublime-build",
 	"command_palette":
 	{
-		"height": 392.0,
+		"height": 127.0,
 		"selected_items":
 		[
+			[
+				"install",
+				"Package Control: Install Package"
+			],
 			[
 				"packa",
 				"Package Control: Install Package"
@@ -565,10 +601,6 @@
 			[
 				"",
 				"BracketHighlighter: Toggle Global Enable"
-			],
-			[
-				"install",
-				"Package Control: Install Package"
 			],
 			[
 				"Instal",
@@ -664,44 +696,60 @@
 	},
 	"file_history":
 	[
-		"/Users/aditya/code/projects/stacks/Makefile",
+		"/Users/aditya/code/projects/quickshootpro/QSActivatorListener.m",
+		"/Users/aditya/code/projects/stacks/STKStackManager.mm",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
+		"/Users/aditya/code/projects/stacks/STKConstants.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
+		"/Users/aditya/code/projects/quickshoot/Tweak.xm",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconModel.h",
+		"/Users/aditya/code/projects/stacks/STKConstants.m",
+		"/Users/aditya/code/projects/stacks/Tweak.xm",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewDelegate-Protocol.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBBannerController.h",
 		"/Users/aditya/code/projects/stacks/STKStackManager.m",
+		"/Users/aditya/code/projects/stacks/theos/include/substrate.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
+		"/Users/aditya/code/projects/stacks/layout/DEBIAN/control",
+		"/opt/theos/include/SpringBoard/SBIconController.h",
+		"/Users/aditya/code/projects/stacks/STKStackManager.h",
+		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListView.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SpringBoard.h",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/BracketHighlighter/Example.sublime-keymap",
+		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Default (OSX).sublime-keymap",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/BracketHighlighter/bh_core.sublime-settings",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconScrollView.h",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
+		"/Users/aditya/code/projects/stacks/Makefile",
+		"/Users/aditya/code/projects/stacks/NSArray-STKAdditions.h",
+		"/Users/aditya/code/projects/stacks/NSArray+STKAdditions.m",
+		"/Users/aditya/code/projects/stacks/NSArray-STKAdditions.m",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Shell Turtlestein.sublime-settings",
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/Shell Turtlestein/Shell Turtlestein.sublime-settings",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
 		"/opt/theos/makefiles/targets/Darwin/iphone.mk",
 		"/Users/aditya/code/projects/stacks/STKPanGestureRecognizer.h",
 		"/Users/aditya/code/projects/stacks/STKPanGestureRecognizer.m",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListView.h",
-		"/Users/aditya/code/projects/stacks/STKConstants.h",
-		"/Users/aditya/code/projects/stacks/STKConstants.m",
-		"/Users/aditya/code/projects/stacks/Tweak.xm",
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
-		"/Users/aditya/code/projects/stacks/STKStackManager.h",
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
-		"/opt/theos/include/SpringBoard/SBIconController.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
 		"/var/folders/2c/g0wpjpqn1h347vh9l9_nblnw0000gp/T/Messages/Transfers/auxos1-1.png",
 		"/opt/theos/include/SpringBoard/SBIconView.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBFolder.h",
-		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewDelegate-Protocol.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIcon.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBRootFolder.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListModel.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
 		"/opt/theos/include/SpringBoard/SBIconModel.h",
 		"/opt/theos/include/SpringBoard/SBIconModel",
 		"/opt/theos/include/SpringBoard/SBUIController.h",
 		"/opt/theos/include/SpringBoard/SBIcon.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewMap.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconModel.h",
 		"/opt/theos/include/SpringBoard/SBIconListModel.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBDockIconListView.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplicationIcon.h",
-		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
-		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
 		"/Users/aditya/code/projects/fluxbot/fluxbot.py",
 		"/Users/aditya/code/projects/stacks/layout/Library/Application Support/Stacks.bundle/Info.plist",
 		"/Users/aditya/code/projects/flagpaint/HBFPColorArt.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
 		"/opt/theos/include/SpringBoard/SpringBoard.h",
 		"/Users/aditya/code/projects/prev_stacks/Tweak.xm",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplication.h",
@@ -718,7 +766,6 @@
 		"/Users/aditya/code/projects/stacks/STKIconHelper.m",
 		"/Users/aditya/code/projects/stacks/STKIconViewDelegate.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconIndexMutableList.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconScrollView.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconContentView.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconObserver-Protocol.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconIndexMutableListObserver-Protocol.h",
@@ -731,7 +778,6 @@
 		"/Users/aditya/Desktop/UIKitDump/UIButton.h",
 		"/Users/aditya/Desktop/UIKitDump/UIButtonContent.h",
 		"/Users/aditya/Desktop/UIKitDump/UINavigationController.h",
-		"/Users/aditya/code/projects/quickshootpro/QSActivatorListener.m",
 		"/Users/aditya/code/projects/quickshootpro/Tweak.xm",
 		"/Users/aditya/code/projects/lastcontroller/Tweak.xm",
 		"/Users/aditya/code/projects/quickshootpro/QSActivatorListener.",
@@ -777,21 +823,7 @@
 		"/Users/aditya/Desktop/iOS-6-SpringBoard-Headers/SBApplication.h",
 		"/Users/aditya/Desktop/iOS-6-SpringBoard-Headers/SBSystemLocalNotificationAlert.h",
 		"/Users/aditya/Desktop/iOS-6-SpringBoard-Headers/CDStructures.h",
-		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/Objective-C/Objective-C.tmLanguage",
-		"/Users/aditya/code/projects/quickshootpro/QSCameraOptionsWindow.h",
-		"/Users/aditya/code/projects/quickshootpro/QSActivatorListener.h",
-		"/Users/aditya/code/projects/quickshootpro/Tweak.mm",
-		"/Users/aditya/code/projects/quickshootpro/qsprefs/QSAboutTableViewController.m",
-		"/Users/aditya/code/winterboard/Application.mm",
-		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBScreenFlash.h",
-		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/Objective-C/Objective-C++.tmLanguage",
-		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/ASCII Decorator/Default (OSX).sublime-keymap",
-		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/ASCII Decorator/ASCII Decorator.sublime-settings",
-		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBApplication.h",
-		"/Users/aditya/Desktop/QuickShootPro_Disclaimer",
-		"/Users/aditya/code/projects/quickshootpro/theos/include/SpringBoard/SBApplicationController.h",
-		"/Users/aditya/code/projects/quickshootpro/qsprefs/QSPrefs.mm",
-		"/opt/theos/makefiles/package.mk"
+		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/Objective-C/Objective-C.tmLanguage"
 	],
 	"find":
 	{
@@ -806,9 +838,91 @@
 	},
 	"find_state":
 	{
-		"case_sensitive": true,
+		"case_sensitive": false,
 		"find_history":
 		[
+			"shadow",
+			"_setGhostly",
+			"icon:(id)arg1",
+			"shadow",
+			"shadiw",
+			"alpha",
+			"addObject",
+			"*",
+			"MSHookIvar",
+			"_horizontalBanding",
+			"_hotizontalBanding",
+			"_hotizontal",
+			"getDisplace",
+			"(SBIcon *)icon",
+			"Icons",
+			"icons",
+			"pageControl",
+			"clear",
+			"layout",
+			"remove",
+			"clean",
+			"MSHookIvar",
+			"requesters",
+			"folder",
+			"ghost",
+			"ghostly",
+			"closeFolder",
+			"requester",
+			"_setGho",
+			"requester",
+			"switcher",
+			"iconContentView",
+			"dock",
+			"swipe",
+			"_isExpanded",
+			"ghostly",
+			"ghosted",
+			"tap",
+			"switcher",
+			"lock",
+			"ButtonTapped",
+			"down",
+			"tap",
+			"handleMenu",
+			"switcher",
+			"handleMenuB",
+			"handleMenUB",
+			"_handleMenUButton",
+			"iconView",
+			"prepare",
+			"switcher",
+			"clos",
+			"closeFolder",
+			"alpha",
+			"partial",
+			"_appearingIconsLayout",
+			"high",
+			"horizontalBandingAllowance",
+			"highlight",
+			"horizontalBandingAllowance",
+			"prefixing",
+			"_targetDistance",
+			"SBIconView *)icon",
+			"iconView.icon",
+			"tap",
+			"CATransform3D",
+			"highlight",
+			"tapp",
+			"scroll",
+			"STKGetGestureRecognizerForView",
+			"_isExpanded",
+			"distance",
+			"?",
+			"SBIconController",
+			"didSe",
+			"_hasSetup",
+			"_hasPreparedGhostlyIcons",
+			"alpha",
+			"ghost",
+			"SBIconController",
+			"ghost",
+			"ghostly",
 			"ECHO",
 			"DEPLOYMENT",
 			"_locationMas",
@@ -854,89 +968,7 @@
 			"index",
 			"page",
 			"visible",
-			"icon",
-			"iconList",
-			"dock",
-			"- ()dock",
-			"- (id)dock",
-			"dock",
-			"dockList",
-			"_stackManager",
-			"hidden",
-			"image",
-			"_currentIconDisplacement",
-			"Log",
-			"5",
-			"distance",
-			"switcher",
-			"STKGetStackIconsForIcon",
-			"iconView.frame",
-			"iconView.frame.origin",
-			"_distanceFromCentre",
-			"padding",
-			"_handler",
-			"jitter",
-			"editing",
-			"change",
-			"_locationMask",
-			"_getTargetOriginForIconAtPosition",
-			"editing",
-			"0.4",
-			"iconAt",
-			"move",
-			"icons",
-			"[UIApplication sharedApplication].statusBarOrientation",
-			"touches",
-			"_isExpanded",
-			"moveIcon",
-			"removeGhost",
-			"originForIcon",
-			"set",
-			"init",
-			"matches",
-			"debug",
-			"editing",
-			"layout",
-			"re",
-			"- (CGPoint)_getTargetOriginForIconAtPosition:(STKLayoutPosition)position distanceFromCentre:(NSInteger)distance",
-			"_getTargetOriginForIconAtPosition:",
-			"- (CGPoint)_getTargetOriginForIconAtPosition:(STKLayoutPosition)position distanceFromCentre:(NSInteger)distance",
-			"CLog(@\"moving icon: %@\", iconView);",
-			"getOrgin",
-			"ExpressGram",
-			"STKStackPosition",
-			"call",
-			"number",
-			"current",
-			"call",
-			"incoming",
-			"originFor",
-			"temp",
-			"_uninstalled",
-			"struct CGSize",
-			"dock",
-			"float",
-			"unsigned int",
-			"struct CGRect",
-			"struct CGPoint",
-			"CGPoint",
-			"dockIconListView",
-			"dock",
-			"Dock",
-			"dock",
-			"inDock",
-			"number",
-			"columns",
-			"getX",
-			"QSPosition",
-			"originFor",
-			"applicationIconFor",
-			"model",
-			"- (NSString *)model",
-			"launch",
-			"launchAppli",
-			"(int)",
-			"int"
+			"icon"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -944,6 +976,12 @@
 		"regex": false,
 		"replace_history":
 		[
+			"(SBIconView *)iconView",
+			"self",
+			"__horizontalBandingAllowance",
+			"SBIcon *)icon",
+			"STKPanRecognizerForView",
+			"factoredDistance",
 			"_initialPoint",
 			"_centralIconListView",
 			"NSUInteger",
@@ -1008,23 +1046,319 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 4,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "Tweak.xm",
+					"file": "STKIconLayout.h",
 					"settings":
 					{
-						"buffer_size": 10992,
+						"buffer_size": 1233,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								8943,
-								8943
+								1148,
+								1148
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close"
+							],
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "STKIconLayout.m",
+					"settings":
+					{
+						"buffer_size": 5018,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4759,
+								4759
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close"
+							],
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Objective-C/Objective-C.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1285.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "Tweak.xm",
+					"settings":
+					{
+						"buffer_size": 12385,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3011,
+								3011
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close"
+							],
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 900.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "STKStackManager.h",
+					"settings":
+					{
+						"buffer_size": 1711,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								769,
+								769
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close"
+							],
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "STKStackManager.mm",
+					"settings":
+					{
+						"buffer_size": 33471,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1680,
+								1680
 							]
 						],
 						"settings":
@@ -1087,19 +1421,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "STKIconLayoutHandler.m",
+					"buffer": 5,
+					"file": "STKConstants.h",
 					"settings":
 					{
-						"buffer_size": 8203,
+						"buffer_size": 1720,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1297,
-								1297
+								23,
+								23
 							]
 						],
 						"settings":
@@ -1151,9 +1485,8 @@
 							"incomplete_sync": null,
 							"remote_loading": false,
 							"synced": false,
-							"syntax": "Packages/Objective-C/Objective-C.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -1162,19 +1495,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "STKIconLayoutHandler.h",
+					"buffer": 6,
+					"file": "theos/include/SpringBoard/SBIconView.h",
 					"settings":
 					{
-						"buffer_size": 1195,
+						"buffer_size": 5751,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								364,
-								364
+								2766,
+								2772
 							]
 						],
 						"settings":
@@ -1226,10 +1559,12 @@
 							"incomplete_sync": null,
 							"remote_loading": false,
 							"synced": false,
-							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage"
+							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 708.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1295,15 +1630,75 @@
 		"selected_items":
 		[
 			[
-				"sbiconlist",
+				"sbiconview",
+				"theos/include/SpringBoard/SBIconView.h"
+			],
+			[
+				"sbiconviewde",
+				"theos/include/SpringBoard/SBIconViewDelegate-Protocol.h"
+			],
+			[
+				"sbiconmodel",
+				"theos/include/SpringBoard/SBIconModel.h"
+			],
+			[
+				"sbbanner",
+				"theos/include/SpringBoard/SBBannerController.h"
+			],
+			[
+				"sbiconcon",
+				"theos/include/SpringBoard/SBIconController.h"
+			],
+			[
+				"subs",
+				"theos/include/substrate.h"
+			],
+			[
+				"sbiconcontroller",
+				"theos/include/SpringBoard/SBIconController.h"
+			],
+			[
+				"sbiconvi",
+				"theos/include/SpringBoard/SBIconView.h"
+			],
+			[
+				"sbuic",
+				"theos/include/SpringBoard/SBUIController.h"
+			],
+			[
+				"sbiconcontr",
+				"theos/include/SpringBoard/SBIconController.h"
+			],
+			[
+				"sbiconlis",
 				"theos/include/SpringBoard/SBIconListView.h"
+			],
+			[
+				"sbuicon",
+				"theos/include/SpringBoard/SBUIController.h"
+			],
+			[
+				"spring",
+				"theos/include/SpringBoard/SpringBoard.h"
+			],
+			[
+				"sbiconc",
+				"theos/include/SpringBoard/SBIconController.h"
+			],
+			[
+				"sbiconscr",
+				"theos/include/SpringBoard/SBIconScrollView.h"
+			],
+			[
+				"sbiconcontrol",
+				"theos/include/SpringBoard/SBIconController.h"
 			],
 			[
 				"sbiconcontro",
 				"theos/include/SpringBoard/SBIconController.h"
 			],
 			[
-				"sbiconlis",
+				"sbiconlist",
 				"theos/include/SpringBoard/SBIconListView.h"
 			],
 			[
@@ -1319,10 +1714,6 @@
 				"theos/include/SpringBoard/SBRootFolder.h"
 			],
 			[
-				"sbiconcontroller",
-				"theos/include/SpringBoard/SBIconController.h"
-			],
-			[
 				"sbicon.",
 				"theos/include/SpringBoard/SBIcon.h"
 			],
@@ -1331,16 +1722,8 @@
 				"theos/include/SpringBoard/SBIconListView.h"
 			],
 			[
-				"sbiconview",
-				"theos/include/SpringBoard/SBIconView.h"
-			],
-			[
 				"sbiconviewmap",
 				"theos/include/SpringBoard/SBIconViewMap.h"
-			],
-			[
-				"sbiconmodel",
-				"theos/include/SpringBoard/SBIconModel.h"
 			],
 			[
 				"sbiconcont",
@@ -1371,24 +1754,12 @@
 				"theos/include/SpringBoard/SBIconListView.h"
 			],
 			[
-				"sbuic",
-				"theos/include/SpringBoard/SBUIController.h"
-			],
-			[
-				"sbiconviewde",
-				"theos/include/SpringBoard/SBIconViewDelegate-Protocol.h"
-			],
-			[
 				"sbiconl",
 				"theos/include/SpringBoard/SBIconListView.h"
 			],
 			[
 				"sbapplicationi",
 				"theos/include/SpringBoard/SBApplicationIcon.h"
-			],
-			[
-				"sbiconvi",
-				"theos/include/SpringBoard/SBIconView.h"
 			],
 			[
 				"sbtel",
@@ -1409,10 +1780,6 @@
 			[
 				"sbdockiconl",
 				"theos/include/SpringBoard/SBDockIconListView.h"
-			],
-			[
-				"sbiconcontr",
-				"theos/include/SpringBoard/SBIconController.h"
 			],
 			[
 				"sbiconmod",
@@ -1441,10 +1808,6 @@
 			[
 				"sbiconviewm",
 				"theos/include/SpringBoard/SBIconViewMapDelegate-Protocol.h"
-			],
-			[
-				"sbiconc",
-				"theos/include/SpringBoard/SBIconContentView.h"
 			],
 			[
 				"spsearchage",
@@ -1645,10 +2008,6 @@
 			[
 				"sbapplicationicon",
 				"theos/include/SpringBoard/SBApplicationIcon.h"
-			],
-			[
-				"spring",
-				"theos/include/SpringBoard/SpringBoard.h"
 			],
 			[
 				"qsab",
