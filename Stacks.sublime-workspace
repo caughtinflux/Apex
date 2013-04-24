@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"tapped",
+				"tappedIconView"
+			],
+			[
 				"SBIconV",
 				"SBIconView	class"
 			],
@@ -510,71 +514,11 @@
 			[
 				"QSPositionTou",
 				"QSPositionTouchingLeft	QSPosition"
-			],
-			[
-				"QSPo",
-				"QSPositionDock	QSPosition"
 			]
 		]
 	},
 	"buffers":
 	[
-		{
-			"file": "STKIconLayout.h",
-			"settings":
-			{
-				"buffer_size": 1233,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "STKIconLayout.m",
-			"settings":
-			{
-				"buffer_size": 5018,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "Tweak.xm",
-			"settings":
-			{
-				"buffer_size": 12385,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "STKStackManager.h",
-			"settings":
-			{
-				"buffer_size": 1711,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "STKStackManager.mm",
-			"settings":
-			{
-				"buffer_size": 33471,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "STKConstants.h",
-			"settings":
-			{
-				"buffer_size": 1720,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "theos/include/SpringBoard/SBIconView.h",
-			"settings":
-			{
-				"buffer_size": 5751,
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "Packages/Python/Python.sublime-build",
 	"command_palette":
@@ -696,28 +640,31 @@
 	},
 	"file_history":
 	[
-		"/Users/aditya/code/projects/quickshootpro/QSActivatorListener.m",
+		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
+		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
+		"/Users/aditya/code/projects/stacks/Tweak.xm",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplication.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplicationController.h",
 		"/Users/aditya/code/projects/stacks/STKStackManager.mm",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
+		"/Users/aditya/code/projects/stacks/STKStackManager.h",
 		"/Users/aditya/code/projects/stacks/STKConstants.h",
+		"/Users/aditya/code/projects/quickshootpro/QSActivatorListener.m",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
 		"/Users/aditya/code/projects/quickshoot/Tweak.xm",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconModel.h",
 		"/Users/aditya/code/projects/stacks/STKConstants.m",
-		"/Users/aditya/code/projects/stacks/Tweak.xm",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewDelegate-Protocol.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBBannerController.h",
 		"/Users/aditya/code/projects/stacks/STKStackManager.m",
 		"/Users/aditya/code/projects/stacks/theos/include/substrate.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
 		"/Users/aditya/code/projects/stacks/layout/DEBIAN/control",
 		"/opt/theos/include/SpringBoard/SBIconController.h",
-		"/Users/aditya/code/projects/stacks/STKStackManager.h",
-		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListView.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SpringBoard.h",
 		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/BracketHighlighter/Example.sublime-keymap",
-		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
 		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Default (OSX).sublime-keymap",
 		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/BracketHighlighter/bh_core.sublime-settings",
 		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
@@ -729,7 +676,6 @@
 		"/Users/aditya/code/projects/stacks/NSArray-STKAdditions.m",
 		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Shell Turtlestein.sublime-settings",
 		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/Shell Turtlestein/Shell Turtlestein.sublime-settings",
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
 		"/opt/theos/makefiles/targets/Darwin/iphone.mk",
 		"/Users/aditya/code/projects/stacks/STKPanGestureRecognizer.h",
 		"/Users/aditya/code/projects/stacks/STKPanGestureRecognizer.m",
@@ -752,7 +698,6 @@
 		"/Users/aditya/code/projects/flagpaint/HBFPColorArt.h",
 		"/opt/theos/include/SpringBoard/SpringBoard.h",
 		"/Users/aditya/code/projects/prev_stacks/Tweak.xm",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplication.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBTelephonyManager.h",
 		"/Users/aditya/code/projects/stacks/theos/include/Weather/WeatherPreferences.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconRotationContainer.h",
@@ -822,8 +767,7 @@
 		"/Users/aditya/code/projects/quickshootpro/qsprefs/Resources/QSPrefs.plist",
 		"/Users/aditya/Desktop/iOS-6-SpringBoard-Headers/SBApplication.h",
 		"/Users/aditya/Desktop/iOS-6-SpringBoard-Headers/SBSystemLocalNotificationAlert.h",
-		"/Users/aditya/Desktop/iOS-6-SpringBoard-Headers/CDStructures.h",
-		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/Objective-C/Objective-C.tmLanguage"
+		"/Users/aditya/Desktop/iOS-6-SpringBoard-Headers/CDStructures.h"
 	],
 	"find":
 	{
@@ -841,6 +785,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"unsigned int",
 			"shadow",
 			"_setGhostly",
 			"icon:(id)arg1",
@@ -967,8 +912,7 @@
 			"indexForIcon",
 			"index",
 			"page",
-			"visible",
-			"icon"
+			"visible"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -976,6 +920,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"NSUInteger",
 			"(SBIconView *)iconView",
 			"self",
 			"__horizontalBandingAllowance",
@@ -1046,529 +991,8 @@
 	"groups":
 	[
 		{
-			"selected": 4,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "STKIconLayout.h",
-					"settings":
-					{
-						"buffer_size": 1233,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1148,
-								1148
-							]
-						],
-						"settings":
-						{
-							"BracketHighlighterBusy": false,
-							"bh_regions":
-							[
-								"bh_regex",
-								"bh_regex_center",
-								"bh_regex_open",
-								"bh_regex_close",
-								"bh_double_quote",
-								"bh_double_quote_center",
-								"bh_double_quote_open",
-								"bh_double_quote_close",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_default",
-								"bh_default_center",
-								"bh_default_open",
-								"bh_default_close",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_round",
-								"bh_round_center",
-								"bh_round_open",
-								"bh_round_close",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_single_quote",
-								"bh_single_quote_center",
-								"bh_single_quote_open",
-								"bh_single_quote_close"
-							],
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "STKIconLayout.m",
-					"settings":
-					{
-						"buffer_size": 5018,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								4759,
-								4759
-							]
-						],
-						"settings":
-						{
-							"BracketHighlighterBusy": false,
-							"bh_regions":
-							[
-								"bh_regex",
-								"bh_regex_center",
-								"bh_regex_open",
-								"bh_regex_close",
-								"bh_double_quote",
-								"bh_double_quote_center",
-								"bh_double_quote_open",
-								"bh_double_quote_close",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_default",
-								"bh_default_center",
-								"bh_default_open",
-								"bh_default_close",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_round",
-								"bh_round_center",
-								"bh_round_open",
-								"bh_round_close",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_single_quote",
-								"bh_single_quote_center",
-								"bh_single_quote_open",
-								"bh_single_quote_close"
-							],
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/Objective-C/Objective-C.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1285.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "Tweak.xm",
-					"settings":
-					{
-						"buffer_size": 12385,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3011,
-								3011
-							]
-						],
-						"settings":
-						{
-							"BracketHighlighterBusy": false,
-							"bh_regions":
-							[
-								"bh_regex",
-								"bh_regex_center",
-								"bh_regex_open",
-								"bh_regex_close",
-								"bh_double_quote",
-								"bh_double_quote_center",
-								"bh_double_quote_open",
-								"bh_double_quote_close",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_default",
-								"bh_default_center",
-								"bh_default_open",
-								"bh_default_close",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_round",
-								"bh_round_center",
-								"bh_round_open",
-								"bh_round_close",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_single_quote",
-								"bh_single_quote_center",
-								"bh_single_quote_open",
-								"bh_single_quote_close"
-							],
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 900.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "STKStackManager.h",
-					"settings":
-					{
-						"buffer_size": 1711,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								769,
-								769
-							]
-						],
-						"settings":
-						{
-							"BracketHighlighterBusy": false,
-							"bh_regions":
-							[
-								"bh_regex",
-								"bh_regex_center",
-								"bh_regex_open",
-								"bh_regex_close",
-								"bh_double_quote",
-								"bh_double_quote_center",
-								"bh_double_quote_open",
-								"bh_double_quote_close",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_default",
-								"bh_default_center",
-								"bh_default_open",
-								"bh_default_close",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_round",
-								"bh_round_center",
-								"bh_round_open",
-								"bh_round_close",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_single_quote",
-								"bh_single_quote_center",
-								"bh_single_quote_open",
-								"bh_single_quote_close"
-							],
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "STKStackManager.mm",
-					"settings":
-					{
-						"buffer_size": 33471,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1680,
-								1680
-							]
-						],
-						"settings":
-						{
-							"BracketHighlighterBusy": false,
-							"bh_regions":
-							[
-								"bh_regex",
-								"bh_regex_center",
-								"bh_regex_open",
-								"bh_regex_close",
-								"bh_double_quote",
-								"bh_double_quote_center",
-								"bh_double_quote_open",
-								"bh_double_quote_close",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_default",
-								"bh_default_center",
-								"bh_default_open",
-								"bh_default_close",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_round",
-								"bh_round_center",
-								"bh_round_open",
-								"bh_round_close",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_single_quote",
-								"bh_single_quote_center",
-								"bh_single_quote_open",
-								"bh_single_quote_close"
-							],
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "STKConstants.h",
-					"settings":
-					{
-						"buffer_size": 1720,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								23,
-								23
-							]
-						],
-						"settings":
-						{
-							"BracketHighlighterBusy": false,
-							"bh_regions":
-							[
-								"bh_regex",
-								"bh_regex_center",
-								"bh_regex_open",
-								"bh_regex_close",
-								"bh_double_quote",
-								"bh_double_quote_center",
-								"bh_double_quote_open",
-								"bh_double_quote_close",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_default",
-								"bh_default_center",
-								"bh_default_open",
-								"bh_default_close",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_round",
-								"bh_round_center",
-								"bh_round_open",
-								"bh_round_close",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_single_quote",
-								"bh_single_quote_center",
-								"bh_single_quote_open",
-								"bh_single_quote_close"
-							],
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "theos/include/SpringBoard/SBIconView.h",
-					"settings":
-					{
-						"buffer_size": 5751,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2766,
-								2772
-							]
-						],
-						"settings":
-						{
-							"BracketHighlighterBusy": false,
-							"bh_regions":
-							[
-								"bh_regex",
-								"bh_regex_center",
-								"bh_regex_open",
-								"bh_regex_close",
-								"bh_double_quote",
-								"bh_double_quote_center",
-								"bh_double_quote_open",
-								"bh_double_quote_close",
-								"bh_square",
-								"bh_square_center",
-								"bh_square_open",
-								"bh_square_close",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_default",
-								"bh_default_center",
-								"bh_default_open",
-								"bh_default_close",
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_round",
-								"bh_round_center",
-								"bh_round_open",
-								"bh_round_close",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_single_quote",
-								"bh_single_quote_center",
-								"bh_single_quote_open",
-								"bh_single_quote_close"
-							],
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/Objective-C/Objective-C++.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 708.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
 			]
 		}
 	],
@@ -1629,6 +1053,18 @@
 		"height": 0.0,
 		"selected_items":
 		[
+			[
+				"sbapplicationcon",
+				"theos/include/SpringBoard/SBApplicationController.h"
+			],
+			[
+				"sbappli",
+				"theos/include/SpringBoard/SBApplication.h"
+			],
+			[
+				"sbuicot",
+				"theos/include/SpringBoard/SBUIController.h"
+			],
 			[
 				"sbiconview",
 				"theos/include/SpringBoard/SBIconView.h"
@@ -1768,10 +1204,6 @@
 			[
 				"weather",
 				"theos/include/Weather/WeatherPreferences.h"
-			],
-			[
-				"sbappli",
-				"theos/include/SpringBoard/SBApplication.h"
 			],
 			[
 				"sbiconre",

@@ -82,7 +82,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 - (BOOL)canReceiveGrabbedIcon:(SBIconView *)iconView
 {
     NSArray *iconsWithStack = STKGetIconsWithStack();
-    return ((([iconsWithStack containsObject:self.icon.leafIdentifier]) || ([iconsWithStack containsObject:iconView.icon.leafIdentifier])) ? NO : YES);
+    return ((([iconsWithStack containsObject:self.icon.leafIdentifier]) || ([iconsWithStack containsObject:iconView.icon.leafIdentifier])) ? NO : %orig());
 }
 
 - (void)dealloc

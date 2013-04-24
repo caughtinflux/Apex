@@ -26,7 +26,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #define kMaximumDisplacement 85
 #define kAnimationDuration   0.2
 #define kDisabledIconAlpha   0.2
-#define kBandingAllowance    15 // Allow for the icons to stretch for up to 15 points beyond their target locations
+#define kBandingAllowance    ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 15 : 30)
 #define kGhostlyRequesterID  1 
 
 

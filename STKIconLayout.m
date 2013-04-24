@@ -153,4 +153,18 @@
     return [NSString stringWithFormat:@"%@ top.count: %i bottom.count: %i left.count: %i right.count: %i", [super description], _topIcons.count, _bottomIcons.count, _leftIcons.count, _rightIcons.count];
 }
 
+NSString * STKNSStringFromPosition(STKLayoutPosition pos)
+{
+    switch (pos) {
+        case STKLayoutPositionTop:
+            return @"STKLayoutPositionTop";
+        case STKLayoutPositionBottom:
+            return @"STKLayoutPositionBottom";
+        case STKLayoutPositionLeft:
+            return @"STKLayoutPositionLeft";
+        case STKLayoutPositionRight:
+            return @"STKLayoutPositionRight";
+    }
+}
+
 @end

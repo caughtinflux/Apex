@@ -31,4 +31,7 @@ typedef enum {
 // This method is thread safe
 - (void)addIcon:(SBIcon *)icon toIconsAtPosition:(STKLayoutPosition)position;
 
+
+NSString * STKNSStringFromPosition(STKLayoutPosition pos);
+
 @end
