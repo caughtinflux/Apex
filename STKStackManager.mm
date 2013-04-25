@@ -426,7 +426,6 @@ static BOOL __stackInMotion;
 
         switch (position) {
             case STKLayoutPositionTop: {
-                // All the checks are done to make sure
                 targetOrigin.y -= kBandingAllowance;
                 if ((newFrame.origin.y - factoredDistance) < targetOrigin.y) {
                     newFrame.origin = targetOrigin;

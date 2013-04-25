@@ -640,17 +640,19 @@
 	},
 	"file_history":
 	[
-		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
-		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewMap.h",
+		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
 		"/Users/aditya/code/projects/stacks/Tweak.xm",
 		"/Users/aditya/code/projects/stacks/STKStackManager.mm",
+		"/Users/aditya/code/projects/stacks/STKStackManager.h",
+		"/Users/aditya/code/projects/stacks/Makefile",
+		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
+		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
 		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
 		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplication.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplicationController.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
-		"/Users/aditya/code/projects/stacks/STKStackManager.h",
 		"/Users/aditya/code/projects/stacks/STKConstants.h",
 		"/Users/aditya/code/projects/quickshootpro/QSActivatorListener.m",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
@@ -670,7 +672,6 @@
 		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/BracketHighlighter/bh_core.sublime-settings",
 		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconScrollView.h",
-		"/Users/aditya/code/projects/stacks/Makefile",
 		"/Users/aditya/code/projects/stacks/NSArray-STKAdditions.h",
 		"/Users/aditya/code/projects/stacks/NSArray+STKAdditions.m",
 		"/Users/aditya/code/projects/stacks/NSArray-STKAdditions.m",
@@ -689,7 +690,6 @@
 		"/opt/theos/include/SpringBoard/SBIconModel",
 		"/opt/theos/include/SpringBoard/SBUIController.h",
 		"/opt/theos/include/SpringBoard/SBIcon.h",
-		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewMap.h",
 		"/opt/theos/include/SpringBoard/SBIconListModel.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBDockIconListView.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplicationIcon.h",
@@ -785,6 +785,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"STKRemoveManagerFromView",
 			"_lastDistanceFromCenter",
 			"unsigned int",
 			"shadow",
@@ -911,8 +912,7 @@
 			"listViewIndex",
 			"unsigned int",
 			"indexForIcon",
-			"index",
-			"page"
+			"index"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -1054,6 +1054,10 @@
 		"selected_items":
 		[
 			[
+				"sbiconview",
+				"theos/include/SpringBoard/SBIconViewMap.h"
+			],
+			[
 				"sbapplicationcon",
 				"theos/include/SpringBoard/SBApplicationController.h"
 			],
@@ -1064,10 +1068,6 @@
 			[
 				"sbuicot",
 				"theos/include/SpringBoard/SBUIController.h"
-			],
-			[
-				"sbiconview",
-				"theos/include/SpringBoard/SBIconView.h"
 			],
 			[
 				"sbiconviewde",

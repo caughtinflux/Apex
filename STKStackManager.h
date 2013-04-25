@@ -23,6 +23,7 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 // The interaction handler is called when an icon is tapped.
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons;
 
+// Sets up stack icons
 - (void)setupViewIfNecessary;
 - (void)setupView;
 
