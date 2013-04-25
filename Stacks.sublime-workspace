@@ -4,6 +4,26 @@
 		"selected_items":
 		[
 			[
+				"target",
+				"targetOrigin"
+			],
+			[
+				"pos",
+				"position"
+			],
+			[
+				"STKLa",
+				"STKLayoutPositionRight"
+			],
+			[
+				"STKL",
+				"STKLayoutPositionRight	STKLayoutPosition"
+			],
+			[
+				"STK",
+				"STKLayoutPositionLeft	STKLayoutPosition"
+			],
+			[
 				"tapped",
 				"tappedIconView"
 			],
@@ -52,20 +72,8 @@
 				"NSMutableArray	class"
 			],
 			[
-				"STKLa",
-				"STKLayoutPositionRight	STKLayoutPosition"
-			],
-			[
-				"STK",
-				"STKLayoutPositionBottom	STKLayoutPosition"
-			],
-			[
 				"STKl",
 				"STKLayoutPositionTop	STKLayoutPosition"
-			],
-			[
-				"STKL",
-				"STKLayoutPosition	typedef"
 			],
 			[
 				"STKIcon",
@@ -506,14 +514,6 @@
 			[
 				"STKPostion",
 				"STKPositionTouchingLeft	STKPosition"
-			],
-			[
-				"QSPositionT",
-				"QSPositionTouchingRight	QSPosition"
-			],
-			[
-				"QSPositionTou",
-				"QSPositionTouchingLeft	QSPosition"
 			]
 		]
 	},
@@ -640,13 +640,14 @@
 	},
 	"file_history":
 	[
-		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
 		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
+		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
 		"/Users/aditya/code/projects/stacks/Tweak.xm",
+		"/Users/aditya/code/projects/stacks/STKStackManager.mm",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplication.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplicationController.h",
-		"/Users/aditya/code/projects/stacks/STKStackManager.mm",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
 		"/Users/aditya/code/projects/stacks/STKStackManager.h",
@@ -669,7 +670,6 @@
 		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/BracketHighlighter/bh_core.sublime-settings",
 		"/Users/aditya/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconScrollView.h",
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
 		"/Users/aditya/code/projects/stacks/Makefile",
 		"/Users/aditya/code/projects/stacks/NSArray-STKAdditions.h",
 		"/Users/aditya/code/projects/stacks/NSArray+STKAdditions.m",
@@ -785,6 +785,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"_lastDistanceFromCenter",
 			"unsigned int",
 			"shadow",
 			"_setGhostly",
@@ -911,8 +912,7 @@
 			"unsigned int",
 			"indexForIcon",
 			"index",
-			"page",
-			"visible"
+			"page"
 		],
 		"highlight": true,
 		"in_selection": false,

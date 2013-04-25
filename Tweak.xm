@@ -177,20 +177,14 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %new 
 - (void)stk_editingStateChanged:(NSNotification *)notification
 {
-    if (!([STKGetIconsWithStack() containsObject:self.icon.leafIdentifier])) {
-        return;
-    }
-
     BOOL isEditing = [[%c(SBIconController) sharedInstance] isEditing];
     
     if (isEditing) {
-        STKRemovePanRecognizerFromIconView(self);
+        STKCleanupIconView(self);
     }
     else {
         STKAddPanRecognizerToIconView(self);
     }
-
-    STKRemoveManagerFromView(self); // Remove the manager irrespective of whether the editing state
 }
 
 %new 
