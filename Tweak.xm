@@ -276,9 +276,13 @@ static NSArray * STKGetStackIconsForIcon(SBIcon *icon)
 
 static void STKAddPanRecognizerToIconView(SBIconView *iconView)
 {
-    UIPanGestureRecognizer *panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:iconView action:@selector(stk_panned:)] autorelease];
-    [iconView addGestureRecognizer:panRecognizer];
-    objc_setAssociatedObject(iconView, &_panGRKey, panRecognizer, OBJC_ASSOCIATION_ASSIGN);
+    UIPanGestureRecognizer *panRecognizer = objc_getAssociatedObject(iconView, &_panGRKey);
+    // Don't add a recognizer if it already exists
+    if (!panRecognizer) {
+        panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:iconView action:@selector(stk_panned:)] autorelease];
+        [iconView addGestureRecognizer:panRecognizer];
+        objc_setAssociatedObject(iconView, &_panGRKey, panRecognizer, OBJC_ASSOCIATION_ASSIGN);
+    }
 }
 
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
