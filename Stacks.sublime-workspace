@@ -4,6 +4,46 @@
 		"selected_items":
 		[
 			[
+				"STKPositionTo",
+				"STKPositionTouchingBottom	enum STKPositionMask"
+			],
+			[
+				"STKPositionTou",
+				"STKPositionTouchingTop	enum STKPositionMask"
+			],
+			[
+				"mt",
+				"mutableCopy	id"
+			],
+			[
+				"STKPositionR",
+				"STKLayoutPositionRight	STKLayoutPosition"
+			],
+			[
+				"STKlayout",
+				"STKLayoutPositionLeft	STKLayoutPosition"
+			],
+			[
+				"STKIc",
+				"STKIconLayout	class"
+			],
+			[
+				"mo",
+				"mobileslideshow"
+			],
+			[
+				"tap",
+				"tapbots"
+			],
+			[
+				"current",
+				"currentIconDistance"
+			],
+			[
+				"mult",
+				"multiplicationFactor =	CGFloat"
+			],
+			[
 				"target",
 				"targetOrigin"
 			],
@@ -116,10 +156,6 @@
 				"enumerateObjectsWithOptions:(NSEnumerationOptions) usingBlock:^(id obj, NSUInteger idx, BOOL *stop)block	void"
 			],
 			[
-				"current",
-				"currentArray	NSArray *"
-			],
-			[
 				"SBicon",
 				"SBIconController"
 			],
@@ -146,10 +182,6 @@
 			[
 				"STKPositionTouching",
 				"STKPositionTouchingLeft	STKPosition"
-			],
-			[
-				"STKPositionTou",
-				"STKPositionTouchingTop	STKPosition"
 			],
 			[
 				"co",
@@ -198,10 +230,6 @@
 			[
 				"_last",
 				"_lastDistanceFromCenter"
-			],
-			[
-				"STKPositionTo",
-				"STKPositionTouchingRight	STKPosition"
 			],
 			[
 				"sw",
@@ -412,10 +440,6 @@
 				"originForIconAtX:(NSUInteger) Y:(NSUInteger)	CGPoint"
 			],
 			[
-				"STKIc",
-				"STKIconCoordinates	typedef"
-			],
-			[
 				"obje",
 				"objectForKey:(id)	id"
 			],
@@ -490,30 +514,6 @@
 			[
 				"NSM",
 				"NSMutableArray	class"
-			],
-			[
-				"arr",
-				"array	id"
-			],
-			[
-				"SBIconView",
-				"SBIconViewMap"
-			],
-			[
-				"stat",
-				"statusBarOrientation	UIInterfaceOrientation"
-			],
-			[
-				"NSAss",
-				"NSAssert(condition, desc, ...)	macro"
-			],
-			[
-				"num",
-				"numbersLists"
-			],
-			[
-				"STKPostion",
-				"STKPositionTouchingLeft	STKPosition"
 			]
 		]
 	},
@@ -640,20 +640,20 @@
 	},
 	"file_history":
 	[
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
+		"/Users/aditya/code/projects/stacks/Tweak.xm",
+		"/Users/aditya/code/projects/stacks/STKConstants.h",
+		"/Users/aditya/code/projects/stacks/STKStackManager.mm",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewMap.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
-		"/Users/aditya/code/projects/stacks/Tweak.xm",
-		"/Users/aditya/code/projects/stacks/STKStackManager.mm",
 		"/Users/aditya/code/projects/stacks/STKStackManager.h",
 		"/Users/aditya/code/projects/stacks/Makefile",
 		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
 		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
 		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplication.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBApplicationController.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBUIController.h",
-		"/Users/aditya/code/projects/stacks/STKConstants.h",
 		"/Users/aditya/code/projects/quickshootpro/QSActivatorListener.m",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconController.h",
 		"/Users/aditya/code/projects/quickshoot/Tweak.xm",
@@ -785,6 +785,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"anyStackOpen",
 			"STKRemoveManagerFromView",
 			"_lastDistanceFromCenter",
 			"unsigned int",
@@ -911,8 +912,7 @@
 			"listFor",
 			"listViewIndex",
 			"unsigned int",
-			"indexForIcon",
-			"index"
+			"indexForIcon"
 		],
 		"highlight": true,
 		"in_selection": false,

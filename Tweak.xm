@@ -238,10 +238,10 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     }
 }
 
-- (BOOL)activateSwitcher
+- (BOOL)_activateSwitcher:(NSTimeInterval)animationDuration
 {
     [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
-    return %orig();
+    return %orig(animationDuration);
 }
 
 %end
