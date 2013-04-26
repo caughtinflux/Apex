@@ -658,7 +658,7 @@ static BOOL __stackInMotion;
 
 - (CGPoint)_getDisplacedOriginForIcon:(SBIcon *)icon withPosition:(STKLayoutPosition)position
 {
-    // Calculate the positions manually, as -[SBIconListView originForIconAtX:Y:] only gives coordinates that will be on screen.
+    // Calculate the positions manually, as -[SBIconListView originForIconAtX:Y:] only gives coordinates that will be on screen, but allow for off-screen icons too.
     SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
     SBIconView *iconView = [self _getIconViewForIcon:icon];
     
