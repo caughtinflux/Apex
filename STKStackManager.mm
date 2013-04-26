@@ -26,7 +26,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #define kMaximumDisplacement 85
 #define kAnimationDuration   0.2
 #define kDisabledIconAlpha   0.2
-#define kBandingAllowance    ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 15 : 30)
+#define kBandingAllowance    200//((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 15 : 30)
 #define kGhostlyRequesterID  1 
 
 
@@ -413,32 +413,57 @@ static BOOL __stackInMotion;
 #pragma mark - Move ALL the things
 - (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance
 {
-    // Move icons currently on display to make way for stack icons
+    /*
+        MUST READ. 
+        There is a lot of repetitive code down here, but it's there for a reason. I have outlined a few points below:
+            • Having those checks keeps it easy to understanc
+            • It is very easy to simply just do a little magic on the signs of the distance, etc. But it that's what I want to avoid. I'd by far prefer code that still makes sense.
+            • IMO, MAGIC IS ___NOT___ good when you're performing it.... LULZ.
+
+        Comments are written everywhere to make sure that this code is understandable, even a few months down the line. For both appearing and disappearing icons, the first (top) set of icons have been commented, the l/r/b sets do the same thing, only in different directions, so it should be pretty simple to understand.
+    */
+    
     [_disappearingIconsLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
         SBIconListView *listView = [[objc_getClass("SBIconController") sharedInstance] currentRootIconList];
         SBIconView *iconView = [self _getIconViewForIcon:icon];
         CGRect newFrame = iconView.frame;
-        CGPoint originalOrigin = [listView originForIcon:icon];
-        CGPoint targetOrigin = [self _getDisplacedOriginForIcon:icon withPosition:position];
+        CGPoint originalOrigin = [listView originForIcon:icon]; 
+        CGPoint targetOrigin = [self _getDisplacedOriginForIcon:icon withPosition:position]; 
 
-        CGFloat factoredDistance = (distance * [self _appearingIconsForPosition:position].count);
-        CGFloat horizontalFactoredDisance = factoredDistance * _distanceRatio; // The distance to be moved horizontally is slightly more different than vertical, multiply it by the ratio to have them work perfectly. :)
+        
+        // Factor the distance up by the number of icons that are coming in at that position
+        CGFloat factoredDistance = (distance * [self _appearingIconsForPosition:position].count); 
+        
+        CGFloat horizontalFactoredDistance = factoredDistance * _distanceRatio; // The distance to be moved horizontally is slightly more different than vertical, multiply it by the ratio to have them work perfectly. :)
 
         switch (position) {
             case STKLayoutPositionTop: {
-                targetOrigin.y -= kBandingAllowance;
+                // If, after moving, the icon would pass it's target, factor the distance back to it's original, for now it has to move as much as all the other icons only
+                if ((newFrame.origin.y - (factoredDistance / [self _appearingIconsForPosition:position].count) < targetOrigin.y)) {
+                    factoredDistance /= [self _appearingIconsForPosition:position].count;
+                }
+
+                targetOrigin.y -= kBandingAllowance; // Allow the icon to move for `kBandingAllowance` points beyond its target, simulating a 
                 if ((newFrame.origin.y - factoredDistance) < targetOrigin.y) {
+                    // If moving the icon by `factoredDistance` would cause it to move beyond its target, make it stick to the target location
                     newFrame.origin = targetOrigin;
                 }
                 else if ((newFrame.origin.y - factoredDistance) > originalOrigin.y) {
+                    // If moving the icon by `factoredDistance` takes it beyond it's original location on the homescreen, make it stick again.
+                    // This is necessary in cases when the swipe is coming back home.
                     newFrame.origin = originalOrigin;
                 }
                 else {
+                    // If none of the above cases are true, move icon upwards (hence subtracted) by factored distance
                     newFrame.origin.y -= factoredDistance;
                 }
                 break;
             }
             case STKLayoutPositionBottom: {
+                if ((newFrame.origin.y + (factoredDistance / [self _appearingIconsForPosition:position].count) > targetOrigin.y)) {
+                    factoredDistance /= [self _appearingIconsForPosition:position].count;
+                }
+
                 targetOrigin.y += kBandingAllowance;
                 if ((newFrame.origin.y + factoredDistance) > targetOrigin.y) {
                     newFrame.origin = targetOrigin;
@@ -452,28 +477,36 @@ static BOOL __stackInMotion;
                 break;
             }
             case STKLayoutPositionLeft: {
+                if ((newFrame.origin.x - (factoredDistance / [self _appearingIconsForPosition:position].count) < targetOrigin.x)) {
+                    factoredDistance /= [self _appearingIconsForPosition:position].count;
+                }
+
                 targetOrigin.x -= kBandingAllowance * _distanceRatio;
-                if ((newFrame.origin.x - horizontalFactoredDisance) < targetOrigin.x) {
+                if ((newFrame.origin.x - horizontalFactoredDistance) < targetOrigin.x) {
                     newFrame.origin = targetOrigin;
                 }
-                else if ((newFrame.origin.x - horizontalFactoredDisance) > originalOrigin.x) {
+                else if ((newFrame.origin.x - horizontalFactoredDistance) > originalOrigin.x) {
                     newFrame.origin = originalOrigin;
                 }
                 else {
-                    newFrame.origin.x -= horizontalFactoredDisance;
+                    newFrame.origin.x -= horizontalFactoredDistance;
                 }
                 break;
             }
             case STKLayoutPositionRight: {
+                if ((newFrame.origin.y + (factoredDistance / [self _appearingIconsForPosition:position].count) > targetOrigin.y)) {
+                    factoredDistance /= [self _appearingIconsForPosition:position].count;
+                }
+
                 targetOrigin.x += kBandingAllowance * _distanceRatio;
-                if ((newFrame.origin.x + horizontalFactoredDisance) > targetOrigin.x) {
+                if ((newFrame.origin.x + horizontalFactoredDistance) > targetOrigin.x) {
                     newFrame.origin = targetOrigin;
                 }
-                else if ((newFrame.origin.x + horizontalFactoredDisance) < originalOrigin.x) {
+                else if ((newFrame.origin.x + horizontalFactoredDistance) < originalOrigin.x) {
                     newFrame.origin = originalOrigin;
                 }
                 else {
-                    newFrame.origin.x += horizontalFactoredDisance;
+                    newFrame.origin.x += horizontalFactoredDistance;
                 }
                 break;
             }
@@ -487,14 +520,22 @@ static BOOL __stackInMotion;
     [(NSArray *)[_iconViewsTable objectForKey:STKStackTopIconsKey] enumerateObjectsUsingBlock:^(SBIconView *iconView, NSUInteger idx, BOOL *stop) {
         if (idx == 0) {
             _lastDistanceFromCenter = [self _distanceFromCentre:iconView.center];
-        }
-        CGFloat translatedDistance = distance * (idx + 1);
-        
+        }    
         CGRect newFrame = iconView.frame;
         CGPoint targetOrigin = [self _getTargetOriginForIconAtPosition:STKLayoutPositionTop distanceFromCentre:idx + 1];
+
+        // If there is more than one icon in a particular position, multiply them by their respective positions.
+        // For example, the second icon in the top position needs to move a larger distance than the first, hence multiply the distance by 2, so it reaches its target the same time as the previous one.
+        // Also, only multiply it if it isn't past the target point. At that point, it should move as much as everything else.
+        CGFloat multiplicationFactor = (((newFrame.origin.y - distance) > targetOrigin.y) ? (idx + 1) : 1);
+        CGFloat translatedDistance = distance * multiplicationFactor;
+        if (multiplicationFactor > 1) {
+            CLog(@"((%f - %f) = %f > %f", newFrame.origin.y, distance, newFrame.origin.y - distance, targetOrigin.y);
+            CLog(@"Therefore, multiplicationFactor: %f", multiplicationFactor);
+        }
+
         targetOrigin.y -= kBandingAllowance;
         iconView.alpha = 1.f;
-
         
         if (((newFrame.origin.y - translatedDistance) > targetOrigin.y) && (!((newFrame.origin.y - translatedDistance) > centralFrame.origin.y))) {
             newFrame.origin.y -= translatedDistance;
@@ -513,13 +554,16 @@ static BOOL __stackInMotion;
         if (idx == 0) {
             _lastDistanceFromCenter = [self _distanceFromCentre:iconView.center];
         }
-        CGFloat translatedDistance = distance * (idx + 1);
         
         CGRect newFrame = iconView.frame;
         CGPoint targetOrigin = [self _getTargetOriginForIconAtPosition:STKLayoutPositionBottom distanceFromCentre:idx + 1];
+
+        CGFloat multiplicationFactor = (((newFrame.origin.y + distance) < targetOrigin.y) ? (idx + 1) : 1);
+        CGFloat translatedDistance = distance * multiplicationFactor;
+
         targetOrigin.y += kBandingAllowance;
         iconView.alpha = 1.f;
-        
+
         if ((newFrame.origin.y + translatedDistance) < targetOrigin.y && (!((newFrame.origin.y + translatedDistance) < centralFrame.origin.y))) {
             newFrame.origin.y += translatedDistance;
         }
@@ -536,13 +580,14 @@ static BOOL __stackInMotion;
         if (idx == 0) {
             _lastDistanceFromCenter = [self _distanceFromCentre:iconView.center];
         }
-        CGFloat translatedDistance = distance * (idx + 1) * _distanceRatio;
         
         CGRect newFrame = iconView.frame;
         CGPoint targetOrigin = [self _getTargetOriginForIconAtPosition:STKLayoutPositionLeft distanceFromCentre:idx + 1];
-        targetOrigin.x -= kBandingAllowance * _distanceRatio;
 
-        
+        CGFloat multiplicationFactor = (((newFrame.origin.x - distance) > targetOrigin.x) ? (idx + 1) : 1);
+        CGFloat translatedDistance = distance * multiplicationFactor * _distanceRatio;
+
+        targetOrigin.x -= kBandingAllowance * _distanceRatio;
         iconView.alpha = 1.f;
         
         if (((newFrame.origin.x - translatedDistance) > targetOrigin.x) && (!((newFrame.origin.x - translatedDistance) > centralFrame.origin.x))) {
@@ -561,12 +606,14 @@ static BOOL __stackInMotion;
         if (idx == 0) {
             _lastDistanceFromCenter = [self _distanceFromCentre:iconView.center];
         }
-        CGFloat translatedDistance = distance * (idx + 1) * _distanceRatio;
         
         CGRect newFrame = iconView.frame;
         CGPoint targetOrigin = [self _getTargetOriginForIconAtPosition:STKLayoutPositionRight distanceFromCentre:idx + 1];
-        targetOrigin.x += kBandingAllowance * _distanceRatio;
         
+        CGFloat multiplicationFactor = (((newFrame.origin.x + distance) < targetOrigin.x) ? (idx + 1) : 1);
+        CGFloat translatedDistance = distance * multiplicationFactor * _distanceRatio;
+
+        targetOrigin.x += kBandingAllowance * _distanceRatio;
         iconView.alpha = 1.f;
         
         if (((newFrame.origin.x + translatedDistance) < targetOrigin.x) && (!((newFrame.origin.x + translatedDistance) < centralFrame.origin.x))) {
@@ -796,6 +843,7 @@ static BOOL __stackInMotion;
 {
     [[objc_getClass("SBIconController") sharedInstance] setCurrentPageIconsPartialGhostly:alpha forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
     for (SBIcon *icon in _offScreenIconsLayout.bottomIcons) {
+        // Set the bottom offscreen icons' alpha now, because they look like shut overlapping the dock.
         [self _getIconViewForIcon:icon].alpha = alpha;
     }
 }
