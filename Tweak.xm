@@ -150,8 +150,11 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
             // The swipe is going to the opposite direction, so make sure the manager moves its views in the corresponding direction too
             change = -change;
         }
+        
+        CLog(@"currentIconDistance = %f", stackManager.currentIconDistance);
 
         if ((change > 0) && ((stackManager.currentIconDistance) >= kTargetDistance)) {
+            CLog(@"Factoring down, currentIconDistance: %f", stackManager.currentIconDistance);
             // Factor this down to simulate elasticity
             // Stack manager allows the icons to go beyond their targets for a little distance
             change *= kBandingFactor;
@@ -199,14 +202,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)setIsEditing:(BOOL)isEditing
 {
     %orig(isEditing);
-
-    static BOOL previousEditingState;
-    if (previousEditingState == isEditing) {
-        // This method is called virtually every time you touch SpringBoard, don't do shit unecessarily
-        return;
-    }
-
-    previousEditingState = isEditing;
     [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
 }
 
@@ -255,16 +250,28 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 #pragma mark - Static Function Definitions
 static NSArray * STKGetIconsWithStack(void)
 {
-    return @[@"com.apple.mobileslideshow"];
+    return @[@"com.tapbots.Tweetbot",
+             @"com.apple.mobileslideshow"];
 }
 
 static NSArray * STKGetStackIconsForIcon(SBIcon *icon)
 {
     SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
-    return @[[model applicationIconForDisplayIdentifier:@"com.apple.mobiletimer"],
-             [model applicationIconForDisplayIdentifier:@"com.apple.mobilenotes"],
-             [model applicationIconForDisplayIdentifier:@"com.apple.reminders"],
-             [model applicationIconForDisplayIdentifier:@"com.apple.mobilecal"]];
+    if ([icon.leafIdentifier isEqualToString:@"com.tapbots.Tweetbot"]) {
+        return @[[model applicationIconForDisplayIdentifier:@"info.colloquy.mobile"],
+                 [model applicationIconForDisplayIdentifier:@"com.orchestra.v2"],
+                 [model applicationIconForDisplayIdentifier:@"net.whatsapp.WhatsApp"]
+                ];
+    }
+    else if ([icon.leafIdentifier isEqual:@"com.apple.mobileslideshow"]) {
+        return @[[model applicationIconForDisplayIdentifier:@"com.apple.mobiletimer"],
+                 [model applicationIconForDisplayIdentifier:@"com.apple.mobilenotes"],
+                 [model applicationIconForDisplayIdentifier:@"com.apple.reminders"],
+                 [model applicationIconForDisplayIdentifier:@"com.apple.mobilecal"]
+                ];
+    }
+
+    return nil;
 }
 
 static void STKAddPanRecognizerToIconView(SBIconView *iconView)
