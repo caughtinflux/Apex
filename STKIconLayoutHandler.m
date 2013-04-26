@@ -16,6 +16,8 @@
     SBIconListView *_centralIconListView;
 }
 
+- (STKIconLayout *)_processLayoutForSymmetry:(STKIconLayout *)layout withPosition:(STKPositionMask)position;
+
 - (NSArray *)_iconsAboveIcon:(SBIcon *)icon;
 - (NSArray *)_iconsBelowIcon:(SBIcon *)icon;
 - (NSArray *)_iconsLeftOfIcon:(SBIcon *)icon;
@@ -91,8 +93,8 @@
             }
         }
     }
-    // CLog(@"TopIcons.count: %i, bottom: %i, left: %i, right: %i", topIcons.count, bottomIcons.count, leftIcons.count, rightIcons.count);
-    return [STKIconLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons];
+    
+    return [self _processLayoutForSymmetry:[STKIconLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons] withPosition:position];
 }
 
 - (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)centralIcon usingLayout:(STKIconLayout *)layout
@@ -139,6 +141,57 @@
     coordinates->index = iconIndex;
 
     return coordinates;
+}
+
+- (STKIconLayout *)_processLayoutForSymmetry:(STKIconLayout *)layout withPosition:(STKPositionMask)position
+{
+    NSMutableArray *topArray = layout.topIcons.mutableCopy;
+    NSMutableArray *bottomArray = layout.bottomIcons.mutableCopy;
+    NSMutableArray *leftArray = layout.leftIcons.mutableCopy;
+    NSMutableArray *rightArray = layout.rightIcons.mutableCopy;
+
+    NSMutableArray *extraArray = nil;
+
+    // Check for extras in the vertical positions
+    if (topArray.count > 1) {
+        extraArray = topArray;
+    }
+    else if (bottomArray.count > 1) {
+        extraArray = bottomArray;
+    }
+
+    if (extraArray) {
+        if ((leftArray.count == 0) && !(position & STKPositionTouchingLeft)) {  
+            [leftArray addObject:extraArray[1]];
+            [extraArray removeObjectAtIndex:1];
+        }
+        else if ((rightArray.count == 0) && !(position & STKPositionTouchingRight)) {
+            [rightArray addObject:layout.topIcons[1]]; 
+            [extraArray removeObjectAtIndex:1];
+        }
+    }
+
+    extraArray = nil; // Set it back to nil for a pass at the horizontals
+
+    if (leftArray.count > 1) {
+        extraArray = leftArray;
+    }
+    else if (rightArray.count > 1) {
+        extraArray = rightArray;
+    }
+
+    if (extraArray) {
+        if ((topArray.count == 0) && !(position & STKPositionTouchingTop)) {
+            [topArray addObject:extraArray[1]];
+            [extraArray removeObjectAtIndex:1];
+        }
+        else if ((bottomArray.count == 0) && !(position & STKPositionTouchingBottom)) {
+            [bottomArray addObject:extraArray[1]];
+            [extraArray removeObjectAtIndex:1];
+        }
+    }
+
+    return [STKIconLayout layoutWithIconsAtTop:topArray bottom:bottomArray left:leftArray right:rightArray];
 }
 
 - (NSArray *)_iconsAboveIcon:(SBIcon *)icon
