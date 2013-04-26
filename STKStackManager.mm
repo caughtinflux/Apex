@@ -26,7 +26,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #define kMaximumDisplacement 85
 #define kAnimationDuration   0.2
 #define kDisabledIconAlpha   0.2
-#define kBandingAllowance    200//((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 15 : 30)
+#define kBandingAllowance    ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 25 : 50)
 #define kGhostlyRequesterID  1 
 
 
