@@ -193,7 +193,10 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %new 
 - (void)stk_closeStack:(id)notification
 {
-    [STKManagerForView(self) closeStack];
+    STKStackManager *manager = STKManagerForView(self);
+    [manager closeStackWithCompletionHandler:^{
+        STKRemoveManagerFromView(self);
+    }];
 }
 
 %end
@@ -250,20 +253,13 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 #pragma mark - Static Function Definitions
 static NSArray * STKGetIconsWithStack(void)
 {
-    return @[@"com.tapbots.Tweetbot",
-             @"com.apple.mobileslideshow"];
+    return @[@"com.apple.mobileslideshow"];
 }
 
 static NSArray * STKGetStackIconsForIcon(SBIcon *icon)
 {
     SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
-    if ([icon.leafIdentifier isEqualToString:@"com.tapbots.Tweetbot"]) {
-        return @[[model applicationIconForDisplayIdentifier:@"info.colloquy.mobile"],
-                 [model applicationIconForDisplayIdentifier:@"com.orchestra.v2"],
-                 [model applicationIconForDisplayIdentifier:@"net.whatsapp.WhatsApp"]
-                ];
-    }
-    else if ([icon.leafIdentifier isEqual:@"com.apple.mobileslideshow"]) {
+    if ([icon.leafIdentifier isEqual:@"com.apple.mobileslideshow"]) {
         return @[[model applicationIconForDisplayIdentifier:@"com.apple.mobiletimer"],
                  [model applicationIconForDisplayIdentifier:@"com.apple.mobilenotes"],
                  [model applicationIconForDisplayIdentifier:@"com.apple.reminders"],

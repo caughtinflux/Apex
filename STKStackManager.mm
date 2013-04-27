@@ -529,10 +529,6 @@ static BOOL __stackInMotion;
         // Also, only multiply it if it isn't past the target point. At that point, it should move as much as everything else.
         CGFloat multiplicationFactor = (((newFrame.origin.y - distance) > targetOrigin.y) ? (idx + 1) : 1);
         CGFloat translatedDistance = distance * multiplicationFactor;
-        if (multiplicationFactor > 1) {
-            CLog(@"((%f - %f) = %f > %f", newFrame.origin.y, distance, newFrame.origin.y - distance, targetOrigin.y);
-            CLog(@"Therefore, multiplicationFactor: %f", multiplicationFactor);
-        }
 
         targetOrigin.y -= kBandingAllowance;
         iconView.alpha = 1.f;
