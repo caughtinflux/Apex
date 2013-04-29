@@ -33,27 +33,29 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #pragma mark - Private Method Declarations
 @interface STKStackManager ()
 {
-    SBIcon                *_centralIcon;
-    STKIconLayout         *_appearingIconsLayout;
-    STKIconLayout         *_disappearingIconsLayout;
-    STKIconLayoutHandler  *_handler;
-    NSMapTable            *_iconViewsTable;
-    STKInteractionHandler  _interactionHandler;
+    SBIcon                   *_centralIcon;
+    STKIconLayout            *_appearingIconsLayout;
+    STKIconLayout            *_disappearingIconsLayout;
+    STKIconLayoutHandler     *_handler;
+    NSMapTable               *_iconViewsTable;
+    STKInteractionHandler     _interactionHandler;
 
-    CGFloat                _distanceRatio;
-    STKIconLayout         *_offScreenIconsLayout;
+    CGFloat                   _distanceRatio;
+    STKIconLayout            *_offScreenIconsLayout;
 
-    CGFloat                _lastDistanceFromCenter;
-    BOOL                   _hasPreparedGhostlyIcons;
+    CGFloat                   _lastDistanceFromCenter;
+    BOOL                      _hasPreparedGhostlyIcons;
 
     UISwipeGestureRecognizer *_swipeRecognizer;
+    UITapGestureRecognizer   *_tapRecognizer;
 }
 
 - (void)_animateToOpenPosition;
 - (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock;
 
+- (void)_setupGestureRecognizers;
 - (void)_handleCloseGesture:(UISwipeGestureRecognizer *)sender; // this is the default action for both swipe
-- (void)_cleanupGestureRecognizer;
+- (void)_cleanupGestureRecognizers;
 
 - (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance;
 
@@ -72,6 +74,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 - (void)_makeAllIconsPerformBlock:(void(^)(SBIcon *))block; // Includes icons in dock
 
 - (NSArray *)_appearingIconsForPosition:(STKLayoutPosition)position;
+- (NSArray *)_allAppearingIcons;
 
 - (void)_calculateDistanceRatio;
 - (void)_findIconsWithOffScreenTargets;
@@ -148,7 +151,7 @@ static BOOL __stackInMotion;
     [_iconViewsTable release];
     [_offScreenIconsLayout release];
 
-    [self _cleanupGestureRecognizer];
+    [self _cleanupGestureRecognizers];
 
     [super dealloc];
 }
@@ -335,16 +338,10 @@ static BOOL __stackInMotion;
         
     } completion:^(BOOL finished) {
         if (finished) {
+            [self _setupGestureRecognizers];
+
             _isExpanded = YES;
             __isStackOpen = YES;
-
-            // Add gesture recognizers...
-            // Store references to them in ivars, so as to get rid of them when a gesture is recognized!
-            _swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(_handleCloseGesture:)];
-            _swipeRecognizer.direction = (UISwipeGestureRecognizerDirectionUp | UISwipeGestureRecognizerDirectionDown);
-
-            UIView *contentView = [[objc_getClass("SBUIController") sharedInstance] contentView];
-            [contentView addGestureRecognizer:_swipeRecognizer];
         }
     }];
 }
@@ -394,20 +391,57 @@ static BOOL __stackInMotion;
     _lastDistanceFromCenter = 0.f;
 
     // Remove recognizers if they're still around
-    [self _cleanupGestureRecognizer];
+    [self _cleanupGestureRecognizers];
+}
+
+#pragma mark - Gesture Recogniser Handling
+- (void)_setupGestureRecognizers
+{
+    // Add gesture recognizers...
+    // Store references to them in ivars, so as to get rid of them when a gesture is recognized
+    _swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(_handleCloseGesture:)];
+    _swipeRecognizer.direction = (UISwipeGestureRecognizerDirectionUp | UISwipeGestureRecognizerDirectionDown);
+
+    _tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_handleCloseGesture:)];
+    _tapRecognizer.numberOfTapsRequired = 1;
+    _tapRecognizer.delegate = self;
+
+    UIView *contentView = [[objc_getClass("SBUIController") sharedInstance] contentView];
+    [contentView addGestureRecognizer:_swipeRecognizer];
+    [contentView addGestureRecognizer:_tapRecognizer];
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
+{
+    if ([[self _getIconViewForIcon:_centralIcon] pointInside:[touch locationInView:[self _getIconViewForIcon:_centralIcon]] withEvent:nil]) {
+        return NO;
+    }
+
+    for (SBIconView *iconView in [self _allAppearingIcons]) {
+        if ([iconView pointInside:[touch locationInView:iconView] withEvent:nil]) {
+            return NO;
+        }
+    }
+
+    return YES;
 }
 
 - (void)_handleCloseGesture:(UIGestureRecognizer *)sender
 {
-    [self _cleanupGestureRecognizer];
+    [self _cleanupGestureRecognizers];
     [self closeStackWithCompletionHandler:^{ if (_interactionHandler) _interactionHandler(nil); }];
 }
 
-- (void)_cleanupGestureRecognizer
+- (void)_cleanupGestureRecognizers
 {
     [_swipeRecognizer.view removeGestureRecognizer:_swipeRecognizer];
     [_swipeRecognizer release];
+
+    [_tapRecognizer.view removeGestureRecognizer:_tapRecognizer];
+    [_tapRecognizer release];
+
     _swipeRecognizer = nil;
+    _tapRecognizer = nil;
 }
 
 #pragma mark - Move ALL the things
@@ -763,6 +797,17 @@ static BOOL __stackInMotion;
     return ((position == STKLayoutPositionTop) ? _appearingIconsLayout.topIcons : (position == STKLayoutPositionBottom) ? _appearingIconsLayout.bottomIcons : (position == STKLayoutPositionLeft) ? _appearingIconsLayout.leftIcons : _appearingIconsLayout.rightIcons);   
 }
 
+- (NSArray *)_allAppearingIcons
+{
+    NSMutableArray *allTheThings = [NSMutableArray array];
+
+    for (NSArray *iconViews in [[_iconViewsTable objectEnumerator] allObjects]) {
+        [allTheThings addObjectsFromArray:iconViews];
+    }
+
+    return [[allTheThings copy] autorelease];
+}
+
 - (void)_calculateDistanceRatio
 {
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
@@ -839,7 +884,7 @@ static BOOL __stackInMotion;
 {
     [[objc_getClass("SBIconController") sharedInstance] setCurrentPageIconsPartialGhostly:alpha forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
     for (SBIcon *icon in _offScreenIconsLayout.bottomIcons) {
-        // Set the bottom offscreen icons' alpha now, because they look like shut overlapping the dock.
+        // Set the bottom offscreen icons' alpha now, because they look like shit overlapping the dock.
         [self _getIconViewForIcon:icon].alpha = alpha;
     }
 }
