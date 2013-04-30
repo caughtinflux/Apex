@@ -136,10 +136,8 @@ static BOOL __stackInMotion;
     if (_hasSetup) {
         // Remove the icon views from the list view.
         // Don't want shit hanging around
-        for (NSArray *iconViews in [[_iconViewsTable objectEnumerator] allObjects]) {
-            for (SBIconView *iconView in iconViews) {
-                [iconView removeFromSuperview];
-            }
+        for (SBIconView *iconView in [self _allAppearingIcons]) {
+            [iconView removeFromSuperview];
         }
     }
 
@@ -351,11 +349,9 @@ static BOOL __stackInMotion;
 {
     [UIView animateWithDuration:kAnimationDuration animations:^{
         // Set the frame for all these icons to the frame of their central icon
-        for (NSArray *iconViews in [[_iconViewsTable objectEnumerator] allObjects]) {
-            for (SBIconView *iconView in iconViews) {
-                iconView.frame = [self _getIconViewForIcon:_centralIcon].frame;
-                iconView.alpha = 0.f;
-            }
+        for (SBIconView *iconView in [self _allAppearingIcons]) {
+            iconView.frame = [self _getIconViewForIcon:_centralIcon].frame;
+            iconView.alpha = 0.f;
         }
 
         // Set the alphas back to original
@@ -464,7 +460,7 @@ static BOOL __stackInMotion;
         CGPoint originalOrigin = [listView originForIcon:icon]; 
         CGPoint targetOrigin = [self _getDisplacedOriginForIcon:icon withPosition:position]; 
 
-        
+         
         // Factor the distance up by the number of icons that are coming in at that position
         CGFloat factoredDistance = (distance * [self _appearingIconsForPosition:position].count); 
         
@@ -891,11 +887,9 @@ static BOOL __stackInMotion;
 
 - (void)_setAlphaForAppearingLabelsAndShadows:(CGFloat)alpha
 {
-    for (NSArray *iconViews in [[_iconViewsTable objectEnumerator] allObjects]) {
-        for (SBIconView *iconView in iconViews) {
-            ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = alpha;
-            [iconView setIconLabelAlpha:alpha];
-        }
+    for (SBIconView *iconView in [self _allAppearingIcons]) {
+        ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = alpha;
+        [iconView setIconLabelAlpha:alpha];
     }
 }
 

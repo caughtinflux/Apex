@@ -4,6 +4,34 @@
 		"selected_items":
 		[
 			[
+				"de",
+				"delegate	id<UIGestureRecognizerDelegate>"
+			],
+			[
+				"obj",
+				"objectEnumerator	NSEnumerator *"
+			],
+			[
+				"SBICon",
+				"SBIconModel	class"
+			],
+			[
+				"gestureRecognizer",
+				"gestureRecognizer:(UIGestureRecognizer *) shouldReceiveTouch:(UITouch *)	BOOL"
+			],
+			[
+				"gest",
+				"gestureRecognizerShouldBegin:(UIGestureRecognizer *)	BOOL"
+			],
+			[
+				"_handle",
+				"_handleCloseGesture:(UISwipeGestureRecognizer *)	void"
+			],
+			[
+				"init",
+				"initWithTarget:(id) action:(SEL)	id"
+			],
+			[
 				"STKPositionTo",
 				"STKPositionTouchingBottom	enum STKPositionMask"
 			],
@@ -256,10 +284,6 @@
 				"removeObserver:(id) name:(NSString *) object:(id)	void"
 			],
 			[
-				"SBICon",
-				"SBIconListView"
-			],
-			[
 				"SBIcon",
 				"SBIconController	class"
 			],
@@ -444,10 +468,6 @@
 				"objectForKey:(id)	id"
 			],
 			[
-				"obj",
-				"objectForKey:(id)	id"
-			],
-			[
 				"STKLayout",
 				"STKLayoutPositionRight	STKLayoutPosition"
 			],
@@ -476,10 +496,6 @@
 				"STKStackPosition	typedef"
 			],
 			[
-				"init",
-				"initWithKeyOptions:(NSPointerFunctionsOptions) valueOptions:(NSPointerFunctionsOptions) capacity:(NSUInteger)	id"
-			],
-			[
 				"iconView",
 				"iconViewForIcon:(id)	SBIconView *"
 			],
@@ -498,22 +514,6 @@
 			[
 				"NSTime",
 				"NSTimeInterval	typedef"
-			],
-			[
-				"displac",
-				"displacedRightIcons	NSMutableArray *"
-			],
-			[
-				"displaced",
-				"displacedBottomIcons	NSMutableArray *"
-			],
-			[
-				"inde",
-				"indexForX:(NSUInteger) Y:(NSUInteger) forOrientation:(int)	NSUInteger"
-			],
-			[
-				"NSM",
-				"NSMutableArray	class"
 			]
 		]
 	},
@@ -640,14 +640,17 @@
 	},
 	"file_history":
 	[
-		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
+		"/Users/aditya/code/projects/stacks/STKStackManager.h",
 		"/Users/aditya/code/projects/stacks/Tweak.xm",
-		"/Users/aditya/code/projects/stacks/STKConstants.h",
 		"/Users/aditya/code/projects/stacks/STKStackManager.mm",
+		"/Users/aditya/code/projects/stacks/Makefile",
+		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.m",
+		"/Users/aditya/code/projects/stacks/STKConstants.h",
+		"/opt/theos/include/SpringBoard/SBUIController.h",
+		"/Users/aditya/code/random/scoper/Tweak.xm",
+		"/opt/theos/include/SpringBoard/SpringBoard.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewMap.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconView.h",
-		"/Users/aditya/code/projects/stacks/STKStackManager.h",
-		"/Users/aditya/code/projects/stacks/Makefile",
 		"/Users/aditya/code/projects/stacks/STKIconLayout.m",
 		"/Users/aditya/code/projects/stacks/STKIconLayout.h",
 		"/Users/aditya/code/projects/stacks/STKIconLayoutHandler.h",
@@ -688,7 +691,6 @@
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconListModel.h",
 		"/opt/theos/include/SpringBoard/SBIconModel.h",
 		"/opt/theos/include/SpringBoard/SBIconModel",
-		"/opt/theos/include/SpringBoard/SBUIController.h",
 		"/opt/theos/include/SpringBoard/SBIcon.h",
 		"/opt/theos/include/SpringBoard/SBIconListModel.h",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBDockIconListView.h",
@@ -696,7 +698,6 @@
 		"/Users/aditya/code/projects/fluxbot/fluxbot.py",
 		"/Users/aditya/code/projects/stacks/layout/Library/Application Support/Stacks.bundle/Info.plist",
 		"/Users/aditya/code/projects/flagpaint/HBFPColorArt.h",
-		"/opt/theos/include/SpringBoard/SpringBoard.h",
 		"/Users/aditya/code/projects/prev_stacks/Tweak.xm",
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBTelephonyManager.h",
 		"/Users/aditya/code/projects/stacks/theos/include/Weather/WeatherPreferences.h",
@@ -718,7 +719,6 @@
 		"/Users/aditya/code/projects/stacks/theos/include/SpringBoard/SBIconViewMapDelegate-Protocol.h",
 		"/Users/aditya/code/projects/stacks/libMobileGestalt.h",
 		"/Users/aditya/code/projects/stacks/libmobilegestalt.h",
-		"/Users/aditya/code/random/scoper/Tweak.xm",
 		"/Users/aditya/code/tlsof/main.mm",
 		"/Users/aditya/Desktop/UIKitDump/UIButton.h",
 		"/Users/aditya/Desktop/UIKitDump/UIButtonContent.h",
@@ -785,6 +785,11 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"_appearingIconsFor",
+			"_appeari",
+			"_hasSet",
+			"block",
+			"switcher",
 			"anyStackOpen",
 			"STKRemoveManagerFromView",
 			"_lastDistanceFromCenter",
@@ -907,12 +912,7 @@
 			"state",
 			"page",
 			"(int)",
-			"(int-",
-			"int",
-			"listFor",
-			"listViewIndex",
-			"unsigned int",
-			"indexForIcon"
+			"(int-"
 		],
 		"highlight": true,
 		"in_selection": false,
