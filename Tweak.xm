@@ -22,9 +22,6 @@
 
 
 #pragma mark - Declarations
-static char *_panGRKey;
-static char *_stackManagerKey;
-
 // returns an NSArray of SBIcon object that are in a stack under `icon`.
 static NSArray * STKGetStackIconsForIcon(SBIcon *icon);
 
@@ -249,6 +246,9 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 %end
 
+#pragma mark - Associated Object Keys
+static char *_panGRKey;
+static char *_stackManagerKey;
 
 #pragma mark - Static Function Definitions
 static NSArray * STKGetIconsWithStack(void)
