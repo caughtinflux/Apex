@@ -323,6 +323,9 @@ static BOOL __stackInMotion;
     });
 }
 
+/*
+*   These two methods are empty stubs, that may or may not be implemented. They're in place so that the stack's icon get's animated in the listview scatter animation when an app is launched
+*/
 - (void)modifyIconModel
 {
 }
