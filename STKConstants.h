@@ -10,7 +10,7 @@
 #endif
 
 #import <Foundation/Foundation.h>
-
+#import <CoreGraphics/CGBase.h>
 
 #define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks.%@.plist", NSHomeDirectory(), STKTweakName];
 
@@ -39,6 +39,9 @@ extern "C" {
 	extern inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance, BOOL isGhostly);
 
 	extern SBIconListView * STKListViewForIcon(SBIcon *icon);
+
+	extern CGFloat STKGetCurrentTargetDistance(void);
+	extern void    STKUpdateTargetDistanceInListView(SBIconListView *listView);
 
 	extern NSUInteger STKGetCPUFrequency(void);
 

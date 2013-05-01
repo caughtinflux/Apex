@@ -101,7 +101,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 {
     if ([[%c(SBIconController) sharedInstance] isEditing] || !([STKGetIconsWithStack() containsObject:self.icon.leafIdentifier])) {
         STKCleanupIconView(self);
-        CLog(@"Self.icon: %@", self.icon);
         return;
     }
 
@@ -147,11 +146,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
             // The swipe is going to the opposite direction, so make sure the manager moves its views in the corresponding direction too
             change = -change;
         }
-        
-        CLog(@"currentIconDistance = %f", stackManager.currentIconDistance);
 
-        if ((change > 0) && ((stackManager.currentIconDistance) >= kTargetDistance)) {
-            CLog(@"Factoring down, currentIconDistance: %f", stackManager.currentIconDistance);
+        if ((change > 0) && ((stackManager.currentIconDistance) >= STKGetCurrentTargetDistance())) {
             // Factor this down to simulate elasticity
             // Stack manager allows the icons to go beyond their targets for a little distance
             change *= kBandingFactor;

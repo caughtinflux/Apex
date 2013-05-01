@@ -127,6 +127,8 @@ static BOOL __stackInMotion;
 
         [self _calculateDistanceRatio];
         [self _findIconsWithOffScreenTargets];
+
+        STKUpdateTargetDistanceInListView(STKListViewForIcon(_centralIcon));
     }
     return self;
 }
@@ -156,7 +158,7 @@ static BOOL __stackInMotion;
 
 - (id)init
 {
-    NSAssert(NO, @"You MUST use -[STKStackManager initWithCentralIcon:stackIcons:]");
+    NSAssert(NO, @"**** You MUST use -[STKStackManager initWithCentralIcon:stackIcons:]");
     return nil;
 }
 
