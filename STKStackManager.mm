@@ -17,6 +17,11 @@
 #import <SpringBoard/SBIconListView.h>
 #import <SpringBoard/SBDockIconListView.h>
 
+// Keys to be used for persistence dict
+static NSString * const STKCentralIconKey = @"STKCentralIcon";
+static NSString * const STKStackIconsKey  = @"STKStackIcons";
+
+// keys for use in map table
 static NSString * const STKStackTopIconsKey    = @"topicons";
 static NSString * const STKStackBottomIconsKey = @"bottomicons";
 static NSString * const STKStackLeftIconsKey   = @"lefticons";
@@ -48,6 +53,8 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 
     UISwipeGestureRecognizer *_swipeRecognizer;
     UITapGestureRecognizer   *_tapRecognizer;
+
+    NSArray                  *_originalIcons;
 }
 
 - (void)_animateToOpenPosition;
@@ -113,6 +120,21 @@ static BOOL __stackInMotion;
 }
 
 #pragma mark - Public Methods
+- (instancetype)initWithContentsOfFile:(NSString *)file
+{
+    SBIconModel *model = [(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model];
+
+    NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:file];
+
+    NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackIconsKey]).count)];
+    for (NSString *identifier in attributes[STKStackIconsKey]) {
+        // Get the SBIcon instances for the identifiers
+        [stackIcons addObject:[model applicationIconForDisplayIdentifier:identifier]];
+    }
+
+    return [self initWithCentralIcon:[model applicationIconForDisplayIdentifier:attributes[STKCentralIconKey]] stackIcons:stackIcons];
+}
+
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
 {
     if ((self = [super init])) {
@@ -158,6 +180,16 @@ static BOOL __stackInMotion;
 {
     NSAssert(NO, @"**** You MUST use -[STKStackManager initWithCentralIcon:stackIcons:]");
     return nil;
+}
+
+- (void)writeToFile:(NSString *)file
+{
+    @synchronized(self) {
+        NSDictionary *fileDict = @{ STKCentralIconKey : _centralIcon.leafIdentifier,
+                                    STKStackIconsKey  : [[_appearingIconsLayout allIcons] valueForKeyPath:@"leafIdentifier"] };
+
+        [fileDict writeToFile:file atomically:YES];
+    }
 }
 
 #pragma mark - Adding Stack Icons
@@ -289,6 +321,14 @@ static BOOL __stackInMotion;
     EXECUTE_BLOCK_AFTER_DELAY(delay, ^{
         [self closeStackWithCompletionHandler:completionBlock];
     });
+}
+
+- (void)modifyIconModel
+{
+}
+
+- (void)restoreIconModel
+{
 }
 
 #pragma mark - Open Completion Animation

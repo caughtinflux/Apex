@@ -17,10 +17,15 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 
 @property(nonatomic, copy) STKInteractionHandler interactionHandler; // the tappedIconView is only passed if there indeed was a tapped icon view. This may be called even if a swipe/tap is detected on the content view, and the stack closes automagically.
 
+- (instancetype)initWithContentsOfFile:(NSString *)file;
+
 // The interaction handler is called when an icon is tapped.
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons;
 
-// Sets up stack icons
+// Persistence
+- (void)writeToFile:(NSString *)path;
+
+// Sets up stack iconViews
 - (void)setupViewIfNecessary;
 - (void)setupView;
 
@@ -42,5 +47,8 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 - (void)openStack;
 - (void)closeStack;
 - (void)closeStackAfterDelay:(NSTimeInterval)delay completion:(void(^)(void))completionBlock;
+
+- (void)modifyIconModel;
+- (void)restoreIconModel;
 
 @end
