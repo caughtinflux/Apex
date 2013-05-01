@@ -127,8 +127,6 @@ static BOOL __stackInMotion;
 
         [self _calculateDistanceRatio];
         [self _findIconsWithOffScreenTargets];
-
-        STKUpdateTargetDistanceInListView(STKListViewForIcon(_centralIcon));
     }
     return self;
 }

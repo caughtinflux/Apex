@@ -107,6 +107,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     SBIconListView *view = [[%c(SBIconController) sharedInstance] currentRootIconList];
 
     if (sender.state == UIGestureRecognizerStateBegan) {
+        STKUpdateTargetDistanceInListView(STKListViewForIcon(self.icon));
+
         STKStackManager *stackManager = STKManagerForView(self);
         if (!stackManager) {
             stackManager = STKSetupManagerForView(self);
