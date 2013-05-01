@@ -82,6 +82,18 @@
     return ((position == STKLayoutPositionTop) ? self.topIcons : (position == STKLayoutPositionBottom) ? self.bottomIcons : (position == STKLayoutPositionLeft) ? self.leftIcons : self.rightIcons);
 }
 
+- (NSArray *)allIcons
+{
+    NSMutableArray *ret = [NSMutableArray arrayWithCapacity:self.totalIconCount];
+    
+    [ret addObjectsFromArray:self.topIcons];
+    [ret addObjectsFromArray:self.bottomIcons];
+    [ret addObjectsFromArray:self.leftIcons];
+    [ret addObjectsFromArray:self.rightIcons];
+
+    return ret;
+}
+
 - (NSUInteger)totalIconCount
 {
     return (self.topIcons.count + self.bottomIcons.count + self.leftIcons.count + self.rightIcons.count);

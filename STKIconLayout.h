@@ -24,8 +24,9 @@ typedef enum {
 - (void)enumerateThroughAllIconsUsingBlock:(void(^)(SBIcon *, STKLayoutPosition))block;
 - (void)enumerateIconsUsingBlockWithIndexes:(void(^)(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block;
 
+// Methods to query all the things
 - (NSArray *)iconsForPosition:(STKLayoutPosition)position;
-
+- (NSArray *)allIcons;
 - (NSUInteger)totalIconCount;
 
 // This method is thread safe
