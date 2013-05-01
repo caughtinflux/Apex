@@ -39,6 +39,7 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
 
 static void STKCleanupIconView(SBIconView *iconView);
 
+
 // Inline Functions, prevent overhead if called too much.
 static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconView);
 static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
