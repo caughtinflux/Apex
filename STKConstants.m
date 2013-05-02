@@ -10,7 +10,7 @@
 #import <objc/runtime.h>
 #import <sys/sysctl.h>
 
-NSString * const STKTweakName                       = @"Stacks";
+NSString * const STKTweakName                       = @"Acervos";
 NSString * const STKEditingStateChangedNotification = @"STKEditingStateChanged";
 NSString * const STKStackClosingEventNotification   = @"STKStackClosingEvent";
 

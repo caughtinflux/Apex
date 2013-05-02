@@ -119,6 +119,11 @@ static BOOL __stackInMotion;
     return __stackInMotion;
 }
 
++ (NSString *)layoutsPath
+{
+    return [NSHomeDirectory() stringByAppendingString:@"/Library/Preferences/Acervos"];
+}
+
 #pragma mark - Public Methods
 - (instancetype)initWithContentsOfFile:(NSString *)file
 {
@@ -182,12 +187,16 @@ static BOOL __stackInMotion;
     return nil;
 }
 
-- (void)writeToFile:(NSString *)file
+- (void)saveLayoutToFile:(NSString *)file
 {
     @synchronized(self) {
+        if (![[NSFileManager defaultManager] fileExistsAtPath:[STKStackManager layoutsPath]]) {
+            CLog(@"No directory at %@, creating.", [STKStackManager layoutsPath]);
+            [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:NO attributes:nil error:NULL];
+        }
+
         NSDictionary *fileDict = @{ STKCentralIconKey : _centralIcon.leafIdentifier,
                                     STKStackIconsKey  : [[_appearingIconsLayout allIcons] valueForKeyPath:@"leafIdentifier"] };
-
         [fileDict writeToFile:file atomically:YES];
     }
 }

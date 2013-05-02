@@ -43,6 +43,7 @@ static void STKCleanupIconView(SBIconView *iconView);
 // Inline Functions, prevent overhead if called too much.
 static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconView);
 static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
+static inline NSString               * STKGetLayoutPathForIcon(SBIcon *icon);
 
 #pragma mark - Direction !
 typedef enum {
@@ -289,8 +290,21 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
 
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 {
+    // Make sure the current manager is removed, if it exists
+    objc_setAssociatedObject(iconView, &_stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN);
+
     STKStackManager *stackManager = nil;
-    stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:STKGetStackIconsForIcon(iconView.icon)];
+    NSString *layoutPath = STKGetLayoutPathForIcon(iconView.icon);
+    
+    // Check if the manager can be created from file
+    if ([[NSFileManager defaultManager] fileExistsAtPath:layoutPath]) {
+        stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
+    }
+    else {
+        stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:STKGetStackIconsForIcon(iconView.icon)];
+        [stackManager saveLayoutToFile:layoutPath];
+    }
+
     stackManager.interactionHandler = \
         ^(SBIconView *tappedIconView) {
             if (tappedIconView) {
@@ -344,6 +358,11 @@ static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconV
 static inline STKStackManager * STKManagerForView(SBIconView *iconView)
 {
     return objc_getAssociatedObject(iconView, &_stackManagerKey);
+}
+
+static inline NSString * STKGetLayoutPathForIcon(SBIcon *icon)
+{
+    return [NSString stringWithFormat:@"%@/%@.layout", [STKStackManager layoutsPath], icon.leafIdentifier];
 }
 
 #pragma mark - Constructor
