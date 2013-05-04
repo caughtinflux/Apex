@@ -18,8 +18,8 @@
 #import <SpringBoard/SBDockIconListView.h>
 
 // Keys to be used for persistence dict
-static NSString * const STKCentralIconKey = @"STKCentralIcon";
-static NSString * const STKStackIconsKey  = @"STKStackIcons";
+NSString * const STKStackManagerCentralIconKey = @"STKCentralIcon";
+NSString * const STKStackManagerStackIconsKey  = @"STKStackIcons";
 
 // keys for use in map table
 static NSString * const STKStackTopIconsKey    = @"topicons";
@@ -121,7 +121,7 @@ static BOOL __stackInMotion;
 
 + (NSString *)layoutsPath
 {
-    return [NSHomeDirectory() stringByAppendingString:@"/Library/Preferences/Acervos"];
+    return [NSHomeDirectory() stringByAppendingString:@"/Library/Preferences/Acervos/Layouts"];
 }
 
 #pragma mark - Public Methods
@@ -131,13 +131,13 @@ static BOOL __stackInMotion;
 
     NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:file];
 
-    NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackIconsKey]).count)];
-    for (NSString *identifier in attributes[STKStackIconsKey]) {
+    NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
+    for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
         // Get the SBIcon instances for the identifiers
         [stackIcons addObject:[model applicationIconForDisplayIdentifier:identifier]];
     }
 
-    return [self initWithCentralIcon:[model applicationIconForDisplayIdentifier:attributes[STKCentralIconKey]] stackIcons:stackIcons];
+    return [self initWithCentralIcon:[model applicationIconForDisplayIdentifier:attributes[STKStackManagerCentralIconKey]] stackIcons:stackIcons];
 }
 
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
@@ -195,8 +195,8 @@ static BOOL __stackInMotion;
             [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:NO attributes:nil error:NULL];
         }
 
-        NSDictionary *fileDict = @{ STKCentralIconKey : _centralIcon.leafIdentifier,
-                                    STKStackIconsKey  : [[_appearingIconsLayout allIcons] valueForKeyPath:@"leafIdentifier"] };
+        NSDictionary *fileDict = @{ STKStackManagerCentralIconKey : _centralIcon.leafIdentifier,
+                                    STKStackManagerStackIconsKey  : [[_appearingIconsLayout allIcons] valueForKeyPath:@"leafIdentifier"] };
         [fileDict writeToFile:file atomically:YES];
     }
 }

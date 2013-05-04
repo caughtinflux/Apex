@@ -3,9 +3,9 @@ DEBUG = 1
 
 include theos/makefiles/common.mk
 
-TWEAK_NAME = Acervo
-Acervo_FILES = STKConstants.m STKIconLayout.m STKIconLayoutHandler.m STKStackManager.mm Tweak.xm
-Acervo_FRAMEWORKS = Foundation UIKit CoreGraphics QuartzCore
+TWEAK_NAME = Acervos
+Acervos_FILES = STKConstants.m STKIconLayout.m STKIconLayoutHandler.m STKStackManager.mm STKPreferences.m Tweak.xm
+Acervos_FRAMEWORKS = Foundation UIKit CoreGraphics QuartzCore
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

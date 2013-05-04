@@ -2,9 +2,8 @@
 #import <UIKit/UIKit.h>
 
 #import "STKConstants.h"
-#import "STKIconLayout.h"
-#import "STKIconLayoutHandler.h"
 #import "STKStackManager.h"
+#import "STKPreferences.h"
 
 #import <SpringBoard/SpringBoard.h>
 #import <SpringBoard/SBIconController.h>
@@ -22,12 +21,6 @@
 
 
 #pragma mark - Declarations
-// returns an NSArray of SBIcon object that are in a stack under `icon`.
-static NSArray * STKGetStackIconsForIcon(SBIcon *icon);
-
-// Returns an array of bundle IDs
-static NSArray * STKGetIconsWithStack(void);
-
 // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView);
 
@@ -38,7 +31,6 @@ static void STKAddPanRecognizerToIconView(SBIconView *iconView);
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
 
 static void STKCleanupIconView(SBIconView *iconView);
-
 
 // Inline Functions, prevent overhead if called too much.
 static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconView);
@@ -61,14 +53,16 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 - (void)setIcon:(SBIcon *)icon
 {
     %orig();
-
-    if ([[%c(SBIconController) sharedInstance] isEditing] || [[%c(SBUIController) sharedInstance] isSwitcherShowing] || !([STKGetIconsWithStack() containsObject:icon.leafIdentifier])) {
+    if (!icon ||
+        [[%c(SBIconController) sharedInstance] isEditing] ||
+        [[%c(SBUIController) sharedInstance] isSwitcherShowing] ||
+        !([[[STKPreferences sharedPreferences] identifiersForIconsWithStack] containsObject:icon.leafIdentifier]))
+    {
         // Make sure the recognizer is not added to icons in the stack
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
         STKCleanupIconView(self);
         return;
     }
-
     UIPanGestureRecognizer *panRecognizer = STKPanRecognizerForView(self);
     if (!panRecognizer) {
         STKAddPanRecognizerToIconView(self);
@@ -80,7 +74,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 
 - (BOOL)canReceiveGrabbedIcon:(SBIconView *)iconView
 {
-    NSArray *iconsWithStack = STKGetIconsWithStack();
+    NSArray *iconsWithStack = [[STKPreferences sharedPreferences] identifiersForIconsWithStack];
     return ((([iconsWithStack containsObject:self.icon.leafIdentifier]) || ([iconsWithStack containsObject:iconView.icon.leafIdentifier])) ? NO : %orig());
 }
 
@@ -101,7 +95,10 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %new
 - (void)stk_panned:(UIPanGestureRecognizer *)sender
 {
-    if ([[%c(SBIconController) sharedInstance] isEditing] || !([STKGetIconsWithStack() containsObject:self.icon.leafIdentifier])) {
+    if ([[%c(SBIconController) sharedInstance] isEditing] || 
+        [[%c(SBUIController) sharedInstance] isSwitcherShowing] ||
+        !([[[STKPreferences sharedPreferences] identifiersForIconsWithStack] containsObject:self.icon.leafIdentifier]))
+    {
         STKCleanupIconView(self);
         return;
     }
@@ -109,6 +106,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     SBIconListView *view = [[%c(SBIconController) sharedInstance] currentRootIconList];
 
     if (sender.state == UIGestureRecognizerStateBegan) {
+        // Update the target distance based on icons positions when the pan begins
+        // This way, we can be sure that the icons are indeed in the required location 
         STKUpdateTargetDistanceInListView(STKListViewForIcon(self.icon));
 
         STKStackManager *stackManager = STKManagerForView(self);
@@ -152,7 +151,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         }
 
         if ((change > 0) && ((stackManager.currentIconDistance) >= STKGetCurrentTargetDistance())) {
-            // Factor this down to simulate elasticity
+            // Factor this down to simulate elasticity when the icons have reached their target locations
             // Stack manager allows the icons to go beyond their targets for a little distance
             change *= kBandingFactor;
         }
@@ -211,7 +210,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 */
 - (void)iconWasTapped:(SBIcon *)icon
 {
-    if ([STKGetIconsWithStack() containsObject:icon.leafIdentifier]) {
+    if ([[[STKPreferences sharedPreferences] identifiersForIconsWithStack] containsObject:icon.leafIdentifier]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
     }
     
@@ -251,25 +250,6 @@ static char *_panGRKey;
 static char *_stackManagerKey;
 
 #pragma mark - Static Function Definitions
-static NSArray * STKGetIconsWithStack(void)
-{
-    return @[@"com.apple.mobileslideshow"];
-}
-
-static NSArray * STKGetStackIconsForIcon(SBIcon *icon)
-{
-    SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
-    if ([icon.leafIdentifier isEqual:@"com.apple.mobileslideshow"]) {
-        return @[[model applicationIconForDisplayIdentifier:@"com.apple.mobiletimer"],
-                 [model applicationIconForDisplayIdentifier:@"com.apple.mobilenotes"],
-                 [model applicationIconForDisplayIdentifier:@"com.apple.reminders"],
-                 [model applicationIconForDisplayIdentifier:@"com.apple.mobilecal"]
-                ];
-    }
-
-    return nil;
-}
-
 static void STKAddPanRecognizerToIconView(SBIconView *iconView)
 {
     UIPanGestureRecognizer *panRecognizer = objc_getAssociatedObject(iconView, &_panGRKey);
@@ -294,14 +274,14 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
     objc_setAssociatedObject(iconView, &_stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN);
 
     STKStackManager *stackManager = nil;
-    NSString *layoutPath = STKGetLayoutPathForIcon(iconView.icon);
+    NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
     
     // Check if the manager can be created from file
     if ([[NSFileManager defaultManager] fileExistsAtPath:layoutPath]) {
         stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
     }
     else {
-        stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:STKGetStackIconsForIcon(iconView.icon)];
+        stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:[[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon]];
         [stackManager saveLayoutToFile:layoutPath];
     }
 
@@ -358,11 +338,6 @@ static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconV
 static inline STKStackManager * STKManagerForView(SBIconView *iconView)
 {
     return objc_getAssociatedObject(iconView, &_stackManagerKey);
-}
-
-static inline NSString * STKGetLayoutPathForIcon(SBIcon *icon)
-{
-    return [NSString stringWithFormat:@"%@/%@.layout", [STKStackManager layoutsPath], icon.leafIdentifier];
 }
 
 #pragma mark - Constructor

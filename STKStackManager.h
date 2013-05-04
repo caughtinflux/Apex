@@ -4,6 +4,17 @@
 
 typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 
+#ifdef __cplusplus 
+extern "C" {
+#endif
+
+	extern NSString * const STKStackManagerCentralIconKey;
+	extern NSString * const STKStackManagerStackIconsKey;
+
+#ifdef __cplusplus
+}
+#endif
+
 @class SBIcon, STKIconLayout;
 
 @interface STKStackManager : NSObject <SBIconViewDelegate, UIGestureRecognizerDelegate>
