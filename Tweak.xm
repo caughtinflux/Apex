@@ -60,15 +60,12 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
     {
         // Make sure the recognizer is not added to icons in the stack
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
+        CLog(@"setIcon called in in invalid condition with icon %@", icon);
         STKCleanupIconView(self);
         return;
     }
-    UIPanGestureRecognizer *panRecognizer = STKPanRecognizerForView(self);
-    if (!panRecognizer) {
-        STKAddPanRecognizerToIconView(self);
-    }
 
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_editingStateChanged:) name:STKEditingStateChangedNotification object:nil];
+    STKAddPanRecognizerToIconView(self);
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_closeStack:) name:STKStackClosingEventNotification object:nil];
 }
 
@@ -80,7 +77,6 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 
 - (void)dealloc
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:STKStackClosingEventNotification object:nil];
     %orig();
 }
@@ -130,7 +126,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
         CGPoint point = [sender locationInView:view];
 
-        BOOL hasCrossedInitial = YES;
+        BOOL hasCrossedInitial = NO;
         // If the swipe is going beyond the point where it started from, stop the swipe.
         if (_currentDirection == STKRecognizerDirectionUp) {
             hasCrossedInitial = (point.y > _initialPoint.y);
@@ -214,12 +210,12 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
     }
     
-    %orig();
+    %orig(icon);
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-    %orig();
+    %orig(scrollView);
     [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
 }
 
@@ -289,8 +285,7 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         ^(SBIconView *tappedIconView) {
             if (tappedIconView) {
                 [stackManager closeStackSettingCentralIcon:tappedIconView.icon completion:^{
-                    SBApplication *tappedApp = [[%c(SBApplicationController) sharedInstance] applicationWithDisplayIdentifier:tappedIconView.icon.leafIdentifier];
-                    [(SBUIController *)[%c(SBUIController) sharedInstance] activateApplicationFromSwitcher:tappedApp];
+                    [tappedIconView.icon launch];
                     STKRemoveManagerFromView(iconView);
                 }];
             }

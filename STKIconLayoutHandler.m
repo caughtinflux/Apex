@@ -211,6 +211,8 @@
     range.location = coordinates->yPos + 1;
     range.length = iconsInColumn.count - (coordinates->yPos + 1);
 
+    free(coordinates);
+
     return [iconsInColumn subarrayWithRange:range];
 }
 
@@ -223,6 +225,8 @@
     range.location = 0;
     range.length = coordinates->xPos;
 
+    free(coordinates);
+
     return [iconsInRow subarrayWithRange:range];
 }
 
@@ -234,6 +238,8 @@
     NSRange range;
     range.location = coordinates->xPos + 1;
     range.length = iconsInRow.count - (coordinates->xPos + 1);
+
+    free(coordinates);
 
     return [iconsInRow subarrayWithRange:range];
 }

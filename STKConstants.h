@@ -27,7 +27,7 @@ extern "C" {
 	extern NSString * const STKTweakName;
 	extern NSString * const STKEditingStateChangedNotification;
 	extern NSString * const STKStackClosingEventNotification; // This notification is posted when something happens to make the stack close
-
+	
 	extern NSString * const SBLockStateChangeNotification;
 
 	// Function to translate a number from one range to another
