@@ -1,6 +1,9 @@
 #ifndef STK_CONSTANTS_H
 #define STK_CONSTANTS_H
 
+#import <Foundation/Foundation.h>
+#import <CoreGraphics/CGBase.h>
+
 #ifdef DEBUG
 	#define DLog(fmt, ...) NSLog((@"STK: %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 	#define CLog(fmt, ...) NSLog((@"STK: " fmt), ##__VA_ARGS__)
@@ -9,10 +12,7 @@
 	#define CLog(...)
 #endif
 
-#import <Foundation/Foundation.h>
-#import <CoreGraphics/CGBase.h>
-
-#define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks.%@.plist", NSHomeDirectory(), STKTweakName];
+#define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/Acervos/com.a3tweaks.%@.plist", NSHomeDirectory(), STKTweakName]
 
 #define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
 
@@ -27,7 +27,7 @@ extern "C" {
 	extern NSString * const STKTweakName;
 	extern NSString * const STKEditingStateChangedNotification;
 	extern NSString * const STKStackClosingEventNotification; // This notification is posted when something happens to make the stack close
-
+	
 	extern NSString * const SBLockStateChangeNotification;
 
 	// Function to translate a number from one range to another

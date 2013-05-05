@@ -11,7 +11,6 @@ typedef NS_OPTIONS(NSUInteger, STKPositionMask) {
     STKPositionDock           = 1 << 4
 };
 
-
 typedef struct {
 	NSUInteger xPos;
 	NSUInteger yPos;

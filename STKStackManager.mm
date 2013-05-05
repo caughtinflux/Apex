@@ -18,8 +18,8 @@
 #import <SpringBoard/SBDockIconListView.h>
 
 // Keys to be used for persistence dict
-static NSString * const STKCentralIconKey = @"STKCentralIcon";
-static NSString * const STKStackIconsKey  = @"STKStackIcons";
+NSString * const STKStackManagerCentralIconKey = @"STKCentralIcon";
+NSString * const STKStackManagerStackIconsKey  = @"STKStackIcons";
 
 // keys for use in map table
 static NSString * const STKStackTopIconsKey    = @"topicons";
@@ -32,7 +32,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #define kAnimationDuration   0.2
 #define kDisabledIconAlpha   0.2
 #define kBandingAllowance    ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 25 : 50)
-#define kGhostlyRequesterID  1 
+#define kGhostlyRequesterID  2
 
 
 #pragma mark - Private Method Declarations
@@ -55,6 +55,8 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     UITapGestureRecognizer   *_tapRecognizer;
 
     NSArray                  *_originalIcons;
+
+    BOOL                      _didStartEditing;
 }
 
 - (void)_animateToOpenPosition;
@@ -81,7 +83,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 - (void)_makeAllIconsPerformBlock:(void(^)(SBIcon *))block; // Includes icons in dock
 
 - (NSArray *)_appearingIconsForPosition:(STKLayoutPosition)position;
-- (NSArray *)_allAppearingIcons;
+- (NSArray *)_allAppearingIconViews;
 
 - (void)_calculateDistanceRatio;
 - (void)_findIconsWithOffScreenTargets;
@@ -97,6 +99,8 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 
 - (void)_setInteractionEnabled:(BOOL)enabled forAllIconsExcludingCentral:(BOOL)excludeCentral;
 - (void)_setPageControlAlpha:(CGFloat)alpha;
+
+- (void)_editingStateChanged:(NSNotification *)notification;
 
 @end
 
@@ -119,6 +123,11 @@ static BOOL __stackInMotion;
     return __stackInMotion;
 }
 
++ (NSString *)layoutsPath
+{
+    return [NSHomeDirectory() stringByAppendingString:@"/Library/Preferences/Acervos/Layouts"];
+}
+
 #pragma mark - Public Methods
 - (instancetype)initWithContentsOfFile:(NSString *)file
 {
@@ -126,13 +135,13 @@ static BOOL __stackInMotion;
 
     NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:file];
 
-    NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackIconsKey]).count)];
-    for (NSString *identifier in attributes[STKStackIconsKey]) {
+    NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
+    for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
         // Get the SBIcon instances for the identifiers
         [stackIcons addObject:[model applicationIconForDisplayIdentifier:identifier]];
     }
 
-    return [self initWithCentralIcon:[model applicationIconForDisplayIdentifier:attributes[STKCentralIconKey]] stackIcons:stackIcons];
+    return [self initWithCentralIcon:[model applicationIconForDisplayIdentifier:attributes[STKStackManagerCentralIconKey]] stackIcons:stackIcons];
 }
 
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
@@ -149,6 +158,8 @@ static BOOL __stackInMotion;
 
         [self _calculateDistanceRatio];
         [self _findIconsWithOffScreenTargets];
+
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_editingStateChanged:) name:STKEditingStateChangedNotification object:nil];
     }
     return self;
 }
@@ -158,7 +169,7 @@ static BOOL __stackInMotion;
     if (_hasSetup) {
         // Remove the icon views from the list view.
         // Don't want shit hanging around
-        for (SBIconView *iconView in [self _allAppearingIcons]) {
+        for (SBIconView *iconView in [self _allAppearingIconViews]) {
             [iconView removeFromSuperview];
         }
     }
@@ -173,6 +184,8 @@ static BOOL __stackInMotion;
 
     [self _cleanupGestureRecognizers];
 
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+
     [super dealloc];
 }
 
@@ -182,12 +195,16 @@ static BOOL __stackInMotion;
     return nil;
 }
 
-- (void)writeToFile:(NSString *)file
+- (void)saveLayoutToFile:(NSString *)file
 {
     @synchronized(self) {
-        NSDictionary *fileDict = @{ STKCentralIconKey : _centralIcon.leafIdentifier,
-                                    STKStackIconsKey  : [[_appearingIconsLayout allIcons] valueForKeyPath:@"leafIdentifier"] };
+        if (![[NSFileManager defaultManager] fileExistsAtPath:[STKStackManager layoutsPath]]) {
+            CLog(@"No directory at %@, creating.", [STKStackManager layoutsPath]);
+            [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:NO attributes:nil error:NULL];
+        }
 
+        NSDictionary *fileDict = @{ STKStackManagerCentralIconKey : _centralIcon.leafIdentifier,
+                                    STKStackManagerStackIconsKey  : [[_appearingIconsLayout allIcons] valueForKeyPath:@"leafIdentifier"] };
         [fileDict writeToFile:file atomically:YES];
     }
 }
@@ -243,6 +260,12 @@ static BOOL __stackInMotion;
         [[iconView valueForKeyPath:@"_shadow"] setAlpha:0.f];
         [listView insertSubview:iconView belowSubview:((index == 1) ? iconViews[0] : centralIconView)];
         // If the current icon is the second icon, add it below the previous one, so it slides out from ***under*** it.
+
+        for (UIGestureRecognizer *recognizer in iconView.gestureRecognizers) {
+            if ([recognizer isKindOfClass:[UISwipeGestureRecognizer class]]) {
+                [iconView removeGestureRecognizer:recognizer];
+            }
+        }
     }];
 
     _hasSetup = YES;
@@ -323,6 +346,9 @@ static BOOL __stackInMotion;
     });
 }
 
+/*
+*   These two methods are empty stubs, that may or may not be implemented. They're in place so that the stack's icon get's animated in the listview scatter animation when an app is launched
+*/
 - (void)modifyIconModel
 {
 }
@@ -389,15 +415,18 @@ static BOOL __stackInMotion;
 {
     [UIView animateWithDuration:kAnimationDuration animations:^{
         // Set the frame for all these icons to the frame of their central icon
-        for (SBIconView *iconView in [self _allAppearingIcons]) {
+        for (SBIconView *iconView in [self _allAppearingIconViews]) {
             iconView.frame = [self _getIconViewForIcon:_centralIcon].frame;
             iconView.alpha = 0.f;
+            
+            ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 0.f;
+            [iconView setIconLabelAlpha:0.f];
         }
 
         // Set the alphas back to original
         [self _setGhostlyAlphaForAllIcons:.9999999f excludingCentralIcon:NO]; // .999f is necessary, unfortunately. A weird 1.0->0.0->1.0 alpha flash happens otherwise
         [self _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO]; // Set it back to 1.f, fix a pain in the ass bug
-        [self _setAlphaForAppearingLabelsAndShadows:0];
+
         [self _setPageControlAlpha:1];
 
         // Bring the off screen icons back to life! :D
@@ -449,15 +478,19 @@ static BOOL __stackInMotion;
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
-    if ([[self _getIconViewForIcon:_centralIcon] pointInside:[touch locationInView:[self _getIconViewForIcon:_centralIcon]] withEvent:nil]) {
-        return NO;
-    }
-
-    for (SBIconView *iconView in [self _allAppearingIcons]) {
-        if ([iconView pointInside:[touch locationInView:iconView] withEvent:nil]) {
+    if (recognizer == _tapRecognizer) {
+        if ([[self _getIconViewForIcon:_centralIcon] pointInside:[touch locationInView:[self _getIconViewForIcon:_centralIcon]] withEvent:nil]) {
             return NO;
         }
+
+        for (SBIconView *iconView in [self _allAppearingIconViews]) {
+            if ([iconView pointInside:[touch locationInView:iconView] withEvent:nil]) {
+                return NO;
+            }
+        }
     }
+
+
 
     return YES;
 }
@@ -833,7 +866,7 @@ static BOOL __stackInMotion;
     return ((position == STKLayoutPositionTop) ? _appearingIconsLayout.topIcons : (position == STKLayoutPositionBottom) ? _appearingIconsLayout.bottomIcons : (position == STKLayoutPositionLeft) ? _appearingIconsLayout.leftIcons : _appearingIconsLayout.rightIcons);   
 }
 
-- (NSArray *)_allAppearingIcons
+- (NSArray *)_allAppearingIconViews
 {
     NSMutableArray *allTheThings = [NSMutableArray array];
 
@@ -918,7 +951,16 @@ static BOOL __stackInMotion;
 
 - (void)_setGhostlyAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral
 {
-    [[objc_getClass("SBIconController") sharedInstance] setCurrentPageIconsPartialGhostly:alpha forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
+    if (alpha >= 1.f) {
+        [[objc_getClass("SBIconController") sharedInstance] setCurrentPageIconsGhostly:NO forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
+    }
+    else if (alpha <= 0.f) {
+        [[objc_getClass("SBIconController") sharedInstance] setCurrentPageIconsGhostly:YES forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];   
+    }
+    else {
+        [[objc_getClass("SBIconController") sharedInstance] setCurrentPageIconsPartialGhostly:alpha forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
+    }
+
     for (SBIcon *icon in _offScreenIconsLayout.bottomIcons) {
         // Set the bottom offscreen icons' alpha now, because they look like shit overlapping the dock.
         [self _getIconViewForIcon:icon].alpha = alpha;
@@ -927,7 +969,7 @@ static BOOL __stackInMotion;
 
 - (void)_setAlphaForAppearingLabelsAndShadows:(CGFloat)alpha
 {
-    for (SBIconView *iconView in [self _allAppearingIcons]) {
+    for (SBIconView *iconView in [self _allAppearingIconViews]) {
         ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = alpha;
         [iconView setIconLabelAlpha:alpha];
     }
@@ -949,9 +991,24 @@ static BOOL __stackInMotion;
     [[objc_getClass("SBIconController") sharedInstance] setPageControlAlpha:alpha];
 }
 
+- (void)_editingStateChanged:(NSNotification *)notification
+{
+    if (!(_didStartEditing) || ![[objc_getClass("SBIconController") sharedInstance] isEditing]) {
+        [self closeStackWithCompletionHandler:^{
+            if (_interactionHandler) {
+                _interactionHandler(nil);
+            }
+        }];
+    }
+}
+
 #pragma mark - SBIconViewDelegate
 - (void)iconTapped:(SBIconView *)iconView
 {
+    if ([[objc_getClass("SBIconController") sharedInstance] isEditing]) {
+        return;
+    }
+
     [iconView setHighlighted:YES delayUnhighlight:YES];
     if (_interactionHandler) {
         _interactionHandler(iconView);
@@ -970,7 +1027,19 @@ static BOOL __stackInMotion;
 
 - (BOOL)iconAllowJitter:(SBIconView *)iconView
 {
-    return NO;
+    return YES;
+}
+
+- (void)iconHandleLongPress:(SBIconView *)iconView
+{
+    SBIconController *controller = [objc_getClass("SBIconController") sharedInstance];
+    BOOL newMode = !([controller isEditing]);
+    for (SBIconView *iconView in [self _allAppearingIconViews]) {
+        [iconView setIsJittering:newMode];
+    }
+
+    _didStartEditing = newMode;
+    [controller setIsEditing:newMode];
 }
 
 @end
