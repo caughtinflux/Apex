@@ -21,11 +21,13 @@
 NSString * const STKStackManagerCentralIconKey = @"STKCentralIcon";
 NSString * const STKStackManagerStackIconsKey  = @"STKStackIcons";
 
+
 // keys for use in map table
 static NSString * const STKStackTopIconsKey    = @"topicons";
 static NSString * const STKStackBottomIconsKey = @"bottomicons";
 static NSString * const STKStackLeftIconsKey   = @"lefticons";
 static NSString * const STKStackRightIconsKey  = @"righticons";
+
 
 #define kEnablingThreshold   55
 #define kMaximumDisplacement 85
@@ -130,6 +132,7 @@ static BOOL __stackInMotion;
     return [NSHomeDirectory() stringByAppendingString:@"/Library/Preferences/Acervos/Layouts"];
 }
 
+
 #pragma mark - Public Methods
 - (instancetype)initWithContentsOfFile:(NSString *)file
 {
@@ -208,6 +211,7 @@ static BOOL __stackInMotion;
     }
 }
 
+
 #pragma mark - Adding Stack Icons
 - (void)setupViewIfNecessary
 {
@@ -271,6 +275,7 @@ static BOOL __stackInMotion;
 
     _hasSetup = YES;
 }
+
 
 #pragma mark - Moving Icons
 - (void)touchesDraggedForDistance:(CGFloat)distance
@@ -360,6 +365,7 @@ static BOOL __stackInMotion;
 {
 }
 
+
 #pragma mark - Open Completion Animation
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
 {
@@ -419,6 +425,7 @@ static BOOL __stackInMotion;
     }];
 }
 
+
 #pragma mark - Close Animation
 - (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration
 {
@@ -468,6 +475,7 @@ static BOOL __stackInMotion;
     // Remove recognizers if they're still around
     [self _cleanupGestureRecognizers];
 }
+
 
 #pragma mark - Gesture Recogniser Handling
 - (void)_setupGestureRecognizers
@@ -521,9 +529,8 @@ static BOOL __stackInMotion;
 
     _swipeRecognizer = nil;
     _tapRecognizer = nil;
-
-    DLog(@"cleaned them up. _swipeRecognizer: %@ _tapRecognizer: %@", _swipeRecognizer, _tapRecognizer);
 }
+
 
 #pragma mark - Move ALL the things
 - (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance
