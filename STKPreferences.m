@@ -85,4 +85,9 @@
 
 }
 
+- (BOOL)iconHasStack:(SBIcon *)icon
+{
+    return [[self identifiersForIconsWithStack] containsObject:icon.leafIdentifier];
+}
+
 @end
