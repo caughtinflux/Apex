@@ -11,4 +11,6 @@
 
 - (void)reloadPreferences;
 
+- (BOOL)iconHasStack:(SBIcon *)icon;
+
 @end
