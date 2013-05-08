@@ -63,15 +63,15 @@
     }];
 
     [self.bottomIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
-        block(icon, STKLayoutPositionBottom, wSelf.topIcons, idx);
+        block(icon, STKLayoutPositionBottom, wSelf.bottomIcons, idx);
     }];
 
     [self.leftIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
-        block(icon, STKLayoutPositionLeft, wSelf.topIcons, idx);
+        block(icon, STKLayoutPositionLeft, wSelf.leftIcons, idx);
     }];
 
     [self.rightIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
-        block(icon, STKLayoutPositionRight, wSelf.topIcons, idx);
+        block(icon, STKLayoutPositionRight, wSelf.rightIcons, idx);
     }];
 
     [block release];
