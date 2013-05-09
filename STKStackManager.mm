@@ -264,6 +264,7 @@ static BOOL __stackInMotion;
         [iconView setIconLabelAlpha:0.f];
         [[iconView valueForKeyPath:@"_shadow"] setAlpha:0.f];
         [listView insertSubview:iconView belowSubview:((index == 1) ? iconViews[0] : centralIconView)];
+        [listView insertSubview:iconView belowSubview:((index == 0) ? centralIconView : iconViews[index - 1])];
         // If the current icon is the second icon, add it below the previous one, so it slides out from ***under*** it.
 
         for (UIGestureRecognizer *recognizer in iconView.gestureRecognizers) {
