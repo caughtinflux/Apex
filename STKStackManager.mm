@@ -263,7 +263,6 @@ static BOOL __stackInMotion;
         [wSelf->_iconViewsTable setObject:iconViews forKey:mapTableKey];
         [iconView setIconLabelAlpha:0.f];
         [[iconView valueForKeyPath:@"_shadow"] setAlpha:0.f];
-        [listView insertSubview:iconView belowSubview:((index == 1) ? iconViews[0] : centralIconView)];
         [listView insertSubview:iconView belowSubview:((index == 0) ? centralIconView : iconViews[index - 1])];
         // If the current icon is the second icon, add it below the previous one, so it slides out from ***under*** it.
 
@@ -543,7 +542,7 @@ static BOOL __stackInMotion;
             • It is very easy to simply just do a little magic on the signs of the distance, etc. But that's what I want to avoid. I'd by far prefer code that still makes sense.
             • IMO, MAGIC IS ___NOT___ good when you're performing it.... LULZ.
 
-        Comments are written everywhere to make sure that this code is understandable, even a few months down the line. For both appearing and disappearing icons, the first (top) set of icons have been commented, the l/r/b sets do the same thing, only in different directions, so it should be pretty simple to understand.
+        Comments are written everywhere to make sure that this code is understandable, even a few months down the line. For both appearing and disappearing icons, the first (top) set of icons have been commented, the l/r/d sets do the same thing, only in different directions, so it should be pretty simple to understand.
     */
     
     STKStackManager * __block wSelf = self;
@@ -734,7 +733,7 @@ static BOOL __stackInMotion;
         CGFloat multiplicationFactor = (((newFrame.origin.x + distance) < targetOrigin.x) ? (idx + 1) : 1);
         CGFloat translatedDistance = distance * multiplicationFactor * wSelf->_distanceRatio;
 
-        targetOrigin.x += kBandingAllowance * _distanceRatio;
+        targetOrigin.x += kBandingAllowance * wSelf->_distanceRatio;
         iconView.alpha = 1.f;
         
         if (((newFrame.origin.x + translatedDistance) < targetOrigin.x) && (!((newFrame.origin.x + translatedDistance) < centralFrame.origin.x))) {
