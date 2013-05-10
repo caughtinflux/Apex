@@ -2,10 +2,7 @@
 #import "STKConstants.h"
 #import "STKStackManager.h"
 
-#import <SpringBoard/SBIconController.h>
-#import <SpringBoard/SBIconModel.h>
-#import <SpringBoard/SBIcon.h>
-
+#import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
 
 #define kIconsWithStackKey @"STKIconsWithStack"

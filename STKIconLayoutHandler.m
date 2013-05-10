@@ -3,11 +3,7 @@
 
 #import <objc/runtime.h>
 
-#import <SpringBoard/SBIcon.h>
-#import <SpringBoard/SBIconController.h>
-#import <SpringBoard/SBIconListView.h>
-#import <SpringBoard/SBIconViewMap.h>
-#import <SpringBoard/SBIconView.h>
+#import <SpringBoard/SpringBoard.h>
 
 #define kCurrentOrientation [UIApplication sharedApplication].statusBarOrientation
 
@@ -123,8 +119,7 @@
         }
     }];
 
-    STKIconLayout *displacedIconsLayout = [STKIconLayout layoutWithIconsAtTop:displacedTopIcons bottom:displacedBottomIcons left:displacedLeftIcons right:displacedRightIcons];
-    return displacedIconsLayout;
+    return [STKIconLayout layoutWithIconsAtTop:displacedTopIcons bottom:displacedBottomIcons left:displacedLeftIcons right:displacedRightIcons]; 
 }
 
 - (STKIconCoordinates *)copyCoordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation

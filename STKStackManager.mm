@@ -7,15 +7,7 @@
 #import <objc/runtime.h>
 
 #import <SpringBoard/SpringBoard.h>
-#import <SpringBoard/SBIconController.h>
-#import <SpringBoard/SBApplicationIcon.h>
-#import <SpringBoard/SBRootFolder.h>
-#import <SpringBoard/SBIconModel.h>
-#import <SpringBoard/SBIconViewMap.h>
-#import <SpringBoard/SBIconView.h>
-#import <SpringBoard/SBIconImageView.h>
-#import <SpringBoard/SBIconListView.h>
-#import <SpringBoard/SBDockIconListView.h>
+
 
 // Keys to be used for persistence dict
 NSString * const STKStackManagerCentralIconKey = @"STKCentralIcon";
@@ -312,6 +304,7 @@ static BOOL __stackInMotion;
  
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler
 {
+    DLog(@"");
     [self _animateToClosedPositionWithCompletionBlock:^{
         if (completionHandler) {
             completionHandler();
@@ -429,7 +422,10 @@ static BOOL __stackInMotion;
 #pragma mark - Close Animation
 - (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration
 {
+    DLog(@"");
+
     STKStackManager * __block wSelf = self;
+
     [UIView animateWithDuration:duration animations:^{
         // Set the frame for all these icons to the frame of their central icon
         for (SBIconView *iconView in [wSelf _allAppearingIconViews]) {
@@ -456,6 +452,10 @@ static BOOL __stackInMotion;
 
     } completion:^(BOOL finished) {
         if (finished) {
+            for (SBIconView *iconView in [wSelf _allAppearingIconViews]) {
+                iconView.delegate = nil ;
+            }
+
             wSelf->_isExpanded = NO;
             __isStackOpen = NO;
                                                                      
@@ -563,7 +563,7 @@ static BOOL __stackInMotion;
         switch (position) {
             case STKLayoutPositionTop: {
                 // If, after moving, the icon would pass it's target, factor the distance back to it's original, for now it has to move as much as all the other icons only
-                if ((newFrame.origin.y - (factoredDistance / [wSelf _appearingIconsForPosition:position].count) < targetOrigin.y)) {
+                if ((newFrame.origin.y - (factoredDistance / [wSelf _appearingIconsForPosition:position].count)) < targetOrigin.y) {
                     factoredDistance /= [wSelf _appearingIconsForPosition:position].count;
                 }
 
@@ -584,7 +584,7 @@ static BOOL __stackInMotion;
                 break;
             }
             case STKLayoutPositionBottom: {
-                if ((newFrame.origin.y + (factoredDistance / [wSelf _appearingIconsForPosition:position].count) > targetOrigin.y)) {
+                if ((newFrame.origin.y + (factoredDistance / [wSelf _appearingIconsForPosition:position].count)) > targetOrigin.y) {
                     factoredDistance /= [wSelf _appearingIconsForPosition:position].count;
                 }
 
@@ -601,7 +601,7 @@ static BOOL __stackInMotion;
                 break;
             }
             case STKLayoutPositionLeft: {
-                if ((newFrame.origin.x - (factoredDistance / [wSelf _appearingIconsForPosition:position].count) < targetOrigin.x)) {
+                if ((newFrame.origin.x - (factoredDistance / [wSelf _appearingIconsForPosition:position].count)) < targetOrigin.x) {
                     factoredDistance /= [wSelf _appearingIconsForPosition:position].count;
                 }
 
@@ -618,7 +618,7 @@ static BOOL __stackInMotion;
                 break;
             }
             case STKLayoutPositionRight: {
-                if ((newFrame.origin.y + (factoredDistance / [wSelf _appearingIconsForPosition:position].count) > targetOrigin.y)) {
+                if ((newFrame.origin.y + (factoredDistance / [wSelf _appearingIconsForPosition:position].count)) > targetOrigin.y) {
                     factoredDistance /= [wSelf _appearingIconsForPosition:position].count;
                 }
 
@@ -657,7 +657,7 @@ static BOOL __stackInMotion;
         targetOrigin.y -= kBandingAllowance;
         iconView.alpha = 1.f;
         
-        if (((newFrame.origin.y - translatedDistance) > targetOrigin.y) && (!((newFrame.origin.y - translatedDistance) > centralFrame.origin.y))) {
+        if (((newFrame.origin.y - translatedDistance) > targetOrigin.y) && !((newFrame.origin.y - translatedDistance) > centralFrame.origin.y)) {
             newFrame.origin.y -= translatedDistance;
         }
         // If it's going beyond the acceptable limit, make it stick to the max position. The same thing is done in all the arrays below
@@ -684,7 +684,7 @@ static BOOL __stackInMotion;
         targetOrigin.y += kBandingAllowance;
         iconView.alpha = 1.f;
 
-        if ((newFrame.origin.y + translatedDistance) < targetOrigin.y && (!((newFrame.origin.y + translatedDistance) < centralFrame.origin.y))) {
+        if ((newFrame.origin.y + translatedDistance) < targetOrigin.y && !((newFrame.origin.y + translatedDistance) < centralFrame.origin.y)) {
             newFrame.origin.y += translatedDistance;
         }
         else if ((newFrame.origin.y + translatedDistance) > targetOrigin.y) {
@@ -710,7 +710,7 @@ static BOOL __stackInMotion;
         targetOrigin.x -= kBandingAllowance * wSelf->_distanceRatio;
         iconView.alpha = 1.f;
         
-        if (((newFrame.origin.x - translatedDistance) > targetOrigin.x) && (!((newFrame.origin.x - translatedDistance) > centralFrame.origin.x))) {
+        if (((newFrame.origin.x - translatedDistance) > targetOrigin.x) && !((newFrame.origin.x - translatedDistance) > centralFrame.origin.x)) {
             newFrame.origin.x -= translatedDistance;
         }
         else if ((newFrame.origin.x - translatedDistance) < targetOrigin.x) {
@@ -736,7 +736,7 @@ static BOOL __stackInMotion;
         targetOrigin.x += kBandingAllowance * wSelf->_distanceRatio;
         iconView.alpha = 1.f;
         
-        if (((newFrame.origin.x + translatedDistance) < targetOrigin.x) && (!((newFrame.origin.x + translatedDistance) < centralFrame.origin.x))) {
+        if (((newFrame.origin.x + translatedDistance) < targetOrigin.x) && !((newFrame.origin.x + translatedDistance) < centralFrame.origin.x)) {
             newFrame.origin.x += translatedDistance;
         }
         else if ((newFrame.origin.x + translatedDistance) > targetOrigin.x) {

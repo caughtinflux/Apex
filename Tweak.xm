@@ -7,19 +7,6 @@
 #import "STKPreferences.h"
 
 #import <SpringBoard/SpringBoard.h>
-#import <SpringBoard/SBIconController.h>
-#import <SpringBoard/SBIcon.h>
-#import <SpringBoard/SBApplicationIcon.h>
-#import <SpringBoard/SBIconModel.h>
-#import <SpringBoard/SBIconViewMap.h>
-#import <SpringBoard/SBIconView.h>
-#import <SpringBoard/SBIconImageView.h>
-#import <SpringBoard/SBIconListView.h>
-#import <SpringBoard/SBDockIconListView.h>
-#import <SpringBoard/SBUIController.h>
-#import <SpringBoard/SBApplicationController.h>
-#import <SpringBoard/SBApplication.h>
-
 
 #pragma mark - Declarations
 // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
@@ -358,15 +345,19 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         weakShit.interactionHandler = \
             ^(SBIconView *tappedIconView) {
                 if (tappedIconView) {
-                    [weakShit closeStackSettingCentralIcon:tappedIconView.icon completion:^{
-                        [tappedIconView.icon launch];
-                        STKRemoveManagerFromView(iconView);
+                    [(SBUIController *)[%c(SBUIController) sharedInstance] launchIcon:tappedIconView.icon];
+                    [stackManager closeStackSettingCentralIcon:tappedIconView.icon completion:^{
+                        //EXECUTE_BLOCK_AFTER_DELAY(0.2, ^{
+                            STKRemoveManagerFromView(iconView);        
+                        //});
                     }];
                 }
                 else {
                     STKRemoveManagerFromView(iconView);
                 }
             };
+
+
         objc_setAssociatedObject(iconView, &stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [stackManager release];
         
