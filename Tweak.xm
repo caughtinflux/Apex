@@ -44,7 +44,6 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 
 
 #pragma mark - SBIconView Hook
-
 %hook SBIconView
 - (void)setIcon:(SBIcon *)icon
 {
@@ -91,6 +90,9 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 {
     SBIconListView *view = STKListViewForIcon(self.icon);
     STKStackManager *stackManager = STKManagerForView(self);
+    if (stackManager.isExpanded) {
+        return;
+    }
 
     if (sender.state == UIGestureRecognizerStateBegan) {
         if (self.location == SBIconViewLocationSwitcher ||
@@ -106,12 +108,10 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         // This way, we can be sure that the icons are indeed in the required location 
         STKUpdateTargetDistanceInListView(STKListViewForIcon(self.icon));
 
-        if (stackManager) {
+        if (stackManager && !stackManager.isExpanded) {
             // Create a new manager, I don't want the same one to be resused.
-            // Similar to folders.
-            // Only shittier
+           //  Similar to folders.
             STKRemoveManagerFromView(self);
-            CLog(@"Removing existing manager: %@", stackManager);
         }
 
         stackManager = STKSetupManagerForView(self);
@@ -120,6 +120,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         _initialPoint = [sender locationInView:view];
         _currentDirection = STKDirectionFromVelocity([sender velocityInView:view]);
         _previousPoint = _initialPoint; // Previous point is also initial at the start :P
+
+        CLog(@"Began, manager: %@", stackManager);
     }
 
     else if (sender.state == UIGestureRecognizerStateChanged) {
@@ -140,10 +142,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
         CGFloat change = fabsf(_previousPoint.y - point.y); // Vertical distances
         CGFloat distance = fabsf(_initialPoint.y - point.y);
-
-        if ((fabsf(_initialPoint.y - point.y)) > 0) {
-            [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = NO;
-        }
         
         if (distance < _previousDistance || stackManager.isExpanded) {
             // The swipe is going to the opposite direction, so make sure the manager moves its views in the corresponding direction too
@@ -163,16 +161,14 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     }
 
     else {
-        STKStackManager *manager = STKManagerForView(self);
-        [manager touchesEnded];
+        CLog(@"Ended");
+        [stackManager touchesEnded];
 
         // Reset the static vars
         _previousPoint = CGPointZero;
         _initialPoint = CGPointZero;
         _previousDistance = 0.f;
         _currentDirection = STKRecognizerDirectionNone;
-
-        [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = YES;
     }
 }
 
@@ -225,7 +221,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     %orig(scrollView);
-    [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
+    // [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
 }
 
 %end
@@ -341,15 +337,13 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
             [stackManager saveLayoutToFile:layoutPath];
         }
 
-        STKStackManager * __weak __unsafe_unretained __block weakShit = stackManager;
+        STKStackManager * __block weakShit = stackManager;
         weakShit.interactionHandler = \
             ^(SBIconView *tappedIconView) {
                 if (tappedIconView) {
                     [(SBUIController *)[%c(SBUIController) sharedInstance] launchIcon:tappedIconView.icon];
                     [stackManager closeStackSettingCentralIcon:tappedIconView.icon completion:^{
-                        //EXECUTE_BLOCK_AFTER_DELAY(0.2, ^{
-                            STKRemoveManagerFromView(iconView);        
-                        //});
+                        STKRemoveManagerFromView(iconView);
                     }];
                 }
                 else {
