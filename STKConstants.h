@@ -12,6 +12,8 @@
 	#define CLog(...)
 #endif
 
+#define BOOL_TO_STRING(b) (b ? @"YES" : @"NO")
+
 #define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/Acervos/com.a3tweaks.%@.plist", NSHomeDirectory(), STKTweakName]
 
 #define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
