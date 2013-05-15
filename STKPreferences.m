@@ -22,9 +22,7 @@
     
     if (!sharedInstance) {
         sharedInstance = [[self alloc] init];
-        if (![[NSFileManager defaultManager] fileExistsAtPath:[STKStackManager layoutsPath]]) {
-            [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:nil error:NULL];
-        }
+        [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:nil error:NULL];
     }
 
     return sharedInstance;
