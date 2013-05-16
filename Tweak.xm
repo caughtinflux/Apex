@@ -120,8 +120,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         _initialPoint = [sender locationInView:view];
         _currentDirection = STKDirectionFromVelocity([sender velocityInView:view]);
         _previousPoint = _initialPoint; // Previous point is also initial at the start :P
-
-        CLog(@"Began, manager: %@", stackManager);
     }
 
     else if (sender.state == UIGestureRecognizerStateChanged) {
@@ -161,7 +159,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     }
 
     else {
-        CLog(@"Ended");
         [stackManager touchesEnded];
 
         // Reset the static vars

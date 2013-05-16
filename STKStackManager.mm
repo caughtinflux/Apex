@@ -131,7 +131,6 @@ static BOOL __stackInMotion;
     SBIconModel *model = [(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model];
 
     NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:file];
-    CLog(@"attrs: %@", attributes);
 
     NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
     for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
@@ -166,8 +165,6 @@ static BOOL __stackInMotion;
 
 - (void)dealloc
 {
-    DLog(@"");
-
     for (SBIconView *iconView in [self _allAppearingIconViews]) {
         [iconView removeFromSuperview];
     }
@@ -288,7 +285,7 @@ static BOOL __stackInMotion;
     if (_isExpanded && ![[[objc_getClass("SBIconController") sharedInstance] scrollView] isDragging]) {
         return;
     }
-    CLog(@"Dragging. Central icon: %@", _centralIcon);
+    
     if (!_hasPreparedGhostlyIcons) {
         [[objc_getClass("SBIconController") sharedInstance] prepareToGhostCurrentPageIconsForRequester:kGhostlyRequesterID skipIcon:_centralIcon];
         _hasPreparedGhostlyIcons = YES;
