@@ -463,16 +463,18 @@ static BOOL __stackInMotion;
         wSelf->_hasPreparedGhostlyIcons = NO;
 
     } completion:^(BOOL finished) {
-        [wSelf _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:YES];
         [self _setInteractionEnabled:YES forAllIconsExcludingCentral:NO];
 
         if (finished) {
             for (SBIconView *iconView in [self _allAppearingIconViews]) {
-                iconView.delegate = nil ;
+                iconView.delegate = nil;
             }
 
             _isExpanded = NO;
             __isStackOpen = NO;
+
+            [wSelf _setGhostlyAlphaForAllIcons:.9999999f excludingCentralIcon:NO]; // .999f is necessary, unfortunately. A weird 1.0->0.0->1.0 alpha flash happens otherwise
+            [wSelf _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO]; // Set it back to 1.f, fix a pain in the ass bug
 
             if (completionBlock) {
                 completionBlock();
