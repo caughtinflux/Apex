@@ -2,10 +2,7 @@
 #import "STKConstants.h"
 #import "STKStackManager.h"
 
-#import <SpringBoard/SBIconController.h>
-#import <SpringBoard/SBIconModel.h>
-#import <SpringBoard/SBIcon.h>
-
+#import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
 
 #define kIconsWithStackKey @"STKIconsWithStack"
@@ -25,9 +22,7 @@
     
     if (!sharedInstance) {
         sharedInstance = [[self alloc] init];
-        if (![[NSFileManager defaultManager] fileExistsAtPath:[STKStackManager layoutsPath]]) {
-            [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:nil error:NULL];
-        }
+        [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:nil error:NULL];
     }
 
     return sharedInstance;

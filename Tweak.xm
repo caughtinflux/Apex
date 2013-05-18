@@ -7,19 +7,6 @@
 #import "STKPreferences.h"
 
 #import <SpringBoard/SpringBoard.h>
-#import <SpringBoard/SBIconController.h>
-#import <SpringBoard/SBIcon.h>
-#import <SpringBoard/SBApplicationIcon.h>
-#import <SpringBoard/SBIconModel.h>
-#import <SpringBoard/SBIconViewMap.h>
-#import <SpringBoard/SBIconView.h>
-#import <SpringBoard/SBIconImageView.h>
-#import <SpringBoard/SBIconListView.h>
-#import <SpringBoard/SBDockIconListView.h>
-#import <SpringBoard/SBUIController.h>
-#import <SpringBoard/SBApplicationController.h>
-#import <SpringBoard/SBApplication.h>
-
 
 #pragma mark - Declarations
 // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
@@ -57,7 +44,6 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 
 
 #pragma mark - SBIconView Hook
-
 %hook SBIconView
 - (void)setIcon:(SBIcon *)icon
 {
@@ -104,6 +90,9 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 {
     SBIconListView *view = STKListViewForIcon(self.icon);
     STKStackManager *stackManager = STKManagerForView(self);
+    if (stackManager.isExpanded) {
+        return;
+    }
 
     if (sender.state == UIGestureRecognizerStateBegan) {
         if (self.location == SBIconViewLocationSwitcher ||
@@ -119,12 +108,10 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         // This way, we can be sure that the icons are indeed in the required location 
         STKUpdateTargetDistanceInListView(STKListViewForIcon(self.icon));
 
-        if (stackManager) {
+        if (stackManager && !stackManager.isExpanded) {
             // Create a new manager, I don't want the same one to be resused.
-            // Similar to folders.
-            // Only shittier
+           //  Similar to folders.
             STKRemoveManagerFromView(self);
-            CLog(@"Removing existing manager: %@", stackManager);
         }
 
         stackManager = STKSetupManagerForView(self);
@@ -153,10 +140,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
         CGFloat change = fabsf(_previousPoint.y - point.y); // Vertical distances
         CGFloat distance = fabsf(_initialPoint.y - point.y);
-
-        if ((fabsf(_initialPoint.y - point.y)) > 0) {
-            [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = NO;
-        }
         
         if (distance < _previousDistance || stackManager.isExpanded) {
             // The swipe is going to the opposite direction, so make sure the manager moves its views in the corresponding direction too
@@ -176,16 +159,13 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     }
 
     else {
-        STKStackManager *manager = STKManagerForView(self);
-        [manager touchesEnded];
+        [stackManager touchesEnded];
 
         // Reset the static vars
         _previousPoint = CGPointZero;
         _initialPoint = CGPointZero;
         _previousDistance = 0.f;
         _currentDirection = STKRecognizerDirectionNone;
-
-        [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = YES;
     }
 }
 
@@ -238,9 +218,12 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     %orig(scrollView);
-    [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
+    // [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
 }
-
+- (void)setCurrentPageIconsGhostly:(BOOL)ghostly forRequester:(int)requester skipIcon:(id)icon
+{
+    %orig();
+}
 %end
 
 %hook SBUIController
@@ -354,12 +337,12 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
             [stackManager saveLayoutToFile:layoutPath];
         }
 
-        STKStackManager * __weak __unsafe_unretained __block weakShit = stackManager;
+        STKStackManager * __block weakShit = stackManager;
         weakShit.interactionHandler = \
             ^(SBIconView *tappedIconView) {
                 if (tappedIconView) {
-                    [weakShit closeStackSettingCentralIcon:tappedIconView.icon completion:^{
-                        [tappedIconView.icon launch];
+                    [(SBUIController *)[%c(SBUIController) sharedInstance] launchIcon:tappedIconView.icon];
+                    [stackManager closeStackSettingCentralIcon:tappedIconView.icon completion:^{
                         STKRemoveManagerFromView(iconView);
                     }];
                 }
@@ -367,6 +350,8 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
                     STKRemoveManagerFromView(iconView);
                 }
             };
+
+
         objc_setAssociatedObject(iconView, &stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [stackManager release];
         

@@ -1,11 +1,8 @@
 #import "STKConstants.h"
 
 #import <UIKit/UIKit.h>
-#import <Foundation/Foundation.h>
 
-#import <SpringBoard/SBIconController.h>
-#import <SpringBoard/SBIconListView.h>
-#import <SpringBoard/SBRootFolder.h>
+#import <SpringBoard/SpringBoard.h>
 
 #import <objc/runtime.h>
 #import <sys/sysctl.h>

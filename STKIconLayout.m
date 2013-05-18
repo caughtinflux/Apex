@@ -56,7 +56,6 @@
 - (void)enumerateIconsUsingBlockWithIndexes:(void(^)(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block
 {
     STKIconLayout __block *wSelf = self;
-    [block copy];
 
     [self.topIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
         block(icon, STKLayoutPositionTop, wSelf.topIcons, idx);
@@ -73,8 +72,6 @@
     [self.rightIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
         block(icon, STKLayoutPositionRight, wSelf.rightIcons, idx);
     }];
-
-    [block release];
 }
 
 - (NSArray *)iconsForPosition:(STKLayoutPosition)position
