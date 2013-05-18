@@ -458,13 +458,7 @@ static BOOL __stackInMotion;
         [wSelf->_offScreenIconsLayout enumerateThroughAllIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition pos) {
             [wSelf _getIconViewForIcon:icon].alpha = 1.f;
         }];
-        
-        [[objc_getClass("SBIconController") sharedInstance] cleanUpGhostlyIconsForRequester:kGhostlyRequesterID];
-        wSelf->_hasPreparedGhostlyIcons = NO;
-
     } completion:^(BOOL finished) {
-        [self _setInteractionEnabled:YES forAllIconsExcludingCentral:NO];
-
         if (finished) {
             for (SBIconView *iconView in [self _allAppearingIconViews]) {
                 iconView.delegate = nil;
@@ -473,8 +467,11 @@ static BOOL __stackInMotion;
             _isExpanded = NO;
             __isStackOpen = NO;
 
+            // BUGFIX
             [wSelf _setGhostlyAlphaForAllIcons:.9999999f excludingCentralIcon:NO]; // .999f is necessary, unfortunately. A weird 1.0->0.0->1.0 alpha flash happens otherwise
             [wSelf _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO]; // Set it back to 1.f, fix a pain in the ass bug
+            [[objc_getClass("SBIconController") sharedInstance] cleanUpGhostlyIconsForRequester:kGhostlyRequesterID];
+            wSelf->_hasPreparedGhostlyIcons = NO;
 
             if (completionBlock) {
                 completionBlock();
