@@ -220,7 +220,10 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     %orig(scrollView);
     // [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
 }
-
+- (void)setCurrentPageIconsGhostly:(BOOL)ghostly forRequester:(int)requester skipIcon:(id)icon
+{
+    %orig();
+}
 %end
 
 %hook SBUIController

@@ -22,7 +22,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 
 
 #define kEnablingThreshold   55
-#define kMaximumDisplacement 85
+#define kMaximumDisplacement kEnablingThreshold + 30
 #define kAnimationDuration   0.2
 #define kDisabledIconAlpha   0.2
 #define kBandingAllowance    ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 25 : 50)
@@ -144,6 +144,7 @@ static BOOL __stackInMotion;
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
 {
     if ((self = [super init])) {
+        CLog(@"_centralIconView position is %i", [self _getIconViewForIcon:_centralIcon].location);
 
         [icons retain]; // Make sure it's not released until we're done with it
 
@@ -298,12 +299,6 @@ static BOOL __stackInMotion;
     [self _setGhostlyAlphaForAllIcons:alpha excludingCentralIcon:YES];
     [self _setAlphaForAppearingLabelsAndShadows:(1 - alpha)];
     [self _setPageControlAlpha:alpha];  
-    
-    /*
-    if (_lastDistanceFromCenter > 10) {
-        [[objc_getClass("SBIconController") sharedInstance] scrollView].scrollEnabled = NO;
-    }
-    */
 
     __stackInMotion = NO;
 }
@@ -456,9 +451,7 @@ static BOOL __stackInMotion;
         }
 
         // Set the alphas back to original
-        [wSelf _setGhostlyAlphaForAllIcons:.9999999f excludingCentralIcon:NO]; // .999f is necessary, unfortunately. A weird 1.0->0.0->1.0 alpha flash happens otherwise
-        [wSelf _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO]; // Set it back to 1.f, fix a pain in the ass bug
-
+        [wSelf _setGhostlyAlphaForAllIcons:0.999f excludingCentralIcon:YES];
         [wSelf _setPageControlAlpha:1];
 
         // Bring the off screen icons back to life! :D
@@ -470,6 +463,9 @@ static BOOL __stackInMotion;
         wSelf->_hasPreparedGhostlyIcons = NO;
 
     } completion:^(BOOL finished) {
+        [wSelf _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:YES];
+        [self _setInteractionEnabled:YES forAllIconsExcludingCentral:NO];
+
         if (finished) {
             for (SBIconView *iconView in [self _allAppearingIconViews]) {
                 iconView.delegate = nil ;
@@ -777,7 +773,7 @@ static BOOL __stackInMotion;
 #pragma mark - Helper Methods
 - (SBIconView *)_getIconViewForIcon:(SBIcon *)icon
 {
-    return [[objc_getClass("SBIconViewMap") homescreenMap] iconViewForIcon:icon];
+    return [[objc_getClass("SBIconViewMap") homescreenMap] mappedIconViewForIcon:icon];
 }
 
 - (STKPositionMask)_locationMaskForIcon:(SBIcon *)icon
@@ -790,54 +786,52 @@ static BOOL __stackInMotion;
 
     STKIconLayoutHandler *handler = [[STKIconLayoutHandler alloc] init];
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
-    STKIconCoordinates *coordinates = [handler copyCoordinatesForIcon:icon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
+        
+    STKIconCoordinates coordinates = [handler coordinatesForIcon:icon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
     [handler release];
 
-    if (coordinates->xPos == 0) {
+    if (coordinates.xPos == 0) {
         mask |= STKPositionTouchingLeft;
     }
-    if (coordinates->xPos == ([listView iconColumnsForCurrentOrientation] - 1)) {
+    if (coordinates.xPos == ([listView iconColumnsForCurrentOrientation] - 1)) {
         mask |= STKPositionTouchingRight;
     }
-    if (coordinates->yPos == 0) {
+    if (coordinates.yPos == 0) {
         mask |= STKPositionTouchingTop;
     }
-    if (coordinates->yPos == ([listView iconRowsForCurrentOrientation] - 1)) {
+    if (coordinates.yPos == ([listView iconRowsForCurrentOrientation] - 1)) {
         mask |= STKPositionTouchingBottom;
     }
 
-    free(coordinates);
-
     return mask;
-    
 }
 
 - (CGPoint)_getTargetOriginForIconAtPosition:(STKLayoutPosition)position distanceFromCentre:(NSInteger)distance
 {
-    STKIconCoordinates *centralCoords = [_handler copyCoordinatesForIcon:_centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
+    STKIconCoordinates centralCoords = [_handler coordinatesForIcon:_centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
 
     CGPoint ret = CGPointZero;
 
     switch (position) {
         case STKLayoutPositionTop: {
-            NSUInteger newY = (centralCoords->yPos - distance); // New Y will be `distance` units above original y
-            ret =  [listView originForIconAtX:centralCoords->xPos Y:newY];
+            NSUInteger newY = (centralCoords.yPos - distance); // New Y will be `distance` units above original y
+            ret =  [listView originForIconAtX:centralCoords.xPos Y:newY];
             break;
         }
         case STKLayoutPositionBottom: {
-            NSUInteger newY = (centralCoords->yPos + distance); // New Y will be below
-            ret = [listView originForIconAtX:centralCoords->xPos Y:newY]; 
+            NSUInteger newY = (centralCoords.yPos + distance); // New Y will be below
+            ret = [listView originForIconAtX:centralCoords.xPos Y:newY]; 
             break;
         }
         case STKLayoutPositionLeft: {
-            NSUInteger newX = (centralCoords->xPos - distance); // New X has to be `distance` points to left, so subtract
-            ret = [listView originForIconAtX:newX Y:centralCoords->yPos];
+            NSUInteger newX = (centralCoords.xPos - distance); // New X has to be `distance` points to left, so subtract
+            ret = [listView originForIconAtX:newX Y:centralCoords.yPos];
             break;
         }
         case STKLayoutPositionRight: {
-            NSUInteger newX = (centralCoords->xPos + distance); // Inverse of previous, hence add to original coordinate
-            ret = [listView originForIconAtX:newX Y:centralCoords->yPos];
+            NSUInteger newX = (centralCoords.xPos + distance); // Inverse of previous, hence add to original coordinate
+            ret = [listView originForIconAtX:newX Y:centralCoords.yPos];
             break;
         }
 
@@ -846,7 +840,6 @@ static BOOL __stackInMotion;
         }
     }
 
-    free(centralCoords);
     return ret;
 }
 
