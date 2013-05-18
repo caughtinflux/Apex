@@ -7,6 +7,7 @@
 
 #define kCurrentOrientation [UIApplication sharedApplication].statusBarOrientation
 
+
 @interface STKIconLayoutHandler ()
 {
     SBIconListView *_centralIconListView;
@@ -37,6 +38,10 @@
 
     [self _logMask:position];
 
+    if ((position & STKPositionDock) == STKPositionDock) {
+        // Return all the icons in the array as icons to be displaced from the top.
+        return [STKIconLayout layoutWithIconsAtTop:icons bottom:bottomIcons left:leftIcons right:rightIcons];
+    }
 
     for (NSUInteger i = 0; i < icons.count; i++) {
         NSInteger layoutLocation = ((NSInteger)i % 4); // ALL THE MAGIC IS HERE. MATH IS AWESOME
@@ -87,6 +92,10 @@
                 }
                 break;
             }
+
+            default: {
+                break;
+            }
         }
     }
     
@@ -95,45 +104,42 @@
 
 - (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)centralIcon usingLayout:(STKIconLayout *)layout
 {
-    NSArray * __block displacedTopIcons    = nil;
-    NSArray * __block displacedBottomIcons = nil;
-    NSArray * __block displacedLeftIcons   = nil;
-    NSArray * __block displacedRightIcons  = nil;
+    NSArray * displacedTopIcons    = nil;
+    NSArray * displacedBottomIcons = nil;
+    NSArray * displacedLeftIcons   = nil;
+    NSArray * displacedRightIcons  = nil;
     
-    _centralIconListView = STKListViewForIcon(centralIcon);
+    if (!_centralIconListView) {
+        _centralIconListView = STKListViewForIcon(centralIcon);
+    }
 
-    [layout enumerateThroughAllIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
-        switch (position) {
-            case STKLayoutPositionTop:
-                displacedTopIcons = [self _iconsAboveIcon:centralIcon];
-                break;
-            case STKLayoutPositionBottom:
-                displacedBottomIcons = [self _iconsBelowIcon:centralIcon];
-                break;
-            case STKLayoutPositionLeft:
-                displacedLeftIcons = [self _iconsLeftOfIcon:centralIcon];
-                break;
-            case STKLayoutPositionRight:
-                displacedRightIcons = [self _iconsRightOfIcon:centralIcon];
-                break;
-        }
-    }];
+    if (layout.topIcons) {
+        displacedTopIcons = [self _iconsAboveIcon:centralIcon];
+    }
+    if (layout.bottomIcons) {
+        displacedBottomIcons = [self _iconsBelowIcon:centralIcon];
+    }
+    if (layout.leftIcons) {
+        displacedLeftIcons = [self _iconsLeftOfIcon:centralIcon];
+    }
+    if (layout.rightIcons) {
+        displacedRightIcons = [self _iconsRightOfIcon:centralIcon];
+    }
 
     return [STKIconLayout layoutWithIconsAtTop:displacedTopIcons bottom:displacedBottomIcons left:displacedLeftIcons right:displacedRightIcons]; 
 }
 
-- (STKIconCoordinates *)copyCoordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation
+- (STKIconCoordinates)coordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation
 {
-    SBIconListView *listView = STKListViewForIcon(icon);
+    if (!_centralIconListView) {
+        _centralIconListView = STKListViewForIcon(icon);
+    }
 
     NSUInteger iconIndex, iconX, iconY;
-    [listView iconAtPoint:[listView originForIcon:icon] index:&iconIndex];
-    [listView getX:&iconX Y:&iconY forIndex:iconIndex forOrientation:orientation];
+    [_centralIconListView iconAtPoint:[_centralIconListView originForIcon:icon] index:&iconIndex];
+    [_centralIconListView getX:&iconX Y:&iconY forIndex:iconIndex forOrientation:orientation];
 
-    STKIconCoordinates *coordinates = malloc(sizeof(STKIconCoordinates));
-    coordinates->xPos = iconX;
-    coordinates->yPos = iconY;
-    coordinates->index = iconIndex;
+    STKIconCoordinates coordinates = {iconX, iconY, iconIndex};
 
     return coordinates;
 }
@@ -191,50 +197,43 @@
 
 - (NSArray *)_iconsAboveIcon:(SBIcon *)icon
 {
-    STKIconCoordinates *coordinates = [self copyCoordinatesForIcon:icon withOrientation:kCurrentOrientation];
-    NSArray *ret = [[self _iconsInColumnWithX:coordinates->xPos] subarrayWithRange:NSMakeRange(0, coordinates->yPos)];
-    free(coordinates);
+    STKIconCoordinates coordinates = [self coordinatesForIcon:icon withOrientation:kCurrentOrientation];
+    NSArray *ret = [[self _iconsInColumnWithX:coordinates.xPos] subarrayWithRange:NSMakeRange(0, coordinates.yPos)];
     return ret;
 }
 
 - (NSArray *)_iconsBelowIcon:(SBIcon *)icon
 {
-    STKIconCoordinates *coordinates = [self copyCoordinatesForIcon:icon withOrientation:kCurrentOrientation];
-    NSArray *iconsInColumn = [self _iconsInColumnWithX:coordinates->xPos];
+    STKIconCoordinates coordinates = [self coordinatesForIcon:icon withOrientation:kCurrentOrientation];
+    NSArray *iconsInColumn = [self _iconsInColumnWithX:coordinates.xPos];
     
     NSRange range;
-    range.location = coordinates->yPos + 1;
-    range.length = iconsInColumn.count - (coordinates->yPos + 1);
-
-    free(coordinates);
+    range.location = coordinates.yPos + 1;
+    range.length = iconsInColumn.count - (coordinates.yPos + 1);
 
     return [iconsInColumn subarrayWithRange:range];
 }
 
 - (NSArray *)_iconsLeftOfIcon:(SBIcon *)icon
 {
-    STKIconCoordinates *coordinates = [self copyCoordinatesForIcon:icon withOrientation:kCurrentOrientation];
-    NSArray *iconsInRow = [self _iconsInRowWithY:coordinates->yPos];
+    STKIconCoordinates coordinates = [self coordinatesForIcon:icon withOrientation:kCurrentOrientation];
+    NSArray *iconsInRow = [self _iconsInRowWithY:coordinates.yPos];
     
     NSRange range;
     range.location = 0;
-    range.length = coordinates->xPos;
-
-    free(coordinates);
+    range.length = coordinates.xPos;
 
     return [iconsInRow subarrayWithRange:range];
 }
 
 - (NSArray *)_iconsRightOfIcon:(SBIcon *)icon
 {
-    STKIconCoordinates *coordinates = [self copyCoordinatesForIcon:icon withOrientation:kCurrentOrientation];
-    NSArray *iconsInRow = [self _iconsInRowWithY:coordinates->yPos];
+    STKIconCoordinates coordinates = [self coordinatesForIcon:icon withOrientation:kCurrentOrientation];
+    NSArray *iconsInRow = [self _iconsInRowWithY:coordinates.yPos];
     
     NSRange range;
-    range.location = coordinates->xPos + 1;
-    range.length = iconsInRow.count - (coordinates->xPos + 1);
-
-    free(coordinates);
+    range.location = coordinates.xPos + 1;
+    range.length = iconsInRow.count - (coordinates.xPos + 1);
 
     return [iconsInRow subarrayWithRange:range];
 }

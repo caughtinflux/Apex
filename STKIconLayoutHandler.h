@@ -28,6 +28,6 @@ typedef struct {
 // Returns an STKIconLayout object whose properties contain SBIcons to be faded out when the new icons are coming in
 // This, is plain magic.
 - (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)icon usingLayout:(STKIconLayout *)layout;
-- (STKIconCoordinates *)copyCoordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation;
+- (STKIconCoordinates)coordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation;
 
 @end
