@@ -5,8 +5,6 @@
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
 
-#define kIconsWithStackKey @"STKIconsWithStack"
-
 @interface STKPreferences ()
 {
     NSDictionary *_currentPrefs;
@@ -22,7 +20,7 @@
     
     if (!sharedInstance) {
         sharedInstance = [[self alloc] init];
-        [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:nil error:NULL];
+        [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions : @775} error:NULL];
     }
 
     return sharedInstance;
@@ -72,10 +70,17 @@
 
 - (void)reloadPreferences
 {
+    [_currentPrefs release];
+    _currentPrefs = nil;
+    
+    [_layouts release];
+    _layouts = nil;
+
     _currentPrefs = [[NSDictionary alloc] initWithContentsOfFile:kPrefPath];
     if (!_currentPrefs) {
         _currentPrefs = [[NSDictionary alloc] init];
     }
+
     _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[STKStackManager layoutsPath] error:nil] retain];
 
 }
