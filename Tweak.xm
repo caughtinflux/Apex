@@ -246,6 +246,24 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 %end
 
+#ifdef DEBUG
+%hook SpringBoard
+- (void)_performDeferredLaunchWork
+{
+    %orig();
+
+    NSDictionary *layout = @{STKStackManagerCentralIconKey : @"com.apple.AppStore",
+                             STKStackManagerStackIconsKey  : @[@"com.getdropbox.Dropbox", @"com.google.Translate", @"com.google.Drive", @"com.apple.stocks"]};
+
+    NSString *path = [[STKStackManager layoutsPath] stringByAppendingString:@"/com.apple.AppStore.layout"];
+    BOOL didWrite = [layout writeToFile:path atomically:YES];
+    if (!didWrite) {
+        CLog(@"Couldn't save to %@", path);
+    }
+}
+%end
+#endif
+
 #pragma mark - Associated Object Keys
 static const char *panGRKey;
 static const char *stackManagerKey;
