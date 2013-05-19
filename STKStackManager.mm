@@ -55,7 +55,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 }
 
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
-- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration;
+- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon;
 
 - (void)_setupGestureRecognizers;
 - (void)_handleCloseGesture:(UISwipeGestureRecognizer *)sender; // this is the default action for both swipe
@@ -96,8 +96,6 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 - (void)_setPageControlAlpha:(CGFloat)alpha;
 
 - (void)_editingStateChanged:(NSNotification *)notification;
-
-- (void)_showoff;
 
 @end
 
@@ -311,11 +309,11 @@ static BOOL __stackInMotion;
 
     }
     else {
-        [self closeStackWithCompletionHandler:^{
+        [self _animateToClosedPositionWithCompletionBlock:^{
             if (_interactionHandler) {
                 _interactionHandler(nil);
             }
-        }];
+        } duration:kAnimationDuration animateCentralIcon:NO];
     }
 }
  
@@ -325,7 +323,7 @@ static BOOL __stackInMotion;
         if (completionHandler) {
             completionHandler();
         }
-    } duration:kAnimationDuration];
+    } duration:kAnimationDuration animateCentralIcon:YES];
 }
 
 - (void)closeStackSettingCentralIcon:(SBIcon *)icon completion:(void(^)(void))handler
@@ -375,7 +373,7 @@ static BOOL __stackInMotion;
 }
 
 
-#pragma mark - Open Completion Animation
+#pragma mark - Open Animation
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
 {
     STKStackManager * __block wSelf = self;
@@ -437,21 +435,23 @@ static BOOL __stackInMotion;
 
 
 #pragma mark - Close Animation
-- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration
+- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon
 {
     STKStackManager * __block wSelf = self;
     UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
 
-    // Animate central imageview shrink/grow
-    [UIView animateWithDuration:(kAnimationDuration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        centralView.transform = CGAffineTransformMakeScale(0.9f, 0.9f);
-    } completion:^(BOOL finished) {
-        if (finished) {
-            [UIView animateWithDuration:(kAnimationDuration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                centralView.transform = CGAffineTransformMakeScale(1.0f, 1.0f);
-            } completion:nil];
-        }
-    }];
+    if (animateCentralIcon) {
+        // Animate central imageview shrink/grow
+        [UIView animateWithDuration:(kAnimationDuration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            centralView.transform = CGAffineTransformMakeScale(0.9f, 0.9f);
+        } completion:^(BOOL finished) {
+            if (finished) {
+                [UIView animateWithDuration:(kAnimationDuration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                    centralView.transform = CGAffineTransformMakeScale(1.0f, 1.0f);
+                } completion:nil];
+            }
+        }];
+    }
 
     [UIView animateWithDuration:duration animations:^{
         // Set the frame for all these icons to the frame of their central icon
@@ -1099,17 +1099,6 @@ static BOOL __stackInMotion;
 - (BOOL)iconAllowJitter:(SBIconView *)iconView
 {
     return NO;
-}
-
-#pragma mark - Showoff
-- (void)_showoff
-{
-    return;
-
-    [self _animateToOpenPositionWithDuration:1];
-    EXECUTE_BLOCK_AFTER_DELAY(1.5, ^{
-        [self _animateToClosedPositionWithCompletionBlock:nil duration:1];
-    });
 }
 
 @end
