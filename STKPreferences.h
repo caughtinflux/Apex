@@ -3,9 +3,9 @@
 @class SBIcon;
 @interface STKPreferences : NSObject
 
-@property (nonatomic, readonly) NSArray *identifiersForIconsWithStack;
-
 + (instancetype)sharedPreferences;
+
+@property (nonatomic, readonly) NSArray *identifiersForIconsWithStack;
 
 - (NSArray *)stackIconsForIcon:(SBIcon *)icon;
 - (NSString *)layoutPathForIcon:(SBIcon *)icon;
