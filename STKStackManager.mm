@@ -134,17 +134,27 @@ static BOOL __stackInMotion;
     NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
     for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
         // Get the SBIcon instances for the identifiers
+        SBApplicationIcon *icon = [model applicationIconForDisplayIdentifier:identifier];
+        if (!icon) {
+            NSString *message = [NSString stringWithFormat:@"Couldn't get icon for %@. Something went wrong", identifier];
+            SHOW_USER_NOTIFICATION(STKTweakName, message, @"Dismiss");
+            return nil;
+        }
         [stackIcons addObject:[model applicationIconForDisplayIdentifier:identifier]];
     }
 
-    return [self initWithCentralIcon:[model applicationIconForDisplayIdentifier:attributes[STKStackManagerCentralIconKey]] stackIcons:stackIcons];
+    SBApplicationIcon *centralIcon = [model applicationIconForDisplayIdentifier:attributes[STKStackManagerCentralIconKey]];
+    if (!centralIcon) {
+        SHOW_USER_NOTIFICATION(STKTweakName, @"Could not get the central icon for the stack", @"Dismiss");
+        return nil;
+    }
+
+    return [self initWithCentralIcon:centralIcon stackIcons:stackIcons];
 }
 
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
 {
     if ((self = [super init])) {
-        CLog(@"_centralIconView position is %i", [self _iconViewForIcon:_centralIcon].location);
-
         [icons retain]; // Make sure it's not released until we're done with it
 
         _centralIcon             = [centralIcon retain];
