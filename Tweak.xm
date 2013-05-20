@@ -251,15 +251,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)_performDeferredLaunchWork
 {
     %orig();
-
-    NSDictionary *layout = @{STKStackManagerCentralIconKey : @"com.apple.AppStore",
-                             STKStackManagerStackIconsKey  : @[@"com.getdropbox.Dropbox", @"com.google.Translate", @"com.google.Drive", @"com.apple.stocks"]};
-
-    NSString *path = [[STKStackManager layoutsPath] stringByAppendingString:@"/com.apple.AppStore.layout"];
-    BOOL didWrite = [layout writeToFile:path atomically:YES];
-    if (!didWrite) {
-        CLog(@"Couldn't save to %@", path);
-    }
 }
 %end
 #endif
@@ -421,6 +412,18 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
 %ctor
 {
     @autoreleasepool {
+        CLog(@"%s", kPackageVersion);
         %init();
+#ifdef DEBUG
+        [STKPreferences sharedPreferences];
+        NSDictionary *layout = @{STKStackManagerCentralIconKey : @"com.saurik.Cydia",
+                                 STKStackManagerStackIconsKey  : @[@"com.apple.Preferences", @"eu.heinelt.ifile", @"com.apple.AppStore", @"com.apple.MobileStore"]};
+
+        NSString *path = [[STKStackManager layoutsPath] stringByAppendingString:@"/com.saurik.Cydia.layout"];
+        BOOL didWrite = [layout writeToFile:path atomically:YES];
+        if (!didWrite) {
+            CLog(@"Couldn't save default layout to %@", path);
+        }
+#endif
     }
 }
