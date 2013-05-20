@@ -9,7 +9,6 @@
 #import <SpringBoard/SpringBoard.h>
 #import <QuartzCore/QuartzCore.h>
 
-
 // Keys to be used for persistence dict
 NSString * const STKStackManagerCentralIconKey = @"STKCentralIcon";
 NSString * const STKStackManagerStackIconsKey  = @"STKStackIcons";
@@ -210,7 +209,8 @@ static BOOL __stackInMotion;
 {
     @synchronized(self) {
         if (![[NSFileManager defaultManager] fileExistsAtPath:[STKStackManager layoutsPath]]) {
-            [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:NO attributes:nil error:NULL];
+            // Check if the directory exists in the first place
+            [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:NO attributes:@{NSFilePosixPermissions : @511} error:NULL];
         }
 
         NSDictionary *fileDict = @{ STKStackManagerCentralIconKey : _centralIcon.leafIdentifier,
