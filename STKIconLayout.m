@@ -141,6 +141,7 @@
                 [newLeftIcons release];
                 break;
             }
+            
             case STKLayoutPositionRight: {
                 NSMutableArray *newRightIcons = [_rightIcons mutableCopy];
                 if (!newRightIcons) {
