@@ -20,20 +20,12 @@
     
     if (!sharedInstance) {
         sharedInstance = [[self alloc] init];
-        [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions : @775} error:NULL];
+        [sharedInstance reloadPreferences];
+        [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions : @511} error:NULL];
+        [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[STKStackManager layoutsPath] error:NULL]; // Make sure the permissions are correct anyway
     }
 
     return sharedInstance;
-}
-
-- (instancetype)init
-{
-    if ((self = [super init])) {
-        // Get the latest stuff, store them into ivars
-        // No need to init from file every damn time.
-        [self reloadPreferences];
-    }
-    return self;
 }
 
 - (NSArray *)identifiersForIconsWithStack
@@ -71,10 +63,7 @@
 - (void)reloadPreferences
 {
     [_currentPrefs release];
-    _currentPrefs = nil;
-    
     [_layouts release];
-    _layouts = nil;
 
     _currentPrefs = [[NSDictionary alloc] initWithContentsOfFile:kPrefPath];
     if (!_currentPrefs) {
@@ -88,6 +77,13 @@
 - (BOOL)iconHasStack:(SBIcon *)icon
 {
     return [[self identifiersForIconsWithStack] containsObject:icon.leafIdentifier];
+}
+
+- (BOOL)createLayoutWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
+{
+    NSDictionary *attributes = @{STKStackManagerCentralIconKey : centralIcon.leafIdentifier,
+                                 STKStackManagerStackIconsKey  : [icons valueForKeyPath:@"leafIdentifier"]}; // KVC FTW
+    return [attributes writeToFile:[self layoutPathForIcon:centralIcon] atomically:YES];
 }
 
 @end
