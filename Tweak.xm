@@ -8,7 +8,7 @@
 
 #import <SpringBoard/SpringBoard.h>
 
-#pragma mark - Declarations
+#pragma mark - Function Declarations
 // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView);
 
@@ -123,7 +123,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         _previousPoint = _initialPoint; // Previous point is also initial at the start :P
 
         CGPoint translation = [sender translationInView:view];
-        if (fabsf(translation.x / translation.y) < 5.0) {
+        if ((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0) {
+            // Turn off scrolling if it's s vertical swipe
             [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = NO;
         }
     }
@@ -216,8 +217,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 }
 
 /*  
-    IMPORTENTE:
-        Various hooks to intercept events that should make the stack close
+    Various hooks to intercept events that should make the stack close
 */
 - (void)iconWasTapped:(SBIcon *)icon
 {
@@ -232,10 +232,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 {
     %orig(scrollView);
     [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
-}
-- (void)setCurrentPageIconsGhostly:(BOOL)ghostly forRequester:(int)requester skipIcon:(id)icon
-{
-    %orig();
 }
 %end
 
