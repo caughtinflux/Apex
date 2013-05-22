@@ -21,7 +21,7 @@ static NSString * const STKStackLeftIconsKey   = @"lefticons";
 static NSString * const STKStackRightIconsKey  = @"righticons";
 
 
-#define kEnablingThreshold   55
+#define kEnablingThreshold   33
 #define kMaximumDisplacement kEnablingThreshold + 30
 #define kAnimationDuration   0.2
 #define kDisabledIconAlpha   0.2
@@ -449,6 +449,7 @@ static BOOL __stackInMotion;
     } completion:^(BOOL finished) {
         if (finished) {
             [self _setupGestureRecognizers];
+            [wSelf _setGhostlyAlphaForAllIcons:0.f excludingCentralIcon:YES];
 
             _isExpanded = YES;
             __isStackOpen = YES;
