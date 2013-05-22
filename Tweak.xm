@@ -25,12 +25,13 @@ static void STKRemoveGrabberImagesFromIconView(SBIconView *iconView);
 static void STKSetupIconView(SBIconView *iconView);
 // Removes recogniser and grabber images
 static void STKCleanupIconView(SBIconView *iconView);
+// Refreshes everything
+static inline void STKRefreshIconViews(void);
 
 // Inline Functions, prevent overhead if called too much.
 static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconView);
 static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
 static inline NSString               * STKGetLayoutPathForIcon(SBIcon *icon);
-
 
 #pragma mark - Direction !
 typedef enum {
@@ -120,9 +121,18 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         _initialPoint = [sender locationInView:view];
         _currentDirection = STKDirectionFromVelocity([sender velocityInView:view]);
         _previousPoint = _initialPoint; // Previous point is also initial at the start :P
+
+        CGPoint translation = [sender translationInView:view];
+        if (fabsf(translation.x / translation.y) < 5.0) {
+            [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = NO;
+        }
     }
 
     else if (sender.state == UIGestureRecognizerStateChanged) {
+        if ([[%c(SBIconController) sharedInstance] scrollView].isDragging) {
+            return;
+        }
+
         CGPoint point = [sender locationInView:view];
 
         BOOL hasCrossedInitial = NO;
@@ -146,6 +156,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
             change = -change;
         }
 
+
         if ((change > 0) && ((stackManager.currentIconDistance) >= STKGetCurrentTargetDistance())) {
             // Factor this down to simulate elasticity when the icons have reached their target locations
             // Stack manager allows the icons to go beyond their targets for a little distance
@@ -166,6 +177,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         _initialPoint = CGPointZero;
         _previousDistance = 0.f;
         _currentDirection = STKRecognizerDirectionNone;
+
+        [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = YES;
     }
 }
 
@@ -218,7 +231,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     %orig(scrollView);
-    // [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
 }
 - (void)setCurrentPageIconsGhostly:(BOOL)ghostly forRequester:(int)requester skipIcon:(id)icon
 {
@@ -245,15 +258,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 }
 
 %end
-
-#ifdef DEBUG
-%hook SpringBoard
-- (void)_performDeferredLaunchWork
-{
-    %orig();
-}
-%end
-#endif
 
 #pragma mark - Associated Object Keys
 static const char *panGRKey;
@@ -386,6 +390,10 @@ static void STKCleanupIconView(SBIconView *iconView)
     STKRemoveManagerFromView(iconView);
 }
 
+static inline void STKRefreshIconViews(void)
+{
+}
+
 #pragma mark - Inliner Definitions
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point)
 {
@@ -412,7 +420,7 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
 %ctor
 {
     @autoreleasepool {
-        CLog(@"%s", kPackageVersion);
+        CLog(@"Acervos version %s", kPackageVersion);
         %init();
 #ifdef DEBUG
         [STKPreferences sharedPreferences];
