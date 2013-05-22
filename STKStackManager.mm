@@ -20,13 +20,12 @@ static NSString * const STKStackBottomIconsKey = @"bottomicons";
 static NSString * const STKStackLeftIconsKey   = @"lefticons";
 static NSString * const STKStackRightIconsKey  = @"righticons";
 
-
 #define kEnablingThreshold   33
-#define kMaximumDisplacement kEnablingThreshold + 30
+#define kMaximumDisplacement kEnablingThreshold + 40
 #define kAnimationDuration   0.2
 #define kDisabledIconAlpha   0.2
 #define kBandingAllowance    ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 25 : 50)
-#define kGhostlyRequesterID  2
+#define kGhostlyRequesterID  5
 
 
 #pragma mark - Private Method Declarations
