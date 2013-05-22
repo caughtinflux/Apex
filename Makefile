@@ -1,5 +1,5 @@
 TARGET = iphone:clang
-DEBUG = 1
+# DEBUG = 1
 
 include theos/makefiles/common.mk
 

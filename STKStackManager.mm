@@ -388,7 +388,20 @@ static BOOL __stackInMotion;
 {
     STKStackManager * __block wSelf = self;
 
-    [UIView animateWithDuration:duration animations:^{
+/*
+    UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
+    [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        centralView.transform = CGAffineTransformMakeScale(1.1f, 1.1f);
+    } completion:^(BOOL finished) {
+        if (finished) {
+            [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                centralView.transform = CGAffineTransformMakeScale(1.0f, 1.0f);
+            } completion:nil];
+        }
+    }];
+*/
+
+    [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         [(NSArray *)[wSelf->_iconViewsTable objectForKey:STKStackTopIconsKey] enumerateObjectsUsingBlock:^(SBIconView *iconView, NSUInteger idx, BOOL *stop) {
             CGRect newFrame = iconView.frame;
             newFrame.origin = [wSelf _getTargetOriginForIconAtPosition:STKLayoutPositionTop distanceFromCentre:idx + 1];
@@ -448,22 +461,22 @@ static BOOL __stackInMotion;
 - (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon
 {
     STKStackManager * __block wSelf = self;
-    UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
 
     if (animateCentralIcon) {
         // Animate central imageview shrink/grow
-        [UIView animateWithDuration:(kAnimationDuration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
+        [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             centralView.transform = CGAffineTransformMakeScale(0.9f, 0.9f);
         } completion:^(BOOL finished) {
             if (finished) {
-                [UIView animateWithDuration:(kAnimationDuration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                     centralView.transform = CGAffineTransformMakeScale(1.0f, 1.0f);
                 } completion:nil];
             }
         }];
     }
 
-    [UIView animateWithDuration:duration animations:^{
+    [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
         // Set the frame for all these icons to the frame of their central icon
         for (SBIconView *iconView in [wSelf _allAppearingIconViews]) {
             iconView.frame = [wSelf _iconViewForIcon:wSelf->_centralIcon].frame;
@@ -513,7 +526,6 @@ static BOOL __stackInMotion;
     // Remove recognizers if they're still around
     [self _cleanupGestureRecognizers];
 }
-
 
 #pragma mark - Gesture Recogniser Handling
 - (void)_setupGestureRecognizers
