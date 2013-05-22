@@ -20,7 +20,6 @@ static NSString * const STKStackBottomIconsKey = @"bottomicons";
 static NSString * const STKStackLeftIconsKey   = @"lefticons";
 static NSString * const STKStackRightIconsKey  = @"righticons";
 
-#define kEnablingThreshold   33
 #define kMaximumDisplacement kEnablingThreshold + 40
 #define kAnimationDuration   0.2
 #define kDisabledIconAlpha   0.2

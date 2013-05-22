@@ -7,13 +7,13 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 #ifdef __cplusplus 
 extern "C" {
 #endif
-
 	extern NSString * const STKStackManagerCentralIconKey;
 	extern NSString * const STKStackManagerStackIconsKey;
-
 #ifdef __cplusplus
 }
 #endif
+
+#define kEnablingThreshold 33
 
 @class SBIcon, STKIconLayout;
 
