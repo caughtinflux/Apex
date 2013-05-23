@@ -46,9 +46,8 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
     UISwipeGestureRecognizer *_swipeRecognizer;
     UITapGestureRecognizer   *_tapRecognizer;
 
-    NSArray                  *_originalIcons;
-
     BOOL                      _didStartEditing;
+    BOOL                      _isJittering;
 }
 
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
@@ -386,19 +385,6 @@ static BOOL __stackInMotion;
 {
     STKStackManager * __block wSelf = self;
 
-/*
-    UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
-    [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        centralView.transform = CGAffineTransformMakeScale(1.1f, 1.1f);
-    } completion:^(BOOL finished) {
-        if (finished) {
-            [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                centralView.transform = CGAffineTransformMakeScale(1.0f, 1.0f);
-            } completion:nil];
-        }
-    }];
-*/
-
     [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         [(NSArray *)[wSelf->_iconViewsTable objectForKey:STKStackTopIconsKey] enumerateObjectsUsingBlock:^(SBIconView *iconView, NSUInteger idx, BOOL *stop) {
             CGRect newFrame = iconView.frame;
@@ -604,17 +590,17 @@ static BOOL __stackInMotion;
         CGPoint originalOrigin = [listView originForIcon:icon]; 
         CGPoint targetOrigin = [wSelf _getDisplacedOriginForIcon:icon withPosition:position]; 
 
-         
+        NSUInteger appearingIconsCount = [wSelf _appearingIconsForPosition:position].count;
         // Factor the distance up by the number of icons that are coming in at that position
-        CGFloat factoredDistance = (distance * [wSelf _appearingIconsForPosition:position].count); 
+        CGFloat factoredDistance = (distance * appearingIconsCount); 
         
-        CGFloat horizontalFactoredDistance = factoredDistance * wSelf->_distanceRatio; // The distance to be moved horizontally is slightly more different than vertical, multiply it by the ratio to have them work perfectly. :)
+        CGFloat horizontalFactoredDistance = factoredDistance * wSelf->_distanceRatio; // The distance to be moved horizontally is slightly different than vertical, multiply it by the ratio to have them work perfectly. :)
 
         switch (position) {
             case STKLayoutPositionTop: {
-                // If, after moving, the icon would pass it's target, factor the distance back to it's original, for now it has to move as much as all the other icons only
-                if ((newFrame.origin.y - (factoredDistance / [wSelf _appearingIconsForPosition:position].count)) < targetOrigin.y) {
-                    factoredDistance /= [wSelf _appearingIconsForPosition:position].count;
+                // If, after moving, the icon would pass its target, factor the distance back to it's original, for now it has to move as much as all the other icons only
+                if ((newFrame.origin.y - (factoredDistance / appearingIconsCount)) < targetOrigin.y) {
+                    factoredDistance /= appearingIconsCount;
                 }
 
                 targetOrigin.y -= kBandingAllowance; // Allow the icon to move for `kBandingAllowance` points beyond its target, simulating a 
@@ -634,8 +620,8 @@ static BOOL __stackInMotion;
                 break;
             }
             case STKLayoutPositionBottom: {
-                if ((newFrame.origin.y + (factoredDistance / [wSelf _appearingIconsForPosition:position].count)) > targetOrigin.y) {
-                    factoredDistance /= [wSelf _appearingIconsForPosition:position].count;
+                if ((newFrame.origin.y + (factoredDistance / appearingIconsCount)) > targetOrigin.y) {
+                    factoredDistance /= appearingIconsCount;
                 }
 
                 targetOrigin.y += kBandingAllowance;
@@ -651,8 +637,8 @@ static BOOL __stackInMotion;
                 break;
             }
             case STKLayoutPositionLeft: {
-                if ((newFrame.origin.x - (factoredDistance / [wSelf _appearingIconsForPosition:position].count)) < targetOrigin.x) {
-                    factoredDistance /= [wSelf _appearingIconsForPosition:position].count;
+                if ((newFrame.origin.x - (horizontalFactoredDistance / appearingIconsCount)) < targetOrigin.x) {
+                    horizontalFactoredDistance /= appearingIconsCount;
                 }
 
                 targetOrigin.x -= kBandingAllowance * wSelf->_distanceRatio;
@@ -668,8 +654,8 @@ static BOOL __stackInMotion;
                 break;
             }
             case STKLayoutPositionRight: {
-                if ((newFrame.origin.y + (factoredDistance / [wSelf _appearingIconsForPosition:position].count)) > targetOrigin.y) {
-                    factoredDistance /= [wSelf _appearingIconsForPosition:position].count;
+                if ((newFrame.origin.x + (horizontalFactoredDistance / appearingIconsCount)) > targetOrigin.x) {
+                    horizontalFactoredDistance /= appearingIconsCount;
                 }
 
                 targetOrigin.x += kBandingAllowance * wSelf->_distanceRatio;
@@ -1097,7 +1083,7 @@ static BOOL __stackInMotion;
 
 - (void)iconTapped:(SBIconView *)iconView
 {
-    if ([[objc_getClass("SBIconController") sharedInstance] isEditing]) {
+    if (_isJittering) {
         return;
     }
 
@@ -1105,6 +1091,14 @@ static BOOL __stackInMotion;
     if (_interactionHandler) {
         _interactionHandler(iconView);
     }
+}
+
+- (void)iconHandleLongPress:(SBIconView *)iconView
+{
+    for (SBIconView *iv in [self _allAppearingIconViews]) {
+        [iv setIsJittering:YES];
+    }
+    _isJittering = YES;
 }
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
@@ -1119,7 +1113,7 @@ static BOOL __stackInMotion;
 
 - (BOOL)iconAllowJitter:(SBIconView *)iconView
 {
-    return NO;
+    return YES;
 }
 
 @end
