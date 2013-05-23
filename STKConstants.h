@@ -29,6 +29,10 @@
                                CFUserNotificationRef notificationRef = CFUserNotificationCreate(kCFAllocatorDefault, 0, kCFUserNotificationNoteAlertLevel, NULL, (CFDictionaryRef)fields); \
                                CFRelease(notificationRef)
 
+
+#define ICONID_HAS_STACK(ID) ([[[STKPreferences sharedPreferences] identifiersForIconsWithStack] containsObject:ID])
+#define ICON_HAS_STACK(icon) ICONID_HAS_STACK(icon.leafIdentifier)
+
 @class NSString, SBIconListView, SBIcon;
 
 #ifdef __cplusplus 
