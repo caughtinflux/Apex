@@ -6,6 +6,8 @@
 #import <CoreFoundation/CoreFoundation.h>
 #import <CoreFoundation/CFUserNotification.h>
 
+#import "STKVersion.h"
+
 #ifdef DEBUG
     #define DLog(fmt, ...) NSLog((@"STK: %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
     #define CLog(fmt, ...) NSLog((@"STK: " fmt), ##__VA_ARGS__)
