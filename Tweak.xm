@@ -33,6 +33,7 @@ static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconV
 static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
 static inline NSString               * STKGetLayoutPathForIcon(SBIcon *icon);
 
+
 #pragma mark - Direction !
 typedef enum {
     STKRecognizerDirectionUp   = 0xf007ba11,
@@ -42,6 +43,11 @@ typedef enum {
 
 // Returns the direction - top or bottom - for a given velocity
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
+
+////////////////////////////////////////////////////////////////////
+///////////////////// REAL SHIT STARTS ////////////////////////////
+//////////////////////////////////////////////////////////////////
+
 
 #pragma mark - SBIconView Hook
 %hook SBIconView
@@ -349,10 +355,13 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         weakShit.interactionHandler = \
             ^(SBIconView *tappedIconView) {
                 if (tappedIconView) {
-                    [(SBUIController *)[%c(SBUIController) sharedInstance] launchIcon:tappedIconView.icon];
-                    [stackManager closeStackSettingCentralIcon:tappedIconView.icon completion:^{
-                        STKRemoveManagerFromView(iconView);
-                    }];
+                    weakShit.closesOnHomescreenEdit = NO;
+
+                    SBApplication *app = [[%c(SBApplicationController) sharedInstance] applicationWithDisplayIdentifier:tappedIconView.icon.leafIdentifier];
+                    [(SBUIController *)[%c(SBUIController) sharedInstance] activateApplicationFromSwitcher:app];
+                    
+                    weakShit.closesOnHomescreenEdit = YES;
+                    [weakShit closeStackWithCompletionHandler:^{ STKRemoveManagerFromView(iconView); }];
                 }
                 else {
                     STKRemoveManagerFromView(iconView);
@@ -416,6 +425,7 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
 {
     @autoreleasepool {
         CLog(@"Acervos version %s", kPackageVersion);
+        CLog(@"Build date: %s, %s", __DATE__, __TIME__);
         %init();
 #ifdef DEBUG
         [STKPreferences sharedPreferences];
