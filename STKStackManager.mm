@@ -45,9 +45,6 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 
     UISwipeGestureRecognizer *_swipeRecognizer;
     UITapGestureRecognizer   *_tapRecognizer;
-
-    BOOL                      _didStartEditing;
-    BOOL                      _isJittering;
 }
 
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
@@ -1061,7 +1058,7 @@ static BOOL __stackInMotion;
 
 - (void)_editingStateChanged:(NSNotification *)notification
 {
-    if (!(_didStartEditing) || ![[objc_getClass("SBIconController") sharedInstance] isEditing]) {
+    if (![[objc_getClass("SBIconController") sharedInstance] isEditing] && self.closesOnHomescreenEdit) {
         [self closeStackWithCompletionHandler:^{
             if (_interactionHandler) {
                 _interactionHandler(nil);
@@ -1083,7 +1080,7 @@ static BOOL __stackInMotion;
 
 - (void)iconTapped:(SBIconView *)iconView
 {
-    if (_isJittering) {
+    if (_isEditing) {
         return;
     }
 
@@ -1098,7 +1095,7 @@ static BOOL __stackInMotion;
     for (SBIconView *iv in [self _allAppearingIconViews]) {
         [iv setIsJittering:YES];
     }
-    _isJittering = YES;
+    _isEditing = YES;
 }
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView

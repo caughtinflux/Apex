@@ -26,11 +26,14 @@ extern "C" {
 // Properties to derive information from
 @property (nonatomic, readonly) BOOL hasSetup;
 @property (nonatomic, readonly) BOOL isExpanded;
+@property (nonatomic, readonly) BOOL isEditing;
 @property (nonatomic, readonly) CGFloat currentIconDistance; // Distance of all the icons from the center.
 @property (nonatomic, readonly) STKIconLayout *appearingIconsLayout;
 @property (nonatomic, readonly) STKIconLayout *disappearingIconsLayout;
 
 @property (nonatomic, copy) STKInteractionHandler interactionHandler; // the tappedIconView is only passed if there indeed was a tapped icon view. This may be called even if a swipe/tap is detected on the content view, and the stack closes automagically.
+
+@property (nonatomic, assign) BOOL closesOnHomescreenEdit; 
 
 - (instancetype)initWithContentsOfFile:(NSString *)file;
 
