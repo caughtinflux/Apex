@@ -79,7 +79,7 @@
     return [[self identifiersForIconsWithStack] containsObject:icon.leafIdentifier];
 }
 
-- (BOOL)createLayoutWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
+- (BOOL)saveLayoutWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
 {
     NSDictionary *attributes = @{STKStackManagerCentralIconKey : centralIcon.leafIdentifier,
                                  STKStackManagerStackIconsKey  : [icons valueForKeyPath:@"leafIdentifier"]}; // KVC FTW

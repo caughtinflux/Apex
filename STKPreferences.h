@@ -15,6 +15,6 @@
 // icon: The central(visible) icon in the stack
 // icons: NSArray of SBIcon objects that will be in the stack
 // Returns: YES if the write completed successfully, else NO
-- (BOOL)createLayoutWithCentralIcon:(SBIcon *)icon stackIcons:(NSArray *)icons;
+- (BOOL)saveLayoutWithCentralIcon:(SBIcon *)icon stackIcons:(NSArray *)icons;
 
 @end
