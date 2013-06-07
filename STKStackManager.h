@@ -7,13 +7,13 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 #ifdef __cplusplus 
 extern "C" {
 #endif
-
 	extern NSString * const STKStackManagerCentralIconKey;
 	extern NSString * const STKStackManagerStackIconsKey;
-
 #ifdef __cplusplus
 }
 #endif
+
+#define kEnablingThreshold 33
 
 @class SBIcon, STKIconLayout;
 
@@ -32,6 +32,9 @@ extern "C" {
 
 @property (nonatomic, copy) STKInteractionHandler interactionHandler; // the tappedIconView is only passed if there indeed was a tapped icon view. This may be called even if a swipe/tap is detected on the content view, and the stack closes automagically.
 
+@property (nonatomic, assign) BOOL isEditing;
+@property (nonatomic, assign) BOOL closesOnHomescreenEdit; 
+
 - (instancetype)initWithContentsOfFile:(NSString *)file;
 
 // The interaction handler is called when an icon is tapped.
@@ -43,6 +46,9 @@ extern "C" {
 // Sets up stack iconViews
 - (void)setupViewIfNecessary;
 - (void)setupView;
+
+// Set these to let the stack manager access the grabber views
+- (void)setTopGrabberView:(UIView *)topGrabberView bottomGrabberView:(UIView *)bottomGrabberView;
 
 - (void)touchesDraggedForDistance:(CGFloat)distance;
 
@@ -62,8 +68,5 @@ extern "C" {
 - (void)openStack;
 - (void)closeStack;
 - (void)closeStackAfterDelay:(NSTimeInterval)delay completion:(void(^)(void))completionBlock;
-
-- (void)modifyIconModel;
-- (void)restoreIconModel;
 
 @end

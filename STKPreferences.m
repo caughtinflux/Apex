@@ -5,8 +5,6 @@
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
 
-#define kIconsWithStackKey @"STKIconsWithStack"
-
 @interface STKPreferences ()
 {
     NSDictionary *_currentPrefs;
@@ -22,20 +20,12 @@
     
     if (!sharedInstance) {
         sharedInstance = [[self alloc] init];
-        [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:nil error:NULL];
+        [sharedInstance reloadPreferences];
+        [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions : @511} error:NULL];
+        [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[STKStackManager layoutsPath] error:NULL]; // Make sure the permissions are correct anyway
     }
 
     return sharedInstance;
-}
-
-- (instancetype)init
-{
-    if ((self = [super init])) {
-        // Get the latest stuff, store them into ivars
-        // No need to init from file every damn time.
-        [self reloadPreferences];
-    }
-    return self;
 }
 
 - (NSArray *)identifiersForIconsWithStack
@@ -72,10 +62,14 @@
 
 - (void)reloadPreferences
 {
+    [_currentPrefs release];
+    [_layouts release];
+
     _currentPrefs = [[NSDictionary alloc] initWithContentsOfFile:kPrefPath];
     if (!_currentPrefs) {
         _currentPrefs = [[NSDictionary alloc] init];
     }
+
     _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[STKStackManager layoutsPath] error:nil] retain];
 
 }
@@ -83,6 +77,13 @@
 - (BOOL)iconHasStack:(SBIcon *)icon
 {
     return [[self identifiersForIconsWithStack] containsObject:icon.leafIdentifier];
+}
+
+- (BOOL)saveLayoutWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
+{
+    NSDictionary *attributes = @{STKStackManagerCentralIconKey : centralIcon.leafIdentifier,
+                                 STKStackManagerStackIconsKey  : [icons valueForKeyPath:@"leafIdentifier"]}; // KVC FTW
+    return [attributes writeToFile:[self layoutPathForIcon:centralIcon] atomically:YES];
 }
 
 @end

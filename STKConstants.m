@@ -67,7 +67,7 @@ void STKUpdateTargetDistanceInListView(SBIconListView *listView)
     
     CGFloat verticalDistance = referencePoint.y - verticalOrigin.y;
 
-    _currentTargetDistance = verticalDistance * 0.8636f;
+    _currentTargetDistance = ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? verticalDistance * 0.8636f : verticalDistance * 0.95);
 }
 
 NSUInteger STKInfoForSpecifier(uint typeSpecifier)
