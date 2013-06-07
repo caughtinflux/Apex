@@ -30,4 +30,6 @@ typedef struct {
 - (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)icon usingLayout:(STKIconLayout *)layout;
 - (STKIconCoordinates)coordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation;
 
+- (STKIconLayout *)layoutForPlaceHoldersInLayout:(STKIconLayout *)layout withPosition:(STKPositionMask)position placeHolderClass:(Class)placeHolderClass;
+
 @end

@@ -72,8 +72,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 
 - (BOOL)canReceiveGrabbedIcon:(SBIconView *)iconView
 {
-    NSArray *iconsWithStack = [[STKPreferences sharedPreferences] identifiersForIconsWithStack];
-    return ((([iconsWithStack containsObject:self.icon.leafIdentifier]) || ([iconsWithStack containsObject:iconView.icon.leafIdentifier])) ? NO : %orig());
+    return ((ICON_HAS_STACK(self.icon) || ICON_HAS_STACK(iconView.icon)) ? NO : %orig());
 }
 
 - (void)dealloc
@@ -101,9 +100,9 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     }
 
     if (sender.state == UIGestureRecognizerStateBegan) {
-        if (self.location == SBIconViewLocationSwitcher ||
-            [[%c(SBIconController) sharedInstance] isEditing] || 
-            !(ICON_HAS_STACK(self.icon)))
+        if ( self.location == SBIconViewLocationSwitcher ||
+             [[%c(SBIconController) sharedInstance] isEditing] || 
+             !ICON_HAS_STACK(self.icon) )
         {
             // Preliminary check
             STKCleanupIconView(self);
@@ -190,14 +189,14 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 %new 
 - (void)stk_editingStateChanged:(NSNotification *)notification
-{
+{    
     BOOL isEditing = [[%c(SBIconController) sharedInstance] isEditing];
     
     if (isEditing) {
         STKCleanupIconView(self);
     }
     else {
-        if ([[[STKPreferences sharedPreferences] identifiersForIconsWithStack] containsObject:self.icon.leafIdentifier] && (isEditing == NO)) {
+        if (ICON_HAS_STACK(self.icon) && (isEditing == NO)) {
             STKSetupIconView(self);
         }
     }
@@ -350,6 +349,9 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
             stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:[[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon]];
             [stackManager saveLayoutToFile:layoutPath];
         }
+        
+        [stackManager setTopGrabberView:objc_getAssociatedObject(iconView, topGrabberViewKey)
+                      bottomGrabberView:objc_getAssociatedObject(iconView, bottomGrabberViewKey)];
 
         STKStackManager * __block weakShit = stackManager;
         weakShit.interactionHandler = \
@@ -394,9 +396,6 @@ static void STKCleanupIconView(SBIconView *iconView)
     STKRemoveManagerFromView(iconView);
 }
 
-static inline void STKRefreshIconViews(void)
-{
-}
 
 #pragma mark - Inliner Definitions
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point)
@@ -424,7 +423,7 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
 %ctor
 {
     @autoreleasepool {
-        CLog(@"Acervos version %s", kPackageVersion);
+        CLog(@"Version %s", kPackageVersion);
         CLog(@"Build date: %s, %s", __DATE__, __TIME__);
         %init();
 #ifdef DEBUG

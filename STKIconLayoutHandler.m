@@ -104,10 +104,10 @@
 
 - (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)centralIcon usingLayout:(STKIconLayout *)layout
 {
-    NSArray * displacedTopIcons    = nil;
-    NSArray * displacedBottomIcons = nil;
-    NSArray * displacedLeftIcons   = nil;
-    NSArray * displacedRightIcons  = nil;
+    NSArray *displacedTopIcons    = nil;
+    NSArray *displacedBottomIcons = nil;
+    NSArray *displacedLeftIcons   = nil;
+    NSArray *displacedRightIcons  = nil;
     
     if (!_centralIconListView) {
         _centralIconListView = STKListViewForIcon(centralIcon);
@@ -142,6 +142,37 @@
     STKIconCoordinates coordinates = {iconX, iconY, iconIndex};
 
     return coordinates;
+}
+
+- (STKIconLayout *)layoutForPlaceHoldersInLayout:(STKIconLayout *)layout withPosition:(STKPositionMask)position placeHolderClass:(Class)placeHolderClass
+{
+    NSMutableArray *topIcons = [NSMutableArray array];
+    NSMutableArray *bottomIcons = [NSMutableArray array];
+    NSMutableArray *leftIcons = [NSMutableArray array];
+    NSMutableArray *rightIcons = [NSMutableArray array];
+
+    id placeHolder = [[placeHolderClass new] autorelease];
+
+    if ((layout.topIcons == nil || layout.topIcons.count == 0) && !(position & STKPositionTouchingTop)) {
+        [topIcons addObject:placeHolder];
+    }
+
+    if ((layout.bottomIcons == nil || layout.bottomIcons.count == 0) && !(position & STKPositionTouchingBottom)) {
+        [bottomIcons addObject:placeHolder];
+    }
+
+    if ((layout.leftIcons == nil || layout.leftIcons.count == 0) && !(position & STKPositionTouchingLeft)) {
+        [leftIcons addObject:placeHolder];
+    }
+
+    if ((layout.rightIcons == nil || layout.rightIcons.count == 0) && !(position & STKPositionTouchingRight)) {
+        [rightIcons addObject:placeHolder];
+    }
+
+    STKIconLayout *placeHolderLayout = [STKIconLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons];
+    placeHolderLayout.containsPlaceholders = YES;
+
+    return placeHolderLayout;
 }
 
 - (STKIconLayout *)_processLayoutForSymmetry:(STKIconLayout *)layout withPosition:(STKPositionMask)position
@@ -192,7 +223,14 @@
         }
     }
 
-    return [STKIconLayout layoutWithIconsAtTop:topArray bottom:bottomArray left:leftArray right:rightArray];
+    STKIconLayout *processedLayout = [STKIconLayout layoutWithIconsAtTop:topArray bottom:bottomArray left:leftArray right:rightArray];
+    
+    [topArray release];
+    [bottomArray release];
+    [leftArray release];
+    [rightArray release];
+
+    return processedLayout;
 }
 
 - (NSArray *)_iconsAboveIcon:(SBIcon *)icon

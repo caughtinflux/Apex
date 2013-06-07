@@ -8,9 +8,11 @@
 
 #import "STKVersion.h"
 
+#define kSTKTweakName @"Acervos"
+
 #ifdef DEBUG
-    #define DLog(fmt, ...) NSLog((@"STK: %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
-    #define CLog(fmt, ...) NSLog((@"STK: " fmt), ##__VA_ARGS__)
+    #define DLog(fmt, ...) NSLog((@"[%@] %s [Line %d] " fmt), kSTKTweakName, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+    #define CLog(fmt, ...) NSLog((@"[%@] " fmt), kSTKTweakName, ##__VA_ARGS__)
 #else
     #define DLog(...)
     #define CLog(...)
@@ -18,7 +20,8 @@
 
 #define BOOL_TO_STRING(b) (b ? @"YES" : @"NO")
 
-#define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/Acervos/com.a3tweaks.%@.plist", NSHomeDirectory(), STKTweakName]
+
+#define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/%@/com.a3tweaks.%@.plist", kSTKTweakName, NSHomeDirectory(), kSTKTweakName]
 #define kTargetDistance ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 76.0f : 176.0f)
 
 
@@ -35,13 +38,15 @@
 #define ICONID_HAS_STACK(ID) ([[[STKPreferences sharedPreferences] identifiersForIconsWithStack] containsObject:ID])
 #define ICON_HAS_STACK(icon) ICONID_HAS_STACK(icon.leafIdentifier)
 
+#define PATH_TO_IMAGE(name) [[NSBundle bundleWithPath:@"/Library/Application Support/Acervos.bundle"] pathForResource:name ofType:@"png"]
+
+#define MAP(array, block) for (id elem in array) { block(elem); };
+
 @class NSString, SBIconListView, SBIcon;
 
 #ifdef __cplusplus 
 extern "C" {
 #endif
-
-    extern NSString * const STKTweakName;
     extern NSString * const STKEditingStateChangedNotification;
     extern NSString * const STKStackClosingEventNotification; // This notification is posted when something happens to make the stack close
     
