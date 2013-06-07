@@ -2,33 +2,13 @@
 #import <UIKit/UIKit.h>
 
 #import "STKConstants.h"
-#import "STKIconLayout.h"
-#import "STKIconLayoutHandler.h"
 #import "STKStackManager.h"
+#import "STKRecognizerDelegate.h"
+#import "STKPreferences.h"
 
 #import <SpringBoard/SpringBoard.h>
-#import <SpringBoard/SBIconController.h>
-#import <SpringBoard/SBIcon.h>
-#import <SpringBoard/SBApplicationIcon.h>
-#import <SpringBoard/SBIconModel.h>
-#import <SpringBoard/SBIconViewMap.h>
-#import <SpringBoard/SBIconView.h>
-#import <SpringBoard/SBIconImageView.h>
-#import <SpringBoard/SBIconListView.h>
-#import <SpringBoard/SBDockIconListView.h>
-#import <SpringBoard/SBUIController.h>
 
-
-#pragma mark - Declarations
-static char *_panGRKey;
-static char *_stackManagerKey;
-
-// returns an NSArray of SBIcon object that are in a stack under `icon`.
-static NSArray * STKGetStackIconsForIcon(SBIcon *icon);
-
-// Returns an array of bundle IDs
-static NSArray * STKGetIconsWithStack(void);
-
+#pragma mark - Function Declarations
 // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView);
 
@@ -38,11 +18,21 @@ static void STKRemoveManagerFromView(SBIconView *iconView);
 static void STKAddPanRecognizerToIconView(SBIconView *iconView);
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
 
+static void STKAddGrabberImagesToIconView(SBIconView *iconView);
+static void STKRemoveGrabberImagesFromIconView(SBIconView *iconView);
+
+// Adds recogniser and grabber images
+static void STKSetupIconView(SBIconView *iconView);
+// Removes recogniser and grabber images
 static void STKCleanupIconView(SBIconView *iconView);
+// Refreshes everything
+static inline void STKRefreshIconViews(void);
 
 // Inline Functions, prevent overhead if called too much.
 static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconView);
 static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
+static inline NSString               * STKGetLayoutPathForIcon(SBIcon *icon);
+
 
 #pragma mark - Direction !
 typedef enum {
@@ -50,43 +40,46 @@ typedef enum {
     STKRecognizerDirectionDown = 0x50f7ba11,
     STKRecognizerDirectionNone = 0x0ddba11
 } STKRecognizerDirection;
+
 // Returns the direction - top or bottom - for a given velocity
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 
+////////////////////////////////////////////////////////////////////
+///////////////////// REAL SHIT STARTS ////////////////////////////
+//////////////////////////////////////////////////////////////////
+
 
 #pragma mark - SBIconView Hook
-
 %hook SBIconView
 - (void)setIcon:(SBIcon *)icon
 {
     %orig();
-
-    if ([[%c(SBIconController) sharedInstance] isEditing] || [[%c(SBUIController) sharedInstance] isSwitcherShowing] || !([STKGetIconsWithStack() containsObject:icon.leafIdentifier])) {
+    if (!icon ||
+        self.location == SBIconViewLocationSwitcher ||
+        [[%c(SBIconController) sharedInstance] isEditing] ||
+        !(ICON_HAS_STACK(icon)))
+    {
         // Make sure the recognizer is not added to icons in the stack
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
         STKCleanupIconView(self);
         return;
     }
+    STKSetupIconView(self);
 
-    UIPanGestureRecognizer *panRecognizer = STKPanRecognizerForView(self);
-    if (!panRecognizer) {
-        STKAddPanRecognizerToIconView(self);
-    }
-
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_editingStateChanged:) name:STKEditingStateChangedNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_closeStack:) name:STKStackClosingEventNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_editingStateChanged:) name:STKEditingStateChangedNotification object:nil];
 }
 
 - (BOOL)canReceiveGrabbedIcon:(SBIconView *)iconView
 {
-    NSArray *iconsWithStack = STKGetIconsWithStack();
-    return ((([iconsWithStack containsObject:self.icon.leafIdentifier]) || ([iconsWithStack containsObject:iconView.icon.leafIdentifier])) ? NO : YES);
+    return ((ICON_HAS_STACK(self.icon) || ICON_HAS_STACK(iconView.icon)) ? NO : %orig());
 }
 
 - (void)dealloc
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:STKStackClosingEventNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
+
     %orig();
 }
 
@@ -100,36 +93,54 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %new
 - (void)stk_panned:(UIPanGestureRecognizer *)sender
 {
-    if ([[%c(SBIconController) sharedInstance] isEditing] || !([STKGetIconsWithStack() containsObject:self.icon.leafIdentifier])) {
-        STKCleanupIconView(self);
-        CLog(@"Self.icon: %@", self.icon);
+    SBIconListView *view = STKListViewForIcon(self.icon);
+    STKStackManager *stackManager = STKManagerForView(self);
+    if (stackManager.isExpanded) {
         return;
     }
 
-    SBIconListView *view = [[%c(SBIconController) sharedInstance] currentRootIconList];
-
     if (sender.state == UIGestureRecognizerStateBegan) {
-        STKStackManager *stackManager = STKManagerForView(self);
-        if (!stackManager) {
-            stackManager = STKSetupManagerForView(self);
+        if ( self.location == SBIconViewLocationSwitcher ||
+             [[%c(SBIconController) sharedInstance] isEditing] || 
+             !ICON_HAS_STACK(self.icon) )
+        {
+            // Preliminary check
+            STKCleanupIconView(self);
+            return;
         }
+
+        // Update the target distance based on icons positions when the pan begins
+        // This way, we can be sure that the icons are indeed in the required location 
+        STKUpdateTargetDistanceInListView(STKListViewForIcon(self.icon));
+
+        if (stackManager && !stackManager.isExpanded) {
+            // Create a new manager, I don't want the same one to be resused.
+           //  Similar to folders.
+            STKRemoveManagerFromView(self);
+        }
+
+        stackManager = STKSetupManagerForView(self);
         [stackManager setupViewIfNecessary];
 
         _initialPoint = [sender locationInView:view];
         _currentDirection = STKDirectionFromVelocity([sender velocityInView:view]);
+        _previousPoint = _initialPoint; // Previous point is also initial at the start :P
+
+        CGPoint translation = [sender translationInView:view];
+        if ((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0) {
+            // Turn off scrolling if it's s vertical swipe
+            [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = NO;
+        }
     }
 
     else if (sender.state == UIGestureRecognizerStateChanged) {
-        STKStackManager *stackManager = STKManagerForView(self); // The manager had better exist by this point, or something went horribly wrong
-
-        if (CGPointEqualToPoint(_previousPoint, CGPointZero)) {
-            // Make sure previous point is not zero.
-            _previousPoint = _initialPoint;
+        if ([[%c(SBIconController) sharedInstance] scrollView].isDragging) {
+            return;
         }
 
         CGPoint point = [sender locationInView:view];
 
-        BOOL hasCrossedInitial = YES;
+        BOOL hasCrossedInitial = NO;
         // If the swipe is going beyond the point where it started from, stop the swipe.
         if (_currentDirection == STKRecognizerDirectionUp) {
             hasCrossedInitial = (point.y > _initialPoint.y);
@@ -142,15 +153,17 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
             return;
         }
 
-        CGFloat change = sqrtf(((_previousPoint.x - point.x) * (_previousPoint.x - point.x)) + ((_previousPoint.y - point.y)  * (_previousPoint.y - point.y))); // distance from _previousPoint
-        CGFloat distance = sqrtf(((_initialPoint.x - point.x) * (_initialPoint.x - point.x)) + ((_initialPoint.y - point.y)  * (_initialPoint.y - point.y))); // distance from original point
+        CGFloat change = fabsf(_previousPoint.y - point.y); // Vertical distances
+        CGFloat distance = fabsf(_initialPoint.y - point.y);
+        
         if (distance < _previousDistance || stackManager.isExpanded) {
             // The swipe is going to the opposite direction, so make sure the manager moves its views in the corresponding direction too
             change = -change;
         }
 
-        if ((change > 0) && ((stackManager.currentIconDistance) >= kTargetDistance)) {
-            // Factor this down to simulate elasticity
+
+        if ((change > 0) && ((stackManager.currentIconDistance) >= STKGetCurrentTargetDistance())) {
+            // Factor this down to simulate elasticity when the icons have reached their target locations
             // Stack manager allows the icons to go beyond their targets for a little distance
             change *= kBandingFactor;
         }
@@ -161,40 +174,41 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         _previousDistance = fabsf(distance);
     }
 
-    else if (sender.state == UIGestureRecognizerStateEnded) {
-        [STKManagerForView(self) touchesEnded];
+    else {
+        [stackManager touchesEnded];
 
         // Reset the static vars
         _previousPoint = CGPointZero;
         _initialPoint = CGPointZero;
         _previousDistance = 0.f;
         _currentDirection = STKRecognizerDirectionNone;
+
+        [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = YES;
     }
 }
 
 %new 
 - (void)stk_editingStateChanged:(NSNotification *)notification
-{
-    if (!([STKGetIconsWithStack() containsObject:self.icon.leafIdentifier])) {
-        return;
-    }
-
+{    
     BOOL isEditing = [[%c(SBIconController) sharedInstance] isEditing];
     
     if (isEditing) {
-        STKRemovePanRecognizerFromIconView(self);
+        STKCleanupIconView(self);
     }
     else {
-        STKAddPanRecognizerToIconView(self);
+        if (ICON_HAS_STACK(self.icon) && (isEditing == NO)) {
+            STKSetupIconView(self);
+        }
     }
-
-    STKRemoveManagerFromView(self); // Remove the manager irrespective of whether the editing state
 }
 
 %new 
-- (void)stk_closeStack:(id)notification
+- (void)stk_closeStack:(NSNotification *)notification
 {
-    [STKManagerForView(self) closeStack];
+    STKStackManager *manager = STKManagerForView(self);
+    [manager closeStackWithCompletionHandler:^{
+        STKRemoveManagerFromView(self);
+    }];
 }
 
 %end
@@ -203,36 +217,26 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)setIsEditing:(BOOL)isEditing
 {
     %orig(isEditing);
-
-    static BOOL previousEditingState;
-    if (previousEditingState == isEditing) {
-        // This method is called virtually every time you touch SpringBoard, don't do shit unecessarily
-        return;
-    }
-
-    previousEditingState = isEditing;
     [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
 }
 
 /*  
-    IMPORTENTE:
-        Various hooks to intercept events that should make the stack close
+    Various hooks to intercept events that should make the stack close
 */
 - (void)iconWasTapped:(SBIcon *)icon
 {
-    if ([STKGetIconsWithStack() containsObject:icon.leafIdentifier]) {
+    if ([[[STKPreferences sharedPreferences] identifiersForIconsWithStack] containsObject:icon.leafIdentifier]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
     }
     
-    %orig();
+    %orig(icon);
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-    %orig();
+    %orig(scrollView);
     [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
 }
-
 %end
 
 %hook SBUIController
@@ -247,82 +251,151 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     }
 }
 
-- (BOOL)activateSwitcher
+- (BOOL)_activateSwitcher:(NSTimeInterval)animationDuration
 {
     [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
-    return %orig();
+    return %orig(animationDuration);
 }
 
 %end
 
+#pragma mark - Associated Object Keys
+static const SEL panGRKey = @selector(acervosPanKey);
+static const SEL stackManagerKey = @selector(acervosManagerKey);
+static const SEL topGrabberViewKey = @selector(acervosTopGrabberKey);
+static const SEL bottomGrabberViewKey = @selector(acervosBottomGrabberKey);
+static const SEL recognizerDelegateKey = @selector(acervosDelegateKey);
 
 #pragma mark - Static Function Definitions
-static NSArray * STKGetIconsWithStack(void)
-{
-    return @[@"com.apple.mobileslideshow"];
-}
-
-static NSArray * STKGetStackIconsForIcon(SBIcon *icon)
-{
-    SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
-    return @[[model applicationIconForDisplayIdentifier:@"com.apple.mobiletimer"],
-             [model applicationIconForDisplayIdentifier:@"com.apple.mobilenotes"],
-             [model applicationIconForDisplayIdentifier:@"com.apple.reminders"],
-             [model applicationIconForDisplayIdentifier:@"com.apple.mobilecal"]];
-}
-
 static void STKAddPanRecognizerToIconView(SBIconView *iconView)
 {
-    UIPanGestureRecognizer *panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:iconView action:@selector(stk_panned:)] autorelease];
-    [iconView addGestureRecognizer:panRecognizer];
-    objc_setAssociatedObject(iconView, &_panGRKey, panRecognizer, OBJC_ASSOCIATION_ASSIGN);
+    UIPanGestureRecognizer *panRecognizer = objc_getAssociatedObject(iconView, panGRKey);
+    // Don't add a recognizer if it already exists
+    if (!panRecognizer) {
+        panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:iconView action:@selector(stk_panned:)] autorelease];
+        [iconView addGestureRecognizer:panRecognizer];
+        objc_setAssociatedObject(iconView, panGRKey, panRecognizer, OBJC_ASSOCIATION_ASSIGN);
+
+        // Setup a delegate, and have the recognizer retain it using associative refs, so that when the recognizer is destroyed, so is the delegate object
+        STKRecognizerDelegate *delegate = [[STKRecognizerDelegate alloc] init];
+        panRecognizer.delegate = delegate;
+        objc_setAssociatedObject(panRecognizer, recognizerDelegateKey, delegate, OBJC_ASSOCIATION_RETAIN);
+        [delegate release];
+    }
 }
 
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
 {
     UIPanGestureRecognizer *recognizer = STKPanRecognizerForView(iconView);
     [iconView removeGestureRecognizer:recognizer];
-    objc_setAssociatedObject(iconView, &_panGRKey, nil, OBJC_ASSOCIATION_ASSIGN);
+
+    // Clear out the associative references. 
+    objc_setAssociatedObject(recognizer, recognizerDelegateKey, nil, OBJC_ASSOCIATION_RETAIN); // Especially this one. The pan recogniser getting wiped out should remove this already. But still, better to be sure.
+    objc_setAssociatedObject(iconView, panGRKey, nil, OBJC_ASSOCIATION_ASSIGN);
+}
+
+static void STKAddGrabberImagesToIconView(SBIconView *iconView)
+{
+    NSBundle *tweakBundle = [NSBundle bundleWithPath:@"/Library/Application Support/Acervos.bundle"];
+
+    UIImageView *topView = objc_getAssociatedObject(iconView, topGrabberViewKey);
+    if (!topView) {
+        UIImage *topImage = [[[UIImage alloc] initWithContentsOfFile:[tweakBundle pathForResource:@"TopGrabber" ofType:@"png"]] autorelease];
+        topView = [[[UIImageView alloc] initWithImage:topImage] autorelease];
+        topView.center = (CGPoint){iconView.iconImageView.center.x, (iconView.iconImageView.frame.origin.y)};
+        [iconView addSubview:topView];
+
+        objc_setAssociatedObject(iconView, topGrabberViewKey, topView, OBJC_ASSOCIATION_ASSIGN);
+    }
+
+    UIImageView *bottomView = objc_getAssociatedObject(iconView, bottomGrabberViewKey);
+    if (!bottomView) {
+        UIImage *bottomImage = [[[UIImage alloc] initWithContentsOfFile:[tweakBundle pathForResource:@"BottomGrabber" ofType:@"png"]] autorelease];
+        bottomView = [[[UIImageView alloc] initWithImage:bottomImage] autorelease];
+        bottomView.center = (CGPoint){iconView.iconImageView.center.x, (CGRectGetMaxY(iconView.iconImageView.frame) - 1)};
+        [iconView addSubview:bottomView];
+
+        objc_setAssociatedObject(iconView, bottomGrabberViewKey, bottomView, OBJC_ASSOCIATION_ASSIGN);
+    }
+}
+
+static void STKRemoveGrabberImagesFromIconView(SBIconView *iconView)
+{
+    [(UIView *)objc_getAssociatedObject(iconView, topGrabberViewKey) removeFromSuperview];
+    [(UIView *)objc_getAssociatedObject(iconView, bottomGrabberViewKey) removeFromSuperview];  
+
+    objc_setAssociatedObject(iconView, topGrabberViewKey, nil, OBJC_ASSOCIATION_ASSIGN);
+    objc_setAssociatedObject(iconView, bottomGrabberViewKey, nil, OBJC_ASSOCIATION_ASSIGN);
 }
 
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 {
-    STKStackManager *stackManager = nil;
-    stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:STKGetStackIconsForIcon(iconView.icon)];
-    stackManager.interactionHandler = \
-        ^(SBIconView *tappedIconView) {
+    @autoreleasepool {
 
-            if (tappedIconView) {
-                [(SBUIController *)[%c(SBUIController) sharedInstance] launchIcon:tappedIconView.icon];
-                [stackManager closeStackAfterDelay:0.2 completion:^{
+        STKStackManager * __block stackManager = STKManagerForView(iconView);
+        if (stackManager) {
+            // Make sure the current manager is removed, if it exists
+            objc_setAssociatedObject(iconView, &stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            stackManager = nil;
+        }
+
+        NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
+        
+        // Check if the manager can be created from file
+        if ([[NSFileManager defaultManager] fileExistsAtPath:layoutPath]) { 
+            stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
+        }
+        else {
+            stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:[[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon]];
+            [stackManager saveLayoutToFile:layoutPath];
+        }
+        
+        [stackManager setTopGrabberView:objc_getAssociatedObject(iconView, topGrabberViewKey)
+                      bottomGrabberView:objc_getAssociatedObject(iconView, bottomGrabberViewKey)];
+
+        STKStackManager * __block weakShit = stackManager;
+        weakShit.interactionHandler = \
+            ^(SBIconView *tappedIconView) {
+                if (tappedIconView) {
+                    weakShit.closesOnHomescreenEdit = NO;
+
+                    SBApplication *app = [[%c(SBApplicationController) sharedInstance] applicationWithDisplayIdentifier:tappedIconView.icon.leafIdentifier];
+                    [(SBUIController *)[%c(SBUIController) sharedInstance] activateApplicationFromSwitcher:app];
+                    
+                    weakShit.closesOnHomescreenEdit = YES;
+                    [weakShit closeStackWithCompletionHandler:^{ STKRemoveManagerFromView(iconView); }];
+                }
+                else {
                     STKRemoveManagerFromView(iconView);
-                }];
-            }
-            else {
-                STKRemoveManagerFromView(iconView);
-            }
-        };
+                }
+            };
 
-    objc_setAssociatedObject(iconView, &_stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN);
-    [stackManager release];
 
-    return stackManager;
+        objc_setAssociatedObject(iconView, stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        [stackManager release];
+        
+        return stackManager;
+    }
 }
 
 static void STKRemoveManagerFromView(SBIconView *iconView)
 {
-    STKStackManager *manager = STKManagerForView(iconView);
-    if (manager.isExpanded) {
-        [manager closeStack];   
-    }
-    objc_setAssociatedObject(iconView, &_stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN);
+    objc_setAssociatedObject(iconView, stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+static void STKSetupIconView(SBIconView *iconView)
+{
+    STKAddPanRecognizerToIconView(iconView);
+    STKAddGrabberImagesToIconView(iconView);
 }
 
 static void STKCleanupIconView(SBIconView *iconView)
 {
     STKRemovePanRecognizerFromIconView(iconView);
-    STKRemoveManagerFromView(iconView); // Remove the manager irrespective of whether the view exists or not
+    STKRemoveGrabberImagesFromIconView(iconView);
+    STKRemoveManagerFromView(iconView);
 }
+
 
 #pragma mark - Inliner Definitions
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point)
@@ -336,18 +409,33 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point)
 
 static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconView)
 {
-    return objc_getAssociatedObject(iconView, &_panGRKey);
+    return objc_getAssociatedObject(iconView, panGRKey);
 }
 
 static inline STKStackManager * STKManagerForView(SBIconView *iconView)
 {
-    return objc_getAssociatedObject(iconView, &_stackManagerKey);
+    @autoreleasepool {
+        return objc_getAssociatedObject(iconView, stackManagerKey);
+    }
 }
 
 #pragma mark - Constructor
 %ctor
 {
     @autoreleasepool {
+        CLog(@"Version %s", kPackageVersion);
+        CLog(@"Build date: %s, %s", __DATE__, __TIME__);
         %init();
+#ifdef DEBUG
+        [STKPreferences sharedPreferences];
+        NSDictionary *layout = @{STKStackManagerCentralIconKey : @"com.saurik.Cydia",
+                                 STKStackManagerStackIconsKey  : @[@"com.apple.Preferences", @"eu.heinelt.ifile", @"com.apple.AppStore", @"com.apple.MobileStore"]};
+
+        NSString *path = [[STKStackManager layoutsPath] stringByAppendingString:@"/com.saurik.Cydia.layout"];
+        BOOL didWrite = [layout writeToFile:path atomically:YES];
+        if (!didWrite) {
+            CLog(@"Couldn't save default layout to %@", path);
+        }
+#endif
     }
 }

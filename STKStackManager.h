@@ -1,34 +1,61 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <SpringBoard/SBIconView.h>
-/*
-*	NOTE:
-*		This class ___will___ handle vertical swipes on the contentview to close itself..
-*/
+#import <SpringBoard/SBIconViewDelegate-Protocol.h>
+
 typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 
-@class SBIcon;
+#ifdef __cplusplus 
+extern "C" {
+#endif
+	extern NSString * const STKStackManagerCentralIconKey;
+	extern NSString * const STKStackManagerStackIconsKey;
+#ifdef __cplusplus
+}
+#endif
 
-@interface STKStackManager : NSObject <SBIconViewDelegate>
+#define kEnablingThreshold 33
+
+@class SBIcon, STKIconLayout;
+
+@interface STKStackManager : NSObject <SBIconViewDelegate, UIGestureRecognizerDelegate>
 
 + (BOOL)anyStackOpen;
 + (BOOL)anyStackInMotion;
++ (NSString *)layoutsPath;
 
-@property(nonatomic, readonly) BOOL hasSetup;
-@property(nonatomic, readonly) BOOL isExpanded;
-@property(nonatomic, readonly) CGFloat currentIconDistance; // Distance of all the icons from the center.
+// Properties to derive information from
+@property (nonatomic, readonly) BOOL hasSetup;
+@property (nonatomic, readonly) BOOL isExpanded;
+@property (nonatomic, readonly) CGFloat currentIconDistance; // Distance of all the icons from the center.
+@property (nonatomic, readonly) STKIconLayout *appearingIconsLayout;
+@property (nonatomic, readonly) STKIconLayout *disappearingIconsLayout;
 
-@property(nonatomic, copy) STKInteractionHandler interactionHandler; // the tappedIconView is only passed if there indeed was a tapped icon view. This may be called even if the a swipe is detected on the content view, and the stack closes automagically.
+@property (nonatomic, copy) STKInteractionHandler interactionHandler; // the tappedIconView is only passed if there indeed was a tapped icon view. This may be called even if a swipe/tap is detected on the content view, and the stack closes automagically.
+
+@property (nonatomic, assign) BOOL isEditing;
+@property (nonatomic, assign) BOOL closesOnHomescreenEdit; 
+
+- (instancetype)initWithContentsOfFile:(NSString *)file;
 
 // The interaction handler is called when an icon is tapped.
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons;
 
+// Persistence
+- (void)saveLayoutToFile:(NSString *)path;
+
+// Sets up stack iconViews
 - (void)setupViewIfNecessary;
 - (void)setupView;
 
+// Set these to let the stack manager access the grabber views
+- (void)setTopGrabberView:(UIView *)topGrabberView bottomGrabberView:(UIView *)bottomGrabberView;
+
 - (void)touchesDraggedForDistance:(CGFloat)distance;
 
-// Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
+/*
+	Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
+	If the stack opens up, the receiver automatically sets up swipe and tap recognisers on the icon content view, which, when fired, will call the interactionHandler with a nil argument.
+*/
 - (void)touchesEnded;
 
 // Close the stack irrespective of what's happening. -touchesEnded might call this.

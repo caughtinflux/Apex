@@ -9,3 +9,5 @@ debs/
 *.sublime*
 
 *.sublime-workspace
+
+.theos/packages/com.a3tweaks.acervos-0.0.1

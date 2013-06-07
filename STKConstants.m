@@ -1,16 +1,13 @@
 #import "STKConstants.h"
 
 #import <UIKit/UIKit.h>
-#import <Foundation/Foundation.h>
-#import <SpringBoard/SBIconController.h>
-#import <SpringBoard/SBIconListView.h>
-#import <SpringBoard/SBRootFolder.h>
+
+#import <SpringBoard/SpringBoard.h>
 
 #import <objc/runtime.h>
+#import <sys/sysctl.h>
 
-#include <sys/sysctl.h>
-
-NSString * const STKTweakName                       = @"Stacks";
+NSString * const STKTweakName                       = @"Acervos";
 NSString * const STKEditingStateChangedNotification = @"STKEditingStateChanged";
 NSString * const STKStackClosingEventNotification   = @"STKStackClosingEvent";
 
@@ -27,7 +24,7 @@ inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, 
 inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance)
 {
     // Greater the distance, lower the alpha, therefore, switch places for newMax and newMin
-    double alpha = (STKScaleNumber(distance, 0.0, kTargetDistance, 1.0, 0.0));
+    double alpha = (STKScaleNumber(distance, 0.0, STKGetCurrentTargetDistance(), 1.0, 0.0));
     if (alpha < 0.0) {
         alpha = 0.0;
     }
@@ -37,7 +34,7 @@ inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance
 inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance, BOOL isGhostly)
 {
     double newMax = (isGhostly ? 0.0 : 0.2);
-    double alpha = (STKScaleNumber(distance, 0.0, kTargetDistance, 1.0, newMax));
+    double alpha = (STKScaleNumber(distance, 0.0, STKGetCurrentTargetDistance(), 1.0, newMax));
     if (alpha < newMax) {
         alpha = newMax;
     }
@@ -57,6 +54,22 @@ SBIconListView * STKListViewForIcon(SBIcon *icon)
     return listView;
 }
 
+static CGFloat _currentTargetDistance;
+CGFloat STKGetCurrentTargetDistance(void)
+{
+    return _currentTargetDistance;
+}
+
+void STKUpdateTargetDistanceInListView(SBIconListView *listView)
+{
+    CGPoint referencePoint = [listView originForIconAtX:2 Y:2];
+    CGPoint verticalOrigin = [listView originForIconAtX:2 Y:1];
+    
+    CGFloat verticalDistance = referencePoint.y - verticalOrigin.y;
+
+    _currentTargetDistance = ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? verticalDistance * 0.8636f : verticalDistance * 0.95);
+}
+
 NSUInteger STKInfoForSpecifier(uint typeSpecifier)
 {
     size_t size = sizeof(int);
@@ -65,7 +78,6 @@ NSUInteger STKInfoForSpecifier(uint typeSpecifier)
     sysctl(mib, 2, &results, &size, NULL, 0);
     return (NSUInteger)results;
 }
-
 
 NSUInteger STKGetCPUFrequency(void)
 {

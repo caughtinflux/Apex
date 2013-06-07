@@ -56,30 +56,39 @@
 - (void)enumerateIconsUsingBlockWithIndexes:(void(^)(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block
 {
     STKIconLayout __block *wSelf = self;
-    [block copy];
 
     [self.topIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
         block(icon, STKLayoutPositionTop, wSelf.topIcons, idx);
     }];
 
     [self.bottomIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
-        block(icon, STKLayoutPositionBottom, wSelf.topIcons, idx);
+        block(icon, STKLayoutPositionBottom, wSelf.bottomIcons, idx);
     }];
 
     [self.leftIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
-        block(icon, STKLayoutPositionLeft, wSelf.topIcons, idx);
+        block(icon, STKLayoutPositionLeft, wSelf.leftIcons, idx);
     }];
 
     [self.rightIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
-        block(icon, STKLayoutPositionRight, wSelf.topIcons, idx);
+        block(icon, STKLayoutPositionRight, wSelf.rightIcons, idx);
     }];
-
-    [block release];
 }
 
 - (NSArray *)iconsForPosition:(STKLayoutPosition)position
 {
     return ((position == STKLayoutPositionTop) ? self.topIcons : (position == STKLayoutPositionBottom) ? self.bottomIcons : (position == STKLayoutPositionLeft) ? self.leftIcons : self.rightIcons);
+}
+
+- (NSArray *)allIcons
+{
+    NSMutableArray *ret = [NSMutableArray arrayWithCapacity:self.totalIconCount];
+    
+    [ret addObjectsFromArray:self.topIcons];
+    [ret addObjectsFromArray:self.bottomIcons];
+    [ret addObjectsFromArray:self.leftIcons];
+    [ret addObjectsFromArray:self.rightIcons];
+
+    return ret;
 }
 
 - (NSUInteger)totalIconCount
@@ -132,6 +141,7 @@
                 [newLeftIcons release];
                 break;
             }
+            
             case STKLayoutPositionRight: {
                 NSMutableArray *newRightIcons = [_rightIcons mutableCopy];
                 if (!newRightIcons) {
@@ -151,6 +161,20 @@
 - (NSString *)description
 {
     return [NSString stringWithFormat:@"%@ top.count: %i bottom.count: %i left.count: %i right.count: %i", [super description], _topIcons.count, _bottomIcons.count, _leftIcons.count, _rightIcons.count];
+}
+
+NSString * STKNSStringFromPosition(STKLayoutPosition pos)
+{
+    switch (pos) {
+        case STKLayoutPositionTop:
+            return @"STKLayoutPositionTop";
+        case STKLayoutPositionBottom:
+            return @"STKLayoutPositionBottom";
+        case STKLayoutPositionLeft:
+            return @"STKLayoutPositionLeft";
+        case STKLayoutPositionRight:
+            return @"STKLayoutPositionRight";
+    }
 }
 
 @end

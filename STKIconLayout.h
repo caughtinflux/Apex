@@ -19,16 +19,22 @@ typedef enum {
 // All these arrays contain SBIcon objects
 // Returns an autoreleased instance
 + (instancetype)layoutWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons;
-
 - (instancetype)initWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons;
+
+@property (nonatomic, assign) BOOL containsPlaceholders;
+
 - (void)enumerateThroughAllIconsUsingBlock:(void(^)(SBIcon *, STKLayoutPosition))block;
 - (void)enumerateIconsUsingBlockWithIndexes:(void(^)(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block;
 
+// Methods to query all the things
 - (NSArray *)iconsForPosition:(STKLayoutPosition)position;
-
+- (NSArray *)allIcons;
 - (NSUInteger)totalIconCount;
 
 // This method is thread safe
 - (void)addIcon:(SBIcon *)icon toIconsAtPosition:(STKLayoutPosition)position;
+
+
+NSString * STKNSStringFromPosition(STKLayoutPosition pos);
 
 @end
