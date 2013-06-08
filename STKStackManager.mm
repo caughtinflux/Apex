@@ -205,7 +205,6 @@ static BOOL __stackInMotion;
 
     if (_previousDelegate) {
         [self _iconViewForIcon:_centralIcon].delegate = _previousDelegate;
-        [_previousDelegate release];
     }
     
     [_centralIcon release];
@@ -454,8 +453,7 @@ static BOOL __stackInMotion;
     } completion:^(BOOL finished) {
         if (finished) {
             SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
-            _previousDelegate = [centralIconView.delegate retain];
-            centralIconView.delegate = self;
+            _previousDelegate = centralIconView.delegate;
 
             [self _setupGestureRecognizers];
             [wSelf _setGhostlyAlphaForAllIcons:0.f excludingCentralIcon:YES];
@@ -529,10 +527,10 @@ static BOOL __stackInMotion;
         }
     }];
 
-    DLog(@"Setting delegate back to %@", _previousDelegate);
-    [self _iconViewForIcon:_centralIcon].delegate = _previousDelegate;
-    [_previousDelegate release];
-    _previousDelegate = nil;
+    if (_previousDelegate) {
+        [self _iconViewForIcon:_centralIcon].delegate = _previousDelegate;
+        _previousDelegate = nil;
+    }
     
     // Move all icons to their respective locations
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
