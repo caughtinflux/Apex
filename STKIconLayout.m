@@ -33,6 +33,11 @@
     [super dealloc];
 }
 
++ (NSArray *)allPositions
+{
+    return @[@(STKLayoutPositionTop), @(STKLayoutPositionBottom), @(STKLayoutPositionLeft), @(STKLayoutPositionRight)];
+}
+
 - (void)enumerateThroughAllIconsUsingBlock:(void(^)(SBIcon *, STKLayoutPosition))block
 {
     [block copy];
