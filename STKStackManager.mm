@@ -1110,8 +1110,6 @@ static BOOL __stackInMotion;
 #pragma mark - Notification Handling
 - (void)_editingStateChanged:(NSNotification *)notification
 {
-    DLog(@"");
-
     if (_isExpanded) {
         self.isEditing = [[objc_getClass("SBIconController") sharedInstance] isEditing];
         return;
