@@ -27,10 +27,10 @@
 
 #define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
 
-#define SHOW_USER_NOTIFICATION(title, message, dismissButtonTitle) \
-                               NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey        : title, \
-                                                        (id)kCFUserNotificationAlertMessageKey       : message, \
-                                                        (id)kCFUserNotificationDefaultButtonTitleKey : dismissButtonTitle}; \
+#define SHOW_USER_NOTIFICATION(_title, _message, _dismissButtonTitle) \
+                               NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey        : _title, \
+                                                        (id)kCFUserNotificationAlertMessageKey       : _message, \
+                                                        (id)kCFUserNotificationDefaultButtonTitleKey : _dismissButtonTitle}; \
                                CFUserNotificationRef notificationRef = CFUserNotificationCreate(kCFAllocatorDefault, 0, kCFUserNotificationNoteAlertLevel, NULL, (CFDictionaryRef)fields); \
                                CFRelease(notificationRef)
 
@@ -38,9 +38,10 @@
 #define ICONID_HAS_STACK(ID) ([[[STKPreferences sharedPreferences] identifiersForIconsWithStack] containsObject:ID])
 #define ICON_HAS_STACK(icon) ICONID_HAS_STACK(icon.leafIdentifier)
 
-#define PATH_TO_IMAGE(name) [[NSBundle bundleWithPath:@"/Library/Application Support/Acervos.bundle"] pathForResource:name ofType:@"png"]
+#define PATH_TO_IMAGE(_name) [[NSBundle bundleWithPath:@"/Library/Application Support/Acervos.bundle"] pathForResource:_name ofType:@"png"]
+#define UIIMAGE_NAMED(_name) [[[UIImage alloc] initWithContentsOfFile:PATH_TO_IMAGE(_name)] autorelease]
 
-#define MAP(array, block) for (id elem in array) { block(elem); };
+#define MAP(_array, _block) for (id elem in _array) { _block(elem); }
 
 @class NSString, SBIconListView, SBIcon;
 
@@ -57,8 +58,7 @@ extern "C" {
     extern inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax);
 
     // Wrapper functions
-    extern inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance);
-    extern inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance, BOOL isGhostly);
+    extern inline double STKAlphaFromDistance(double distance);
 
     extern SBIconListView * STKListViewForIcon(SBIcon *icon);
 

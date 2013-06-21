@@ -21,22 +21,12 @@ inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, 
     return (((numToScale - prevMin) * newRange) / oldRange) + newMin;
 }
 
-inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance)
+inline double STKAlphaFromDistance(double distance)
 {
     // Greater the distance, lower the alpha, therefore, switch places for newMax and newMin
     double alpha = (STKScaleNumber(distance, 0.0, STKGetCurrentTargetDistance(), 1.0, 0.0));
     if (alpha < 0.0) {
         alpha = 0.0;
-    }
-    return alpha;
-}
-
-inline double __attribute__((overloadable)) STKAlphaFromDistance(double distance, BOOL isGhostly)
-{
-    double newMax = (isGhostly ? 0.0 : 0.2);
-    double alpha = (STKScaleNumber(distance, 0.0, STKGetCurrentTargetDistance(), 1.0, newMax));
-    if (alpha < newMax) {
-        alpha = newMax;
     }
     return alpha;
 }
@@ -67,7 +57,7 @@ void STKUpdateTargetDistanceInListView(SBIconListView *listView)
     
     CGFloat verticalDistance = referencePoint.y - verticalOrigin.y;
 
-    _currentTargetDistance = ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? verticalDistance * 0.8636f : verticalDistance * 0.95);
+    _currentTargetDistance = verticalDistance;
 }
 
 NSUInteger STKInfoForSpecifier(uint typeSpecifier)
