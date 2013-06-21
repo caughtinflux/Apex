@@ -7,8 +7,8 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 #ifdef __cplusplus 
 extern "C" {
 #endif
-	extern NSString * const STKStackManagerCentralIconKey;
-	extern NSString * const STKStackManagerStackIconsKey;
+    extern NSString * const STKStackManagerCentralIconKey;
+    extern NSString * const STKStackManagerStackIconsKey;
 #ifdef __cplusplus
 }
 #endif
@@ -53,8 +53,8 @@ extern "C" {
 - (void)touchesDraggedForDistance:(CGFloat)distance;
 
 /*
-	Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
-	If the stack opens up, the receiver automatically sets up swipe and tap recognisers on the icon content view, which, when fired, will call the interactionHandler with a nil argument.
+    Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
+    If the stack opens up, the receiver automatically sets up swipe and tap recognisers on the icon content view, which, when fired, will call the interactionHandler with a nil argument.
 */
 - (void)touchesEnded;
 
