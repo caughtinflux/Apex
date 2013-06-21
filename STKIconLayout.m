@@ -1,4 +1,5 @@
 #import "STKIconLayout.h"
+#import "STKConstants.h"
 
 @implementation STKIconLayout 
 
@@ -42,18 +43,13 @@
 {
     [block copy];
 
-    for (SBIcon *icon in self.topIcons) {
-        block(icon, STKLayoutPositionTop);
-    }
-    for (SBIcon *icon in self.bottomIcons) {
-        block(icon, STKLayoutPositionBottom);
-    }
-    for (SBIcon *icon in self.leftIcons) {
-        block(icon, STKLayoutPositionLeft);
-    }
-    for (SBIcon *icon in self.rightIcons) {
-        block(icon, STKLayoutPositionRight);
-    }
+    MAP([[self class] allPositions], ^(NSNumber *number) {
+
+        MAP([self iconsForPosition:[number integerValue]], ^(SBIcon *icon) { 
+            block(icon, [number integerValue]); 
+        });
+
+    });
 
     [block release];
 }
