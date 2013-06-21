@@ -332,7 +332,7 @@ static void STKRemoveGrabberImagesFromIconView(SBIconView *iconView)
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 {
     @autoreleasepool {
-        STKStackManager * __block stackManager = STKManagerForView(iconView);
+        __block STKStackManager * stackManager = STKManagerForView(iconView);
         if (stackManager) {
             // Make sure the current manager is removed, if it exists
             objc_setAssociatedObject(iconView, &stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -353,17 +353,16 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         [stackManager setTopGrabberView:objc_getAssociatedObject(iconView, topGrabberViewKey)
                       bottomGrabberView:objc_getAssociatedObject(iconView, bottomGrabberViewKey)];
 
-        STKStackManager * __block weakShit = stackManager;
-        weakShit.interactionHandler = \
+        stackManager.interactionHandler = \
             ^(SBIconView *tappedIconView) {
                 if (tappedIconView) {
-                    weakShit.closesOnHomescreenEdit = NO;
+                    stackManager.closesOnHomescreenEdit = NO;
 
                     SBApplication *app = [[%c(SBApplicationController) sharedInstance] applicationWithDisplayIdentifier:tappedIconView.icon.leafIdentifier];
                     [(SBUIController *)[%c(SBUIController) sharedInstance] activateApplicationFromSwitcher:app];
                     
-                    weakShit.closesOnHomescreenEdit = YES;
-                    [weakShit closeStackWithCompletionHandler:^{ STKRemoveManagerFromView(iconView); }];
+                    stackManager.closesOnHomescreenEdit = YES;
+                    [stackManager closeStackWithCompletionHandler:^{ STKRemoveManagerFromView(iconView); }];
                 }
                 else {
                     STKRemoveManagerFromView(iconView);
@@ -377,6 +376,7 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         return stackManager;
     }
 }
+
 
 static void STKRemoveManagerFromView(SBIconView *iconView)
 {

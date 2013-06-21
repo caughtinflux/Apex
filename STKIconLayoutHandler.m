@@ -26,6 +26,7 @@ static SBIconListView *_centralIconListView;
 @end
 
 @implementation STKIconLayoutHandler
+
 + (STKIconLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(STKPositionMask)position
 {
     NSAssert((icons != nil), (@"You must pass in a non-nil array to -[STKIconLayoutHandler layoutForIcons:]"));
@@ -57,14 +58,8 @@ static SBIconListView *_centralIconListView;
             }
 
             case 1: {
-                if (((position & STKPositionTouchingBottom) == STKPositionTouchingBottom)  || ((position & STKPositionDock) == STKPositionDock)) {
-                    if (((position & STKPositionTouchingTop) == STKPositionTouchingTop) && ((position & STKPositionTouchingRight) == STKPositionTouchingRight)) {
-                        // BUGFIX
-                        [bottomIcons addObject:icons[i]];
-                    }
-                    else {
-                        [topIcons addObject:icons[i]];
-                    }
+                if (((position & STKPositionTouchingBottom) == STKPositionTouchingBottom)) {
+                    [topIcons addObject:icons[i]];
                 }
                 else {
                     [bottomIcons addObject:icons[i]];
@@ -186,10 +181,10 @@ static SBIconListView *_centralIconListView;
 
 + (STKIconLayout *)_processLayoutForSymmetry:(STKIconLayout *)layout withPosition:(STKPositionMask)position
 {
-    NSMutableArray *topArray = layout.topIcons.mutableCopy;
-    NSMutableArray *bottomArray = layout.bottomIcons.mutableCopy;
-    NSMutableArray *leftArray = layout.leftIcons.mutableCopy;
-    NSMutableArray *rightArray = layout.rightIcons.mutableCopy;
+    NSMutableArray *topArray = [layout.topIcons.mutableCopy autorelease];
+    NSMutableArray *bottomArray = [layout.bottomIcons.mutableCopy autorelease];
+    NSMutableArray *leftArray = [layout.leftIcons.mutableCopy autorelease];
+    NSMutableArray *rightArray = [layout.rightIcons.mutableCopy autorelease];
 
     NSMutableArray *extraArray = nil;
 
@@ -232,14 +227,7 @@ static SBIconListView *_centralIconListView;
         }
     }
 
-    STKIconLayout *processedLayout = [STKIconLayout layoutWithIconsAtTop:topArray bottom:bottomArray left:leftArray right:rightArray];
-    
-    [topArray release];
-    [bottomArray release];
-    [leftArray release];
-    [rightArray release];
-
-    return processedLayout;
+    return [STKIconLayout layoutWithIconsAtTop:topArray bottom:bottomArray left:leftArray right:rightArray];
 }
 
 + (NSArray *)_iconsAboveIcon:(SBIcon *)icon
