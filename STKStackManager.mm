@@ -204,11 +204,7 @@ static BOOL __stackInMotion;
 
 - (void)dealloc
 {
-    DLog(@"");
-
-    for (SBIconView *iconView in [self _allAppearingIconViews]) {
-        [iconView removeFromSuperview];
-    }
+    MAP([self _allAppearingIconViews], ^(SBIconView *iconView){ [iconView removeFromSuperview]; });
 
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
     [listView setIconsNeedLayout];
@@ -272,7 +268,7 @@ static BOOL __stackInMotion;
         _iconViewsTable = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsStrongMemory valueOptions:NSPointerFunctionsStrongMemory capacity:4];
     }
 
-    STKStackManager * __block wSelf = self;
+    __block STKStackManager * wSelf = self;
 
     [_appearingIconsLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
         SBIconView *iconView = [[[objc_getClass("SBIconView") alloc] initWithDefaultSize] autorelease];
@@ -416,7 +412,7 @@ static BOOL __stackInMotion;
 #pragma mark - Open Animation
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
 {
-    STKStackManager __block *wSelf = self;
+    __block STKStackManager *wSelf = self;
     [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         STKLayoutPosition positions[4] = {STKLayoutPositionTop, STKLayoutPositionBottom, STKLayoutPositionLeft, STKLayoutPositionRight};
 
@@ -464,7 +460,7 @@ static BOOL __stackInMotion;
 #pragma mark - Close Animation
 - (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon
 {
-    STKStackManager * __block wSelf = self;
+    __block STKStackManager * wSelf = self;
 
     if (animateCentralIcon) {
         // Animate central imageview shrink/grow
@@ -553,7 +549,7 @@ static BOOL __stackInMotion;
         Comments are written everywhere to make sure that this code is understandable, even a few months down the line. For both appearing and disappearing icons, the first (top) set of icons have been commented, the l/r/d sets do the same thing, only in different directions, so it should be pretty simple to understand.
     */
     
-    STKStackManager * __block wSelf = self;
+    __block STKStackManager * wSelf = self;
 
     [_displacedIconsLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
         SBIconListView *listView = STKListViewForIcon(_centralIcon);
@@ -795,7 +791,7 @@ static BOOL __stackInMotion;
     }
 
     [self _cleanupGestureRecognizers];
-    STKStackManager * __block wSelf = self;
+    __block STKStackManager * wSelf = self;
     [self closeStackWithCompletionHandler:^{ if (wSelf->_interactionHandler) wSelf->_interactionHandler(nil); }];
 }
 
@@ -1010,7 +1006,7 @@ static BOOL __stackInMotion;
     [_offScreenIconsLayout release];
     _offScreenIconsLayout = [[STKIconLayout alloc] init]; 
 
-    STKStackManager * __block wSelf = self;
+    __block STKStackManager * wSelf = self;
 
     [_displacedIconsLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
         CGRect listViewBounds = STKListViewForIcon(wSelf->_centralIcon).bounds;
@@ -1056,7 +1052,7 @@ static BOOL __stackInMotion;
 #pragma mark - Alpha Shit
 - (void)_setAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)shouldExcludeCentral disableInteraction:(BOOL)disableInteraction
 {
-    STKStackManager * __block wSelf = self;
+    __block STKStackManager * wSelf = self;
 
     [self _makeAllIconsPerformBlock:^(SBIcon *icon) {
         if (shouldExcludeCentral && ([icon.leafIdentifier isEqualToString:_centralIcon.leafIdentifier])) {
@@ -1172,7 +1168,7 @@ static BOOL __stackInMotion;
 {
     STKIconLayout *placeHolderLayout = [STKIconLayoutHandler layoutForPlaceHoldersInLayout:_appearingIconsLayout withPosition:[self _locationMaskForIcon:_centralIcon] placeHolderClass:[NSObject class]];
     
-    STKStackManager __block *wSelf = self;
+    __block STKStackManager *wSelf = self;
     SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
 
     [placeHolderLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
