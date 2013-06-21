@@ -9,7 +9,11 @@
 {
     NSDictionary *_currentPrefs;
     NSArray      *_layouts;
+    NSArray      *_iconsInGroups;
 }
+
+- (void)_refreshGroupedIcons;
+
 @end
 
 @implementation STKPreferences
@@ -48,16 +52,21 @@
     NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:[self layoutPathForIcon:icon]];
 
     NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
-    for (NSString *identifier in attributes[STKStackManagerCentralIconKey]) {
+    for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
         // Get the SBIcon instances for the identifiers
         [stackIcons addObject:[model applicationIconForDisplayIdentifier:identifier]];
     }
     return stackIcons;
 }
 
+- (NSString *)layoutPathForIconID:(NSString *)iconID
+{
+    return [NSString stringWithFormat:@"%@/%@.layout", [STKStackManager layoutsPath], iconID];
+}
+
 - (NSString *)layoutPathForIcon:(SBIcon *)icon
 {
-    return [NSString stringWithFormat:@"%@/%@.layout", [STKStackManager layoutsPath], icon.leafIdentifier];
+    return [self layoutPathForIconID:icon.leafIdentifier];
 }
 
 - (void)reloadPreferences
@@ -71,7 +80,6 @@
     }
 
     _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[STKStackManager layoutsPath] error:nil] retain];
-
 }
 
 - (BOOL)iconHasStack:(SBIcon *)icon
@@ -79,11 +87,46 @@
     return [[self identifiersForIconsWithStack] containsObject:icon.leafIdentifier];
 }
 
+- (BOOL)iconIsInStack:(SBIcon *)icon
+{
+    if (!_iconsInGroups) {
+        [self _refreshGroupedIcons];
+    }
+
+    return [_iconsInGroups containsObject:icon.leafIdentifier];
+}
+
 - (BOOL)saveLayoutWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
 {
-    NSDictionary *attributes = @{STKStackManagerCentralIconKey : centralIcon.leafIdentifier,
-                                 STKStackManagerStackIconsKey  : [icons valueForKeyPath:@"leafIdentifier"]}; // KVC FTW
-    return [attributes writeToFile:[self layoutPathForIcon:centralIcon] atomically:YES];
+    return [self saveLayoutWithCentralIconID:centralIcon.leafIdentifier stackIconIDs:[icons valueForKeyPath:@"leafIdentifier"]];
+}
+
+- (BOOL)saveLayoutWithCentralIconID:(NSString *)iconID stackIconIDs:(NSArray *)stackIconIDs
+{
+    NSDictionary *attributes = @{STKStackManagerCentralIconKey : iconID,
+                                 STKStackManagerStackIconsKey  : stackIconIDs}; // KVC FTW
+
+    BOOL success = [attributes writeToFile:[self layoutPathForIconID:iconID] atomically:YES];
+    if (success) {
+        // Only reload if the write succeeded, hence save IO operations
+        [self reloadPreferences];
+    }
+
+    return success;
+}
+
+- (void)_refreshGroupedIcons
+{
+    [_iconsInGroups release];
+
+    NSMutableArray *groupedIcons = [NSMutableArray array];
+    NSArray *identifiers = [self identifiersForIconsWithStack];
+    for (NSString *identifier in identifiers) {
+        SBIcon *centralIcon = [[(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model] applicationIconForDisplayIdentifier:identifier];
+        [groupedIcons addObjectsFromArray:[(NSArray *)[self stackIconsForIcon:centralIcon] valueForKeyPath:@"leafIdentifier"]];
+    }
+
+     _iconsInGroups = [groupedIcons copy];
 }
 
 @end
