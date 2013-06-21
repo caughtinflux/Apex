@@ -33,6 +33,9 @@ static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconV
 static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
 static inline NSString               * STKGetLayoutPathForIcon(SBIcon *icon);
 
+#ifdef DEBUG
+    //static BOOL _hasConfiguredCrap;
+#endif
 
 #pragma mark - Direction !
 typedef enum {
@@ -54,6 +57,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 - (void)setIcon:(SBIcon *)icon
 {
     %orig();
+
     if (!icon ||
         self.location == SBIconViewLocationSwitcher ||
         [[%c(SBIconController) sharedInstance] isEditing] ||
@@ -83,7 +87,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
     %orig();
 }
 
-#define kBandingFactor  0.1 // The factor by which the distance should be multiplied when the icons have crossed kTargetDistance
+#define kBandingFactor  0.15 // The factor by which the distance should be multiplied to simulate the rubber banding effect
 
 static CGPoint                _previousPoint    = CGPointZero;
 static CGPoint                _initialPoint     = CGPointZero;
@@ -140,29 +144,26 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
         CGPoint point = [sender locationInView:view];
 
-        BOOL hasCrossedInitial = NO;
         // If the swipe is going beyond the point where it started from, stop the swipe.
         if (_currentDirection == STKRecognizerDirectionUp) {
-            hasCrossedInitial = (point.y > _initialPoint.y);
+            if (point.y > _initialPoint.y) 
+                return;
         }
         else if (_currentDirection == STKRecognizerDirectionDown) {
-            hasCrossedInitial = (point.y < _initialPoint.y);
+            if (point.y < _initialPoint.y) 
+                return;
         }
 
-        if (hasCrossedInitial) {
-            return;
-        }
-
-        CGFloat change = fabsf(_previousPoint.y - point.y); // Vertical distances
+        CGFloat change = fabsf(_previousPoint.y - point.y); // Vertical
         CGFloat distance = fabsf(_initialPoint.y - point.y);
         
-        if (distance < _previousDistance || stackManager.isExpanded) {
+        if (distance < _previousDistance) {
             // The swipe is going to the opposite direction, so make sure the manager moves its views in the corresponding direction too
             change = -change;
         }
 
 
-        if ((change > 0) && ((stackManager.currentIconDistance) >= STKGetCurrentTargetDistance())) {
+        if ((change > 0) && (stackManager.currentIconDistance >= STKGetCurrentTargetDistance())) {
             // Factor this down to simulate elasticity when the icons have reached their target locations
             // Stack manager allows the icons to go beyond their targets for a little distance
             change *= kBandingFactor;
@@ -331,7 +332,6 @@ static void STKRemoveGrabberImagesFromIconView(SBIconView *iconView)
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 {
     @autoreleasepool {
-
         STKStackManager * __block stackManager = STKManagerForView(iconView);
         if (stackManager) {
             // Make sure the current manager is removed, if it exists
@@ -425,17 +425,15 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
     @autoreleasepool {
         CLog(@"Version %s", kPackageVersion);
         CLog(@"Build date: %s, %s", __DATE__, __TIME__);
-        %init();
-#ifdef DEBUG
-        [STKPreferences sharedPreferences];
-        NSDictionary *layout = @{STKStackManagerCentralIconKey : @"com.saurik.Cydia",
-                                 STKStackManagerStackIconsKey  : @[@"com.apple.Preferences", @"eu.heinelt.ifile", @"com.apple.AppStore", @"com.apple.MobileStore"]};
 
-        NSString *path = [[STKStackManager layoutsPath] stringByAppendingString:@"/com.saurik.Cydia.layout"];
-        BOOL didWrite = [layout writeToFile:path atomically:YES];
+#ifdef DEBUG
+        BOOL didWrite = [[STKPreferences sharedPreferences] saveLayoutWithCentralIconID:@"com.saurik.Cydia" stackIconIDs:@[@"com.apple.Preferences", @"eu.heinelt.ifile", @"com.apple.AppStore", @"com.apple.MobileStore"]];
+        
         if (!didWrite) {
-            CLog(@"Couldn't save default layout to %@", path);
+            CLog(@"Couldn't save default layout");
         }
 #endif
+
+        %init();
     }
 }
