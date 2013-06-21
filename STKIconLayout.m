@@ -56,7 +56,7 @@
 
 - (void)enumerateIconsUsingBlockWithIndexes:(void(^)(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block
 {
-    STKIconLayout __block *wSelf = self;
+    __block STKIconLayout *wSelf = self;
 
     [self.topIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
         block(icon, STKLayoutPositionTop, wSelf.topIcons, idx);
