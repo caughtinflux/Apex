@@ -7,6 +7,7 @@
 #import "STKPreferences.h"
 
 #import <SpringBoard/SpringBoard.h>
+#import "MobileIcons.h"
 
 #pragma mark - Function Declarations
 // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
@@ -33,9 +34,6 @@ static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconV
 static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
 static inline NSString               * STKGetLayoutPathForIcon(SBIcon *icon);
 
-#ifdef DEBUG
-    //static BOOL _hasConfiguredCrap;
-#endif
 
 #pragma mark - Direction !
 typedef enum {
@@ -377,7 +375,6 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
     }
 }
 
-
 static void STKRemoveManagerFromView(SBIconView *iconView)
 {
     objc_setAssociatedObject(iconView, stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -386,14 +383,20 @@ static void STKRemoveManagerFromView(SBIconView *iconView)
 static void STKSetupIconView(SBIconView *iconView)
 {
     STKAddPanRecognizerToIconView(iconView);
+    
     STKAddGrabberImagesToIconView(iconView);
+    STKRemoveGrabberImagesFromIconView(iconView);
+
+    iconView.iconImageView.transform = CGAffineTransformMakeScale(0.9f, 0.9f);
 }
 
 static void STKCleanupIconView(SBIconView *iconView)
 {
     STKRemovePanRecognizerFromIconView(iconView);
-    STKRemoveGrabberImagesFromIconView(iconView);
+    // STKRemoveGrabberImagesFromIconView(iconView);
     STKRemoveManagerFromView(iconView);
+
+    iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
 }
 
 
@@ -419,6 +422,7 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
     }
 }
 
+
 #pragma mark - Constructor
 %ctor
 {
@@ -427,7 +431,8 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
         CLog(@"Build date: %s, %s", __DATE__, __TIME__);
 
 #ifdef DEBUG
-        BOOL didWrite = [[STKPreferences sharedPreferences] saveLayoutWithCentralIconID:@"com.saurik.Cydia" stackIconIDs:@[@"com.apple.Preferences", @"eu.heinelt.ifile", @"com.apple.AppStore", @"com.apple.MobileStore"]];
+        BOOL didWrite = [[STKPreferences sharedPreferences] saveLayoutWithCentralIconID:@"com.saurik.Cydia"
+                                                                           stackIconIDs:@[@"com.apple.Preferences", @"eu.heinelt.ifile", @"com.apple.AppStore", @"com.apple.MobileStore"]];
         
         if (!didWrite) {
             CLog(@"Couldn't save default layout");

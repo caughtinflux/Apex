@@ -41,17 +41,11 @@
 
 - (void)enumerateThroughAllIconsUsingBlock:(void(^)(SBIcon *, STKLayoutPosition))block
 {
-    [block copy];
-
     MAP([[self class] allPositions], ^(NSNumber *number) {
-
         MAP([self iconsForPosition:[number integerValue]], ^(SBIcon *icon) { 
             block(icon, [number integerValue]); 
         });
-
     });
-
-    [block release];
 }
 
 - (void)enumerateIconsUsingBlockWithIndexes:(void(^)(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block
