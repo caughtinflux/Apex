@@ -25,7 +25,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 #define kAnimationDuration   0.2
 #define kDisabledIconAlpha   0.2
 #define kBandingAllowance    ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 25 : 50)
-#define kGhostlyRequesterID  5
+#define kGhostlyRequesterID  23
 #define kOverlayDuration     0.12
 
 
@@ -43,9 +43,6 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 
     CGFloat                   _lastDistanceFromCenter;
     BOOL                      _hasPreparedGhostlyIcons;
-
-    UIView                   *_topGrabberView;
-    UIView                   *_bottomGrabberView;
 
     UISwipeGestureRecognizer *_swipeRecognizer;
     UITapGestureRecognizer   *_tapRecognizer;
@@ -187,8 +184,9 @@ static BOOL __stackInMotion;
     if ((self = [super init])) {
         [icons retain]; // Make sure it's not released until we're done with it
 
-        _centralIcon             = [centralIcon retain];
-        _appearingIconsLayout    = [[STKIconLayoutHandler layoutForIcons:icons aroundIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
+        _centralIcon          = [centralIcon retain];
+
+        _appearingIconsLayout = [[STKIconLayoutHandler layoutForIcons:icons aroundIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
         _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
 
         [icons release];
@@ -208,7 +206,7 @@ static BOOL __stackInMotion;
 {
     DLog(@"");
 
-    MAP([self _allAppearingIconViews], ^(SBIconView *iconView){ [iconView removeFromSuperview]; });
+    [self cleanupView];
 
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
     [listView setIconsNeedLayout];
@@ -226,9 +224,6 @@ static BOOL __stackInMotion;
     [_displacedIconsLayout release];
     [_iconViewsTable release];
     [_offScreenIconsLayout release];
-
-    [_topGrabberView release];
-    [_bottomGrabberView release];
 
     [self _cleanupGestureRecognizers];
 
@@ -257,6 +252,21 @@ static BOOL __stackInMotion;
     }
 }
 
+- (void)recalculateLayouts
+{
+    NSArray *stackIcons = [[_appearingIconsLayout allIcons] retain];
+
+    [_appearingIconsLayout release];
+    [_displacedIconsLayout release];
+
+    _appearingIconsLayout = [[STKIconLayoutHandler layoutForIcons:stackIcons aroundIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
+    [stackIcons release];
+
+    _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
+
+    [self _calculateDistanceRatio];
+    [self _findIconsWithOffScreenTargets];
+}
 
 #pragma mark - Adding Stack Icons
 - (void)setupViewIfNecessary
@@ -305,16 +315,70 @@ static BOOL __stackInMotion;
     _hasSetup = YES;
 }
 
-- (void)setTopGrabberView:(UIView *)topGrabberView bottomGrabberView:(UIView *)bottomGrabberView
+- (void)cleanupView
 {
-    _topGrabberView = [topGrabberView retain];
-    _bottomGrabberView = [bottomGrabberView retain];
+    MAP([self _allAppearingIconViews], ^(SBIconView *iconView) {
+        [iconView removeFromSuperview];
+    });
+    [_iconViewsTable release];
+
+    _hasSetup = NO;
 }
+
+#pragma mark - Preview Handling
+- (void)setupPreview
+{
+    /*
+    *   BULLSHIT CODE BEGINS
+    */
+    STKLayoutPosition positions[] = {STKLayoutPositionTop, STKLayoutPositionBottom, STKLayoutPositionLeft, STKLayoutPositionRight};
+    for (NSInteger i = 0; i <= 3; i++) {
+        NSArray *iconViews = [_iconViewsTable objectForKey:[self _keyForPosition:positions[i]]];
+        STKLayoutPosition position = positions[i];
+
+        [iconViews enumerateObjectsUsingBlock:^(SBIconView *iconView, NSUInteger idx, BOOL *stop) {
+            CGRect frame = [self _iconViewForIcon:_centralIcon].frame;
+
+            CGPoint newOrigin = frame.origin;
+
+            // Check if it's the last object
+            if (idx == iconViews.count - 1) {
+               iconView.alpha = 1.f;
+
+               // This is probably how the rest of the code should've been written
+               CGFloat *memberToModify = ((position == STKLayoutPositionTop || position == STKLayoutPositionBottom) ? &newOrigin.y : &newOrigin.x);
+
+               // the member to modify needs to be subtracted from in case of t/l.
+               CGFloat negator = (position == STKLayoutPositionTop || position == STKLayoutPositionLeft ? -1 : 1);
+
+               *memberToModify += 8 * negator;
+            }
+            else {
+               iconView.alpha = 0.f;
+            }
+
+            frame.origin = newOrigin; 
+            iconView.frame = frame;
+
+            // Scale the icon back down to the smaller size.
+            iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
+            
+            ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 0.f;
+            [iconView setIconLabelAlpha:0.f];
+        }];
+    }
+    /*
+    *   BULLSHIT CODE ENDS
+    */
+}
+
 
 
 #pragma mark - Moving Icons
 - (void)touchesDraggedForDistance:(CGFloat)distance
 {
+    [self setupViewIfNecessary];
+
     if (_isExpanded && ![[[objc_getClass("SBIconController") sharedInstance] scrollView] isDragging]) {
         return;
     }
@@ -330,16 +394,31 @@ static BOOL __stackInMotion;
     CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter);
     [self _setGhostlyAlphaForAllIcons:alpha excludingCentralIcon:YES];
     [self _setAlphaForAppearingLabelsAndShadows:(1 - alpha)];
-    [self _setPageControlAlpha:alpha];  
+    [self _setPageControlAlpha:alpha];
+
+    
+    CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
+    if (_lastDistanceFromCenter <= midWayDistance) {
+        // If the icons are past the halfway mark, start increasing/decreasing their scale.
+        // This looks beatuiful. Yay me.
+        CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kStackPreviewIconScale);
+        MAP([self _allAppearingIconViews], ^(SBIconView *iconView) {
+            iconView.iconImageView.transform = CGAffineTransformMakeScale(stackIconTransformScale, stackIconTransformScale);
+        });
+
+        CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
+        [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(centralIconTransformScale, centralIconTransformScale);
+    }
 
     __stackInMotion = NO;
 }
 
 - (void)touchesEnded
 {
+    [self setupViewIfNecessary];
+
     if (_lastDistanceFromCenter >= kEnablingThreshold && !_isExpanded) {
         [self openStack];
-
     }
     else {
         [self _animateToClosedPositionWithCompletionBlock:^{
@@ -352,6 +431,7 @@ static BOOL __stackInMotion;
  
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler
 {
+    DLog(@"");
     [self _animateToClosedPositionWithCompletionBlock:^{
         if (completionHandler) {
             completionHandler();
@@ -378,6 +458,7 @@ static BOOL __stackInMotion;
 
 - (void)openStack
 {
+    [self setupViewIfNecessary];
     [self _animateToOpenPositionWithDuration:kAnimationDuration];
 }
 
@@ -401,14 +482,10 @@ static BOOL __stackInMotion;
     if (_isEditing) {
         [self _drawOverlayOnAllIcons];
         [self _insertAddButtonsInEmptyLocations];
-        _bottomGrabberView.alpha = 0;
-        _topGrabberView.alpha = 0;
     }
     else {
         [self _removeOverlays];
         [self _removePlaceHolders];
-        _bottomGrabberView.alpha = 1.f;
-        _topGrabberView.alpha = 1.f;
     }
 }
 
@@ -416,14 +493,19 @@ static BOOL __stackInMotion;
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
 {
     [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+
         STKLayoutPosition positions[4] = {STKLayoutPositionTop, STKLayoutPositionBottom, STKLayoutPositionLeft, STKLayoutPositionRight};
 
         for (NSInteger i = 0; i <= 3; i++) {
             NSArray *iconViews = [_iconViewsTable objectForKey:[self _keyForPosition:positions[i]]];
             [iconViews enumerateObjectsUsingBlock:^(SBIconView *iconView, NSUInteger idx, BOOL *stop) {
                 CGRect newFrame = iconView.frame;
+                
                 newFrame.origin = [self _targetOriginForIconAtPosition:(STKLayoutPosition)[[STKIconLayout allPositions][i] integerValue] distanceFromCentre:idx + 1];
                 iconView.frame = newFrame;
+                iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+                
                 iconView.delegate = self;
             }];
         }
@@ -462,32 +544,33 @@ static BOOL __stackInMotion;
 #pragma mark - Close Animation
 - (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon
 {
-    if (animateCentralIcon) {
+    UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
+    [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         // Animate central imageview shrink/grow
-        UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
-        [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            centralView.transform = CGAffineTransformMakeScale(0.9f, 0.9f);
-        } completion:^(BOOL finished) {
-            if (finished) {
-                [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                    centralView.transform = CGAffineTransformMakeScale(1.0f, 1.0f);
-                } completion:nil];
-            }
-        }];
-    }
+        if (animateCentralIcon) {
+            centralView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale - 0.1f, kCentralIconPreviewScale - 0.1f);
+        }
+    } completion:^(BOOL finished) {
+        if (finished) {
+            // Animate it back to the preview icon scale
+            [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                centralView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
+            } completion:nil];
+        }
+    }];
     
     // Make sure we're not in the editing state
     self.isEditing = NO;
 
     [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
-        // Set the frame for all these icons to the frame of their central icon
-        for (SBIconView *iconView in [self _allAppearingIconViews]) {
-            iconView.frame = [self _iconViewForIcon:_centralIcon].frame;
-            iconView.alpha = 0.f;
-            
-            ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 0.f;
-            [iconView setIconLabelAlpha:0.f];
-        }
+        /*
+        *   BEGIN HORRID FUCKING CODE
+        */
+        [self setupPreview];
+        
+        /*
+        *   END HORRID FUCKING CODE
+        */
 
         // Set the alphas back to original
         [self _setGhostlyAlphaForAllIcons:0.999f excludingCentralIcon:YES];

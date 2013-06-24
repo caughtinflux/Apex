@@ -43,12 +43,15 @@ extern "C" {
 // Persistence
 - (void)saveLayoutToFile:(NSString *)path;
 
-// Sets up stack iconViews
+// Call this method when the location of the icon changes
+- (void)recalculateLayouts;
+
+- (void)setupPreview;
+
+// Set Up Stack Icons' Views
 - (void)setupViewIfNecessary;
 - (void)setupView;
-
-// Set these to let the stack manager access the grabber views
-- (void)setTopGrabberView:(UIView *)topGrabberView bottomGrabberView:(UIView *)bottomGrabberView;
+- (void)cleanupView;
 
 - (void)touchesDraggedForDistance:(CGFloat)distance;
 

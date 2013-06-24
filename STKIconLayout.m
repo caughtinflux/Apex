@@ -39,7 +39,7 @@
     return @[@(STKLayoutPositionTop), @(STKLayoutPositionBottom), @(STKLayoutPositionLeft), @(STKLayoutPositionRight)];
 }
 
-- (void)enumerateThroughAllIconsUsingBlock:(void(^)(SBIcon *, STKLayoutPosition))block
+- (void)enumerateThroughAllIconsUsingBlock:(void(^)(id, STKLayoutPosition))block
 {
     MAP([[self class] allPositions], ^(NSNumber *number) {
         MAP([self iconsForPosition:[number integerValue]], ^(SBIcon *icon) { 
@@ -48,7 +48,7 @@
     });
 }
 
-- (void)enumerateIconsUsingBlockWithIndexes:(void(^)(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block
+- (void)enumerateIconsUsingBlockWithIndexes:(void(^)(id icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block
 {
     __block STKIconLayout *wSelf = self;
 
