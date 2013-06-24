@@ -328,6 +328,8 @@ static BOOL __stackInMotion;
 #pragma mark - Preview Handling
 - (void)setupPreview
 {
+    [self setupViewIfNecessary];
+
     /*
     *   BULLSHIT CODE BEGINS
     */
