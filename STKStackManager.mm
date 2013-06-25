@@ -72,6 +72,7 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 - (STKPositionMask)_locationMaskForIcon:(SBIcon *)icon;
 
 // Returns the target origin for icons in the stack at the moment.
+// Returns the target origin for icons in the stack at the moment, in _centralIcon's iconView. To use with the list view, use -[UIView convertPoint:toView:]
 - (CGPoint)_targetOriginForIconAtPosition:(STKLayoutPosition)position distanceFromCentre:(NSInteger)distance;
 
 // Manually calculates where the displaced icons should go.
@@ -1251,7 +1252,9 @@ static BOOL __stackInMotion;
 
     [placeHolderLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
         UIImageView *imageView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"EditingOverlay")] autorelease];
-        CGPoint newOrigin = [self _targetOriginForIconAtPosition:position distanceFromCentre:[_appearingIconsLayout iconsForPosition:position].count + index + 1];
+
+        CGPoint newOrigin = [centralIconView convertPoint:[self _targetOriginForIconAtPosition:position distanceFromCentre:[_appearingIconsLayout iconsForPosition:position].count + index + 1]
+                                                   toView:STKListViewForIcon(_centralIcon)];
         newOrigin.x -= 2;
         newOrigin.y -= 2;
         imageView.frame = (CGRect){newOrigin, imageView.frame.size};
