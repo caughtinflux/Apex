@@ -64,8 +64,8 @@ extern "C" {
 
     extern SBIconListView * STKListViewForIcon(SBIcon *icon);
 
-    extern CGFloat STKGetCurrentTargetDistance(void);
-    extern void    STKUpdateTargetDistanceInListView(SBIconListView *listView);
+    extern inline CGFloat STKGetCurrentTargetDistance(void);
+    extern inline void    STKUpdateTargetDistanceInListView(SBIconListView *listView);
 
     extern NSUInteger STKGetCPUFrequency(void);
 

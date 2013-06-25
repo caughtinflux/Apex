@@ -45,12 +45,12 @@ SBIconListView * STKListViewForIcon(SBIcon *icon)
 }
 
 static CGFloat _currentTargetDistance;
-CGFloat STKGetCurrentTargetDistance(void)
+inline CGFloat STKGetCurrentTargetDistance(void)
 {
     return _currentTargetDistance;
 }
 
-void STKUpdateTargetDistanceInListView(SBIconListView *listView)
+inline void STKUpdateTargetDistanceInListView(SBIconListView *listView)
 {
     CGPoint referencePoint = [listView originForIconAtX:2 Y:2];
     CGPoint verticalOrigin = [listView originForIconAtX:2 Y:1];
