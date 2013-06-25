@@ -61,11 +61,9 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
         STKCleanupIconView(self);
         STKRemoveManagerFromView(self);
+
         return;
     }
-    
-    STKSetupIconView(self);
-    [STKManagerForView(self) setupPreview];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_closeStack:) name:STKStackClosingEventNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_editingStateChanged:) name:STKEditingStateChangedNotification object:nil];
@@ -98,10 +96,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     STKStackManager *stackManager = STKManagerForView(self);
     if (stackManager.isExpanded) {
         return;
-    }
-
-    if (!stackManager) {
-        stackManager = STKSetupManagerForView(self);
     }
 
     if (sender.state == UIGestureRecognizerStateBegan) {
@@ -190,7 +184,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         STKCleanupIconView(self);
     }
     else {
-        if (ICON_HAS_STACK(self.icon) && (isEditing == NO)) {
+        if (ICON_HAS_STACK(self.icon) && (isEditing == NO)) {  
             STKSetupIconView(self);
         }
     }
@@ -282,12 +276,8 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 {
     @autoreleasepool {
         __block STKStackManager * stackManager = STKManagerForView(iconView);
-        if (stackManager) {
-            [stackManager recalculateLayouts];
-            [stackManager setupPreview];
-        }
-
-        else {
+    
+        if (!stackManager) {
             NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
             
             // Check if the manager can be created from file
@@ -317,6 +307,9 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
             [stackManager release];
         }
         
+        [stackManager recalculateLayouts];
+        [stackManager setupPreview];
+        
         return stackManager;
     }
 }
@@ -337,6 +330,7 @@ static void STKSetupIconView(SBIconView *iconView)
 static void STKCleanupIconView(SBIconView *iconView)
 {
     STKRemovePanRecognizerFromIconView(iconView);
+    [STKManagerForView(iconView) cleanupView];
 }
 
 
