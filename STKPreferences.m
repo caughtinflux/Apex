@@ -32,6 +32,20 @@
     return sharedInstance;
 }
 
+- (void)reloadPreferences
+{
+    [_currentPrefs release];
+    [_layouts release];
+
+    _currentPrefs = [[NSDictionary alloc] initWithContentsOfFile:kPrefPath];
+    if (!_currentPrefs) {
+        _currentPrefs = [[NSDictionary alloc] init];
+    }
+
+    _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[STKStackManager layoutsPath] error:nil] retain];
+    [self _refreshGroupedIcons];
+}
+
 - (NSArray *)identifiersForIconsWithStack
 {
     static NSString *fileType = @".layout";
@@ -54,11 +68,11 @@
     NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
     for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
         // Get the SBIcon instances for the identifiers
-        [stackIcons addObject:[model applicationIconForDisplayIdentifier:identifier]];
         [stackIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
     }
     return stackIcons;
 }
+
 
 - (NSString *)layoutPathForIconID:(NSString *)iconID
 {
@@ -68,19 +82,6 @@
 - (NSString *)layoutPathForIcon:(SBIcon *)icon
 {
     return [self layoutPathForIconID:icon.leafIdentifier];
-}
-
-- (void)reloadPreferences
-{
-    [_currentPrefs release];
-    [_layouts release];
-
-    _currentPrefs = [[NSDictionary alloc] initWithContentsOfFile:kPrefPath];
-    if (!_currentPrefs) {
-        _currentPrefs = [[NSDictionary alloc] init];
-    }
-
-    _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[STKStackManager layoutsPath] error:nil] retain];
 }
 
 - (BOOL)iconHasStack:(SBIcon *)icon
@@ -123,7 +124,6 @@
     NSMutableArray *groupedIcons = [NSMutableArray array];
     NSArray *identifiers = [self identifiersForIconsWithStack];
     for (NSString *identifier in identifiers) {
-        SBIcon *centralIcon = [[(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model] applicationIconForDisplayIdentifier:identifier];
         SBIcon *centralIcon = [[(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model] expectedIconForDisplayIdentifier:identifier];
         [groupedIcons addObjectsFromArray:[(NSArray *)[self stackIconsForIcon:centralIcon] valueForKeyPath:@"leafIdentifier"]];
     }

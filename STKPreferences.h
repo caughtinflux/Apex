@@ -9,6 +9,7 @@
 
 - (void)reloadPreferences;
 
+- (NSArray *)identifiersForIconsWithStack;
 - (NSArray *)stackIconsForIcon:(SBIcon *)icon;
 
 - (NSString *)layoutPathForIconID:(NSString *)iconID;
