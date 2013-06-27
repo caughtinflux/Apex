@@ -7,6 +7,7 @@
 #import "STKPreferences.h"
 
 #import <SpringBoard/SpringBoard.h>
+#import <objc/message.h>
 
 #pragma mark - Function Declarations
 // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
@@ -198,6 +199,25 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     }
 }
 
+/*      __  _____   _  ___  __
+       / / / /   | | |/ / |/ /
+      / /_/ / /| | |   /|   / 
+     / __  / ___ |/   |/   |  
+    /_/ /_/_/  |_/_/|_/_/|_|  
+*/
+
+%new
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+    UIView *view = [STKManagerForView(self) hitTest:point withEvent:event];
+    if (view) {
+        return view;
+    }
+    
+    IMP hitTestIMP = class_getMethodImplementation([UIView class], _cmd);
+    return hitTestIMP(self, _cmd, point, event);
+}
+
 %end
 
 %hook SBIconController
@@ -216,6 +236,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     %orig(scrollView);
     [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
 }
+
 %end
 
 %hook SBUIController
@@ -235,8 +256,13 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
     return %orig(animationDuration);
 }
-
 %end
+
+%hook SBApplication
+- (void)setActivationSetting:(NSUInteger)arg1 value:(id)arg2 { %orig(); %log; }
+- (void)setActivationSetting:(NSUInteger)arg1 flag:(BOOL)arg2 { %orig(); %log; }
+%end
+
 
 #pragma mark - Associated Object Keys
 static const SEL panGRKey = @selector(acervosPanKey);
@@ -298,7 +324,6 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
                         [(SBUIController *)[%c(SBUIController) sharedInstance] activateApplicationFromSwitcher:app];
                         
                         stackManager.closesOnHomescreenEdit = YES;
-                        [stackManager closeStack];
                     }
                 };
 
@@ -316,6 +341,7 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 
 static void STKRemoveManagerFromView(SBIconView *iconView)
 {
+    iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
     objc_setAssociatedObject(iconView, stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 

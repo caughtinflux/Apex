@@ -72,4 +72,8 @@ extern "C" {
 - (void)closeStack;
 - (void)closeStackAfterDelay:(NSTimeInterval)delay completion:(void(^)(void))completionBlock;
 
+// HAXX: This method should be called as a proxy for -[UIView hitTest:withEvent:] inside SBIconView, so we can process if any stack icons should be receiving touches.
+// It's necessary, because the icons are added as a subview of the central iconView.
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;
+
 @end

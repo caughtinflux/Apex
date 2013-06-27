@@ -71,7 +71,6 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 - (SBIconView *)_iconViewForIcon:(SBIcon *)icon;
 - (STKPositionMask)_locationMaskForIcon:(SBIcon *)icon;
 
-// Returns the target origin for icons in the stack at the moment.
 // Returns the target origin for icons in the stack at the moment, in _centralIcon's iconView. To use with the list view, use -[UIView convertPoint:toView:]
 - (CGPoint)_targetOriginForIconAtPosition:(STKLayoutPosition)position distanceFromCentre:(NSInteger)distance;
 
@@ -304,14 +303,9 @@ static BOOL __stackInMotion;
         [iconView setIconLabelAlpha:0.f];
         [[iconView valueForKeyPath:@"_shadow"] setAlpha:0.f];
 
-        // Insert subviews such that the appearing icons not in the first position slide out from under the previous icon
-        if (index == 0) {
-            [centralIconView insertSubview:iconView atIndex:0];
-        }
-        else {
-            [centralIconView insertSubview:iconView belowSubview:iconViews[index - 1]];    
-        }
-        
+        [centralIconView insertSubview:iconView atIndex:0];
+
+        iconView.userInteractionEnabled = NO;
 
         for (UIGestureRecognizer *recognizer in iconView.gestureRecognizers) {
             if ([recognizer isKindOfClass:[UISwipeGestureRecognizer class]]) {
@@ -509,6 +503,8 @@ static BOOL __stackInMotion;
                 iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
                 
                 iconView.delegate = self;
+
+                iconView.userInteractionEnabled = YES;
             }];
         }
 
@@ -532,6 +528,7 @@ static BOOL __stackInMotion;
             SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
             _previousDelegate = centralIconView.delegate;
             centralIconView.delegate = self;
+            centralIconView.userInteractionEnabled = YES;
 
             [self _setupGestureRecognizers];
             [self _setGhostlyAlphaForAllIcons:0.f excludingCentralIcon:YES];
@@ -541,6 +538,25 @@ static BOOL __stackInMotion;
         }
     }];
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////        HAXX        ////////////////////////////////////////////////////////
+
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+    SBIconView *touchedIconView = nil;
+    CGRect centralIconViewFrame = [self _iconViewForIcon:_centralIcon].frame;
+    
+    for (SBIconView *iconView in [self _allAppearingIconViews]) {
+        if (CGRectContainsPoint(iconView.frame, point) && !(CGRectContainsPoint(centralIconViewFrame, point))) {
+            touchedIconView = iconView;
+        }
+    }
+    return touchedIconView;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 #pragma mark - Close Animation
@@ -570,6 +586,7 @@ static BOOL __stackInMotion;
             iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
             ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 0.f;
             [iconView setIconLabelAlpha:0.f];
+            iconView.userInteractionEnabled = NO;
         });
 
         // Set the alphas back to original
@@ -756,7 +773,7 @@ static BOOL __stackInMotion;
             newFrame.origin = targetOrigin;
         }
         else if ((newFrame.origin.y - translatedDistance) > centralFrame.origin.y) {
-            newFrame = [self _iconViewForIcon:_centralIcon].frame;
+            newFrame = centralFrame;
         }
         iconView.frame = newFrame;
     }];
@@ -1353,6 +1370,11 @@ static BOOL __stackInMotion;
     if (_interactionHandler) {
         _interactionHandler(iconView);
     }
+}
+
+- (void)icon:(id)arg1 touchMovedWithEvent:(id)arg2
+{
+    DLog(@"%@", [(SBIconView *)arg1 icon].leafIdentifier);
 }
 
 - (void)iconHandleLongPress:(SBIconView *)iconView
