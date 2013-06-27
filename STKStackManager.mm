@@ -161,16 +161,16 @@ static BOOL __stackInMotion;
     NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
     for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
         // Get the SBIcon instances for the identifiers
-        SBApplicationIcon *icon = [model applicationIconForDisplayIdentifier:identifier];
+        SBIcon *icon = [model expectedIconForDisplayIdentifier:identifier];
         if (!icon) {
             NSString *message = [NSString stringWithFormat:@"Couldn't get icon for identifier %@. Confirm that the ID is correct and the app is installed.", identifier];
             SHOW_USER_NOTIFICATION(kSTKTweakName, message, @"Dismiss");
             return nil;
         }
-        [stackIcons addObject:[model applicationIconForDisplayIdentifier:identifier]];
+        [stackIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
     }
 
-    SBApplicationIcon *centralIcon = [model applicationIconForDisplayIdentifier:attributes[STKStackManagerCentralIconKey]];
+    SBIcon *centralIcon = [model expectedIconForDisplayIdentifier:attributes[STKStackManagerCentralIconKey]];
     if (!centralIcon) {
         SHOW_USER_NOTIFICATION(kSTKTweakName, @"Could not get the central icon for the stack", @"Dismiss");
         return nil;

@@ -55,6 +55,7 @@
     for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
         // Get the SBIcon instances for the identifiers
         [stackIcons addObject:[model applicationIconForDisplayIdentifier:identifier]];
+        [stackIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
     }
     return stackIcons;
 }
@@ -123,6 +124,7 @@
     NSArray *identifiers = [self identifiersForIconsWithStack];
     for (NSString *identifier in identifiers) {
         SBIcon *centralIcon = [[(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model] applicationIconForDisplayIdentifier:identifier];
+        SBIcon *centralIcon = [[(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model] expectedIconForDisplayIdentifier:identifier];
         [groupedIcons addObjectsFromArray:[(NSArray *)[self stackIconsForIcon:centralIcon] valueForKeyPath:@"leafIdentifier"]];
     }
 
