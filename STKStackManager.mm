@@ -10,6 +10,9 @@
 #import <QuartzCore/QuartzCore.h>
 #import <CoreImage/CoreImage.h>
 
+#import "SBIconViewMap+AcervosSafety.h"
+
+
 // Keys to be used for persistence dict
 NSString * const STKStackManagerCentralIconKey = @"STKCentralIcon";
 NSString * const STKStackManagerStackIconsKey  = @"STKStackIcons";
@@ -94,15 +97,12 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 /*
 *   Alpha
 */
-- (void)_setAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)shouldExcludeCentral disableInteraction:(BOOL)disableInteraction;
-
 // This sexy method disables/enables icon interaction as required.
 - (void)_setGhostlyAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral; 
 
 // Applies it to the shadow and label of the appearing icons
 - (void)_setAlphaForAppearingLabelsAndShadows:(CGFloat)alpha;
 
-- (void)_setInteractionEnabled:(BOOL)enabled forAllIconsExcludingCentral:(BOOL)excludeCentral;
 - (void)_setPageControlAlpha:(CGFloat)alpha;
 
 /*
@@ -152,11 +152,9 @@ static BOOL __stackInMotion;
 #pragma mark - Public Methods
 - (instancetype)initWithContentsOfFile:(NSString *)file
 {
-    CLog(@"Initialising from file: %@", file);
     SBIconModel *model = [(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model];
 
     NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:file];
-    CLog(@"Got attributes: %@", attributes);
 
     NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
     for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
@@ -279,10 +277,10 @@ static BOOL __stackInMotion;
 {
     _iconViewsTable = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsStrongMemory valueOptions:NSPointerFunctionsStrongMemory capacity:4];
     
-    // SBIconListView *listView = STKListViewForIcon(_centralIcon);
-    SBIconView *centralIconView = [[objc_getClass("SBIconViewMap") homescreenMap] iconViewForIcon:_centralIcon];
+    SBIconView *centralIconView = [[objc_getClass("SBIconViewMap") homescreenMap] safeIconViewForIcon:_centralIcon];
+    centralIconView.userInteractionEnabled = YES;
 
-
+    CLog(@"Setting up %@\nID: %@\nSuperview: %@", centralIconView, centralIconView.icon.leafIdentifier, centralIconView.superview);
     [_appearingIconsLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
         SBIconView *iconView = [[[objc_getClass("SBIconView") alloc] initWithDefaultSize] autorelease];
         
@@ -300,6 +298,7 @@ static BOOL __stackInMotion;
         }
         [iconViews addObject:iconView];
         [_iconViewsTable setObject:iconViews forKey:mapTableKey];
+        
         [iconView setIconLabelAlpha:0.f];
         [[iconView valueForKeyPath:@"_shadow"] setAlpha:0.f];
 
@@ -314,6 +313,8 @@ static BOOL __stackInMotion;
             }
         }
     }];
+
+    [centralIconView bringSubviewToFront:centralIconView.iconImageView];
 
     _hasSetup = YES;
 }
@@ -369,6 +370,11 @@ static BOOL __stackInMotion;
 
             // Scale the icon back down to the smaller size.
             iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
+
+            // Hide the labels and shadows
+            ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 0.f;
+            [iconView setIconLabelAlpha:0.f];
+            iconView.userInteractionEnabled = NO;
         }];
     }
     /*
@@ -485,6 +491,30 @@ static BOOL __stackInMotion;
     }
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////        HAXX        //////////////////////////////////////////////////////////
+
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+    SBIconView *touchedIconView = nil;
+    CGRect centralIconViewFrame = [self _iconViewForIcon:_centralIcon].bounds;
+    
+    if (CGRectContainsPoint(centralIconViewFrame, point)) {
+        return [self _iconViewForIcon:_centralIcon];
+    } 
+
+    for (SBIconView *iconView in [self _allAppearingIconViews]) {
+        if (CGRectContainsPoint(iconView.frame, point)) {
+            touchedIconView = iconView;
+        }
+    }
+    return touchedIconView;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #pragma mark - Open Animation
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
 {
@@ -538,26 +568,6 @@ static BOOL __stackInMotion;
         }
     }];
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////        HAXX        ////////////////////////////////////////////////////////
-
-- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
-{
-    SBIconView *touchedIconView = nil;
-    CGRect centralIconViewFrame = [self _iconViewForIcon:_centralIcon].frame;
-    
-    for (SBIconView *iconView in [self _allAppearingIconViews]) {
-        if (CGRectContainsPoint(iconView.frame, point) && !(CGRectContainsPoint(centralIconViewFrame, point))) {
-            touchedIconView = iconView;
-        }
-    }
-    return touchedIconView;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #pragma mark - Close Animation
 - (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon
@@ -1150,17 +1160,6 @@ static BOOL __stackInMotion;
 }
 
 #pragma mark - Alpha Shit
-- (void)_setAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)shouldExcludeCentral disableInteraction:(BOOL)disableInteraction
-{
-    [self _makeAllIconsPerformBlock:^(SBIcon *icon) {
-        if (shouldExcludeCentral && ([icon.leafIdentifier isEqualToString:_centralIcon.leafIdentifier])) {
-            return;
-        }
-        SBIconView *iconView = [self _iconViewForIcon:icon];
-        iconView.alpha = alpha;
-        iconView.userInteractionEnabled = !disableInteraction;
-    }];
-}
 
 - (void)_setGhostlyAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral
 {
@@ -1188,17 +1187,6 @@ static BOOL __stackInMotion;
     }
 }
 
-- (void)_setInteractionEnabled:(BOOL)enabled forAllIconsExcludingCentral:(BOOL)shouldExcludeCentral
-{
-    [self _makeAllIconsPerformBlock:^(SBIcon *icon) {
-        if (shouldExcludeCentral && ([icon.leafIdentifier isEqualToString:_centralIcon.leafIdentifier])) {
-            return;
-        }
-        SBIconView *iconView = [self _iconViewForIcon:icon];
-        iconView.userInteractionEnabled = enabled;
-    }];
-}
-
 - (void)_setPageControlAlpha:(CGFloat)alpha
 {
     [[objc_getClass("SBIconController") sharedInstance] setPageControlAlpha:alpha];
@@ -1208,17 +1196,21 @@ static BOOL __stackInMotion;
 #pragma mark - Notification Handling
 - (void)_editingStateChanged:(NSNotification *)notification
 {
+    /*
+    DLog(@"");
     if (_isExpanded) {
         self.isEditing = [[objc_getClass("SBIconController") sharedInstance] isEditing];
     }
 
     else if (![[objc_getClass("SBIconController") sharedInstance] isEditing] && self.closesOnHomescreenEdit) {
+        CLog(@"Closing for homescreen edit");
         [self closeStackWithCompletionHandler:^{
             if (_interactionHandler) {
                 _interactionHandler(nil);
             }
         }];
     }
+    */
 }
 
 #pragma mark - Editing Handling
@@ -1374,7 +1366,7 @@ static BOOL __stackInMotion;
 
 - (void)icon:(id)arg1 touchMovedWithEvent:(id)arg2
 {
-    DLog(@"%@", [(SBIconView *)arg1 icon].leafIdentifier);
+    
 }
 
 - (void)iconHandleLongPress:(SBIconView *)iconView

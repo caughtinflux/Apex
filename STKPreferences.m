@@ -24,9 +24,11 @@
     
     if (!sharedInstance) {
         sharedInstance = [[self alloc] init];
-        [sharedInstance reloadPreferences];
+
         [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions : @511} error:NULL];
         [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[STKStackManager layoutsPath] error:NULL]; // Make sure the permissions are correct anyway
+
+        [sharedInstance reloadPreferences];
     }
 
     return sharedInstance;

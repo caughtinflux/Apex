@@ -47,24 +47,48 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 //////////////////////////////////////////////////////////////////
 
 
+
+static BOOL _wantsSafeIconViewRetrieval;
+%hook SBIconViewMap
+%new
+- (SBIconView *)safeIconViewForIcon:(SBIcon *)icon
+{
+    _wantsSafeIconViewRetrieval = YES;
+
+    SBIconView *iconView = [self iconViewForIcon:icon];
+    
+    _wantsSafeIconViewRetrieval = NO;
+
+    return iconView;
+}
+%end
+
 #pragma mark - SBIconView Hook
 %hook SBIconView
+
 - (void)setIcon:(SBIcon *)icon
 {
-    %orig();
-    
+    %orig(icon);
+
     if (!icon ||
+        _wantsSafeIconViewRetrieval || 
         self.location == SBIconViewLocationSwitcher ||
         [[%c(SBIconController) sharedInstance] isEditing] ||
-        !(ICON_HAS_STACK(icon)))
-    {
+        !(ICON_HAS_STACK(icon))) {
+
+        // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
         // Make sure the recognizer is not added to icons in the stack
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
         STKCleanupIconView(self);
-        STKRemoveManagerFromView(self);
-
         return;
     }
+
+    // Add ourselves to the homescreen map, since _cmd is sometimes called before the map is configured completely.
+    if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon] == nil) {
+        [[%c(SBIconViewMap) homescreenMap] _addIconView:self forIcon:icon];
+    }
+
+    STKSetupIconView(self);
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_closeStack:) name:STKStackClosingEventNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_editingStateChanged:) name:STKEditingStateChangedNotification object:nil];
@@ -178,7 +202,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 %new 
 - (void)stk_editingStateChanged:(NSNotification *)notification
-{    
+{   
     BOOL isEditing = [[%c(SBIconController) sharedInstance] isEditing];
     
     if (isEditing) {
@@ -220,14 +244,13 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 %end
 
+
 %hook SBIconController
 - (void)setIsEditing:(BOOL)isEditing
 {
     %orig(isEditing);
     [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
 }
-
-
 /*  
     Various hooks to intercept events that should make the stack close
 */
@@ -258,9 +281,15 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 }
 %end
 
-%hook SBApplication
-- (void)setActivationSetting:(NSUInteger)arg1 value:(id)arg2 { %orig(); %log; }
-- (void)setActivationSetting:(NSUInteger)arg1 flag:(BOOL)arg2 { %orig(); %log; }
+%hook SBIconModel
+- (BOOL)isIconVisible:(SBIcon *)icon
+{
+    BOOL isVisible = %orig();
+    if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
+        isVisible = NO;
+    }
+    return isVisible;
+}
 %end
 
 
@@ -300,43 +329,43 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
 }
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 {
-    @autoreleasepool {
-        __block STKStackManager * stackManager = STKManagerForView(iconView);
-    
-        if (!stackManager) {
-            NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
-            
-            // Check if the manager can be created from file
-            if ([[NSFileManager defaultManager] fileExistsAtPath:layoutPath]) { 
-                stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
-            }
-            else {
-                stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:[[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon]];
-                [stackManager saveLayoutToFile:layoutPath];
-            }
+    __block STKStackManager * stackManager = STKManagerForView(iconView);
 
-            stackManager.interactionHandler = \
-                ^(SBIconView *tappedIconView) {
-                    if (tappedIconView) {
-                        stackManager.closesOnHomescreenEdit = NO;
-
-                        SBApplication *app = [[%c(SBApplicationController) sharedInstance] applicationWithDisplayIdentifier:tappedIconView.icon.leafIdentifier];
-                        [(SBUIController *)[%c(SBUIController) sharedInstance] activateApplicationFromSwitcher:app];
-                        
-                        stackManager.closesOnHomescreenEdit = YES;
-                    }
-                };
-
-
-            objc_setAssociatedObject(iconView, stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            [stackManager release];
+    if (!stackManager) {
+        NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
+        
+        // Check if the manager can be created from file
+        if ([[NSFileManager defaultManager] fileExistsAtPath:layoutPath]) { 
+            stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
         }
-        
-        [stackManager recalculateLayouts];
-        [stackManager setupPreview];
-        
-        return stackManager;
+        else {
+            stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:[[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon]];
+            [stackManager saveLayoutToFile:layoutPath];
+        }
+
+        stackManager.interactionHandler = \
+            ^(SBIconView *tappedIconView) {
+                if (tappedIconView) {
+                    stackManager.closesOnHomescreenEdit = NO;
+
+                    SBApplication *app = [[%c(SBApplicationController) sharedInstance] applicationWithDisplayIdentifier:tappedIconView.icon.leafIdentifier];
+                    [(SBUIController *)[%c(SBUIController) sharedInstance] activateApplicationFromSwitcher:app];
+                    
+                    stackManager.closesOnHomescreenEdit = YES;
+
+                    [stackManager performSelector:@selector(closeStack) withObject:nil afterDelay:2];
+                }
+            };
+
+
+        objc_setAssociatedObject(iconView, stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        [stackManager release];
     }
+    
+    [stackManager recalculateLayouts];
+    [stackManager setupPreview];
+    
+    return stackManager;
 }
 
 static void STKRemoveManagerFromView(SBIconView *iconView)
@@ -356,7 +385,7 @@ static void STKSetupIconView(SBIconView *iconView)
 static void STKCleanupIconView(SBIconView *iconView)
 {
     STKRemovePanRecognizerFromIconView(iconView);
-    [STKManagerForView(iconView) cleanupView];
+    STKRemoveManagerFromView(iconView);
 }
 
 
