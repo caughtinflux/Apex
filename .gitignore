@@ -5,6 +5,7 @@ _
 debs/
 
 *.deb
+!latest.deb
 
 *.sublime*
 
