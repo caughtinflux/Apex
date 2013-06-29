@@ -22,7 +22,9 @@
 
 
 #define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/%@/com.a3tweaks.%@.plist", kSTKTweakName, NSHomeDirectory(), kSTKTweakName]
-#define kTargetDistance ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 76.0f : 176.0f)
+
+#define kCentralIconPreviewScale 0.95f
+#define kStackPreviewIconScale   0.81f
 
 
 #define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
@@ -62,8 +64,8 @@ extern "C" {
 
     extern SBIconListView * STKListViewForIcon(SBIcon *icon);
 
-    extern CGFloat STKGetCurrentTargetDistance(void);
-    extern void    STKUpdateTargetDistanceInListView(SBIconListView *listView);
+    extern inline CGFloat STKGetCurrentTargetDistance(void);
+    extern inline void    STKUpdateTargetDistanceInListView(SBIconListView *listView);
 
     extern NSUInteger STKGetCPUFrequency(void);
 

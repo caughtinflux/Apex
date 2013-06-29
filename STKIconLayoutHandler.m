@@ -36,8 +36,6 @@ static SBIconListView *_centralIconListView;
     NSMutableArray *leftIcons   = [NSMutableArray array]; // 2
     NSMutableArray *rightIcons  = [NSMutableArray array]; // 3
 
-    [self _logMask:position];
-
     if ((position & STKPositionDock) == STKPositionDock) {
         // Return all the icons in the array as icons to be displaced from the top.
         return [STKIconLayout layoutWithIconsAtTop:icons bottom:bottomIcons left:leftIcons right:rightIcons];
@@ -202,10 +200,11 @@ static SBIconListView *_centralIconListView;
             [extraArray removeObjectAtIndex:1];
         }
         else if ((rightArray.count == 0) && !(position & STKPositionTouchingRight)) {
-            [rightArray addObject:layout.topIcons[1]]; 
+            [rightArray addObject:extraArray[1]]; 
             [extraArray removeObjectAtIndex:1];
         }
     }
+
 
     extraArray = nil; // Set it back to nil for a pass at the horizontals
 

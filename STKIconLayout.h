@@ -25,8 +25,8 @@ typedef enum {
 
 @property (nonatomic, assign) BOOL containsPlaceholders;
 
-- (void)enumerateThroughAllIconsUsingBlock:(void(^)(SBIcon *, STKLayoutPosition))block;
-- (void)enumerateIconsUsingBlockWithIndexes:(void(^)(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block;
+- (void)enumerateThroughAllIconsUsingBlock:(void(^)(id, STKLayoutPosition))block;
+- (void)enumerateIconsUsingBlockWithIndexes:(void(^)(id icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block;
 
 // Methods to query all the things
 - (NSArray *)iconsForPosition:(STKLayoutPosition)position;

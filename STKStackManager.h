@@ -43,12 +43,15 @@ extern "C" {
 // Persistence
 - (void)saveLayoutToFile:(NSString *)path;
 
-// Sets up stack iconViews
+// Call this method when the location of the icon changes
+- (void)recalculateLayouts;
+
+- (void)setupPreview;
+
+// Set Up Stack Icons' Views
 - (void)setupViewIfNecessary;
 - (void)setupView;
-
-// Set these to let the stack manager access the grabber views
-- (void)setTopGrabberView:(UIView *)topGrabberView bottomGrabberView:(UIView *)bottomGrabberView;
+- (void)cleanupView;
 
 - (void)touchesDraggedForDistance:(CGFloat)distance;
 
@@ -68,5 +71,9 @@ extern "C" {
 - (void)openStack;
 - (void)closeStack;
 - (void)closeStackAfterDelay:(NSTimeInterval)delay completion:(void(^)(void))completionBlock;
+
+// HAXX: This method should be called as a proxy for -[UIView hitTest:withEvent:] inside SBIconView, so we can process if any stack icons should be receiving touches.
+// It's necessary, because the icons are added as a subview of the central iconView.
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;
 
 @end
