@@ -186,7 +186,7 @@ static SBIconListView *_centralIconListView;
 
     NSMutableArray *extraArray = nil;
 
-    // Check for extras in the vertical positions
+    // Check for extras in the vertical positions   
     if (topArray.count > 1) {
         extraArray = topArray;
     }
