@@ -8,28 +8,25 @@
 
 #import <SpringBoard/SpringBoard.h>
 #import <objc/message.h>
+#import <notify.h>
 
 #pragma mark - Function Declarations
-// Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
-static STKStackManager * STKSetupManagerForView(SBIconView *iconView);
 
-// Removes the manager from view, closing the stack if it was open
-static void STKRemoveManagerFromView(SBIconView *iconView);
-
+static STKStackManager * STKSetupManagerForView(SBIconView *iconView); // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
+static void STKRemoveManagerFromView(SBIconView *iconView); // Removes the manager from view, closing the stack if it was open
 static void STKAddPanRecognizerToIconView(SBIconView *iconView);
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
 
-// Adds recogniser and grabber images
-static void STKSetupIconView(SBIconView *iconView);
-// Removes recogniser and grabber images
-static void STKCleanupIconView(SBIconView *iconView);
-// Refreshes everything
-static inline void STKRefreshIconViews(void);
+
+static void STKSetupIconView(SBIconView *iconView); // Adds recogniser and grabber images
+static void STKCleanupIconView(SBIconView *iconView); // Removes recogniser and grabber images
+
+
 
 // Inline Functions, prevent overhead if called too much.
 static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconView);
-static inline STKStackManager        * STKManagerForView(SBIconView *iconView);
-static inline NSString               * STKGetLayoutPathForIcon(SBIcon *icon);
+static inline        STKStackManager * STKManagerForView(SBIconView *iconView);
+static inline               NSString * STKGetLayoutPathForIcon(SBIcon *icon);
 
 
 #pragma mark - Direction !
@@ -42,10 +39,11 @@ typedef enum {
 // Returns the direction - top or bottom - for a given velocity
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 
+
+
 ////////////////////////////////////////////////////////////////////
 ///////////////////// REAL SHIT STARTS ////////////////////////////
 //////////////////////////////////////////////////////////////////
-
 
 
 static BOOL _wantsSafeIconViewRetrieval;
@@ -105,6 +103,16 @@ static BOOL _wantsSafeIconViewRetrieval;
     [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
 
     %orig();
+}
+
+- (void)setPartialGhostly:(CGFloat)value requester:(NSInteger)requester
+{
+    %orig(value, requester);
+}
+
+- (void)setGhostly:(BOOL)wantsGhostly requester:(NSInteger)requester
+{
+    %orig(wantsGhostly, requester);
 }
 
 #define kBandingFactor  0.15 // The factor by which the distance should be multiplied to simulate the rubber banding effect
@@ -285,12 +293,16 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (BOOL)isIconVisible:(SBIcon *)icon
 {
     BOOL isVisible = %orig();
-    if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
-        isVisible = NO;
+    if (![[%c(SBUIController) sharedInstance] isSwitcherShowing]) {
+        if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
+            isVisible = NO;
+        }
     }
     return isVisible;
 }
 %end
+/********************************************************************************************************************************************************************************************************/
+/********************************************************************************************************************************************************************************************************/
 
 
 #pragma mark - Associated Object Keys
@@ -327,19 +339,22 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
     objc_setAssociatedObject(recognizer, recognizerDelegateKey, nil, OBJC_ASSOCIATION_RETAIN); // Especially this one. The pan recogniser getting wiped out should remove this already. But still, better to be sure.
     objc_setAssociatedObject(iconView, panGRKey, nil, OBJC_ASSOCIATION_ASSIGN);
 }
+
+
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 {
     __block STKStackManager * stackManager = STKManagerForView(iconView);
 
     if (!stackManager) {
         NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
-        
+
         // Check if the manager can be created from file
         if ([[NSFileManager defaultManager] fileExistsAtPath:layoutPath]) { 
             stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
         }
         else {
-            stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:[[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon]];
+            NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
+            stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
             [stackManager saveLayoutToFile:layoutPath];
         }
 
@@ -389,6 +404,7 @@ static void STKCleanupIconView(SBIconView *iconView)
 }
 
 
+
 #pragma mark - Inliner Definitions
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point)
 {
@@ -412,13 +428,14 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
 }
 
 
+
 #pragma mark - Constructor
 %ctor
 {
     @autoreleasepool {
         CLog(@"Version %s", kPackageVersion);
         CLog(@"Build date: %s, %s", __DATE__, __TIME__);
-
+/*
 #ifdef DEBUG
         BOOL didWrite = [[STKPreferences sharedPreferences] saveLayoutWithCentralIconID:@"com.saurik.Cydia"
                                                                            stackIconIDs:@[@"com.apple.Preferences", @"eu.heinelt.ifile", @"com.apple.AppStore", @"com.apple.MobileStore"]];
@@ -427,7 +444,7 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
             CLog(@"Couldn't save default layout");
         }
 #endif
-
+*/
         %init();
     }
 }
