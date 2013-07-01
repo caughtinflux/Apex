@@ -394,6 +394,10 @@ static BOOL __stackInMotion;
 - (void)touchesEnded
 {
     if (_lastDistanceFromCenter >= kEnablingThreshold && !_isExpanded) {
+        // Set this now, not waiting for the animation to complete, so anyone asking questions gets the right answer... LOL
+        _isExpanded = YES;
+        __isStackOpen = YES;
+
         [self openStack];
     }
     else {
@@ -463,6 +467,12 @@ static BOOL __stackInMotion;
     }
 }
 
+- (void)setStackIconAlpha:(CGFloat)alpha
+{
+    MAP([_iconViewsLayout allIcons], ^(SBIconView *iv) {
+        iv.alpha = alpha;
+    });
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////        HAXX        //////////////////////////////////////////////////////////

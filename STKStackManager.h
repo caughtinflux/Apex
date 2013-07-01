@@ -27,6 +27,7 @@ extern "C" {
 @property (nonatomic, readonly) BOOL hasSetup;
 @property (nonatomic, readonly) BOOL isExpanded;
 @property (nonatomic, readonly) CGFloat currentIconDistance; // Distance of all the icons from the center.
+@property (nonatomic, readonly) SBIcon *centralIcon;
 @property (nonatomic, readonly) STKIconLayout *appearingIconsLayout;
 @property (nonatomic, readonly) STKIconLayout *disappearingIconsLayout;
 
@@ -54,6 +55,8 @@ extern "C" {
 - (void)cleanupView;
 
 - (void)touchesDraggedForDistance:(CGFloat)distance;
+
+- (void)setStackIconAlpha:(CGFloat)alpha;
 
 /*
     Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.

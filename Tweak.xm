@@ -28,6 +28,9 @@ static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconV
 static inline        STKStackManager * STKManagerForView(SBIconView *iconView);
 static inline               NSString * STKGetLayoutPathForIcon(SBIcon *icon);
 
+static inline            void   STKSetActiveManager(STKStackManager *manager);
+static inline STKStackManager * STKGetActiveManager(void);
+
 
 #pragma mark - Direction !
 typedef enum {
@@ -44,6 +47,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 ////////////////////////////////////////////////////////////////////
 ///////////////////// REAL SHIT STARTS ////////////////////////////
 //////////////////////////////////////////////////////////////////
+
 
 
 static BOOL _wantsSafeIconViewRetrieval;
@@ -108,11 +112,29 @@ static BOOL _wantsSafeIconViewRetrieval;
 - (void)setPartialGhostly:(CGFloat)value requester:(NSInteger)requester
 {
     %orig(value, requester);
+    MAP([[STKPreferences sharedPreferences] identifiersForIconsWithStack], ^(NSString *ID) {
+        if ([ID isEqualToString:STKGetActiveManager().centralIcon.leafIdentifier] == NO) {
+            SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:ID];
+            SBIconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
+
+            STKStackManager *manager = STKManagerForView(iconView);
+            [manager setStackIconAlpha:value];
+        }
+    });
 }
 
 - (void)setGhostly:(BOOL)wantsGhostly requester:(NSInteger)requester
 {
     %orig(wantsGhostly, requester);
+    MAP([[STKPreferences sharedPreferences] identifiersForIconsWithStack], ^(NSString *ID) {
+        if ([ID isEqualToString:STKGetActiveManager().centralIcon.leafIdentifier] == NO) {
+            SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:ID];
+            SBIconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
+
+            STKStackManager *manager = STKManagerForView(iconView);
+            [manager setStackIconAlpha:(wantsGhostly ? 0.0 : 1.0)];
+        }
+    });   
 }
 
 #define kBandingFactor  0.15 // The factor by which the distance should be multiplied to simulate the rubber banding effect
@@ -155,6 +177,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
             // Turn off scrolling if it's s vertical swipe
             [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = NO;
         }
+
+        STKSetActiveManager(stackManager);
     }
 
     else if (sender.state == UIGestureRecognizerStateChanged) {
@@ -204,6 +228,13 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         _previousDistance = 0.f;
         _currentDirection = STKRecognizerDirectionNone;
 
+        if (stackManager.isExpanded) {
+            STKSetActiveManager(stackManager);
+        }
+        else if (STKGetActiveManager() != nil) {
+            STKSetActiveManager(nil);
+        }
+
         [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = YES;
     }
 }
@@ -228,6 +259,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 {
     if (STKManagerForView(self).isExpanded) {
         [STKManagerForView(self) closeStack];
+        STKSetActiveManager(nil);
     }
 }
 
@@ -288,6 +320,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     return %orig(animationDuration);
 }
 %end
+
 
 %hook SBIconModel
 - (BOOL)isIconVisible:(SBIcon *)icon
@@ -368,8 +401,10 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
                     
                     stackManager.closesOnHomescreenEdit = YES;
 
-                    [stackManager performSelector:@selector(closeStack) withObject:nil afterDelay:2];
+                    [stackManager closeStack];
                 }
+
+                STKSetActiveManager(nil);
             };
 
 
@@ -427,6 +462,16 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
     }
 }
 
+static STKStackManager *_activeManager;
+static inline void STKSetActiveManager(STKStackManager *manager)
+{
+    _activeManager = manager;
+}
+
+static inline STKStackManager * STKGetActiveManager(void)
+{
+    return _activeManager;
+}
 
 
 #pragma mark - Constructor
