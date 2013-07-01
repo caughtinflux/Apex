@@ -744,6 +744,8 @@ static BOOL __stackInMotion;
         CGPoint targetOrigin = [self _targetOriginForIconAtPosition:position distanceFromCentre:idx + 1];
         CGFloat popoutCompensation = ((currentArray.count > 1 && idx == 0) ? _popoutCompensationRatio : 1);
 
+        iconView.alpha = 1.f;
+
         switch (position) {
             case STKLayoutPositionTop: {
                 // If there is more than one icon in a particular position, multiply them by the number of icons in its position.
@@ -753,9 +755,12 @@ static BOOL __stackInMotion;
                 
                 CGFloat translatedDistance = distance * multiplicationFactor * popoutCompensation;
 
+                if ((newFrame.origin.y - (translatedDistance / popoutCompensation)) < targetOrigin.y) {
+                    // No need for compensation once the target has been reached
+                    translatedDistance /= popoutCompensation;
+                }
+
                 targetOrigin.y -= kBandingAllowance;
-                iconView.alpha = 1.f;
-                
                 if (((newFrame.origin.y - translatedDistance) > targetOrigin.y) && !((newFrame.origin.y - translatedDistance) > centralFrame.origin.y)) {
                     newFrame.origin.y -= translatedDistance;
                 }
@@ -774,8 +779,11 @@ static BOOL __stackInMotion;
                 CGFloat multiplicationFactor = (((newFrame.origin.y + distance) < targetOrigin.y) ? (idx + 1) : 1);
                 CGFloat translatedDistance = distance * multiplicationFactor * popoutCompensation;
 
+                if ((newFrame.origin.y + (translatedDistance / popoutCompensation)) > targetOrigin.y) {
+                    translatedDistance /= popoutCompensation;
+                }
+
                 targetOrigin.y += kBandingAllowance;
-                iconView.alpha = 1.f;
 
                 if ((newFrame.origin.y + translatedDistance) < targetOrigin.y && !((newFrame.origin.y + translatedDistance) < centralFrame.origin.y)) {
                     newFrame.origin.y += translatedDistance;
@@ -794,8 +802,11 @@ static BOOL __stackInMotion;
                 CGFloat multiplicationFactor = (((newFrame.origin.x - distance) > targetOrigin.x) ? (idx + 1) : 1);
                 CGFloat translatedDistance = distance * multiplicationFactor * _distanceRatio * popoutCompensation;
 
+                if ((newFrame.origin.x - (translatedDistance / popoutCompensation)) < targetOrigin.x) {
+                    translatedDistance /= popoutCompensation;
+                }
+
                 targetOrigin.x -= kBandingAllowance * _distanceRatio;
-                iconView.alpha = 1.f;
                 
                 if (((newFrame.origin.x - translatedDistance) > targetOrigin.x) && !((newFrame.origin.x - translatedDistance) > centralFrame.origin.x)) {
                     newFrame.origin.x -= translatedDistance;
@@ -814,8 +825,12 @@ static BOOL __stackInMotion;
                 CGFloat multiplicationFactor = (((newFrame.origin.x + distance) < targetOrigin.x) ? (idx + 1) : 1);
                 CGFloat translatedDistance = distance * multiplicationFactor * _distanceRatio * popoutCompensation;
 
+                if ((newFrame.origin.x + (translatedDistance / popoutCompensation)) > targetOrigin.x) {
+                    // No need for compensation once the target has been reached
+                    translatedDistance /= popoutCompensation;
+                }
+
                 targetOrigin.x += kBandingAllowance * _distanceRatio;
-                iconView.alpha = 1.f;
                 
                 if (((newFrame.origin.x + translatedDistance) < targetOrigin.x) && !((newFrame.origin.x + translatedDistance) < centralFrame.origin.x)) {
                     newFrame.origin.x += translatedDistance;

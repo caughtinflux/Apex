@@ -56,8 +56,6 @@ extern "C" {
 
 - (void)touchesDraggedForDistance:(CGFloat)distance;
 
-- (void)setStackIconAlpha:(CGFloat)alpha;
-
 /*
     Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
     If the stack opens up, the receiver automatically sets up swipe and tap recognisers on the icon content view, which, when fired, will call the interactionHandler with a nil argument.
@@ -74,6 +72,8 @@ extern "C" {
 - (void)openStack;
 - (void)closeStack;
 - (void)closeStackAfterDelay:(NSTimeInterval)delay completion:(void(^)(void))completionBlock;
+
+- (void)setStackIconAlpha:(CGFloat)alpha;
 
 // HAXX: This method should be called as a proxy for -[UIView hitTest:withEvent:] inside SBIconView, so we can process if any stack icons should be receiving touches.
 // It's necessary, because the icons are added as a subview of the central iconView.
