@@ -5,11 +5,9 @@
 
 + (instancetype)sharedPreferences;
 
-@property (nonatomic, readonly) NSArray *identifiersForIconsWithStack;
-
 - (void)reloadPreferences;
 
-- (NSArray *)identifiersForIconsWithStack;
+- (NSSet *)identifiersForIconsWithStack;
 - (NSArray *)stackIconsForIcon:(SBIcon *)icon;
 
 - (NSString *)layoutPathForIconID:(NSString *)iconID;

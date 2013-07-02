@@ -10,6 +10,7 @@
     NSDictionary *_currentPrefs;
     NSArray      *_layouts;
     NSArray      *_iconsInGroups;
+    NSSet        *_iconsWithStacks;
 }
 
 - (void)_refreshGroupedIcons;
@@ -46,19 +47,26 @@
 
     _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[STKStackManager layoutsPath] error:nil] retain];
     [self _refreshGroupedIcons];
+
+    [_iconsWithStacks release]; // Empty this ivar, so the it is reloaded next time it's required.
+    _iconsWithStacks = nil;
 }
 
-- (NSArray *)identifiersForIconsWithStack
+- (NSSet *)identifiersForIconsWithStack
 {
     static NSString *fileType = @".layout";
-    NSMutableArray *identifiers = [NSMutableArray arrayWithCapacity:_layouts.count];
+    if (!_iconsWithStacks) {
+        NSMutableSet *identifiersSet = [[[NSMutableSet alloc] initWithCapacity:_layouts.count] autorelease];
 
-    for (NSString *layout in _layouts) {
-        if ([layout hasSuffix:fileType]) {
-            [identifiers addObject:[layout substringToIndex:(layout.length - fileType.length)]];
+        for (NSString *layout in _layouts) {
+            if ([layout hasSuffix:fileType]) {
+                [identifiersSet addObject:[layout substringToIndex:(layout.length - fileType.length)]];
+            }
         }
+
+        _iconsWithStacks = [[NSSet alloc] initWithSet:identifiersSet];
     }
-    return identifiers;
+    return _iconsWithStacks;
 }
 
 - (NSArray *)stackIconsForIcon:(SBIcon *)icon
@@ -124,7 +132,7 @@
     [_iconsInGroups release];
 
     NSMutableArray *groupedIcons = [NSMutableArray array];
-    NSArray *identifiers = [self identifiersForIconsWithStack];
+    NSSet *identifiers = [self identifiersForIconsWithStack];
     for (NSString *identifier in identifiers) {
         SBIcon *centralIcon = [[(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model] expectedIconForDisplayIdentifier:identifier];
         [groupedIcons addObjectsFromArray:[(NSArray *)[self stackIconsForIcon:centralIcon] valueForKeyPath:@"leafIdentifier"]];

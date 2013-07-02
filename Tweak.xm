@@ -112,7 +112,10 @@ static BOOL _wantsSafeIconViewRetrieval;
 - (void)setPartialGhostly:(CGFloat)value requester:(NSInteger)requester
 {
     %orig(value, requester);
-    MAP([[STKPreferences sharedPreferences] identifiersForIconsWithStack], ^(NSString *ID) {
+    
+    NSSet *identifiers = [[STKPreferences sharedPreferences] identifiersForIconsWithStack];
+
+    MAP(identifiers, ^(NSString *ID) {
         if ([ID isEqualToString:STKGetActiveManager().centralIcon.leafIdentifier] == NO) {
             SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:ID];
             SBIconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
@@ -480,7 +483,7 @@ static inline STKStackManager * STKGetActiveManager(void)
     @autoreleasepool {
         CLog(@"Version %s", kPackageVersion);
         CLog(@"Build date: %s, %s", __DATE__, __TIME__);
-/*
+
 #ifdef DEBUG
         BOOL didWrite = [[STKPreferences sharedPreferences] saveLayoutWithCentralIconID:@"com.saurik.Cydia"
                                                                            stackIconIDs:@[@"com.apple.Preferences", @"eu.heinelt.ifile", @"com.apple.AppStore", @"com.apple.MobileStore"]];
@@ -489,7 +492,6 @@ static inline STKStackManager * STKGetActiveManager(void)
             CLog(@"Couldn't save default layout");
         }
 #endif
-*/
         %init();
     }
 }

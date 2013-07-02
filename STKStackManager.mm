@@ -511,8 +511,12 @@ static BOOL __stackInMotion;
             iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
             
             iconView.delegate = self;
-
             iconView.userInteractionEnabled = YES;
+
+            iconView.iconLabelAlpha = 1.f;
+
+            ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 1.f;
+            ((UIView *)[iconView valueForKey:@"_accessoryView"]).alpha = 1.f;
         }];
 
         [_displacedIconsLayout enumerateThroughAllIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
@@ -524,7 +528,6 @@ static BOOL __stackInMotion;
 
         [self _setPageControlAlpha:0];
         [self _setGhostlyAlphaForAllIcons:0.f excludingCentralIcon:YES];
-        [self _setAlphaForAppearingLabelsAndShadows:1];
 
         [_offScreenIconsLayout enumerateThroughAllIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition pos) {
             [self _iconViewForIcon:icon].alpha = 0.f;
@@ -538,7 +541,6 @@ static BOOL __stackInMotion;
             centralIconView.userInteractionEnabled = YES;
 
             [self _setupGestureRecognizers];
-            [self _setGhostlyAlphaForAllIcons:0.f excludingCentralIcon:YES];
 
             _isExpanded = YES;
             __isStackOpen = YES;
@@ -572,6 +574,7 @@ static BOOL __stackInMotion;
             iconView.frame = [self _iconViewForIcon:_centralIcon].bounds;
             iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
             ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 0.f;
+            ((UIView *)[iconView valueForKey:@"_accessoryView"]).alpha = 0.f;
             [iconView setIconLabelAlpha:0.f];
             iconView.userInteractionEnabled = NO;
         });
@@ -1119,6 +1122,7 @@ static BOOL __stackInMotion;
     for (SBIconView *iconView in [_iconViewsLayout allIcons]) {
         ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = alpha;
         [iconView setIconLabelAlpha:alpha];
+        ((UIView *)[iconView valueForKey:@"_accessoryView"]).alpha = alpha;
     }
 }
 
