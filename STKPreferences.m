@@ -45,10 +45,13 @@
         _currentPrefs = [[NSDictionary alloc] init];
     }
 
-    _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[STKStackManager layoutsPath] error:nil] retain];
-    [self _refreshGroupedIcons];
+    [_layouts release];
+    _layouts = nil;
+    
+    [_iconsInGroups release];
+    _iconsInGroups = nil;
 
-    [_iconsWithStacks release]; // Empty this ivar, so the it is reloaded next time it's required.
+    [_iconsWithStacks release];
     _iconsWithStacks = nil;
 }
 
@@ -56,6 +59,10 @@
 {
     static NSString *fileType = @".layout";
     if (!_iconsWithStacks) {
+        if (!_layouts) {
+            _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[STKStackManager layoutsPath] error:nil] retain];
+        }
+
         NSMutableSet *identifiersSet = [[[NSMutableSet alloc] initWithCapacity:_layouts.count] autorelease];
 
         for (NSString *layout in _layouts) {
