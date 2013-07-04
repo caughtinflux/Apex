@@ -48,8 +48,6 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 ///////////////////// REAL SHIT STARTS ////////////////////////////
 //////////////////////////////////////////////////////////////////
 
-
-
 static BOOL _wantsSafeIconViewRetrieval;
 %hook SBIconViewMap
 %new
@@ -69,19 +67,19 @@ static BOOL _wantsSafeIconViewRetrieval;
 %hook SBIconView
 
 - (void)setIcon:(SBIcon *)icon
-{
+{    
     %orig(icon);
 
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
         self.location == SBIconViewLocationSwitcher ||
-        [[%c(SBIconController) sharedInstance] isEditing] ||
         !(ICON_HAS_STACK(icon))) {
 
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
         // Make sure the recognizer is not added to icons in the stack
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
         STKCleanupIconView(self);
+
         return;
     }
 
@@ -109,37 +107,6 @@ static BOOL _wantsSafeIconViewRetrieval;
     %orig();
 }
 
-- (void)setPartialGhostly:(CGFloat)value requester:(NSInteger)requester
-{
-    %orig(value, requester);
-    
-    NSSet *identifiers = [[STKPreferences sharedPreferences] identifiersForIconsWithStack];
-
-    MAP(identifiers, ^(NSString *ID) {
-        if ([ID isEqualToString:STKGetActiveManager().centralIcon.leafIdentifier] == NO) {
-            SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:ID];
-            SBIconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
-
-            STKStackManager *manager = STKManagerForView(iconView);
-            [manager setStackIconAlpha:value];
-        }
-    });
-}
-
-- (void)setGhostly:(BOOL)wantsGhostly requester:(NSInteger)requester
-{
-    %orig(wantsGhostly, requester);
-    MAP([[STKPreferences sharedPreferences] identifiersForIconsWithStack], ^(NSString *ID) {
-        if ([ID isEqualToString:STKGetActiveManager().centralIcon.leafIdentifier] == NO) {
-            SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:ID];
-            SBIconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
-
-            STKStackManager *manager = STKManagerForView(iconView);
-            [manager setStackIconAlpha:(wantsGhostly ? 0.0 : 1.0)];
-        }
-    });   
-}
-
 #define kBandingFactor  0.15 // The factor by which the distance should be multiplied to simulate the rubber banding effect
 
 static CGPoint                _previousPoint    = CGPointZero;
@@ -152,7 +119,9 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 {
     SBIconListView *view = STKListViewForIcon(self.icon);
     STKStackManager *stackManager = STKManagerForView(self);
-    if (stackManager.isExpanded) {
+    STKStackManager *activeManager = STKGetActiveManager();
+
+    if ([[%c(SBIconController) sharedInstance] hasOpenFolder] || stackManager.isExpanded || (activeManager != nil && activeManager != stackManager)) {
         return;
     }
 
@@ -248,11 +217,12 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     BOOL isEditing = [[%c(SBIconController) sharedInstance] isEditing];
     
     if (isEditing) {
-        STKCleanupIconView(self);
+        STKRemovePanRecognizerFromIconView(self);
     }
     else {
         if (ICON_HAS_STACK(self.icon) && (isEditing == NO)) {  
-            STKSetupIconView(self);
+            STKAddPanRecognizerToIconView(self);
+            [STKManagerForView(self) recalculateLayouts];
         }
     }
 }
@@ -294,6 +264,39 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     %orig(isEditing);
     [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
 }
+
+// Ghost all the other stacks' sub-apps when the list view is being ghosted
+- (void)setCurrentPageIconsPartialGhostly:(CGFloat)value forRequester:(NSInteger)requester skipIcon:(SBIcon *)icon
+{
+    %orig(value, requester, icon);
+
+    MAP([[STKPreferences sharedPreferences] identifiersForIconsWithStack], ^(NSString *ID) {
+        if ([ID isEqualToString:STKGetActiveManager().centralIcon.leafIdentifier] == NO) {
+            
+            SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:ID];
+            SBIconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
+
+            STKStackManager *manager = STKManagerForView(iconView);
+            [manager setStackIconAlpha:value];
+        }
+    });
+}
+
+- (void)setCurrentPageIconsGhostly:(BOOL)shouldGhost forRequester:(NSInteger)requester skipIcon:(SBIcon *)icon
+{
+    %orig(shouldGhost, requester, icon);
+
+    MAP([[STKPreferences sharedPreferences] identifiersForIconsWithStack], ^(NSString *ID) {
+        if ([ID isEqualToString:STKGetActiveManager().centralIcon.leafIdentifier] == NO) {
+            SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:ID];
+            SBIconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
+
+            STKStackManager *manager = STKManagerForView(iconView);
+            [manager setStackIconAlpha:(shouldGhost ? 0.0 : 1.0)];
+        }
+    });
+}
+
 /*  
     Various hooks to intercept events that should make the stack close
 */
@@ -304,6 +307,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 }
 
 %end
+
 
 %hook SBUIController
 - (BOOL)clickedMenuButton
@@ -483,15 +487,7 @@ static inline STKStackManager * STKGetActiveManager(void)
     @autoreleasepool {
         CLog(@"Version %s", kPackageVersion);
         CLog(@"Build date: %s, %s", __DATE__, __TIME__);
-
-#ifdef DEBUG
-        BOOL didWrite = [[STKPreferences sharedPreferences] saveLayoutWithCentralIconID:@"com.saurik.Cydia"
-                                                                           stackIconIDs:@[@"com.apple.Preferences", @"eu.heinelt.ifile", @"com.apple.AppStore", @"com.apple.MobileStore"]];
         
-        if (!didWrite) {
-            CLog(@"Couldn't save default layout");
-        }
-#endif
         %init();
     }
 }
