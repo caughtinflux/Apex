@@ -570,14 +570,7 @@ static BOOL __stackInMotion;
     self.isEditing = NO;
 
     [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
-        MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) {
-            iconView.frame = [self _iconViewForIcon:_centralIcon].bounds;
-            iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
-            ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 0.f;
-            ((UIView *)[iconView valueForKey:@"_accessoryView"]).alpha = 0.f;
-            [iconView setIconLabelAlpha:0.f];
-            iconView.userInteractionEnabled = NO;
-        });
+        [self setupPreview];
 
         // Set the alphas back to original
         [self _setGhostlyAlphaForAllIcons:0.999f excludingCentralIcon:YES];
@@ -758,11 +751,6 @@ static BOOL __stackInMotion;
                 
                 CGFloat translatedDistance = distance * multiplicationFactor * popoutCompensation;
 
-                if ((newFrame.origin.y - (translatedDistance / popoutCompensation)) < targetOrigin.y) {
-                    // No need for compensation once the target has been reached
-                    translatedDistance /= popoutCompensation;
-                }
-
                 targetOrigin.y -= kBandingAllowance;
                 if (((newFrame.origin.y - translatedDistance) > targetOrigin.y) && !((newFrame.origin.y - translatedDistance) > centralFrame.origin.y)) {
                     newFrame.origin.y -= translatedDistance;
@@ -781,10 +769,6 @@ static BOOL __stackInMotion;
             case STKLayoutPositionBottom: {
                 CGFloat multiplicationFactor = (((newFrame.origin.y + distance) < targetOrigin.y) ? (idx + 1) : 1);
                 CGFloat translatedDistance = distance * multiplicationFactor * popoutCompensation;
-
-                if ((newFrame.origin.y + (translatedDistance / popoutCompensation)) > targetOrigin.y) {
-                    translatedDistance /= popoutCompensation;
-                }
 
                 targetOrigin.y += kBandingAllowance;
 
@@ -805,10 +789,6 @@ static BOOL __stackInMotion;
                 CGFloat multiplicationFactor = (((newFrame.origin.x - distance) > targetOrigin.x) ? (idx + 1) : 1);
                 CGFloat translatedDistance = distance * multiplicationFactor * _distanceRatio * popoutCompensation;
 
-                if ((newFrame.origin.x - (translatedDistance / popoutCompensation)) < targetOrigin.x) {
-                    translatedDistance /= popoutCompensation;
-                }
-
                 targetOrigin.x -= kBandingAllowance * _distanceRatio;
                 
                 if (((newFrame.origin.x - translatedDistance) > targetOrigin.x) && !((newFrame.origin.x - translatedDistance) > centralFrame.origin.x)) {
@@ -827,11 +807,6 @@ static BOOL __stackInMotion;
             case STKLayoutPositionRight: {
                 CGFloat multiplicationFactor = (((newFrame.origin.x + distance) < targetOrigin.x) ? (idx + 1) : 1);
                 CGFloat translatedDistance = distance * multiplicationFactor * _distanceRatio * popoutCompensation;
-
-                if ((newFrame.origin.x + (translatedDistance / popoutCompensation)) > targetOrigin.x) {
-                    // No need for compensation once the target has been reached
-                    translatedDistance /= popoutCompensation;
-                }
 
                 targetOrigin.x += kBandingAllowance * _distanceRatio;
                 
