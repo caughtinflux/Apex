@@ -1,5 +1,9 @@
-TARGET = iphone:clang:latest:6.0
 DEBUG = 1
+TARGET = iphone:clang:latest:6.0
+
+ifneq ($(DEBUG), 1)
+TARGET = iphone:clang:latest:3.0
+endif
 
 include theos/makefiles/common.mk
 

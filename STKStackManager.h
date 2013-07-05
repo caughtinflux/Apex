@@ -7,8 +7,8 @@ typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
 #ifdef __cplusplus 
 extern "C" {
 #endif
-	extern NSString * const STKStackManagerCentralIconKey;
-	extern NSString * const STKStackManagerStackIconsKey;
+    extern NSString * const STKStackManagerCentralIconKey;
+    extern NSString * const STKStackManagerStackIconsKey;
 #ifdef __cplusplus
 }
 #endif
@@ -27,6 +27,7 @@ extern "C" {
 @property (nonatomic, readonly) BOOL hasSetup;
 @property (nonatomic, readonly) BOOL isExpanded;
 @property (nonatomic, readonly) CGFloat currentIconDistance; // Distance of all the icons from the center.
+@property (nonatomic, readonly) SBIcon *centralIcon;
 @property (nonatomic, readonly) STKIconLayout *appearingIconsLayout;
 @property (nonatomic, readonly) STKIconLayout *disappearingIconsLayout;
 
@@ -43,18 +44,21 @@ extern "C" {
 // Persistence
 - (void)saveLayoutToFile:(NSString *)path;
 
-// Sets up stack iconViews
+// Call this method when the location of the icon changes
+- (void)recalculateLayouts;
+
+- (void)setupPreview;
+
+// Set Up Stack Icons' Views
 - (void)setupViewIfNecessary;
 - (void)setupView;
-
-// Set these to let the stack manager access the grabber views
-- (void)setTopGrabberView:(UIView *)topGrabberView bottomGrabberView:(UIView *)bottomGrabberView;
+- (void)cleanupView;
 
 - (void)touchesDraggedForDistance:(CGFloat)distance;
 
 /*
-	Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
-	If the stack opens up, the receiver automatically sets up swipe and tap recognisers on the icon content view, which, when fired, will call the interactionHandler with a nil argument.
+    Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
+    If the stack opens up, the receiver automatically sets up swipe and tap recognisers on the icon content view, which, when fired, will call the interactionHandler with a nil argument.
 */
 - (void)touchesEnded;
 
@@ -68,5 +72,11 @@ extern "C" {
 - (void)openStack;
 - (void)closeStack;
 - (void)closeStackAfterDelay:(NSTimeInterval)delay completion:(void(^)(void))completionBlock;
+
+- (void)setStackIconAlpha:(CGFloat)alpha;
+
+// HAXX: This method should be called as a proxy for -[UIView hitTest:withEvent:] inside SBIconView, so we can process if any stack icons should be receiving touches.
+// It's necessary, because the icons are added as a subview of the central iconView.
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;
 
 @end

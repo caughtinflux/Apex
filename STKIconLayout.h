@@ -21,10 +21,12 @@ typedef enum {
 + (instancetype)layoutWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons;
 - (instancetype)initWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons;
 
++ (NSArray *)allPositions;
+
 @property (nonatomic, assign) BOOL containsPlaceholders;
 
-- (void)enumerateThroughAllIconsUsingBlock:(void(^)(SBIcon *, STKLayoutPosition))block;
-- (void)enumerateIconsUsingBlockWithIndexes:(void(^)(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block;
+- (void)enumerateThroughAllIconsUsingBlock:(void(^)(id, STKLayoutPosition))block;
+- (void)enumerateIconsUsingBlockWithIndexes:(void(^)(id icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block;
 
 // Methods to query all the things
 - (NSArray *)iconsForPosition:(STKLayoutPosition)position;
@@ -32,7 +34,7 @@ typedef enum {
 - (NSUInteger)totalIconCount;
 
 // This method is thread safe
-- (void)addIcon:(SBIcon *)icon toIconsAtPosition:(STKLayoutPosition)position;
+- (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position;
 
 
 NSString * STKNSStringFromPosition(STKLayoutPosition pos);

@@ -1,4 +1,5 @@
 #import "STKIconLayout.h"
+#import "STKConstants.h"
 
 @implementation STKIconLayout 
 
@@ -33,29 +34,23 @@
     [super dealloc];
 }
 
-- (void)enumerateThroughAllIconsUsingBlock:(void(^)(SBIcon *, STKLayoutPosition))block
++ (NSArray *)allPositions
 {
-    [block copy];
-
-    for (SBIcon *icon in self.topIcons) {
-        block(icon, STKLayoutPositionTop);
-    }
-    for (SBIcon *icon in self.bottomIcons) {
-        block(icon, STKLayoutPositionBottom);
-    }
-    for (SBIcon *icon in self.leftIcons) {
-        block(icon, STKLayoutPositionLeft);
-    }
-    for (SBIcon *icon in self.rightIcons) {
-        block(icon, STKLayoutPositionRight);
-    }
-
-    [block release];
+    return @[@(STKLayoutPositionTop), @(STKLayoutPositionBottom), @(STKLayoutPositionLeft), @(STKLayoutPositionRight)];
 }
 
-- (void)enumerateIconsUsingBlockWithIndexes:(void(^)(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block
+- (void)enumerateThroughAllIconsUsingBlock:(void(^)(id, STKLayoutPosition))block
 {
-    STKIconLayout __block *wSelf = self;
+    MAP([[self class] allPositions], ^(NSNumber *number) {
+        MAP([self iconsForPosition:[number integerValue]], ^(SBIcon *icon) { 
+            block(icon, [number integerValue]); 
+        });
+    });
+}
+
+- (void)enumerateIconsUsingBlockWithIndexes:(void(^)(id icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block
+{
+    __block STKIconLayout *wSelf = self;
 
     [self.topIcons enumerateObjectsUsingBlock:^(SBIcon *icon, NSUInteger idx, BOOL *stop) {
         block(icon, STKLayoutPositionTop, wSelf.topIcons, idx);
