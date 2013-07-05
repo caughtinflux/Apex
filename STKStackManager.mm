@@ -18,11 +18,6 @@ NSString * const STKStackManagerCentralIconKey = @"STKCentralIcon";
 NSString * const STKStackManagerStackIconsKey  = @"STKStackIcons";
 
 
-// keys for use in map table
-static NSString * const STKStackTopIconsKey    = @"topicons";
-static NSString * const STKStackBottomIconsKey = @"bottomicons";
-static NSString * const STKStackLeftIconsKey   = @"lefticons";
-static NSString * const STKStackRightIconsKey  = @"righticons";
 
 #define kMaximumDisplacement kEnablingThreshold + 40
 #define kAnimationDuration   0.2
@@ -82,8 +77,6 @@ static NSString * const STKStackRightIconsKey  = @"righticons";
 // Manually calculates where the displaced icons should go.
 - (CGPoint)_displacedOriginForIcon:(SBIcon *)icon withPosition:(STKLayoutPosition)position usingLayout:(STKIconLayout *)layout;
 - (CGPoint)_displacedOriginForIcon:(SBIcon *)icon withPosition:(STKLayoutPosition)position;
-
-- (id)_keyForPosition:(STKLayoutPosition)position;
 
 - (void)_calculateDistanceRatio;
 - (void)_findIconsWithOffScreenTargets;
@@ -1004,11 +997,6 @@ static BOOL __stackInMotion;
 - (CGPoint)_displacedOriginForIcon:(SBIcon *)icon withPosition:(STKLayoutPosition)position
 {
     return [self _displacedOriginForIcon:icon withPosition:position usingLayout:_appearingIconsLayout];
-}
-
-- (id)_keyForPosition:(STKLayoutPosition)position
-{
-    return (position == STKLayoutPositionTop ? STKStackTopIconsKey : (position == STKLayoutPositionBottom ? STKStackBottomIconsKey : (position == STKLayoutPositionLeft ? STKStackLeftIconsKey : (position == STKLayoutPositionRight ? STKStackRightIconsKey : nil))));
 }
 
 - (void)_calculateDistanceRatio
