@@ -43,12 +43,21 @@ typedef enum {
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 
 
+/////////////////////////////////////////////////////////////////////////
+///////////////// STATIC VARIABLES /////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+static BOOL _wantsSafeIconViewRetrieval;
+static BOOL _switcherIsVisible;
+///////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+
+
+
 
 ////////////////////////////////////////////////////////////////////
 ///////////////////// REAL SHIT STARTS ////////////////////////////
 //////////////////////////////////////////////////////////////////
 
-static BOOL _wantsSafeIconViewRetrieval;
 %hook SBIconViewMap
 %new
 - (SBIconView *)safeIconViewForIcon:(SBIcon *)icon
@@ -292,7 +301,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
             SBIconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
 
             STKStackManager *manager = STKManagerForView(iconView);
-            [manager setStackIconAlpha:(shouldGhost ? 0.0 : 1.0)];
+            [manager setStackIconAlpha:((shouldGhost && [iconView isGhostly]) ? 0.0 : 1.0)];
         }
     });
 }
@@ -324,8 +333,24 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (BOOL)_activateSwitcher:(NSTimeInterval)animationDuration
 {
     [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
+
+    SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
+    NSSet *visibleIconTags = MSHookIvar<NSSet *>(model, "_visibleIconTags");
+    NSSet *hiddenIconTags = MSHookIvar<NSSet *>(model, "_hiddenIconTags");
+
+    [model setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
+
+    _switcherIsVisible = YES;
+    
     return %orig(animationDuration);
 }
+
+- (void)dismissSwitcherAnimated:(BOOL)animated
+{
+    _switcherIsVisible = NO;
+    %orig();
+}
+
 %end
 
 
@@ -333,7 +358,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (BOOL)isIconVisible:(SBIcon *)icon
 {
     BOOL isVisible = %orig();
-    if (![[%c(SBUIController) sharedInstance] isSwitcherShowing]) {
+    if (_switcherIsVisible == NO) {
         if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
             isVisible = NO;
         }
