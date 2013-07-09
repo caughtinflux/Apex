@@ -292,6 +292,10 @@ static BOOL __stackInMotion;
 
 - (void)cleanupView
 {
+    if (!_isEditing) {
+        self.isEditing = NO;
+    }
+
     MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) {
         [iconView removeFromSuperview];
     });
@@ -721,7 +725,7 @@ static BOOL __stackInMotion;
         }
         iconView.frame = newFrame;
     }];
-
+     
     // Move stack icons
     CGRect centralFrame = [self _iconViewForIcon:_centralIcon].bounds;
     [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx) {
