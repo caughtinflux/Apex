@@ -26,6 +26,7 @@ extern "C" {
 // Properties to derive information from
 @property (nonatomic, readonly) BOOL hasSetup;
 @property (nonatomic, readonly) BOOL isExpanded;
+@property (nonatomic, readonly) BOOL isEmpty;
 @property (nonatomic, readonly) CGFloat currentIconDistance; // Distance of all the icons from the center.
 @property (nonatomic, readonly) SBIcon *centralIcon;
 @property (nonatomic, readonly) STKIconLayout *appearingIconsLayout;
@@ -38,7 +39,7 @@ extern "C" {
 
 - (instancetype)initWithContentsOfFile:(NSString *)file;
 
-// The interaction handler is called when an icon is tapped.
+// Pass in nil to stack icons for creating a manager with all placeholders.
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons;
 
 // Persistence

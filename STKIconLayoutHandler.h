@@ -30,6 +30,10 @@ typedef struct {
 + (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)icon usingLayout:(STKIconLayout *)layout;
 + (STKIconCoordinates)coordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation;
 
+// Returns a layout containing four id<NSObject> to indicate where the icons would go.
++ (STKIconLayout *)emptyLayoutForIconAtPosition:(STKPositionMask)position;
+
+// Returns a STKIconLayout instance with objects to indicate where there are empty spaces in `layout`
 + (STKIconLayout *)layoutForPlaceHoldersInLayout:(STKIconLayout *)layout withPosition:(STKPositionMask)position placeHolderClass:(Class)placeHolderClass;
 
 @end

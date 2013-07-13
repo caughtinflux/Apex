@@ -164,9 +164,17 @@ static BOOL __stackInMotion;
     if ((self = [super init])) {
         [icons retain]; // Make sure it's not released until we're done with it
 
-        _centralIcon          = [centralIcon retain];
+        _centralIcon = [centralIcon retain];
+        STKPositionMask mask = [self _locationMaskForIcon:_centralIcon];
 
-        _appearingIconsLayout = [[STKIconLayoutHandler layoutForIcons:icons aroundIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
+        if (!icons) {
+            _appearingIconsLayout = [[STKIconLayoutHandler emptyLayoutForIconAtPosition:mask] retain];
+            _isEmpty = YES;
+        }
+        else {
+            _appearingIconsLayout = [[STKIconLayoutHandler layoutForIcons:icons aroundIconAtPosition:mask] retain];
+        }
+        
         _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
 
         [icons release];
@@ -529,6 +537,7 @@ static BOOL __stackInMotion;
         [_offScreenIconsLayout enumerateThroughAllIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition pos) {
             [self _iconViewForIcon:icon].alpha = 0.f;
         }];
+
         
     } completion:^(BOOL finished) {
         if (finished) {

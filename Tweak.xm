@@ -81,18 +81,17 @@ static BOOL _switcherIsVisible;
 
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
-        self.location == SBIconViewLocationSwitcher ||
+        self.location == SBIconViewLocationSwitcher || self.location == SBIconViewLocationDock ||
         !(ICON_HAS_STACK(icon))) {
 
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
         // Make sure the recognizer is not added to icons in the stack
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
         STKCleanupIconView(self);
-
         return;
     }
 
-    // Add ourselves to the homescreen map, since _cmd is sometimes called before the map is configured completely.
+    // Add self to the homescreen map, since _cmd is sometimes called before the map is configured completely.
     if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon] == nil) {
         [[%c(SBIconViewMap) homescreenMap] _addIconView:self forIcon:icon];
     }
@@ -126,7 +125,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %new
 - (void)stk_panned:(UIPanGestureRecognizer *)sender
 {
-    SBIconListView *view = STKListViewForIcon(self.icon);
+    UIView *view = [STKListViewForIcon(self.icon) superview];
     STKStackManager *stackManager = STKManagerForView(self);
     STKStackManager *activeManager = STKGetActiveManager();
 
@@ -334,13 +333,13 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 {
     [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
 
+    _switcherIsVisible = YES;
+
     SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
     NSSet *visibleIconTags = MSHookIvar<NSSet *>(model, "_visibleIconTags");
     NSSet *hiddenIconTags = MSHookIvar<NSSet *>(model, "_hiddenIconTags");
 
     [model setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
-
-    _switcherIsVisible = YES;
     
     return %orig(animationDuration);
 }
@@ -362,6 +361,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
             isVisible = NO;
         }
+    
     }
     return isVisible;
 }

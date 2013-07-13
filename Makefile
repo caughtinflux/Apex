@@ -8,8 +8,8 @@ endif
 include theos/makefiles/common.mk
 
 TWEAK_NAME = Acervos
-Acervos_FILES = STKConstants.m STKIconLayout.m STKIconLayoutHandler.m STKStackManager.mm STKRecognizerDelegate.m STKPreferences.m Tweak.xm
-Acervos_FRAMEWORKS = Foundation UIKit CoreGraphics QuartzCore CoreImage
+Acervos_FILES = STKConstants.m STKIconLayout.m STKIconLayoutHandler.m STKStackManager.mm STKPlaceHolderIcon.xm STKRecognizerDelegate.m STKPreferences.m Tweak.xm
+Acervos_FRAMEWORKS = Foundation UIKit CoreGraphics QuartzCore
 Acervos_CFLAGS = -Wall -Werror
 
 include $(THEOS_MAKE_PATH)/tweak.mk

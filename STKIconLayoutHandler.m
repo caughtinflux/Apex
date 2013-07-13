@@ -1,8 +1,8 @@
 #import "STKIconLayoutHandler.h"
 #import "STKIconLayout.h"
+#import "STKPlaceHolderIcon.h"
 
 #import <objc/runtime.h>
-
 #import <SpringBoard/SpringBoard.h>
 
 #define kCurrentOrientation [UIApplication sharedApplication].statusBarOrientation
@@ -128,6 +128,15 @@ static SBIconListView *_centralIconListView;
     [_centralIconListView getX:&iconX Y:&iconY forIndex:iconIndex forOrientation:orientation];
 
     return (STKIconCoordinates){iconX, iconY, iconIndex};
+}
+
+
++ (STKIconLayout *)emptyLayoutForIconAtPosition:(STKPositionMask)position
+{
+    Class iconClass = objc_getClass("STKPlaceHolderIcon");
+    NSArray *fullSizeStackArray = @[[[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease]];
+    
+    return [self layoutForIcons:fullSizeStackArray aroundIconAtPosition:position];
 }
 
 + (STKIconLayout *)layoutForPlaceHoldersInLayout:(STKIconLayout *)layout withPosition:(STKPositionMask)position placeHolderClass:(Class)placeHolderClass
