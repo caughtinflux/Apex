@@ -26,6 +26,7 @@ extern "C" {
 // Properties to derive information from
 @property (nonatomic, readonly) BOOL hasSetup;
 @property (nonatomic, readonly) BOOL isExpanded;
+@property (nonatomic, readonly) BOOL isEmpty;
 @property (nonatomic, readonly) CGFloat currentIconDistance; // Distance of all the icons from the center.
 @property (nonatomic, readonly) SBIcon *centralIcon;
 @property (nonatomic, readonly) STKIconLayout *appearingIconsLayout;
@@ -38,7 +39,7 @@ extern "C" {
 
 - (instancetype)initWithContentsOfFile:(NSString *)file;
 
-// The interaction handler is called when an icon is tapped.
+// Pass in nil to stack icons for creating a manager with all placeholders.
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons;
 
 // Persistence
@@ -64,14 +65,11 @@ extern "C" {
 
 // Close the stack irrespective of what's happening. -touchesEnded might call this.
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler;
-
-// This method sets the central icon to `icon` until _after_ `handler` is called
-- (void)closeStackSettingCentralIcon:(SBIcon *)icon completion:(void(^)(void))handler;
+- (void)closeForSwitcher;
 
 // convenience methods
 - (void)openStack;
 - (void)closeStack;
-- (void)closeStackAfterDelay:(NSTimeInterval)delay completion:(void(^)(void))completionBlock;
 
 - (void)setStackIconAlpha:(CGFloat)alpha;
 
