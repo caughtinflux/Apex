@@ -11,10 +11,16 @@
 	return @"";
 }
 
+- (NSString *)leafIdentifier
+{
+	return STKPlaceHolderIconIdentifier;
+}
+
 - (BOOL)allowsUninstall
 {
 	return NO;
 }
+
 
 - (UIImage *)getStandardIconImageForLocation:(NSInteger)location
 {

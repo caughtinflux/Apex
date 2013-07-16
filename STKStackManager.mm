@@ -23,7 +23,7 @@ NSString * const STKStackManagerStackIconsKey  = @"STKStackIcons";
 #define kAnimationDuration   0.2
 #define kDisabledIconAlpha   0.2
 #define kBandingAllowance    ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? 25 : 50)
-#define kGhostlyRequesterID  23
+#define kGhostlyRequesterID  1
 #define kOverlayDuration     0.12
 #define kPopoutDistance      9
 
@@ -57,7 +57,7 @@ NSString * const STKStackManagerStackIconsKey  = @"STKStackIcons";
 *   Icon moving
 */
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
-- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon;
+- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon keepGhosting:(BOOL)shouldKeepGhostedIcons;
 
 - (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance;
 
@@ -174,7 +174,7 @@ static BOOL __stackInMotion;
         else {
             _appearingIconsLayout = [[STKIconLayoutHandler layoutForIcons:icons aroundIconAtPosition:mask] retain];
         }
-        
+
         _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
 
         [icons release];
@@ -182,8 +182,8 @@ static BOOL __stackInMotion;
         [self _calculateDistanceRatio];
         [self _findIconsWithOffScreenTargets];
         
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateOpen) name:@"OpenSesame" object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateClosed) name:@"CloseSesame" object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateOpen) name:[NSString stringWithFormat:@"OpenSesame %@", _centralIcon.leafIdentifier] object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateClosed) name:[NSString stringWithFormat:@"CloseSesame %@", _centralIcon.leafIdentifier] object:nil];
     }
     
     return self;
@@ -239,13 +239,17 @@ static BOOL __stackInMotion;
 
 - (void)recalculateLayouts
 {
-    NSArray *stackIcons = [[_appearingIconsLayout allIcons] retain];
+    NSArray *stackIcons = [_appearingIconsLayout allIcons];
 
     [_appearingIconsLayout release];
     [_displacedIconsLayout release];
 
-    _appearingIconsLayout = [[STKIconLayoutHandler layoutForIcons:stackIcons aroundIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
-    [stackIcons release];
+    if (_isEmpty) {
+        _appearingIconsLayout = [[STKIconLayoutHandler emptyLayoutForIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
+    }
+    else {
+        _appearingIconsLayout = [[STKIconLayoutHandler layoutForIcons:stackIcons aroundIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
+    }
 
     _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
 
@@ -286,10 +290,7 @@ static BOOL __stackInMotion;
         iconView.userInteractionEnabled = NO;
 
         for (UIGestureRecognizer *recognizer in iconView.gestureRecognizers) {
-            if ([recognizer isKindOfClass:[UISwipeGestureRecognizer class]]) {
-                // Remove Velox BS.
-                [iconView removeGestureRecognizer:recognizer];
-            }
+            [iconView removeGestureRecognizer:recognizer];
         }
     }];
 
@@ -322,6 +323,7 @@ static BOOL __stackInMotion;
     /*
     *   BULLSHIT CODE BEGINS
     */
+    CGFloat popoutDistance = (_isEmpty ? 0 : kPopoutDistance);
     [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx) {
         CGRect frame = [self _iconViewForIcon:_centralIcon].bounds;
         CGPoint newOrigin = frame.origin;
@@ -336,7 +338,7 @@ static BOOL __stackInMotion;
             // the member to modify needs to be subtracted from in case of t/l.
             CGFloat negator = (position == STKLayoutPositionTop || position == STKLayoutPositionLeft ? -1 : 1);
 
-            *memberToModify += kPopoutDistance * negator;
+            *memberToModify += popoutDistance * negator;
         }
         else {
             // Only the last icon at a particular side needs to be shown
@@ -365,6 +367,10 @@ static BOOL __stackInMotion;
     if (_isExpanded && ![[[objc_getClass("SBIconController") sharedInstance] scrollView] isDragging]) {
         return;
     }
+
+    if (!_hasSetup) {
+        [self setupPreview];
+    }
     
     if (!_hasPreparedGhostlyIcons) {
         [[objc_getClass("SBIconController") sharedInstance] prepareToGhostCurrentPageIconsForRequester:kGhostlyRequesterID skipIcon:_centralIcon];
@@ -376,8 +382,10 @@ static BOOL __stackInMotion;
     
     CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter);
     [self _setGhostlyAlphaForAllIcons:alpha excludingCentralIcon:YES];
-    [self _setAlphaForAppearingLabelsAndShadows:(1 - alpha)];
     [self _setPageControlAlpha:alpha];
+    if (!_isEmpty) {
+        [self _setAlphaForAppearingLabelsAndShadows:(1 - alpha)];
+    }
 
     
     CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
@@ -410,7 +418,7 @@ static BOOL __stackInMotion;
             if (_interactionHandler) {
                 _interactionHandler(nil);
             }
-        } duration:kAnimationDuration animateCentralIcon:NO];
+        } duration:kAnimationDuration animateCentralIcon:NO keepGhosting:NO];
     }
 }
  
@@ -420,24 +428,14 @@ static BOOL __stackInMotion;
         if (completionHandler) {
             completionHandler();
         }
-    } duration:kAnimationDuration animateCentralIcon:YES];
+    } duration:kAnimationDuration animateCentralIcon:YES keepGhosting:NO];
 }
 
-- (void)closeStackSettingCentralIcon:(SBIcon *)icon completion:(void(^)(void))handler
+- (void)closeForSwitcher
 {
-    SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
-
-    [centralIconView setIcon:icon];
-    
-    [self closeStackWithCompletionHandler:^{
-        if (handler) {
-            handler();
-        }
-        EXECUTE_BLOCK_AFTER_DELAY(0.25, ^{
-            // Okay, this is a hack, and not really OOP compliant. The 0.25 second delay is given so that when handler() launches an app, the central icon doesn't flash back quickly to the original
-            [centralIconView setIcon:_centralIcon];
-        });
-    }];
+    if (!_isExpanded) {
+        [self _animateToClosedPositionWithCompletionBlock:nil duration:kAnimationDuration animateCentralIcon:NO keepGhosting:YES];
+    }
 }
 
 - (void)openStack
@@ -450,16 +448,14 @@ static BOOL __stackInMotion;
     [self closeStackWithCompletionHandler:nil];
 }
 
-- (void)closeStackAfterDelay:(NSTimeInterval)delay completion:(void(^)(void))completionBlock
-{
-    EXECUTE_BLOCK_AFTER_DELAY(delay, ^{
-        [self closeStackWithCompletionHandler:completionBlock];
-    });
-}
 
 #pragma mark - Setter/Getter Overrides
 - (void)setIsEditing:(BOOL)isEditing
 {
+    if (_isEmpty) {
+        return;
+    }
+
     _isEditing = isEditing;
 
     if (_isEditing) {
@@ -505,6 +501,10 @@ static BOOL __stackInMotion;
 #pragma mark - Open Animation
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
 {
+    if (!_hasSetup) {
+        [self setupPreview];
+    }
+
     [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
 
@@ -518,10 +518,12 @@ static BOOL __stackInMotion;
             iconView.delegate = self;
             iconView.userInteractionEnabled = YES;
 
-            iconView.iconLabelAlpha = 1.f;
+            if (!_isEmpty) {
+                iconView.iconLabelAlpha = 1.f;
 
-            ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 1.f;
-            ((UIView *)[iconView valueForKey:@"_accessoryView"]).alpha = 1.f;
+                ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 1.f;
+                ((UIView *)[iconView valueForKey:@"_accessoryView"]).alpha = 1.f;
+            }
         }];
 
         [_displacedIconsLayout enumerateThroughAllIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
@@ -555,7 +557,7 @@ static BOOL __stackInMotion;
 }
 
 #pragma mark - Close Animation
-- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon
+- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon keepGhosting:(BOOL)shouldKeepGhostedIcons
 {
     UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
     [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
@@ -593,13 +595,16 @@ static BOOL __stackInMotion;
                 iconView.delegate = nil;
             }
 
-            [UIView animateWithDuration:(kAnimationDuration / 2.0) animations:^{ [self setupPreview]; }];
-
             // XXX: BUGFIX for SBIconListView BS
             [self _setGhostlyAlphaForAllIcons:.9999999f excludingCentralIcon:NO]; // .999f is necessary, unfortunately. A weird 1.0->0.0->1.0 alpha flash happens otherwise
             [self _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO]; // Set it back to 1.f, fix a pain in the ass bug
             [[objc_getClass("SBIconController") sharedInstance] cleanUpGhostlyIconsForRequester:kGhostlyRequesterID];
             _hasPreparedGhostlyIcons = NO;
+
+            if (_isEmpty) {
+                // We can remove the place holder icon views if the stack is empty. No need to have 4 icon views hidden behind every damn icon.
+                [self cleanupView];
+            }
             
             _isExpanded = NO;
             __isStackOpen = NO;
@@ -635,7 +640,7 @@ static BOOL __stackInMotion;
         There is a lot of repetitive code down here, but it's there for a reason. I have outlined a few points below:
             • Having those checks keeps it easy to understanc
             • It is very easy to simply just do a little magic on the signs of the distance, etc. But that's what I want to avoid. I'd by far prefer code that still makes sense.
-            • IMO, MAGIC IS ___NOT___ good when you're performing it.... LULZ.
+            • IMO, MAGIC IS ___NOT___ good when you're performing it.
 
         Comments are written everywhere to make sure that this code is understandable, even a few months down the line. For both appearing and disappearing icons, the first (top) set of icons have been commented, the l/r/d sets do the same thing, only in different directions, so it should be pretty simple to understand.
     */
@@ -660,7 +665,7 @@ static BOOL __stackInMotion;
                     factoredDistance /= appearingIconsCount;
                 }
 
-                targetOrigin.y -= kBandingAllowance; // Allow the icon to move for `kBandingAllowance` points beyond its target, simulating a 
+                targetOrigin.y -= kBandingAllowance; // Allow the icon to move for `kBandingAllowance` points beyond its target, simulating a rubber band
                 if ((newFrame.origin.y - factoredDistance) < targetOrigin.y) {
                     // If moving the icon by `factoredDistance` would cause it to move beyond its target, make it stick to the target location
                     newFrame.origin = targetOrigin;
@@ -1023,7 +1028,7 @@ static BOOL __stackInMotion;
     CGFloat horizontalDistance = referencePoint.x - horizontalOrigin.x;
 
     _distanceRatio = (horizontalDistance / verticalDistance);
-    _popoutCompensationRatio = verticalDistance / (verticalDistance - kPopoutDistance); // This is the ratio of the target distance of a stack icon to a displaced icon, respectively
+    _popoutCompensationRatio = (_isEmpty ? 1.f : (verticalDistance / (verticalDistance - kPopoutDistance))); // This is the ratio of the target distance of a stack icon to a displaced icon, respectively
 }
 
 - (void)_findIconsWithOffScreenTargets
@@ -1233,7 +1238,7 @@ static BOOL __stackInMotion;
 
 - (void)__animateClosed
 {
-    [self _animateToClosedPositionWithCompletionBlock:nil duration:0.5 animateCentralIcon:YES];
+    [self _animateToClosedPositionWithCompletionBlock:nil duration:0.5 animateCentralIcon:YES keepGhosting:NO];
 }
 
 #pragma mark - SBIconViewDelegate
@@ -1250,6 +1255,10 @@ static BOOL __stackInMotion;
 - (void)iconTapped:(SBIconView *)iconView
 {
     if (_isEditing) {
+        return;
+    }
+    
+    if ([iconView.icon.leafIdentifier isEqualToString:STKPlaceHolderIconIdentifier]) {
         return;
     }
 

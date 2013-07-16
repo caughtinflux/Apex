@@ -82,8 +82,8 @@ static BOOL _switcherIsVisible;
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
         self.location == SBIconViewLocationSwitcher || self.location == SBIconViewLocationDock ||
-        !(ICON_HAS_STACK(icon))) {
-
+        ![icon isLeafIcon] ||
+        [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
         // Make sure the recognizer is not added to icons in the stack
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
@@ -134,10 +134,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     }
 
     if (sender.state == UIGestureRecognizerStateBegan) {
-        if ( self.location == SBIconViewLocationSwitcher ||
-             [[%c(SBIconController) sharedInstance] isEditing] || 
-             !ICON_HAS_STACK(self.icon) )
-        {
+        if (self.location == SBIconViewLocationSwitcher || [[%c(SBIconController) sharedInstance] isEditing]) {
             // Preliminary check
             STKCleanupIconView(self);
             return;
@@ -228,10 +225,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         STKRemovePanRecognizerFromIconView(self);
     }
     else {
-        if (ICON_HAS_STACK(self.icon) && (isEditing == NO)) {  
-            STKAddPanRecognizerToIconView(self);
-            [STKManagerForView(self) recalculateLayouts];
-        }
+        STKAddPanRecognizerToIconView(self);
+        [STKManagerForView(self) recalculateLayouts];
     }
 }
 
@@ -278,31 +273,40 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 {
     %orig(value, requester, icon);
 
-    MAP([[STKPreferences sharedPreferences] identifiersForIconsWithStack], ^(NSString *ID) {
-        if ([ID isEqualToString:STKGetActiveManager().centralIcon.leafIdentifier] == NO) {
-            
-            SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:ID];
-            SBIconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
+    STKStackManager *activeManager = STKGetActiveManager();
+    SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
+    
+    __block BOOL passedCentralIcon = NO;
 
-            STKStackManager *manager = STKManagerForView(iconView);
-            [manager setStackIconAlpha:value];
+    [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
+        if (passedCentralIcon == NO && [iconView.icon.leafIdentifier isEqualToString:activeManager.centralIcon.leafIdentifier]) {
+            passedCentralIcon = YES;
+            return;
         }
-    });
+
+        STKStackManager *iconViewManager = STKManagerForView(iconView);
+        [iconViewManager setStackIconAlpha:value];
+    }];
 }
 
 - (void)setCurrentPageIconsGhostly:(BOOL)shouldGhost forRequester:(NSInteger)requester skipIcon:(SBIcon *)icon
 {
     %orig(shouldGhost, requester, icon);
 
-    MAP([[STKPreferences sharedPreferences] identifiersForIconsWithStack], ^(NSString *ID) {
-        if ([ID isEqualToString:STKGetActiveManager().centralIcon.leafIdentifier] == NO) {
-            SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:ID];
-            SBIconView *iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
+    STKStackManager *activeManager = STKGetActiveManager();
+    SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
 
-            STKStackManager *manager = STKManagerForView(iconView);
-            [manager setStackIconAlpha:((shouldGhost && [iconView isGhostly]) ? 0.0 : 1.0)];
+    __block BOOL passedCentralIcon = NO;
+
+    [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
+        if (passedCentralIcon == NO && [iconView.icon.leafIdentifier isEqualToString:activeManager.centralIcon.leafIdentifier]) {
+            passedCentralIcon = YES;
+            return;
         }
-    });
+
+        STKStackManager *iconViewManager = STKManagerForView(iconView);
+        [iconViewManager setStackIconAlpha:((shouldGhost && [iconView isGhostly]) ? 0.0 : 1.0)];
+    }];
 }
 
 /*  
@@ -420,16 +424,21 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         else {
             NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
             stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
-            [stackManager saveLayoutToFile:layoutPath];
+            if (![stackManager isEmpty]) {
+                [stackManager saveLayoutToFile:layoutPath];
+            }
         }
 
         stackManager.interactionHandler = \
             ^(SBIconView *tappedIconView) {
+                if (stackManager != STKGetActiveManager()) {
+                    return;
+                }
+
                 if (tappedIconView) {
                     stackManager.closesOnHomescreenEdit = NO;
 
-                    SBApplication *app = [[%c(SBApplicationController) sharedInstance] applicationWithDisplayIdentifier:tappedIconView.icon.leafIdentifier];
-                    [(SBUIController *)[%c(SBUIController) sharedInstance] activateApplicationFromSwitcher:app];
+                    [tappedIconView.icon launch];
                     
                     stackManager.closesOnHomescreenEdit = YES;
 
@@ -445,7 +454,10 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
     }
     
     [stackManager recalculateLayouts];
-    [stackManager setupPreview];
+
+    if (stackManager.isEmpty == NO) {
+        [stackManager setupPreview];
+    }
     
     return stackManager;
 }

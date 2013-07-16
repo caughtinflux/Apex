@@ -5,6 +5,8 @@
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
 
+#define kLastEraseDateKey @"LastEraseDate"
+
 @interface STKPreferences ()
 {
     NSDictionary *_currentPrefs;
@@ -43,6 +45,7 @@
     _currentPrefs = [[NSDictionary alloc] initWithContentsOfFile:kPrefPath];
     if (!_currentPrefs) {
         _currentPrefs = [[NSDictionary alloc] init];
+        [_currentPrefs writeToFile:kPrefPath atomically:YES];
     }
 
     [_layouts release];
@@ -81,6 +84,10 @@
     SBIconModel *model = [(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model];
 
     NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:[self layoutPathForIcon:icon]];
+    
+    if (!attributes) {
+        return nil;
+    }
 
     NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
     for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {

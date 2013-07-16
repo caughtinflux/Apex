@@ -52,6 +52,7 @@ extern "C" {
 #endif
     extern NSString * const STKEditingStateChangedNotification;
     extern NSString * const STKStackClosingEventNotification; // This notification is posted when something happens to make the stack close
+    extern NSString * const STKPlaceHolderIconIdentifier;
     
     extern NSString * const SBLockStateChangeNotification;
 
@@ -66,8 +67,6 @@ extern "C" {
 
     extern inline CGFloat STKGetCurrentTargetDistance(void);
     extern inline void    STKUpdateTargetDistanceInListView(SBIconListView *listView);
-
-    extern NSUInteger STKGetCPUFrequency(void);
 
 #ifdef __cplusplus 
 }

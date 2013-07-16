@@ -10,6 +10,7 @@
 NSString * const STKTweakName                       = @"Acervos";
 NSString * const STKEditingStateChangedNotification = @"STKEditingStateChanged";
 NSString * const STKStackClosingEventNotification   = @"STKStackClosingEvent";
+NSString * const STKPlaceHolderIconIdentifier       = @"com.a3tweaks.placeholderid";
 
 // SpringBoard constants
 NSString * const SBLockStateChangeNotification = @"com.apple.springboard.lockstate";
@@ -58,18 +59,4 @@ inline void STKUpdateTargetDistanceInListView(SBIconListView *listView)
     CGFloat verticalDistance = referencePoint.y - verticalOrigin.y;
 
     _currentTargetDistance = verticalDistance;
-}
-
-NSUInteger STKInfoForSpecifier(uint typeSpecifier)
-{
-    size_t size = sizeof(int);
-    int results;
-    int mib[2] = {CTL_HW, typeSpecifier};
-    sysctl(mib, 2, &results, &size, NULL, 0);
-    return (NSUInteger)results;
-}
-
-NSUInteger STKGetCPUFrequency(void)
-{
-    return STKInfoForSpecifier(HW_CPU_FREQ);
 }
