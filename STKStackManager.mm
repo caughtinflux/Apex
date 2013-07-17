@@ -560,16 +560,18 @@ static BOOL __stackInMotion;
 - (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon keepGhosting:(BOOL)shouldKeepGhostedIcons
 {
     UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
+    CGFloat scale = (_isEmpty ? 1.f : kCentralIconPreviewScale);
+
     [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         // Animate central imageview shrink/grow
         if (animateCentralIcon) {
-            centralView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale - 0.1f, kCentralIconPreviewScale - 0.1f);
+            centralView.transform = CGAffineTransformMakeScale(scale - 0.1f, scale - 0.1f);
         }
     } completion:^(BOOL finished) {
         if (finished) {
-            // Animate it back to the preview icon scale
+            // Animate it back to `scale`
             [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                centralView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
+                centralView.transform = CGAffineTransformMakeScale(scale, scale);
             } completion:nil];
         }
     }];
