@@ -9,6 +9,7 @@ extern "C" {
 #endif
     extern NSString * const STKStackManagerCentralIconKey;
     extern NSString * const STKStackManagerStackIconsKey;
+    extern NSString * const STKRecaluculateLayoutsNotification;
 #ifdef __cplusplus
 }
 #endif
@@ -46,6 +47,7 @@ extern "C" {
 - (void)saveLayoutToFile:(NSString *)path;
 
 // Call this method when the location of the icon changes
+// You can also send STKRecaluculateLayoutsNotification
 - (void)recalculateLayouts;
 
 - (void)setupPreview;

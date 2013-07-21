@@ -17,6 +17,8 @@
 NSString * const STKStackManagerCentralIconKey = @"STKCentralIcon";
 NSString * const STKStackManagerStackIconsKey  = @"STKStackIcons";
 
+NSString * const STKRecaluculateLayoutsNotification = @"STKRecalculate";
+
 
 
 #define kMaximumDisplacement kEnablingThreshold + 40
@@ -104,7 +106,7 @@ NSString * const STKStackManagerStackIconsKey  = @"STKStackIcons";
 - (void)__animateOpen;
 - (void)__animateClosed;
 
-@end
+    @end
 
 
 @implementation STKStackManager 
@@ -182,6 +184,7 @@ static BOOL __stackInMotion;
         [self _calculateDistanceRatio];
         [self _findIconsWithOffScreenTargets];
         
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recalculateLayouts) name:STKRecaluculateLayoutsNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateOpen) name:[NSString stringWithFormat:@"OpenSesame %@", _centralIcon.leafIdentifier] object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateClosed) name:[NSString stringWithFormat:@"CloseSesame %@", _centralIcon.leafIdentifier] object:nil];
     }
@@ -239,6 +242,14 @@ static BOOL __stackInMotion;
 
 - (void)recalculateLayouts
 {
+    SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
+    if (centralIconView.location != SBIconViewLocationHomeScreen) {
+        // I KNOW THERE'S A HOOK INTO -iconViewDidChangeLocation: that will pick this up. 
+        // THE SHIT I WRITE...
+        [[objc_getClass("SBIconViewMap") homescreenMap] iconViewDidChangeLocation:centralIconView];
+        return;
+    }
+
     NSArray *stackIcons = [_appearingIconsLayout allIcons];
 
     [_appearingIconsLayout release];
@@ -1259,8 +1270,9 @@ static BOOL __stackInMotion;
     if (_isEditing) {
         return;
     }
-    
+
     if ([iconView.icon.leafIdentifier isEqualToString:STKPlaceHolderIconIdentifier]) {
+        // FINISH ME
         return;
     }
 
@@ -1283,7 +1295,7 @@ static BOOL __stackInMotion;
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
 {
-    return YES;
+    return ([[objc_getClass("SBIconController") sharedInstance] hasOpenFolder] ? NO : YES);
 }
 
 - (BOOL)iconPositionIsEditable:(SBIconView *)iconView

@@ -18,8 +18,8 @@ static void STKAddPanRecognizerToIconView(SBIconView *iconView);
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
 
 
-static void STKSetupIconView(SBIconView *iconView); // Adds recogniser and grabber images
-static void STKCleanupIconView(SBIconView *iconView); // Removes recogniser and grabber images
+static inline void STKSetupIconView(SBIconView *iconView); // Adds recogniser and sets up stack manager for the preview
+static inline void STKCleanupIconView(SBIconView *iconView); // Removes recogniser and stack manager
 
 
 
@@ -59,6 +59,17 @@ static BOOL _switcherIsVisible;
 //////////////////////////////////////////////////////////////////
 
 %hook SBIconViewMap
+- (void)iconViewDidChangeLocation:(SBIconView *)iconView
+{
+    if (iconView.location != SBIconViewLocationHomeScreen) {
+        // If the icon is going intp a folder
+        STKCleanupIconView(iconView);
+    }
+
+    // All the icons' manager will need to calculate layouts if any one icon moves.
+    [[NSNotificationCenter defaultCenter] postNotificationName:STKRecaluculateLayoutsNotification object:nil userInfo:nil];
+}
+
 %new
 - (SBIconView *)safeIconViewForIcon:(SBIcon *)icon
 {
@@ -109,6 +120,7 @@ static BOOL _switcherIsVisible;
 
 - (void)dealloc
 {
+    // Remove each registered notification individually, so we don't conflict with other tweaks.
     [[NSNotificationCenter defaultCenter] removeObserver:self name:STKStackClosingEventNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
 
@@ -226,7 +238,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     }
     else {
         STKAddPanRecognizerToIconView(self);
-        [STKManagerForView(self) recalculateLayouts];
     }
 }
 
@@ -279,6 +290,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     __block BOOL passedCentralIcon = NO;
 
     [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
+        // Only check if the icon's ID matches the active manager's central icon if it hasn't been checked and found already
         if (passedCentralIcon == NO && [iconView.icon.leafIdentifier isEqualToString:activeManager.centralIcon.leafIdentifier]) {
             passedCentralIcon = YES;
             return;
@@ -309,17 +321,40 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     }];
 }
 
-/*  
-    Various hooks to intercept events that should make the stack close
-*/
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     %orig(scrollView);
-    [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
+    [STKGetActiveManager() closeStack];
+}
+
+- (void)openFolder:(id)folder animated:(BOOL)animated fromSwitcher:(BOOL)fromSwitcher
+{
+    [[[%c(SBIconController) sharedInstance] currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *iconView) {
+        STKCleanupIconView(iconView);
+    }];
+    
+    %orig(folder, animated, fromSwitcher);
+}
+
+- (void)closeFolderAnimated:(BOOL)animated toSwitcher:(BOOL)toSwitcher
+{
+    [[[%c(SBIconController) sharedInstance] currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *iconView) {
+        STKSetupIconView(iconView);
+    }];
+
+    %orig(animated, toSwitcher);
 }
 
 %end
 
+
+%hook SBFolderSlidingView
+- (void)handleGestureInWallpaperContainer:(id)arg1
+{
+    %orig();
+    %log();
+}
+%end
 
 %hook SBUIController
 - (BOOL)clickedMenuButton
@@ -382,34 +417,6 @@ static const SEL bottomGrabberViewKey = @selector(acervosBottomGrabberKey);
 static const SEL recognizerDelegateKey = @selector(acervosDelegateKey);
 
 #pragma mark - Static Function Definitions
-static void STKAddPanRecognizerToIconView(SBIconView *iconView)
-{
-    UIPanGestureRecognizer *panRecognizer = objc_getAssociatedObject(iconView, panGRKey);
-    // Don't add a recognizer if it already exists
-    if (!panRecognizer) {
-        panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:iconView action:@selector(stk_panned:)] autorelease];
-        [iconView addGestureRecognizer:panRecognizer];
-        objc_setAssociatedObject(iconView, panGRKey, panRecognizer, OBJC_ASSOCIATION_ASSIGN);
-
-        // Setup a delegate, and have the recognizer retain it using associative refs, so that when the recognizer is destroyed, so is the delegate object
-        STKRecognizerDelegate *delegate = [[STKRecognizerDelegate alloc] init];
-        panRecognizer.delegate = delegate;
-        objc_setAssociatedObject(panRecognizer, recognizerDelegateKey, delegate, OBJC_ASSOCIATION_RETAIN);
-        [delegate release];
-    }
-}
-
-static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
-{
-    UIPanGestureRecognizer *recognizer = STKPanRecognizerForView(iconView);
-    [iconView removeGestureRecognizer:recognizer];
-
-    // Clear out the associative references. 
-    objc_setAssociatedObject(recognizer, recognizerDelegateKey, nil, OBJC_ASSOCIATION_RETAIN); // Especially this one. The pan recogniser getting wiped out should remove this already. But still, better to be sure.
-    objc_setAssociatedObject(iconView, panGRKey, nil, OBJC_ASSOCIATION_ASSIGN);
-}
-
-
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 {
     __block STKStackManager * stackManager = STKManagerForView(iconView);
@@ -462,21 +469,49 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
     return stackManager;
 }
 
-static void STKRemoveManagerFromView(SBIconView *iconView)
+static inline void STKRemoveManagerFromView(SBIconView *iconView)
 {
     iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
     objc_setAssociatedObject(iconView, stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-static void STKSetupIconView(SBIconView *iconView)
+static void STKAddPanRecognizerToIconView(SBIconView *iconView)
 {
-    STKAddPanRecognizerToIconView(iconView);
-    STKSetupManagerForView(iconView);
+    UIPanGestureRecognizer *panRecognizer = objc_getAssociatedObject(iconView, panGRKey);
+    // Don't add a recognizer if it already exists
+    if (!panRecognizer) {
+        panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:iconView action:@selector(stk_panned:)] autorelease];
+        [iconView addGestureRecognizer:panRecognizer];
+        objc_setAssociatedObject(iconView, panGRKey, panRecognizer, OBJC_ASSOCIATION_ASSIGN);
 
-    iconView.iconImageView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
+        // Setup a delegate, and have the recognizer retain it using associative refs, so that when the recognizer is destroyed, so is the delegate object
+        STKRecognizerDelegate *delegate = [[STKRecognizerDelegate alloc] init];
+        panRecognizer.delegate = delegate;
+        objc_setAssociatedObject(panRecognizer, recognizerDelegateKey, delegate, OBJC_ASSOCIATION_RETAIN);
+        [delegate release];
+    }
 }
 
-static void STKCleanupIconView(SBIconView *iconView)
+static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
+{
+    UIPanGestureRecognizer *recognizer = STKPanRecognizerForView(iconView);
+    [iconView removeGestureRecognizer:recognizer];
+
+    // Clear out the associative references. 
+    objc_setAssociatedObject(recognizer, recognizerDelegateKey, nil, OBJC_ASSOCIATION_RETAIN); // Especially this one. The pan recogniser getting wiped out should remove this already. But still, better to be sure.
+    objc_setAssociatedObject(iconView, panGRKey, nil, OBJC_ASSOCIATION_ASSIGN);
+}
+
+static inline void STKSetupIconView(SBIconView *iconView)
+{
+    STKAddPanRecognizerToIconView(iconView);
+    STKStackManager *manager = STKSetupManagerForView(iconView);
+
+    CGFloat scale = (manager.isEmpty ? 1.f : kCentralIconPreviewScale);
+    iconView.iconImageView.transform = CGAffineTransformMakeScale(scale, scale);
+}
+
+static inline void STKCleanupIconView(SBIconView *iconView)
 {
     STKRemovePanRecognizerFromIconView(iconView);
     STKRemoveManagerFromView(iconView);

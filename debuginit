@@ -1,0 +1,2 @@
+platform select remote-ios
+process connect connect://flux-iPhone.local:1337
