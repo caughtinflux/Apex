@@ -330,7 +330,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)openFolder:(id)folder animated:(BOOL)animated fromSwitcher:(BOOL)fromSwitcher
 {
     [[[%c(SBIconController) sharedInstance] currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *iconView) {
-        STKCleanupIconView(iconView);
+        [STKManagerForView(iconView) cleanupView];
     }];
     
     %orig(folder, animated, fromSwitcher);
@@ -339,7 +339,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)closeFolderAnimated:(BOOL)animated toSwitcher:(BOOL)toSwitcher
 {
     [[[%c(SBIconController) sharedInstance] currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *iconView) {
-        STKSetupIconView(iconView);
+        [STKManagerForView(iconView) setupPreview];
     }];
 
     %orig(animated, toSwitcher);
