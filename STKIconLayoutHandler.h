@@ -23,13 +23,17 @@ typedef struct {
 // Set the exact position by OR'ing the different values in the enum
 // It will just explode in your face if you do rubbish like setting both TouchingTop and TouchingBottom
 // I mean it.
-- (STKIconLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(STKPositionMask)position;
++ (STKIconLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(STKPositionMask)position;
 
 // Returns an STKIconLayout object whose properties contain SBIcons to be faded out when the new icons are coming in
 // This, is plain magic.
-- (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)icon usingLayout:(STKIconLayout *)layout;
-- (STKIconCoordinates)coordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation;
++ (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)icon usingLayout:(STKIconLayout *)layout;
++ (STKIconCoordinates)coordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation;
 
-- (STKIconLayout *)layoutForPlaceHoldersInLayout:(STKIconLayout *)layout withPosition:(STKPositionMask)position placeHolderClass:(Class)placeHolderClass;
+// Returns a layout containing four id<NSObject> to indicate where the icons would go.
++ (STKIconLayout *)emptyLayoutForIconAtPosition:(STKPositionMask)position;
+
+// Returns a STKIconLayout instance with objects to indicate where there are empty spaces in `layout`
++ (STKIconLayout *)layoutForPlaceHoldersInLayout:(STKIconLayout *)layout withPosition:(STKPositionMask)position placeHolderClass:(Class)placeHolderClass;
 
 @end
