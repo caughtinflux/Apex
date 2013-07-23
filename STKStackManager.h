@@ -24,7 +24,9 @@ extern "C" {
 + (BOOL)anyStackInMotion;
 + (NSString *)layoutsPath;
 
-// Properties to derive information from
+/**
+*	Properties to derive information from
+*/
 @property (nonatomic, readonly) BOOL hasSetup;
 @property (nonatomic, readonly) BOOL isExpanded;
 @property (nonatomic, readonly) BOOL isEmpty;
@@ -38,16 +40,29 @@ extern "C" {
 @property (nonatomic, assign) BOOL isEditing;
 @property (nonatomic, assign) BOOL closesOnHomescreenEdit; 
 
+/**
+*	Returns: An instance of a STKStackManager class, nil if `file` is corrupt or could not be read
+*	Param `file`: Path to an archived dictionary that looks like this: @{STKStackManagerCentralIconKey : <central icon identifier>,
+*																		 STJStackManagerStackIconsKey  : <array of stack icon identifiers>}
+*/
 - (instancetype)initWithContentsOfFile:(NSString *)file;
 
-// Pass in nil to stack icons for creating a manager with all placeholders.
+/**
+*	Returns: An instance of a STKStackManager class
+*	Param `centralIcon`: The icon on the home screen that will be at the centre of the stack
+*	Param `stackIcons`:  Sub-apps in the stack. Pass nil for this argument to display empty placeholders
+*/
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons;
 
-// Persistence
+/**
+*	Persistence
+*/
 - (void)saveLayoutToFile:(NSString *)path;
 
-// Call this method when the location of the icon changes
-// You can also send STKRecaluculateLayoutsNotification
+/**
+*	Call this method when the location of the icon changes
+*	You can also send STKRecaluculateLayoutsNotification
+*/
 - (void)recalculateLayouts;
 
 - (void)setupPreview;
@@ -65,18 +80,26 @@ extern "C" {
 */
 - (void)touchesEnded;
 
-// Close the stack irrespective of what's happening. -touchesEnded might call this.
+/**
+*	Description: Close the stack irrespective of what's happening. -touchesEnded might call this.
+*	Param `completionHandler`: Block that will be called once stack closing animations finish
+*/
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler;
 - (void)closeForSwitcher;
 
-// convenience methods
+/**
+*	Convenience methods
+*/
 - (void)openStack;
 - (void)closeStack;
 
 - (void)setStackIconAlpha:(CGFloat)alpha;
 
-// HAXX: This method should be called as a proxy for -[UIView hitTest:withEvent:] inside SBIconView, so we can process if any stack icons should be receiving touches.
-// It's necessary, because the icons are added as a subview of the central iconView.
+/**
+*	HAXX: This method should be called as a proxy for -[UIView hitTest:withEvent:] inside SBIconView, so we can process if any stack icons should be receiving touches.
+*	It's necessary, because the icons are added as a subview of the central iconView.
+*	Parameters same as -[UIView hitTest:withEvent:]
+*/
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;
 
 @end
