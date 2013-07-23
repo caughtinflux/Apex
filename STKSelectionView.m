@@ -1,4 +1,4 @@
-#import "STKSelectionListView.h"
+#import "STKSelectionView.h"
 #import "STKConstants.h"
 #import "STKIconLayout.h"
 
@@ -8,14 +8,14 @@
 #define G_IVAR(_name) objc_getAssociatedObject(self, @selector(_name))
 #define S_IVAR(_name, _object) objc_setAssociatedObject(self, @selector(_name), _object, OBJC_ASSOCIATION_ASSIGN)
 
-@interface STKSelectionListView ()
+@interface STKSelectionView ()
 {
     UIScrollView *_listScrollView;
 }
 
 @end
 
-@implementation STKSelectionListView
+@implementation STKSelectionView
 
 - (instancetype)initWithIconView:(SBIconView *)iconView inLayout:(STKIconLayout *)iconViewLayout centralIconView:(SBIconView *)centralIconView displacedIcons:(STKIconLayout *)displacedIconsLayout
 {
