@@ -147,17 +147,17 @@ static BOOL __stackInMotion;
     for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
         // Get the SBIcon instances for the identifiers
         SBIcon *icon = [model expectedIconForDisplayIdentifier:identifier];
-        if (!icon) {
-            // NSString *message = [NSString stringWithFormat:@"Couldn't get icon for identifier %@. Confirm that the ID is correct and the app is installed.", identifier];
-            // SHOW_USER_NOTIFICATION(kSTKTweakName, message, @"Dismiss");
-            continue;
+        if (icon) {
+            [stackIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
         }
-        [stackIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
+        else {
+            CLog(@"Couldn't get icon for identifier %@. Confirm that the ID is correct and the app is installed.", identifier);
+        }
     }
 
     SBIcon *centralIcon = [model expectedIconForDisplayIdentifier:attributes[STKStackManagerCentralIconKey]];
     if (!centralIcon) {
-        SHOW_USER_NOTIFICATION(kSTKTweakName, @"Could not get the central icon for the stack", @"Dismiss");
+        CLog(@"Central Icon: %@ doesn't exist, dying quietly...", attributes[STKStackManagerCentralIconKey]);
         return nil;
     }
 
@@ -213,8 +213,11 @@ static BOOL __stackInMotion;
         [self _iconViewForIcon:_centralIcon].delegate = _previousDelegate;
     }
     
+    if (_interactionHandler) {
+        [_interactionHandler release];
+    }
+
     [_centralIcon release];
-    [_interactionHandler release];
     [_appearingIconsLayout release];
     [_displacedIconsLayout release];
     [_offScreenIconsLayout release];
@@ -249,7 +252,6 @@ static BOOL __stackInMotion;
 
 - (void)recalculateLayouts
 {
-    DLog(@"");
     SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
     if (centralIconView.location != SBIconViewLocationHomeScreen) {
         // I KNOW THERE'S A HOOK INTO -iconViewDidChangeLocation: that will pick this up. 
@@ -275,7 +277,7 @@ static BOOL __stackInMotion;
     [self _calculateDistanceRatio];
     [self _findIconsWithOffScreenTargets];
 
-        if (_hasSetup) {
+    if (_hasSetup) {
         [self cleanupView];
         [self setupPreview];
     }
@@ -1118,10 +1120,9 @@ static BOOL __stackInMotion;
         [_iconController setCurrentPageIconsPartialGhostly:alpha forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
     }
 
-    for (SBIcon *icon in _offScreenIconsLayout.bottomIcons) {
-        // Set the bottom offscreen icons' alpha now, because they look like shit overlapping the dock.
+    MAP(_offScreenIconsLayout.bottomIcons, ^(SBIcon *icon) {
         [self _iconViewForIcon:icon].alpha = alpha;
-    }
+    })
 }
 
 - (void)_setAlphaForAppearingLabelsAndShadows:(CGFloat)alpha
