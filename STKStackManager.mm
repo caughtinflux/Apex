@@ -1312,9 +1312,6 @@ static BOOL __stackInMotion;
 
 - (BOOL)iconPositionIsEditable:(SBIconView *)iconView
 {
-    const char *a = "asd";
-    BOOL wat = a[9] == *(a + 9);
-    wat = NO;
     return NO;
 }
 
