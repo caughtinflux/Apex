@@ -92,7 +92,10 @@
     NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
     for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
         // Get the SBIcon instances for the identifiers
-        [stackIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
+        SBIcon *icon = [model expectedIconForDisplayIdentifier:identifier];
+        if (icon) {
+            [stackIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
+        }
     }
     return stackIcons;
 }
@@ -110,7 +113,7 @@
 
 - (BOOL)iconHasStack:(SBIcon *)icon
 {
-    return [[self identifiersForIconsWithStack] containsObject:icon.leafIdentifier];
+    return (icon == nil ? NO : [[self identifiersForIconsWithStack] containsObject:icon.leafIdentifier]);
 }
 
 - (BOOL)iconIsInStack:(SBIcon *)icon
