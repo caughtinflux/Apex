@@ -17,7 +17,7 @@
 NSString * const STKStackManagerCentralIconKey = @"STKCentralIcon";
 NSString * const STKStackManagerStackIconsKey  = @"STKStackIcons";
 
-NSString * const STKRecaluculateLayoutsNotification = @"STKRecalculate";
+NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 
 
 
@@ -53,6 +53,8 @@ NSString * const STKRecaluculateLayoutsNotification = @"STKRecalculate";
 
     STKIconLayout            *_placeHolderViewsLayout;
     STKIconLayout            *_iconsHiddenForPlaceHolders;
+
+    SBIconController         *_iconController;
 }
 
 /*
@@ -136,7 +138,8 @@ static BOOL __stackInMotion;
 #pragma mark - Public Methods
 - (instancetype)initWithContentsOfFile:(NSString *)file
 {
-    SBIconModel *model = [(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model];
+    _iconController = [objc_getClass("SBIconController") sharedInstance];
+    SBIconModel *model = [(SBIconController *)_iconController model];
 
     NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:file];
 
@@ -145,9 +148,9 @@ static BOOL __stackInMotion;
         // Get the SBIcon instances for the identifiers
         SBIcon *icon = [model expectedIconForDisplayIdentifier:identifier];
         if (!icon) {
-            NSString *message = [NSString stringWithFormat:@"Couldn't get icon for identifier %@. Confirm that the ID is correct and the app is installed.", identifier];
-            SHOW_USER_NOTIFICATION(kSTKTweakName, message, @"Dismiss");
-            return nil;
+            // NSString *message = [NSString stringWithFormat:@"Couldn't get icon for identifier %@. Confirm that the ID is correct and the app is installed.", identifier];
+            // SHOW_USER_NOTIFICATION(kSTKTweakName, message, @"Dismiss");
+            continue;
         }
         [stackIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
     }
@@ -164,6 +167,10 @@ static BOOL __stackInMotion;
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
 {
     if ((self = [super init])) {
+        if (!_iconController) {
+            _iconController = [objc_getClass("SBIconController") sharedInstance];
+        }
+
         [icons retain]; // Make sure it's not released until we're done with it
 
         _centralIcon = [centralIcon retain];
@@ -184,7 +191,7 @@ static BOOL __stackInMotion;
         [self _calculateDistanceRatio];
         [self _findIconsWithOffScreenTargets];
         
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recalculateLayouts) name:STKRecaluculateLayoutsNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recalculateLayouts) name:STKRecalculateLayoutsNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateOpen) name:[NSString stringWithFormat:@"OpenSesame %@", _centralIcon.leafIdentifier] object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateClosed) name:[NSString stringWithFormat:@"CloseSesame %@", _centralIcon.leafIdentifier] object:nil];
     }
@@ -242,6 +249,7 @@ static BOOL __stackInMotion;
 
 - (void)recalculateLayouts
 {
+    DLog(@"");
     SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
     if (centralIconView.location != SBIconViewLocationHomeScreen) {
         // I KNOW THERE'S A HOOK INTO -iconViewDidChangeLocation: that will pick this up. 
@@ -266,6 +274,11 @@ static BOOL __stackInMotion;
 
     [self _calculateDistanceRatio];
     [self _findIconsWithOffScreenTargets];
+
+        if (_hasSetup) {
+        [self cleanupView];
+        [self setupPreview];
+    }
 }
 
 #pragma mark - Adding Stack Icons
@@ -291,7 +304,6 @@ static BOOL __stackInMotion;
 
         iconView.frame = centralIconView.bounds;
         iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
-        
         [iconView setIconLabelAlpha:0.f];
         [[iconView valueForKeyPath:@"_shadow"] setAlpha:0.f];
 
@@ -375,7 +387,7 @@ static BOOL __stackInMotion;
 #pragma mark - Moving Icons
 - (void)touchesDraggedForDistance:(CGFloat)distance
 {
-    if (_isExpanded && ![[[objc_getClass("SBIconController") sharedInstance] scrollView] isDragging]) {
+    if (_isExpanded && ![[_iconController scrollView] isDragging]) {
         return;
     }
 
@@ -384,7 +396,7 @@ static BOOL __stackInMotion;
     }
     
     if (!_hasPreparedGhostlyIcons) {
-        [[objc_getClass("SBIconController") sharedInstance] prepareToGhostCurrentPageIconsForRequester:kGhostlyRequesterID skipIcon:_centralIcon];
+        [_iconController prepareToGhostCurrentPageIconsForRequester:kGhostlyRequesterID skipIcon:_centralIcon];
         _hasPreparedGhostlyIcons = YES;
     }
     __stackInMotion = YES;
@@ -611,7 +623,7 @@ static BOOL __stackInMotion;
             // XXX: BUGFIX for SBIconListView BS
             [self _setGhostlyAlphaForAllIcons:.9999999f excludingCentralIcon:NO]; // .999f is necessary, unfortunately. A weird 1.0->0.0->1.0 alpha flash happens otherwise
             [self _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO]; // Set it back to 1.f, fix a pain in the ass bug
-            [[objc_getClass("SBIconController") sharedInstance] cleanUpGhostlyIconsForRequester:kGhostlyRequesterID];
+            [_iconController cleanUpGhostlyIconsForRequester:kGhostlyRequesterID];
             _hasPreparedGhostlyIcons = NO;
 
             if (_isEmpty) {
@@ -1068,7 +1080,8 @@ static BOOL __stackInMotion;
             }
 
             case STKLayoutPositionBottom: {
-                if (CGRectGetMidY(targetRect) >= CGRectGetHeight(listViewBounds)) {
+                CGRect targetRect = [STKListViewForIcon(_centralIcon)  convertRect:targetRect toView:STKListViewForIcon(_centralIcon).superview.superview  ];
+                if (CGRectIntersectsRect(targetRect, _iconController.dock.frame)) {
                     [_offScreenIconsLayout addIcon:icon toIconsAtPosition:position];
                 }
                 break;
@@ -1096,13 +1109,13 @@ static BOOL __stackInMotion;
 - (void)_setGhostlyAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral
 {
     if (alpha >= 1.f) {
-        [[objc_getClass("SBIconController") sharedInstance] setCurrentPageIconsGhostly:NO forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
+        [_iconController setCurrentPageIconsGhostly:NO forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
     }
     else if (alpha <= 0.f) {
-        [[objc_getClass("SBIconController") sharedInstance] setCurrentPageIconsGhostly:YES forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];   
+        [_iconController setCurrentPageIconsGhostly:YES forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];   
     }
     else {
-        [[objc_getClass("SBIconController") sharedInstance] setCurrentPageIconsPartialGhostly:alpha forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
+        [_iconController setCurrentPageIconsPartialGhostly:alpha forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
     }
 
     for (SBIcon *icon in _offScreenIconsLayout.bottomIcons) {
@@ -1122,7 +1135,7 @@ static BOOL __stackInMotion;
 
 - (void)_setPageControlAlpha:(CGFloat)alpha
 {
-    [[objc_getClass("SBIconController") sharedInstance] setPageControlAlpha:alpha];
+    [_iconController setPageControlAlpha:alpha];
 }
 
 
@@ -1295,11 +1308,14 @@ static BOOL __stackInMotion;
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
 {
-    return ([[objc_getClass("SBIconController") sharedInstance] hasOpenFolder] ? NO : YES);
+    return ([_iconController hasOpenFolder] ? NO : YES);
 }
 
 - (BOOL)iconPositionIsEditable:(SBIconView *)iconView
 {
+    const char *a = "asd";
+    BOOL wat = a[9] == *(a + 9);
+    wat = NO;
     return NO;
 }
 

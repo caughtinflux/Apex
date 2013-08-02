@@ -30,6 +30,7 @@ static inline               NSString * STKGetLayoutPathForIcon(SBIcon *icon);
 
 static inline            void   STKSetActiveManager(STKStackManager *manager);
 static inline STKStackManager * STKGetActiveManager(void);
+static inline            void   STKCloseActiveManager(void);
 
 
 #pragma mark - Direction !
@@ -66,8 +67,8 @@ static BOOL _switcherIsVisible;
         STKCleanupIconView(iconView);
     }
 
-    // All the icons' manager will need to calculate layouts if any one icon moves.
-    [[NSNotificationCenter defaultCenter] postNotificationName:STKRecaluculateLayoutsNotification object:nil userInfo:nil];
+    // All the icons' manager will need to re-calculate layouts if any one icon moves.
+    [[NSNotificationCenter defaultCenter] postNotificationName:STKRecalculateLayoutsNotification object:nil userInfo:nil];
 }
 
 %new
@@ -109,7 +110,6 @@ static BOOL _switcherIsVisible;
 
     STKSetupIconView(self);
 
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_closeStack:) name:STKStackClosingEventNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_editingStateChanged:) name:STKEditingStateChangedNotification object:nil];
 }
 
@@ -121,7 +121,6 @@ static BOOL _switcherIsVisible;
 - (void)dealloc
 {
     // Remove each registered notification individually, so we don't conflict with other tweaks.
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:STKStackClosingEventNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
 
     %orig();
@@ -220,7 +219,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         if (stackManager.isExpanded) {
             STKSetActiveManager(stackManager);
         }
-        else if (STKGetActiveManager() != nil) {
+        else {
+            // The stack has closed, no manager is active no.
             STKSetActiveManager(nil);
         }
 
@@ -260,11 +260,16 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %new
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
-    UIView *view = [STKManagerForView(self) hitTest:point withEvent:event];
-    if (view) {
-        return view;
-    }
+    STKStackManager *activeManager = STKGetActiveManager();
     
+    if ((activeManager != nil) && (STKManagerForView(self) == activeManager)) {
+        // Only if `self`'s manager is the active manager should we bother forwarding touches.
+        UIView *view = [activeManager hitTest:point withEvent:event];
+        if (view) {
+            return view;
+        }    
+    }
+
     IMP hitTestIMP = class_getMethodImplementation([UIView class], _cmd);
     return hitTestIMP(self, _cmd, point, event);
 }
@@ -272,6 +277,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %end
 
 
+#pragma mark - SBIconController Hook
 %hook SBIconController
 - (void)setIsEditing:(BOOL)isEditing
 {
@@ -324,43 +330,36 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     %orig(scrollView);
-    [STKGetActiveManager() closeStack];
+    STKCloseActiveManager();
 }
+%end
 
-- (void)openFolder:(id)folder animated:(BOOL)animated fromSwitcher:(BOOL)fromSwitcher
+/**************************************************************************************************************************/
+/****************************************************** Icon Hiding *******************************************************/
+#pragma mark - SBIconModel Hook
+%hook SBIconModel
+- (BOOL)isIconVisible:(SBIcon *)icon
 {
-    [[[%c(SBIconController) sharedInstance] currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *iconView) {
-        [STKManagerForView(iconView) cleanupView];
-    }];
+    BOOL isVisible = %orig();
+    if (_switcherIsVisible == NO) {
+        if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
+            isVisible = NO;
+        }
     
-    %orig(folder, animated, fromSwitcher);
-}
-
-- (void)closeFolderAnimated:(BOOL)animated toSwitcher:(BOOL)toSwitcher
-{
-    [[[%c(SBIconController) sharedInstance] currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *iconView) {
-        [STKManagerForView(iconView) setupPreview];
-    }];
-
-    %orig(animated, toSwitcher);
-}
-
-%end
-
-
-%hook SBFolderSlidingView
-- (void)handleGestureInWallpaperContainer:(id)arg1
-{
-    %orig();
-    %log();
+    }
+    return isVisible;
 }
 %end
+/**************************************************************************************************************************/
+/**************************************************************************************************************************/
 
+
+#pragma mark - SBUIController Hook
 %hook SBUIController
 - (BOOL)clickedMenuButton
 {
     if ([STKStackManager anyStackOpen] || [STKStackManager anyStackInMotion]) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
+        STKCloseActiveManager();
         return NO;
     }
     else {
@@ -370,7 +369,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 - (BOOL)_activateSwitcher:(NSTimeInterval)animationDuration
 {
-    [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
+    STKCloseActiveManager();
 
     _switcherIsVisible = YES;
 
@@ -391,20 +390,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 %end
 
-
-%hook SBIconModel
-- (BOOL)isIconVisible:(SBIcon *)icon
-{
-    BOOL isVisible = %orig();
-    if (_switcherIsVisible == NO) {
-        if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
-            isVisible = NO;
-        }
-    
-    }
-    return isVisible;
-}
-%end
 /********************************************************************************************************************************************************************************************************/
 /********************************************************************************************************************************************************************************************************/
 
@@ -550,6 +535,12 @@ static inline void STKSetActiveManager(STKStackManager *manager)
 static inline STKStackManager * STKGetActiveManager(void)
 {
     return _activeManager;
+}
+
+static inline void STKCloseActiveManager(void)
+{
+    [STKGetActiveManager() closeStack];
+    STKSetActiveManager(nil);
 }
 
 

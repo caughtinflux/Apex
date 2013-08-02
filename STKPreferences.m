@@ -24,15 +24,16 @@
 + (instancetype)sharedPreferences
 {
     static id sharedInstance;
+    static dispatch_once_t predicate;
     
-    if (!sharedInstance) {
+    dispatch_once(&predicate, ^{
         sharedInstance = [[self alloc] init];
 
         [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions : @511} error:NULL];
         [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[STKStackManager layoutsPath] error:NULL]; // Make sure the permissions are correct anyway
 
         [sharedInstance reloadPreferences];
-    }
+    });
 
     return sharedInstance;
 }
