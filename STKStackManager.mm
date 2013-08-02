@@ -405,6 +405,7 @@ static BOOL __stackInMotion;
 
     [self _moveAllIconsInRespectiveDirectionsByDistance:distance];
     
+    [self _findIconsWithOffScreenTargets];
     CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter);
     [self _setGhostlyAlphaForAllIcons:alpha excludingCentralIcon:YES];
     [self _setPageControlAlpha:alpha];
@@ -1068,9 +1069,7 @@ static BOOL __stackInMotion;
         CGRect listViewBounds = STKListViewForIcon(_centralIcon).bounds;
 
         CGPoint target = [self _displacedOriginForIcon:icon withPosition:position];
-        CGRect genericFrame = [self _iconViewForIcon:_centralIcon].frame;
-
-        CGRect targetRect = (CGRect) {{target.x, target.y}, {genericFrame.size.width, genericFrame.size.height}}; // Create the icon's target rect using width and height from the central icon view.
+        CGRect targetRect = (CGRect){{target.x, target.y}, [self _iconViewForIcon:icon].frame.size};
 
         switch (position) {
             case STKLayoutPositionTop: {
@@ -1082,8 +1081,7 @@ static BOOL __stackInMotion;
             }
 
             case STKLayoutPositionBottom: {
-                CGRect targetRect = [STKListViewForIcon(_centralIcon)  convertRect:targetRect toView:STKListViewForIcon(_centralIcon).superview.superview  ];
-                if (CGRectIntersectsRect(targetRect, _iconController.dock.frame)) {
+                if (target.y + 10 > listViewBounds.size.height) {
                     [_offScreenIconsLayout addIcon:icon toIconsAtPosition:position];
                 }
                 break;
