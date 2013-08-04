@@ -282,6 +282,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)setIsEditing:(BOOL)isEditing
 {
     %orig(isEditing);
+    CLog(@"-[SBIconController setIsEditing:%@]", BOOL_TO_STRING(isEditing));
     [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
 }
 
@@ -340,6 +341,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %hook SBIconModel
 - (BOOL)isIconVisible:(SBIcon *)icon
 {
+    CLog(@"-[SBIconModel isIconVisible:%@]", icon);
     BOOL isVisible = %orig();
     if (_switcherIsVisible == NO) {
         if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
@@ -358,7 +360,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %hook SBUIController
 - (BOOL)clickedMenuButton
 {
-    if ([STKStackManager anyStackOpen] || [STKStackManager anyStackInMotion]) {
+
+    if ((STKGetActiveManager()) != nil) {
         STKCloseActiveManager();
         return NO;
     }
@@ -429,12 +432,12 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 
                 if (tappedIconView) {
                     stackManager.closesOnHomescreenEdit = NO;
-
                     [tappedIconView.icon launch];
-                    
                     stackManager.closesOnHomescreenEdit = YES;
-
-                    [stackManager closeStack];
+                    // [stackManager closeStack];
+                }
+                else if (stackManager.isEmpty) {
+                    [stackManager cleanupView];
                 }
 
                 STKSetActiveManager(nil);
@@ -456,6 +459,7 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
 
 static inline void STKRemoveManagerFromView(SBIconView *iconView)
 {
+    [STKManagerForView(iconView) cleanupView];
     iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
     objc_setAssociatedObject(iconView, stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }

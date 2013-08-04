@@ -682,10 +682,10 @@ static BOOL __stackInMotion;
         CGPoint targetOrigin = [self _displacedOriginForIcon:icon withPosition:position]; 
 
         NSUInteger appearingIconsCount = [_appearingIconsLayout iconsForPosition:position].count;
-        // Factor the distance up by the number of icons that are coming in at that position
-        CGFloat factoredDistance = (distance * appearingIconsCount); 
+        CGFloat factoredDistance = (distance * appearingIconsCount);  // Factor the distance up by the number of icons that are coming in at that position
         
         CGFloat horizontalFactoredDistance = factoredDistance * _distanceRatio; // The distance to be moved horizontally is slightly different than vertical, multiply it by the ratio to have them work perfectly. :)
+
 
         switch (position) {
             case STKLayoutPositionTop: {
@@ -732,7 +732,7 @@ static BOOL __stackInMotion;
                     horizontalFactoredDistance /= appearingIconsCount;
                 }
 
-                targetOrigin.x -= kBandingAllowance * _distanceRatio;
+                targetOrigin.x -= kBandingAllowance;
                 if ((newFrame.origin.x - horizontalFactoredDistance) < targetOrigin.x) {
                     newFrame.origin = targetOrigin;
                 }
@@ -749,7 +749,7 @@ static BOOL __stackInMotion;
                     horizontalFactoredDistance /= appearingIconsCount;
                 }
 
-                targetOrigin.x += kBandingAllowance * _distanceRatio;
+                targetOrigin.x += kBandingAllowance;
                 if ((newFrame.origin.x + horizontalFactoredDistance) > targetOrigin.x) {
                     newFrame.origin = targetOrigin;
                 }
@@ -779,7 +779,7 @@ static BOOL __stackInMotion;
         CGRect newFrame = iconView.frame;
         CGPoint targetOrigin = [self _targetOriginForIconAtPosition:position distanceFromCentre:idx + 1];
 
-        BOOL isLastIcon = (idx == currentArray.count - 1) || _isEmpty;
+        BOOL needsComp = (idx == currentArray.count - 1) && !(_isEmpty);
 
         iconView.alpha = 1.f;
 
@@ -789,9 +789,13 @@ static BOOL __stackInMotion;
                 // For example, the second icon in the top position needs to move a larger distance than the first, hence multiply the distance by 2, so it reaches its target the same time as the previous one.
                 // Also, only multiply it if it isn't past the target point. At that point, it should move as much as everything else.
                 CGFloat multiplicationFactor = (((iconView.frame.origin.y - distance) > targetOrigin.y) ? (idx + 1) : 1);
-                CGFloat popoutCompensation = (isLastIcon ? ((targetOrigin.y + kPopoutDistance) / targetOrigin.y) : 1.f);
+                CGFloat popoutCompensation = (needsComp ? ((targetOrigin.y + kPopoutDistance) / targetOrigin.y) : 1.f);
                 
                 CGFloat translatedDistance = distance * multiplicationFactor * popoutCompensation;
+
+                if ((iconView.frame.origin.y - translatedDistance / popoutCompensation) < targetOrigin.y) {
+                    translatedDistance /= popoutCompensation;
+                }
 
                 targetOrigin.y -= kBandingAllowance;
                 if (((iconView.frame.origin.y - translatedDistance) > targetOrigin.y) && !((iconView.frame.origin.y - translatedDistance) > centralFrame.origin.y)) {
@@ -809,7 +813,7 @@ static BOOL __stackInMotion;
 
             case STKLayoutPositionBottom: {
                 CGFloat multiplicationFactor = (((iconView.frame.origin.y + distance) < targetOrigin.y) ? (idx + 1) : 1);
-                CGFloat popoutCompensation = (isLastIcon ? ((targetOrigin.y - kPopoutDistance) / targetOrigin.y) : 1.f);
+                CGFloat popoutCompensation = (needsComp ? ((targetOrigin.y - kPopoutDistance) / targetOrigin.y) : 1.f);
 
                 CGFloat translatedDistance = distance * multiplicationFactor * popoutCompensation;
 
@@ -829,11 +833,11 @@ static BOOL __stackInMotion;
 
             case STKLayoutPositionLeft: {
                 CGFloat multiplicationFactor = (((iconView.frame.origin.x - distance) > targetOrigin.x) ? (idx + 1) : 1);
-                CGFloat popoutCompensation = (isLastIcon ? ((targetOrigin.x + kPopoutDistance) / targetOrigin.x) : 1.f);
+                CGFloat popoutCompensation = (needsComp ? ((targetOrigin.x + kPopoutDistance) / targetOrigin.x) : 1.f);
 
                 CGFloat translatedDistance = distance * multiplicationFactor * _distanceRatio * popoutCompensation;
 
-                targetOrigin.x -= kBandingAllowance * _distanceRatio;
+                targetOrigin.x -= kBandingAllowance;
                 
                 if (((iconView.frame.origin.x - translatedDistance) > targetOrigin.x) && !((iconView.frame.origin.x - translatedDistance) > centralFrame.origin.x)) {
                     newFrame.origin.x -= translatedDistance;
@@ -849,11 +853,11 @@ static BOOL __stackInMotion;
 
             case STKLayoutPositionRight: {
                 CGFloat multiplicationFactor = (((iconView.frame.origin.x + distance) < targetOrigin.x) ? (idx + 1) : 1);
-                CGFloat popoutCompensation = (isLastIcon ? ((targetOrigin.x - kPopoutDistance) / targetOrigin.x) : 1.f);
+                CGFloat popoutCompensation = (needsComp ? ((targetOrigin.x - kPopoutDistance) / targetOrigin.x) : 1.f);
 
                 CGFloat translatedDistance = distance * multiplicationFactor * _distanceRatio * popoutCompensation;
 
-                targetOrigin.x += kBandingAllowance * _distanceRatio;
+                targetOrigin.x += kBandingAllowance;
                 
                 if (((iconView.frame.origin.x + translatedDistance) < targetOrigin.x) && !((iconView.frame.origin.x + translatedDistance) < centralFrame.origin.x)) {
                     newFrame.origin.x += translatedDistance;
