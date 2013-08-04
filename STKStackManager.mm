@@ -45,6 +45,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 
     CGFloat                   _lastDistanceFromCenter;
     BOOL                      _hasPreparedGhostlyIcons;
+    BOOL                      _hasOffScreenIcons;
 
     UISwipeGestureRecognizer *_swipeRecognizer;
     UITapGestureRecognizer   *_tapRecognizer;
@@ -405,7 +406,11 @@ static BOOL __stackInMotion;
 
     [self _moveAllIconsInRespectiveDirectionsByDistance:distance];
     
-    [self _findIconsWithOffScreenTargets];
+    if (!_hasOffScreenIcons) {
+        [self _findIconsWithOffScreenTargets];
+        _hasOffScreenIcons = YES;
+    }
+
     CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter);
     [self _setGhostlyAlphaForAllIcons:alpha excludingCentralIcon:YES];
     [self _setPageControlAlpha:alpha];
@@ -626,8 +631,13 @@ static BOOL __stackInMotion;
             // XXX: BUGFIX for SBIconListView BS
             [self _setGhostlyAlphaForAllIcons:.9999999f excludingCentralIcon:NO]; // .999f is necessary, unfortunately. A weird 1.0->0.0->1.0 alpha flash happens otherwise
             [self _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO]; // Set it back to 1.f, fix a pain in the ass bug
+            
             [_iconController cleanUpGhostlyIconsForRequester:kGhostlyRequesterID];
             _hasPreparedGhostlyIcons = NO;
+
+            [_offScreenIconsLayout release];
+            _offScreenIconsLayout = nil;
+            _hasOffScreenIcons = NO;
 
             if (_isEmpty) {
                 // We can remove the place holder icon views if the stack is empty. No need to have 4 icon views hidden behind every damn icon.
@@ -783,6 +793,10 @@ static BOOL __stackInMotion;
 
         iconView.alpha = 1.f;
 
+        // These macros give us information about _a relative to _b, respective to their paths. For ex, if we have to find out whether a float a is past b at STKLayoutPositionTop, we have to check if a < b, not a > b
+        #define IS_GREATER(_float_a, _float_b, _position) ((_position == STKLayoutPositionTop || _position == STKLayoutPositionLeft) ? (_float_a < _float_b) : (_float_a > _float_b));
+        #define IS_LESSER(_float_a, _float_b, _position) ((_position == STKLayoutPositionTop || _position == STKLayoutPositionLeft) ? (_float_a > _float_b) : (_float_a < _float_b));
+
         switch (position) {
             case STKLayoutPositionTop: {
                 // If there is more than one icon in a particular position, multiply them by the number of icons in its position.
@@ -817,6 +831,10 @@ static BOOL __stackInMotion;
 
                 CGFloat translatedDistance = distance * multiplicationFactor * popoutCompensation;
 
+                if ((iconView.frame.origin.y + (translatedDistance / popoutCompensation)) > targetOrigin.y) {
+                    translatedDistance /= popoutCompensation;
+                }
+
                 targetOrigin.y += kBandingAllowance;
 
                 if ((iconView.frame.origin.y + translatedDistance) < targetOrigin.y && !((iconView.frame.origin.y + translatedDistance) < centralFrame.origin.y)) {
@@ -837,6 +855,10 @@ static BOOL __stackInMotion;
 
                 CGFloat translatedDistance = distance * multiplicationFactor * _distanceRatio * popoutCompensation;
 
+                if ((iconView.frame.origin.x - (translatedDistance / popoutCompensation)) < targetOrigin.x) {
+                    translatedDistance /= popoutCompensation;
+                }
+
                 targetOrigin.x -= kBandingAllowance;
                 
                 if (((iconView.frame.origin.x - translatedDistance) > targetOrigin.x) && !((iconView.frame.origin.x - translatedDistance) > centralFrame.origin.x)) {
@@ -856,6 +878,10 @@ static BOOL __stackInMotion;
                 CGFloat popoutCompensation = (needsComp ? ((targetOrigin.x - kPopoutDistance) / targetOrigin.x) : 1.f);
 
                 CGFloat translatedDistance = distance * multiplicationFactor * _distanceRatio * popoutCompensation;
+
+                if ((iconView.frame.origin.x + (translatedDistance / popoutCompensation)) > targetOrigin.x) {
+                    translatedDistance /= popoutCompensation;
+                }
 
                 targetOrigin.x += kBandingAllowance;
                 

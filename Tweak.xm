@@ -282,7 +282,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)setIsEditing:(BOOL)isEditing
 {
     %orig(isEditing);
-    CLog(@"-[SBIconController setIsEditing:%@]", BOOL_TO_STRING(isEditing));
     [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
 }
 
@@ -341,7 +340,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %hook SBIconModel
 - (BOOL)isIconVisible:(SBIcon *)icon
 {
-    CLog(@"-[SBIconModel isIconVisible:%@]", icon);
     BOOL isVisible = %orig();
     if (_switcherIsVisible == NO) {
         if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
