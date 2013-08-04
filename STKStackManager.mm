@@ -431,6 +431,10 @@ static BOOL __stackInMotion;
         CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
         [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(centralIconTransformScale, centralIconTransformScale);
     }
+    else {
+        [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+        MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) { iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f); });        
+    }
 
     __stackInMotion = NO;
 }
@@ -671,231 +675,126 @@ static BOOL __stackInMotion;
 }
 
 #pragma mark - Move ALL the things
+// These macros give us information about _a relative to _b, respective to their paths. For ex, if we have to find out whether a float a is past b at STKLayoutPositionTop, we have to check if a < b, not a > b
+#define IS_GREATER(_float_a, _float_b, _position) ((_position == STKLayoutPositionTop || _position == STKLayoutPositionLeft) ? (_float_a < _float_b) : (_float_a > _float_b))
+#define IS_LESSER(_float_a, _float_b, _position) ((_position == STKLayoutPositionTop || _position == STKLayoutPositionLeft) ? (_float_a > _float_b) : (_float_a < _float_b))
+
 - (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance
 {
-    /*
-        MUST READ. 
-        There is a lot of repetitive code down here, but it's there for a reason. I have outlined a few points below:
-            • Having those checks keeps it easy to understanc
-            • It is very easy to simply just do a little magic on the signs of the distance, etc. But that's what I want to avoid. I'd by far prefer code that still makes sense.
-            • IMO, MAGIC IS ___NOT___ good when you're performing it.
-
-        Comments are written everywhere to make sure that this code is understandable, even a few months down the line. For both appearing and disappearing icons, the first (top) set of icons have been commented, the l/r/d sets do the same thing, only in different directions, so it should be pretty simple to understand.
-    */
-
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
 
     [_displacedIconsLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
-        SBIconView *iconView = [self _iconViewForIcon:icon];
+        SBIconView *iconView = [self _iconViewForIcon:icon]; // Get the on-screen icon view from the list view.
+        CGRect iconFrame = iconView.frame;
         CGRect newFrame = iconView.frame;
+        
         CGPoint originalOrigin = [listView originForIcon:icon];
         CGPoint targetOrigin = [self _displacedOriginForIcon:icon withPosition:position]; 
 
         NSUInteger appearingIconsCount = [_appearingIconsLayout iconsForPosition:position].count;
         CGFloat factoredDistance = (distance * appearingIconsCount);  // Factor the distance up by the number of icons that are coming in at that position
-        
         CGFloat horizontalFactoredDistance = factoredDistance * _distanceRatio; // The distance to be moved horizontally is slightly different than vertical, multiply it by the ratio to have them work perfectly. :)
+        
+        CGFloat *targetCoord, *currentCoord, *newCoord, *originalCoord;
+        CGFloat moveDistance;
 
-
-        switch (position) {
-            case STKLayoutPositionTop: {
-                // If, after moving, the icon would pass its target, factor the distance back to it's original, for now it has to move only as much as all the other icons
-                if ((newFrame.origin.y - (factoredDistance / appearingIconsCount)) < targetOrigin.y) {
-                    factoredDistance /= appearingIconsCount;
-                }
-
-                targetOrigin.y -= kBandingAllowance; // Allow the icon to move for `kBandingAllowance` points beyond its target, simulating a rubber band
-                if ((newFrame.origin.y - factoredDistance) < targetOrigin.y) {
-                    // If moving the icon by `factoredDistance` would cause it to move beyond its target, make it stick to the target location
-                    newFrame.origin = targetOrigin;
-                }
-                else if ((newFrame.origin.y - factoredDistance) > originalOrigin.y) {
-                    // If moving the icon by `factoredDistance` takes it beyond its original location on the homescreen, make it stick again.
-                    // This is necessary in cases when the swipe is coming back home.
-                    newFrame.origin = originalOrigin;
-                }
-                else {
-                    // If none of the above cases are true, move icon upwards (hence subtracted) by factored distance
-                    newFrame.origin.y -= factoredDistance;
-                }
-                break;
-            }
-            case STKLayoutPositionBottom: {
-                if ((newFrame.origin.y + (factoredDistance / appearingIconsCount)) > targetOrigin.y) {
-                    factoredDistance /= appearingIconsCount;
-                }
-
-                targetOrigin.y += kBandingAllowance;
-                if ((newFrame.origin.y + factoredDistance) > targetOrigin.y) {
-                    newFrame.origin = targetOrigin;
-                }
-                else if ((newFrame.origin.y + factoredDistance) < originalOrigin.y) {
-                    newFrame.origin = originalOrigin;
-                }
-                else {
-                    newFrame.origin.y += factoredDistance;
-                }
-                break;
-            }
-            case STKLayoutPositionLeft: {
-                if ((newFrame.origin.x - (horizontalFactoredDistance / appearingIconsCount)) < targetOrigin.x) {
-                    horizontalFactoredDistance /= appearingIconsCount;
-                }
-
-                targetOrigin.x -= kBandingAllowance;
-                if ((newFrame.origin.x - horizontalFactoredDistance) < targetOrigin.x) {
-                    newFrame.origin = targetOrigin;
-                }
-                else if ((newFrame.origin.x - horizontalFactoredDistance) > originalOrigin.x) {
-                    newFrame.origin = originalOrigin;
-                }
-                else {
-                    newFrame.origin.x -= horizontalFactoredDistance;
-                }
-                break;
-            }
-            case STKLayoutPositionRight: {
-                if ((newFrame.origin.x + (horizontalFactoredDistance / appearingIconsCount)) > targetOrigin.x) {
-                    horizontalFactoredDistance /= appearingIconsCount;
-                }
-
-                targetOrigin.x += kBandingAllowance;
-                if ((newFrame.origin.x + horizontalFactoredDistance) > targetOrigin.x) {
-                    newFrame.origin = targetOrigin;
-                }
-                else if ((newFrame.origin.x + horizontalFactoredDistance) < originalOrigin.x) {
-                    newFrame.origin = originalOrigin;
-                }
-                else {
-                    newFrame.origin.x += horizontalFactoredDistance;
-                }
-                break;
-            }
-
-            default: {
-                break;
-            }
+        if (position == STKLayoutPositionTop || position == STKLayoutPositionBottom) {
+            targetCoord = &(targetOrigin.y); 
+            currentCoord = &(iconFrame.origin.y);
+            newCoord = &(newFrame.origin.y);
+            originalCoord = &(originalOrigin.y);
+            moveDistance = factoredDistance;
         }
+        else {
+            targetCoord = &(targetOrigin.x);
+            currentCoord = &(iconFrame.origin.x);
+            newCoord = &(newFrame.origin.x);
+            originalCoord = &(originalOrigin.x);
+            moveDistance = horizontalFactoredDistance;
+        }
+
+        CGFloat negator = ((position == STKLayoutPositionTop || position == STKLayoutPositionLeft) ? -1.f : 1.f);
+        moveDistance *= negator;
+
+        if (IS_GREATER((*currentCoord + (moveDistance / appearingIconsCount)), *targetCoord, position)) {
+            // If, after moving, the icon would pass its target, factor the distance back to it's original, for now it has to move only as much as all the other icons
+            moveDistance /= appearingIconsCount;
+        }
+
+        *targetCoord += kBandingAllowance * negator;
+        if (IS_GREATER(*currentCoord + moveDistance, *targetCoord, position)) {
+            // Do not go beyong target
+            *newCoord = *targetCoord;
+        }
+        else if (IS_LESSER(*currentCoord + moveDistance, *originalCoord, position)) {
+            // Or beyond the original position on the homescreen
+            *newCoord = *originalCoord;
+        }
+        else {
+            // Move that shit
+            *newCoord += moveDistance;
+        }
+
         iconView.frame = newFrame;
     }];
      
     // Move stack icons
-    CGRect centralFrame = [self _iconViewForIcon:_centralIcon].bounds;
     [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx) {
+        CGRect iconFrame = iconView.frame;
+        CGRect newFrame = iconView.frame;
+        CGPoint targetOrigin = [self _targetOriginForIconAtPosition:position distanceFromCentre:idx + 1];
+        CGRect centralFrame = [self _iconViewForIcon:_centralIcon].bounds;
+
         if (idx == 0 && (position == STKLayoutPositionTop || position == STKLayoutPositionBottom)) {
             _lastDistanceFromCenter = fabsf(iconView.frame.origin.y - centralFrame.origin.y);
         }
 
-        CGRect newFrame = iconView.frame;
-        CGPoint targetOrigin = [self _targetOriginForIconAtPosition:position distanceFromCentre:idx + 1];
+        if (iconView.alpha != 1.f) {
+            iconView.alpha = 1.f;
+        }
 
-        BOOL needsComp = (idx == currentArray.count - 1) && !(_isEmpty);
+        CGFloat negator = ((position == STKLayoutPositionTop || position == STKLayoutPositionLeft) ? -1.f : 1.f);
 
-        iconView.alpha = 1.f;
+        CGFloat *targetCoord, *currentCoord, *newCoord, *centralCoord;
+        CGFloat moveDistance = distance * negator;
 
-        // These macros give us information about _a relative to _b, respective to their paths. For ex, if we have to find out whether a float a is past b at STKLayoutPositionTop, we have to check if a < b, not a > b
-        #define IS_GREATER(_float_a, _float_b, _position) ((_position == STKLayoutPositionTop || _position == STKLayoutPositionLeft) ? (_float_a < _float_b) : (_float_a > _float_b));
-        #define IS_LESSER(_float_a, _float_b, _position) ((_position == STKLayoutPositionTop || _position == STKLayoutPositionLeft) ? (_float_a > _float_b) : (_float_a < _float_b));
+        if (position == STKLayoutPositionTop || position == STKLayoutPositionBottom) {
+            targetCoord = &(targetOrigin.y);
+            currentCoord = &(iconFrame.origin.y);
+            newCoord = &(newFrame.origin.y);
+            centralCoord = &(centralFrame.origin.y);
+        }
+        else {
+            targetCoord = &(targetOrigin.x);
+            currentCoord = &(iconFrame.origin.x);
+            newCoord = &(newFrame.origin.x);
+            centralCoord = &(centralFrame.origin.x);
 
-        switch (position) {
-            case STKLayoutPositionTop: {
-                // If there is more than one icon in a particular position, multiply them by the number of icons in its position.
-                // For example, the second icon in the top position needs to move a larger distance than the first, hence multiply the distance by 2, so it reaches its target the same time as the previous one.
-                // Also, only multiply it if it isn't past the target point. At that point, it should move as much as everything else.
-                CGFloat multiplicationFactor = (((iconView.frame.origin.y - distance) > targetOrigin.y) ? (idx + 1) : 1);
-                CGFloat popoutCompensation = (needsComp ? ((targetOrigin.y + kPopoutDistance) / targetOrigin.y) : 1.f);
-                
-                CGFloat translatedDistance = distance * multiplicationFactor * popoutCompensation;
+            moveDistance *= _distanceRatio;
+        }
 
-                if ((iconView.frame.origin.y - translatedDistance / popoutCompensation) < targetOrigin.y) {
-                    translatedDistance /= popoutCompensation;
-                }
+        CGFloat multFactor = (IS_LESSER((*currentCoord + moveDistance), *targetCoord, position) ? (idx + 1) : 1);
+        CGFloat popComp = (((idx == currentArray.count - 1) && !(_isEmpty)) ? ((*targetCoord - kPopoutDistance * negator) / *targetCoord) : 1.f);
 
-                targetOrigin.y -= kBandingAllowance;
-                if (((iconView.frame.origin.y - translatedDistance) > targetOrigin.y) && !((iconView.frame.origin.y - translatedDistance) > centralFrame.origin.y)) {
-                    newFrame.origin.y -= translatedDistance;
-                }
-                // If it's going beyond the acceptable limit, make it stick to the max position. The same thing is done in all the arrays below
-                else if ((iconView.frame.origin.y - translatedDistance) < targetOrigin.y) {
-                    newFrame.origin = targetOrigin;
-                }
-                else if ((iconView.frame.origin.y - translatedDistance) > centralFrame.origin.y) {
-                    newFrame = centralFrame;
-                }
-                break;
-            }
+        moveDistance *= (multFactor * popComp);
 
-            case STKLayoutPositionBottom: {
-                CGFloat multiplicationFactor = (((iconView.frame.origin.y + distance) < targetOrigin.y) ? (idx + 1) : 1);
-                CGFloat popoutCompensation = (needsComp ? ((targetOrigin.y - kPopoutDistance) / targetOrigin.y) : 1.f);
 
-                CGFloat translatedDistance = distance * multiplicationFactor * popoutCompensation;
+        if (IS_GREATER((*currentCoord + (moveDistance / popComp)), *targetCoord, position)) {
+            // Don't compensate for the popout if the icon is moving past the target
+            moveDistance /= popComp;
+        }
 
-                if ((iconView.frame.origin.y + (translatedDistance / popoutCompensation)) > targetOrigin.y) {
-                    translatedDistance /= popoutCompensation;
-                }
+        // Modify the target to allow for a `kBandingAllowance` distance extra for the rubber banding effect
+        *targetCoord += (kBandingAllowance * negator);
 
-                targetOrigin.y += kBandingAllowance;
-
-                if ((iconView.frame.origin.y + translatedDistance) < targetOrigin.y && !((iconView.frame.origin.y + translatedDistance) < centralFrame.origin.y)) {
-                    newFrame.origin.y += translatedDistance;
-                } 
-                else if ((iconView.frame.origin.y + translatedDistance) > targetOrigin.y) {
-                    newFrame.origin = targetOrigin;
-                }
-                else if ((iconView.frame.origin.y + translatedDistance) < centralFrame.origin.y) {
-                    newFrame = centralFrame;
-                }
-                break;
-            }
-
-            case STKLayoutPositionLeft: {
-                CGFloat multiplicationFactor = (((iconView.frame.origin.x - distance) > targetOrigin.x) ? (idx + 1) : 1);
-                CGFloat popoutCompensation = (needsComp ? ((targetOrigin.x + kPopoutDistance) / targetOrigin.x) : 1.f);
-
-                CGFloat translatedDistance = distance * multiplicationFactor * _distanceRatio * popoutCompensation;
-
-                if ((iconView.frame.origin.x - (translatedDistance / popoutCompensation)) < targetOrigin.x) {
-                    translatedDistance /= popoutCompensation;
-                }
-
-                targetOrigin.x -= kBandingAllowance;
-                
-                if (((iconView.frame.origin.x - translatedDistance) > targetOrigin.x) && !((iconView.frame.origin.x - translatedDistance) > centralFrame.origin.x)) {
-                    newFrame.origin.x -= translatedDistance;
-                }
-                else if ((iconView.frame.origin.x - translatedDistance) < targetOrigin.x) {
-                    newFrame.origin = targetOrigin;
-                }
-                else if ((iconView.frame.origin.x - translatedDistance) > centralFrame.origin.x) {
-                    newFrame = centralFrame;
-                }
-                break;
-            }
-
-            case STKLayoutPositionRight: {
-                CGFloat multiplicationFactor = (((iconView.frame.origin.x + distance) < targetOrigin.x) ? (idx + 1) : 1);
-                CGFloat popoutCompensation = (needsComp ? ((targetOrigin.x - kPopoutDistance) / targetOrigin.x) : 1.f);
-
-                CGFloat translatedDistance = distance * multiplicationFactor * _distanceRatio * popoutCompensation;
-
-                if ((iconView.frame.origin.x + (translatedDistance / popoutCompensation)) > targetOrigin.x) {
-                    translatedDistance /= popoutCompensation;
-                }
-
-                targetOrigin.x += kBandingAllowance;
-                
-                if (((iconView.frame.origin.x + translatedDistance) < targetOrigin.x) && !((iconView.frame.origin.x + translatedDistance) < centralFrame.origin.x)) {
-                    newFrame.origin.x += translatedDistance;
-                }
-                else if ((iconView.frame.origin.x + translatedDistance) > targetOrigin.x) {
-                    newFrame.origin = targetOrigin;
-                }
-                else if ((iconView.frame.origin.x + translatedDistance) < centralFrame.origin.x) {
-                    newFrame = centralFrame;
-                }
-                break;
-            }
+        if (IS_LESSER((*currentCoord + moveDistance), *targetCoord, position)) {
+            *newCoord += moveDistance;
+        }
+        else if (IS_GREATER((*currentCoord + moveDistance), *targetCoord, position)) {
+            *newCoord = *targetCoord;
+        }
+        else if (IS_LESSER((*currentCoord + moveDistance), *centralCoord, position)) {
+            *newCoord = *centralCoord;
         }
 
         iconView.frame = newFrame;
