@@ -447,6 +447,7 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
     }
     
     [stackManager recalculateLayouts];
+    [[NSNotificationCenter defaultCenter] postNotificationName:STKRecalculateLayoutsNotification object:nil userInfo:nil];
 
     if (stackManager.isEmpty == NO) {
         [stackManager setupPreview];
