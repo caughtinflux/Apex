@@ -46,6 +46,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
     CGFloat                   _lastDistanceFromCenter;
     BOOL                      _hasPreparedGhostlyIcons;
     BOOL                      _hasOffScreenIcons;
+    BOOL                      _needsLayout;
 
     UISwipeGestureRecognizer *_swipeRecognizer;
     UITapGestureRecognizer   *_tapRecognizer;
@@ -75,6 +76,8 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 
 - (SBIconView *)_iconViewForIcon:(SBIcon *)icon;
 - (STKPositionMask)_locationMaskForIcon:(SBIcon *)icon;
+
+- (void)_relayoutRequested:(NSNotification *)notif;
 
 // Returns the target origin for icons in the stack at the moment, in _centralIcon's iconView. To use with the list view, use -[UIView convertPoint:toView:]
 - (CGPoint)_targetOriginForIconAtPosition:(STKLayoutPosition)position distanceFromCentre:(NSInteger)distance;
@@ -192,7 +195,7 @@ static BOOL __stackInMotion;
         [self _calculateDistanceRatio];
         [self _findIconsWithOffScreenTargets];
         
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recalculateLayouts) name:STKRecalculateLayoutsNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_relayoutRequested:) name:STKRecalculateLayoutsNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateOpen) name:[NSString stringWithFormat:@"OpenSesame %@", _centralIcon.leafIdentifier] object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateClosed) name:[NSString stringWithFormat:@"CloseSesame %@", _centralIcon.leafIdentifier] object:nil];
     }
@@ -392,6 +395,11 @@ static BOOL __stackInMotion;
 {
     if (_isExpanded && ![[_iconController scrollView] isDragging]) {
         return;
+    }
+
+    if (_needsLayout) {
+        [self recalculateLayouts];
+        _needsLayout = NO;
     }
 
     if (!_hasSetup) {
@@ -893,6 +901,11 @@ static BOOL __stackInMotion;
     }
 
     return mask;
+}
+
+- (void)_relayoutRequested:(NSNotification *)notif
+{
+    _needsLayout = YES;
 }
 
 - (CGPoint)_targetOriginForIconAtPosition:(STKLayoutPosition)position distanceFromCentre:(NSInteger)distance
