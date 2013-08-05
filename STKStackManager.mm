@@ -753,15 +753,12 @@ static BOOL __stackInMotion;
         CGPoint targetOrigin = [self _targetOriginForIconAtPosition:position distanceFromCentre:idx + 1];
         CGRect centralFrame = [self _iconViewForIcon:_centralIcon].bounds;
 
-        if (idx == 0 && (position == STKLayoutPositionTop || position == STKLayoutPositionBottom)) {
-            _lastDistanceFromCenter = fabsf(iconView.frame.origin.y - centralFrame.origin.y);
-        }
-
         if (iconView.alpha != 1.f) {
             iconView.alpha = 1.f;
         }
 
         CGFloat negator = ((position == STKLayoutPositionTop || position == STKLayoutPositionLeft) ? -1.f : 1.f);
+        CGFloat distanceRatio = 1.f;
 
         CGFloat *targetCoord, *currentCoord, *newCoord, *centralCoord;
         CGFloat moveDistance = distance * negator;
@@ -771,15 +768,20 @@ static BOOL __stackInMotion;
             currentCoord = &(iconFrame.origin.y);
             newCoord = &(newFrame.origin.y);
             centralCoord = &(centralFrame.origin.y);
+
+            if (idx == 0) {
+                _lastDistanceFromCenter = fabsf(iconView.frame.origin.y - centralFrame.origin.y);
+            }
         }
         else {
             targetCoord = &(targetOrigin.x);
             currentCoord = &(iconFrame.origin.x);
             newCoord = &(newFrame.origin.x);
             centralCoord = &(centralFrame.origin.x);
-
-            moveDistance *= _distanceRatio;
+            distanceRatio = _distanceRatio;
         }
+
+        moveDistance *= distanceRatio;
 
         CGFloat multFactor = (IS_LESSER((*currentCoord + moveDistance), *targetCoord, position) ? (idx + 1) : 1);
         CGFloat popComp = (((idx == currentArray.count - 1) && !(_isEmpty)) ? ((*targetCoord - kPopoutDistance * negator) / *targetCoord) : 1.f);
@@ -788,8 +790,9 @@ static BOOL __stackInMotion;
 
 
         if (IS_GREATER((*currentCoord + (moveDistance / popComp)), *targetCoord, position)) {
-            // Don't compensate for the popout if the icon is moving past the target
+            // Don't compensate for anything if the icon is moving past the target
             moveDistance /= popComp;
+            moveDistance /= distanceRatio;
         }
 
         // Modify the target to allow for a `kBandingAllowance` distance extra for the rubber banding effect
