@@ -683,7 +683,7 @@ static BOOL __stackInMotion;
 }
 
 #pragma mark - Move ALL the things
-// These macros give us information about _a relative to _b, respective to their paths. For ex, if we have to find out whether a float a is past b at STKLayoutPositionTop, we have to check if a < b, not a > b
+// These macros give us information about _a relative to _b, relative to their paths.
 #define IS_GREATER(_float_a, _float_b, _position) ((_position == STKLayoutPositionTop || _position == STKLayoutPositionLeft) ? (_float_a < _float_b) : (_float_a > _float_b))
 #define IS_LESSER(_float_a, _float_b, _position) ((_position == STKLayoutPositionTop || _position == STKLayoutPositionLeft) ? (_float_a > _float_b) : (_float_a < _float_b))
 
@@ -978,10 +978,6 @@ static BOOL __stackInMotion;
         case STKLayoutPositionRight: {
             returnPoint.y = originalFrame.origin.y;
             returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
-            break;
-        }
-
-        default: {
             break;
         }
     }
