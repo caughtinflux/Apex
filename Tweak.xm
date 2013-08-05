@@ -396,11 +396,11 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 
 #pragma mark - Associated Object Keys
-static const SEL panGRKey = @selector(acervosPanKey);
-static const SEL stackManagerKey = @selector(acervosManagerKey);
-static const SEL topGrabberViewKey = @selector(acervosTopGrabberKey);
-static const SEL bottomGrabberViewKey = @selector(acervosBottomGrabberKey);
-static const SEL recognizerDelegateKey = @selector(acervosDelegateKey);
+static SEL const panGRKey = @selector(acervosPanKey);
+static SEL const stackManagerKey = @selector(acervosManagerKey);
+static SEL const topGrabberViewKey = @selector(acervosTopGrabberKey);
+static SEL const bottomGrabberViewKey = @selector(acervosBottomGrabberKey);
+static SEL const recognizerDelegateKey = @selector(acervosDelegateKey);
 
 #pragma mark - Static Function Definitions
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
