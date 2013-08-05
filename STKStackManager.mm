@@ -905,7 +905,13 @@ static BOOL __stackInMotion;
 
 - (void)_relayoutRequested:(NSNotification *)notif
 {
-    _needsLayout = YES;
+    if (_isEmpty == NO) {
+        [self recalculateLayouts];
+        [self setupPreview];
+    }
+    else {
+        _needsLayout = YES;
+    }
 }
 
 - (CGPoint)_targetOriginForIconAtPosition:(STKLayoutPosition)position distanceFromCentre:(NSInteger)distance
