@@ -798,14 +798,14 @@ static BOOL __stackInMotion;
         // Modify the target to allow for a `kBandingAllowance` distance extra for the rubber banding effect
         *targetCoord += (kBandingAllowance * negator);
 
-        if (IS_LESSER((*currentCoord + moveDistance), *targetCoord, position)) {
+        if (IS_LESSER((*currentCoord + moveDistance), *centralCoord, position)) {
+            newFrame = centralFrame;
+        }
+        else if (IS_LESSER((*currentCoord + moveDistance), *targetCoord, position)) {
             *newCoord += moveDistance;
         }
         else if (IS_GREATER((*currentCoord + moveDistance), *targetCoord, position)) {
             *newCoord = *targetCoord;
-        }
-        else if (IS_LESSER((*currentCoord + moveDistance), *centralCoord, position)) {
-            *newCoord = *centralCoord;
         }
 
         iconView.frame = newFrame;

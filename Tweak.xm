@@ -177,13 +177,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         CGPoint point = [sender locationInView:view];
 
         // If the swipe is going beyond the point where it started from, stop the swipe.
-        if (_currentDirection == STKRecognizerDirectionUp) {
-            if (point.y > _initialPoint.y) 
-                return;
-        }
-        else if (_currentDirection == STKRecognizerDirectionDown) {
-            if (point.y < _initialPoint.y) 
-                return;
+        if (((_currentDirection == STKRecognizerDirectionUp) && (point.y > _initialPoint.y)) || ((_currentDirection == STKRecognizerDirectionDown) && (point.y < _initialPoint.y))) {
+            point = _initialPoint;
         }
 
         CGFloat change = fabsf(_previousPoint.y - point.y); // Vertical
