@@ -353,7 +353,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %hook SBUIController
 - (BOOL)clickedMenuButton
 {
-
     if ((STKGetActiveManager()) != nil) {
         STKCloseActiveManager();
         return NO;
@@ -537,7 +536,15 @@ static inline STKStackManager * STKGetActiveManager(void)
 
 static inline void STKCloseActiveManager(void)
 {
-    [STKGetActiveManager() closeStack];
+    STKStackManager *manager = STKGetActiveManager();
+    [manager closeStackWithCompletionHandler:^{
+        if (manager.isEmpty) {
+            [manager cleanupView];
+        }
+    }];
+    if (STKGetActiveManager().isEmpty) {
+
+    }
     STKSetActiveManager(nil);
 }
 

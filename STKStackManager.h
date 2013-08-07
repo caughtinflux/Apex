@@ -85,7 +85,7 @@ extern "C" {
 *	Param `completionHandler`: Block that will be called once stack closing animations finish
 */
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler;
-- (void)closeForSwitcher;
+- (void)closeForSwitcherWithCompletionHandler:(void(^)(void))completionHandler;
 
 /**
 *	Convenience methods

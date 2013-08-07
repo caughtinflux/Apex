@@ -47,6 +47,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
     BOOL                      _hasPreparedGhostlyIcons;
     BOOL                      _hasOffScreenIcons;
     BOOL                      _needsLayout;
+    BOOL                      _closingForSwitcher;
 
     UISwipeGestureRecognizer *_swipeRecognizer;
     UITapGestureRecognizer   *_tapRecognizer;
@@ -63,7 +64,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 *   Icon moving
 */
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
-- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon keepGhosting:(BOOL)shouldKeepGhostedIcons;
+- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon forSwitcher:(BOOL)forSwitcher;
 
 - (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance;
 
@@ -112,7 +113,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 - (void)__animateOpen;
 - (void)__animateClosed;
 
-    @end
+@end
 
 
 @implementation STKStackManager 
@@ -349,9 +350,6 @@ static BOOL __stackInMotion;
 {
     [self setupViewIfNecessary];
 
-    /*
-    *   BULLSHIT CODE BEGINS
-    */
     CGFloat popoutDistance = (_isEmpty ? 0 : kPopoutDistance);
     [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx) {
         CGRect frame = [self _iconViewForIcon:_centralIcon].bounds;
@@ -359,7 +357,9 @@ static BOOL __stackInMotion;
 
         // Check if it's the last object
         if (idx == currentArray.count - 1) {
-            iconView.alpha = 1.f;
+            if (_closingForSwitcher == NO) {
+                iconView.alpha = 1.f;
+            }
 
             // This is probably how the rest of the code should've been written
             CGFloat *memberToModify = ((position == STKLayoutPositionTop || position == STKLayoutPositionBottom) ? &newOrigin.y : &newOrigin.x);
@@ -384,10 +384,9 @@ static BOOL __stackInMotion;
         ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 0.f;
         [iconView setIconLabelAlpha:0.f];
         iconView.userInteractionEnabled = NO;
+
+        _closingForSwitcher = NO;
     }];
-    /*
-    *   BULLSHIT CODE ENDS
-    */
 }
 
 #pragma mark - Moving Icons
@@ -461,7 +460,7 @@ static BOOL __stackInMotion;
             if (_interactionHandler) {
                 _interactionHandler(nil);
             }
-        } duration:kAnimationDuration animateCentralIcon:NO keepGhosting:NO];
+        } duration:kAnimationDuration animateCentralIcon:NO forSwitcher:NO];
     }
 }
  
@@ -471,14 +470,12 @@ static BOOL __stackInMotion;
         if (completionHandler) {
             completionHandler();
         }
-    } duration:kAnimationDuration animateCentralIcon:YES keepGhosting:NO];
+    } duration:kAnimationDuration animateCentralIcon:YES forSwitcher:NO];
 }
 
-- (void)closeForSwitcher
+- (void)closeForSwitcherWithCompletionHandler:(void(^)(void))completionHandler;
 {
-    if (!_isExpanded) {
-        [self _animateToClosedPositionWithCompletionBlock:nil duration:kAnimationDuration animateCentralIcon:NO keepGhosting:YES];
-    }
+    [self _animateToClosedPositionWithCompletionBlock:completionHandler duration:kAnimationDuration animateCentralIcon:NO forSwitcher:YES];
 }
 
 - (void)openStack
@@ -600,7 +597,7 @@ static BOOL __stackInMotion;
 }
 
 #pragma mark - Close Animation
-- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon keepGhosting:(BOOL)shouldKeepGhostedIcons
+- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon forSwitcher:(BOOL)forSwitcher
 {
     UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
     CGFloat scale = (_isEmpty ? 1.f : kCentralIconPreviewScale);
@@ -623,6 +620,7 @@ static BOOL __stackInMotion;
     self.isEditing = NO;
 
     [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+        _closingForSwitcher = forSwitcher;
         [self setupPreview];
 
         // Set the alphas back to original
@@ -1109,7 +1107,6 @@ static BOOL __stackInMotion;
     };
 
     MAP([_iconViewsLayout allIcons], addOverlayToView);
-    addOverlayToView([self _iconViewForIcon:_centralIcon]);
 }
 
 - (void)_removeOverlays
@@ -1129,7 +1126,6 @@ static BOOL __stackInMotion;
     };
 
     MAP([_iconViewsLayout allIcons], removeOverlayFromView);
-    removeOverlayFromView([self _iconViewForIcon:_centralIcon]);
 }
 
 - (void)_insertAddButtonsInEmptyLocations
@@ -1217,7 +1213,7 @@ static BOOL __stackInMotion;
 
 - (void)__animateClosed
 {
-    [self _animateToClosedPositionWithCompletionBlock:nil duration:0.5 animateCentralIcon:YES keepGhosting:NO];
+    [self _animateToClosedPositionWithCompletionBlock:nil duration:0.5 animateCentralIcon:YES forSwitcher:YES];
 }
 
 #pragma mark - SBIconViewDelegate
