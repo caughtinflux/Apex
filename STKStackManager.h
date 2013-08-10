@@ -43,7 +43,7 @@ extern "C" {
 /**
 *	Returns: An instance of a STKStackManager class, nil if `file` is corrupt or could not be read
 *	Param `file`: Path to an archived dictionary that looks like this: @{STKStackManagerCentralIconKey : <central icon identifier>,
-*																		 STJStackManagerStackIconsKey  : <array of stack icon identifiers>}
+*																		 STKStackManagerStackIconsKey  : <array of stack icon identifiers>}
 */
 - (instancetype)initWithContentsOfFile:(NSString *)file;
 
@@ -61,7 +61,7 @@ extern "C" {
 
 /**
 *	Call this method when the location of the icon changes
-*	You can also send STKRecaluculateLayoutsNotification
+*	You can also send STKRecaluculateLayoutsNotification through +[NSNotificationCenter defaultCenter]
 */
 - (void)recalculateLayouts;
 
@@ -74,9 +74,9 @@ extern "C" {
 
 - (void)touchesDraggedForDistance:(CGFloat)distance;
 
-/*
-    Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
-    If the stack opens up, the receiver automatically sets up swipe and tap recognisers on the icon content view, which, when fired, will call the interactionHandler with a nil argument.
+/**
+*	Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
+*	If the stack opens up, the receiver automatically sets up swipe and tap recognisers on the icon content view, which, when fired, will call the interactionHandler with a nil argument.
 */
 - (void)touchesEnded;
 

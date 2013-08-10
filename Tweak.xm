@@ -542,9 +542,7 @@ static inline void STKCloseActiveManager(void)
             [manager cleanupView];
         }
     }];
-    if (STKGetActiveManager().isEmpty) {
 
-    }
     STKSetActiveManager(nil);
 }
 

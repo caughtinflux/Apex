@@ -310,9 +310,11 @@ static BOOL __stackInMotion;
         [iconView setDelegate:self];
 
         iconView.frame = centralIconView.bounds;
-        iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
         [iconView setIconLabelAlpha:0.f];
         [[iconView valueForKeyPath:@"_shadow"] setAlpha:0.f];
+        if (!_isEmpty) {
+            iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
+        }
 
         [_iconViewsLayout addIcon:iconView toIconsAtPosition:position];
 
@@ -357,7 +359,7 @@ static BOOL __stackInMotion;
 
         // Check if it's the last object
         if (idx == currentArray.count - 1) {
-            if (_closingForSwitcher == NO) {
+            if (!_closingForSwitcher) {
                 iconView.alpha = 1.f;
             }
 
@@ -377,8 +379,10 @@ static BOOL __stackInMotion;
         frame.origin = newOrigin; 
         iconView.frame = frame;
 
-        // Scale the icon back down to the smaller size.
-        iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
+        if (!_isEmpty) {
+            // Scale the icon back down to the smaller size, only if there indeed _are_ any icons
+            iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
+        }
 
         // Hide the labels and shadows
         ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 0.f;
@@ -425,22 +429,23 @@ static BOOL __stackInMotion;
         [self _setAlphaForAppearingLabelsAndShadows:(1 - alpha)];
     }
 
-    
-    CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
-    if (_lastDistanceFromCenter <= midWayDistance) {
-        // If the icons are past the halfway mark, start increasing/decreasing their scale.
-        // This looks beatuiful. Yay me.
-        CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kStackPreviewIconScale);
-        MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) {
-            iconView.iconImageView.transform = CGAffineTransformMakeScale(stackIconTransformScale, stackIconTransformScale);
-        });
+    if (!_isEmpty) {
+        CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
+        if (_lastDistanceFromCenter <= midWayDistance) {
+            // If the icons are past the halfway mark, start increasing/decreasing their scale.
+            // This looks beatuiful. Yay me.
+            CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kStackPreviewIconScale);
+            MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) {
+                iconView.iconImageView.transform = CGAffineTransformMakeScale(stackIconTransformScale, stackIconTransformScale);
+            });
 
-        CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
-        [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(centralIconTransformScale, centralIconTransformScale);
-    }
-    else {
-        [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
-        MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) { iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f); });        
+            CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
+            [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(centralIconTransformScale, centralIconTransformScale);
+        }
+        else {
+            [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+            MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) { iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f); });        
+        }
     }
 
     __stackInMotion = NO;
@@ -906,7 +911,7 @@ static BOOL __stackInMotion;
 
 - (void)_relayoutRequested:(NSNotification *)notif
 {
-    if (_isEmpty == NO) {
+    if (!_isEmpty) {
         [self recalculateLayouts];
         [self setupPreview];
     }
