@@ -36,16 +36,15 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
     SBIcon                   *_centralIcon;
     STKIconLayout            *_appearingIconsLayout;
     STKIconLayout            *_displacedIconsLayout;
+    STKIconLayout            *_offScreenIconsLayout;
     STKIconLayout            *_iconViewsLayout;
     STKInteractionHandler     _interactionHandler;
 
     CGFloat                   _distanceRatio;
     CGFloat                   _popoutCompensationRatio;
-    STKIconLayout            *_offScreenIconsLayout;
+    
 
     CGFloat                   _lastDistanceFromCenter;
-    BOOL                      _hasPreparedGhostlyIcons;
-    BOOL                      _hasOffScreenIcons;
     BOOL                      _needsLayout;
     BOOL                      _closingForSwitcher;
 
@@ -352,13 +351,12 @@ static BOOL __stackInMotion;
 {
     [self setupViewIfNecessary];
 
-    CGFloat popoutDistance = (_isEmpty ? 0 : kPopoutDistance);
     [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx) {
         CGRect frame = [self _iconViewForIcon:_centralIcon].bounds;
         CGPoint newOrigin = frame.origin;
 
         // Check if it's the last object
-        if (idx == currentArray.count - 1) {
+        if (!_isEmpty && idx == currentArray.count - 1) {
             if (!_closingForSwitcher) {
                 iconView.alpha = 1.f;
             }
@@ -369,7 +367,7 @@ static BOOL __stackInMotion;
             // the member to modify needs to be subtracted from in case of t/l.
             CGFloat negator = (position == STKLayoutPositionTop || position == STKLayoutPositionLeft ? -1 : 1);
 
-            *memberToModify += popoutDistance * negator;
+            *memberToModify += kPopoutDistance * negator;
         }
         else {
             // Only the last icon at a particular side needs to be shown
@@ -393,13 +391,8 @@ static BOOL __stackInMotion;
     }];
 }
 
-#pragma mark - Moving Icons
-- (void)touchesDraggedForDistance:(CGFloat)distance
+- (void)touchesBegan
 {
-    if (_isExpanded && ![[_iconController scrollView] isDragging]) {
-        return;
-    }
-
     if (_needsLayout) {
         [self recalculateLayouts];
         _needsLayout = NO;
@@ -409,27 +402,31 @@ static BOOL __stackInMotion;
         [self setupPreview];
     }
     
-    if (!_hasPreparedGhostlyIcons) {
-        [_iconController prepareToGhostCurrentPageIconsForRequester:kGhostlyRequesterID skipIcon:_centralIcon];
-        _hasPreparedGhostlyIcons = YES;
+    
+    [_iconController prepareToGhostCurrentPageIconsForRequester:kGhostlyRequesterID skipIcon:_centralIcon];
+        
+
+    
+    [self _findIconsWithOffScreenTargets];
+}
+
+- (void)touchesDraggedForDistance:(CGFloat)distance
+{
+    if (_isExpanded && ![[_iconController scrollView] isDragging]) {
+        return;
     }
+
     __stackInMotion = YES;
 
     [self _moveAllIconsInRespectiveDirectionsByDistance:distance];
     
-    if (!_hasOffScreenIcons) {
-        [self _findIconsWithOffScreenTargets];
-        _hasOffScreenIcons = YES;
-    }
-
     CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter);
     [self _setGhostlyAlphaForAllIcons:alpha excludingCentralIcon:YES];
     [self _setPageControlAlpha:alpha];
+    
     if (!_isEmpty) {
         [self _setAlphaForAppearingLabelsAndShadows:(1 - alpha)];
-    }
 
-    if (!_isEmpty) {
         CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
         if (_lastDistanceFromCenter <= midWayDistance) {
             // If the icons are past the halfway mark, start increasing/decreasing their scale.
@@ -438,8 +435,8 @@ static BOOL __stackInMotion;
             MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) {
                 iconView.iconImageView.transform = CGAffineTransformMakeScale(stackIconTransformScale, stackIconTransformScale);
             });
-
-            CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
+        
+        CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
             [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(centralIconTransformScale, centralIconTransformScale);
         }
         else {
@@ -447,6 +444,7 @@ static BOOL __stackInMotion;
             MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) { iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f); });        
         }
     }
+
 
     __stackInMotion = NO;
 }
@@ -648,15 +646,24 @@ static BOOL __stackInMotion;
             [self _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO]; // Set it back to 1.f, fix a pain in the ass bug
             
             [_iconController cleanUpGhostlyIconsForRequester:kGhostlyRequesterID];
-            _hasPreparedGhostlyIcons = NO;
 
             [_offScreenIconsLayout release];
             _offScreenIconsLayout = nil;
-            _hasOffScreenIcons = NO;
 
             if (_isEmpty) {
                 // We can remove the place holder icon views if the stack is empty. No need to have 4 icon views hidden behind every damn icon.
                 [self cleanupView];
+                
+                [_offScreenIconsLayout release];
+                _offScreenIconsLayout = nil;
+                
+                [_appearingIconsLayout release];
+                _appearingIconsLayout = nil;
+                
+                [_displacedIconsLayout release];
+                _displacedIconsLayout = nil;
+
+                _needsLayout = YES;
             }
             
             _isExpanded = NO;
@@ -911,7 +918,7 @@ static BOOL __stackInMotion;
 
 - (void)_relayoutRequested:(NSNotification *)notif
 {
-    if (!_isEmpty) {
+    if (_isEmpty == NO) {
         [self recalculateLayouts];
         [self setupPreview];
     }

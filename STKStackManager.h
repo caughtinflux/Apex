@@ -20,8 +20,6 @@ extern "C" {
 
 @interface STKStackManager : NSObject <SBIconViewDelegate, UIGestureRecognizerDelegate>
 
-+ (BOOL)anyStackOpen;
-+ (BOOL)anyStackInMotion;
 + (NSString *)layoutsPath;
 
 /**
@@ -71,6 +69,9 @@ extern "C" {
 - (void)setupViewIfNecessary;
 - (void)setupView;
 - (void)cleanupView;
+
+// Call this method to prepare the manager
+- (void)touchesBegan;
 
 - (void)touchesDraggedForDistance:(CGFloat)distance;
 

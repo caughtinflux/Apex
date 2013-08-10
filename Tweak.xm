@@ -167,6 +167,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         }
 
         STKSetActiveManager(stackManager);
+        [stackManager touchesBegan];
     }
 
     else if (sender.state == UIGestureRecognizerStateChanged) {
@@ -440,8 +441,8 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         [stackManager release];
     }
     
-    [stackManager recalculateLayouts];
-    [[NSNotificationCenter defaultCenter] postNotificationName:STKRecalculateLayoutsNotification object:nil userInfo:nil];
+    // [stackManager recalculateLayouts];
+    // [[NSNotificationCenter defaultCenter] postNotificationName:STKRecalculateLayoutsNotification object:nil userInfo:nil];
 
     if (stackManager.isEmpty == NO) {
         [stackManager setupPreview];
