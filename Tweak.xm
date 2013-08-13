@@ -140,7 +140,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     STKStackManager *stackManager = STKManagerForView(self);
     STKStackManager *activeManager = STKGetActiveManager();
 
-    if ([[%c(SBIconController) sharedInstance] hasOpenFolder] || stackManager.isExpanded || (activeManager != nil && activeManager != stackManager)) {
+    if ([[%c(SBIconController) sharedInstance] hasOpenFolder] || stackManager.isExpanded || (activeManager != nil && activeManager != stackManager) || ([self.superview isKindOfClass:%c(SBFolderIconListView)])) {
         return;
     }
 
@@ -151,6 +151,14 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
             return;
         }
 
+        CGPoint translation = [sender translationInView:view];
+        if (!((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0)) {
+            return;
+        }
+            
+        // Turn off scrolling if it's s vertical swipe
+        [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = NO;
+
         // Update the target distance based on icons positions when the pan begins
         // This way, we can be sure that the icons are indeed in the required location 
         STKUpdateTargetDistanceInListView(STKListViewForIcon(self.icon));
@@ -160,11 +168,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         _currentDirection = STKDirectionFromVelocity([sender velocityInView:view]);
         _previousPoint = _initialPoint; // Previous point is also initial at the start :P
 
-        CGPoint translation = [sender translationInView:view];
-        if ((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0) {
-            // Turn off scrolling if it's s vertical swipe
-            [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = NO;
-        }
 
         STKSetActiveManager(stackManager);
         [stackManager touchesBegan];
