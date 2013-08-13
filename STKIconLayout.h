@@ -9,12 +9,12 @@
 @property(nonatomic, readonly) NSArray *leftIcons;
 @property(nonatomic, readonly) NSArray *rightIcons;
 
-typedef enum {
+typedef NS_ENUM(NSInteger, STKLayoutPosition) {
 	STKLayoutPositionTop = 1,
 	STKLayoutPositionBottom,
 	STKLayoutPositionLeft,
 	STKLayoutPositionRight,
-} STKLayoutPosition;
+};
 
 // All these arrays contain SBIcon objects
 // Returns an autoreleased instance

@@ -24,15 +24,16 @@
 + (instancetype)sharedPreferences
 {
     static id sharedInstance;
+    static dispatch_once_t predicate;
     
-    if (!sharedInstance) {
+    dispatch_once(&predicate, ^{
         sharedInstance = [[self alloc] init];
 
         [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions : @511} error:NULL];
         [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[STKStackManager layoutsPath] error:NULL]; // Make sure the permissions are correct anyway
 
         [sharedInstance reloadPreferences];
-    }
+    });
 
     return sharedInstance;
 }
@@ -92,7 +93,10 @@
     NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
     for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
         // Get the SBIcon instances for the identifiers
-        [stackIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
+        SBIcon *icon = [model expectedIconForDisplayIdentifier:identifier];
+        if (icon) {
+            [stackIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
+        }
     }
     return stackIcons;
 }
@@ -110,7 +114,7 @@
 
 - (BOOL)iconHasStack:(SBIcon *)icon
 {
-    return [[self identifiersForIconsWithStack] containsObject:icon.leafIdentifier];
+    return (icon == nil ? NO : [[self identifiersForIconsWithStack] containsObject:icon.leafIdentifier]);
 }
 
 - (BOOL)iconIsInStack:(SBIcon *)icon

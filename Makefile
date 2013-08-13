@@ -1,17 +1,12 @@
 DEBUG = 1
-TARGET = iphone:clang:latest:6.0
-
-ifneq ($(DEBUG), 1)
 TARGET = iphone:clang:latest:3.0
-endif
 
 include theos/makefiles/common.mk
 
 TWEAK_NAME = Acervos
-Acervos_FILES = STKConstants.m STKIconLayout.m STKIconLayoutHandler.m STKStackManager.mm STKPlaceHolderIcon.xm STKSelectionListView.xm STKRecognizerDelegate.m STKPreferences.m Tweak.xm
-Acervos_FRAMEWORKS = Foundation UIKit CoreGraphics QuartzCore
+Acervos_FILES = STKConstants.m STKIconLayout.m STKIconLayoutHandler.m STKStackManager.mm STKPlaceHolderIcon.xm STKSelectionView.m STKRecognizerDelegate.m STKPreferences.m Tweak.xm
+Acervos_FRAMEWORKS = Foundation CoreFoundation UIKit CoreGraphics QuartzCore
 Acervos_CFLAGS = -Wall -Werror
-Acervos_LDFLags = -lapplist
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

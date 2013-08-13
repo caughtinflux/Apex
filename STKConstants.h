@@ -50,6 +50,7 @@
 #ifdef __cplusplus 
 extern "C" {
 #endif
+    
     extern NSString * const STKEditingStateChangedNotification;
     extern NSString * const STKStackClosingEventNotification; // This notification is posted when something happens to make the stack close
     extern NSString * const STKPlaceHolderIconIdentifier;
