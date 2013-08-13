@@ -65,7 +65,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
 - (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon forSwitcher:(BOOL)forSwitcher;
 
-- (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance;
+- (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance performingTask:(void(^)(SBIconView *iv, STKLayoutPosition pos, NSUInteger idx))task;
 
 /*
 *   Gesture Recognizing
@@ -95,8 +95,8 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 // This sexy method disables/enables icon interaction as required.
 - (void)_setGhostlyAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral; 
 
-// Applies it to the shadow and label of the appearing icons
-- (void)_setAlphaForAppearingLabelsAndShadows:(CGFloat)alpha;
+// Applies `alpha` to the shadow and label of `iconView`
+- (void)_setAlpha:(CGFloat)alpha forLabelAndShadowOfIconView:(SBIconView *)iconView;
 
 - (void)_setPageControlAlpha:(CGFloat)alpha;
 
@@ -383,8 +383,7 @@ static BOOL __stackInMotion;
         }
 
         // Hide the labels and shadows
-        ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 0.f;
-        [iconView setIconLabelAlpha:0.f];
+        [self _setAlpha:0.f forLabelAndShadowOfIconView:iconView];
         iconView.userInteractionEnabled = NO;
 
         _closingForSwitcher = NO;
@@ -418,33 +417,38 @@ static BOOL __stackInMotion;
 
     __stackInMotion = YES;
 
-    [self _moveAllIconsInRespectiveDirectionsByDistance:distance];
-    
     CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter);
     [self _setGhostlyAlphaForAllIcons:alpha excludingCentralIcon:YES];
     [self _setPageControlAlpha:alpha];
-    
-    if (!_isEmpty) {
-        [self _setAlphaForAppearingLabelsAndShadows:(1 - alpha)];
 
-        CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
-        if (_lastDistanceFromCenter <= midWayDistance) {
-            // If the icons are past the halfway mark, start increasing/decreasing their scale.
-            // This looks beatuiful. Yay me.
-            CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kStackPreviewIconScale);
-            MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) {
-                iconView.iconImageView.transform = CGAffineTransformMakeScale(stackIconTransformScale, stackIconTransformScale);
-            });
-        
-        CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
-            [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(centralIconTransformScale, centralIconTransformScale);
+    [self _moveAllIconsInRespectiveDirectionsByDistance:distance performingTask:^(SBIconView *iv, STKLayoutPosition pos, NSUInteger idx) {
+        if (!_isEmpty) {
+            [self _setAlpha:(1 - alpha) forLabelAndShadowOfIconView:iv];
+
+            CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
+            if (_lastDistanceFromCenter <= midWayDistance) {
+                // If the icons are past the halfway mark, start increasing/decreasing their scale.
+                // This looks beatuiful. Yay me.
+                CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kStackPreviewIconScale);
+                iv.iconImageView.transform = CGAffineTransformMakeScale(stackIconTransformScale, stackIconTransformScale);
+                
+            
+                CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
+                [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(centralIconTransformScale, centralIconTransformScale);
+            }
+            else {
+                [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+                iv.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+            }
         }
         else {
-            [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
-            MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) { iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f); });        
+            iv.alpha = (1 - alpha);
         }
-    }
 
+        if ((idx == 0) && (pos == STKLayoutPositionTop || pos == STKLayoutPositionBottom)) {
+                _lastDistanceFromCenter = fabsf(iv.frame.origin.y - [self _iconViewForIcon:_centralIcon].bounds.origin.y);
+        }
+    }];
 
     __stackInMotion = NO;
 }
@@ -462,7 +466,7 @@ static BOOL __stackInMotion;
         [self _animateToClosedPositionWithCompletionBlock:^{
             if (_interactionHandler) {
                 _interactionHandler(nil);
-            }
+            }   
         } duration:kAnimationDuration animateCentralIcon:NO forSwitcher:NO];
     }
 }
@@ -562,10 +566,7 @@ static BOOL __stackInMotion;
             iconView.userInteractionEnabled = YES;
 
             if (!_isEmpty) {
-                iconView.iconLabelAlpha = 1.f;
-
-                ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = 1.f;
-                ((UIView *)[iconView valueForKey:@"_accessoryView"]).alpha = 1.f;
+                [self _setAlpha:1.f forLabelAndShadowOfIconView:iconView];
             }
         }];
 
@@ -697,7 +698,7 @@ static BOOL __stackInMotion;
 #define IS_GREATER(_float_a, _float_b, _position) ((_position == STKLayoutPositionTop || _position == STKLayoutPositionLeft) ? (_float_a < _float_b) : (_float_a > _float_b))
 #define IS_LESSER(_float_a, _float_b, _position) ((_position == STKLayoutPositionTop || _position == STKLayoutPositionLeft) ? (_float_a > _float_b) : (_float_a < _float_b))
 
-- (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance
+- (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance performingTask:(void(^)(SBIconView *iv, STKLayoutPosition pos, NSUInteger idx))task
 {
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
 
@@ -763,8 +764,8 @@ static BOOL __stackInMotion;
         CGPoint targetOrigin = [self _targetOriginForIconAtPosition:position distanceFromCentre:idx + 1];
         CGRect centralFrame = [self _iconViewForIcon:_centralIcon].bounds;
 
-        if (iconView.alpha != 1.f) {
-            iconView.alpha = 1.f;
+        if (task) {
+            task(iconView, position, idx);
         }
 
         CGFloat negator = ((position == STKLayoutPositionTop || position == STKLayoutPositionLeft) ? -1.f : 1.f);
@@ -778,10 +779,6 @@ static BOOL __stackInMotion;
             currentCoord = &(iconFrame.origin.y);
             newCoord = &(newFrame.origin.y);
             centralCoord = &(centralFrame.origin.y);
-
-            if (idx == 0) {
-                _lastDistanceFromCenter = fabsf(iconView.frame.origin.y - centralFrame.origin.y);
-            }
         }
         else {
             targetCoord = &(targetOrigin.x);
@@ -1087,13 +1084,11 @@ static BOOL __stackInMotion;
     })
 }
 
-- (void)_setAlphaForAppearingLabelsAndShadows:(CGFloat)alpha
+- (void)_setAlpha:(CGFloat)alpha forLabelAndShadowOfIconView:(SBIconView *)iconView
 {
-    for (SBIconView *iconView in [_iconViewsLayout allIcons]) {
-        ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = alpha;
-        [iconView setIconLabelAlpha:alpha];
-        ((UIView *)[iconView valueForKey:@"_accessoryView"]).alpha = alpha;
-    }
+    ((UIImageView *)[iconView valueForKey:@"_shadow"]).alpha = alpha;
+    [iconView setIconLabelAlpha:alpha];
+    ((UIView *)[iconView valueForKey:@"_accessoryView"]).alpha = alpha;
 }
 
 - (void)_setPageControlAlpha:(CGFloat)alpha
