@@ -1,6 +1,7 @@
 #import "STKSelectionView.h"
 #import "STKConstants.h"
 #import "STKIconLayout.h"
+#import "STKIconLayoutHandler.h"
 
 #import <SpringBoard/SpringBoard.h>
 #import <AppList/AppList.h>
@@ -17,7 +18,11 @@
 
 @implementation STKSelectionView
 
-- (instancetype)initWithIconView:(SBIconView *)iconView inLayout:(STKIconLayout *)iconViewLayout centralIconView:(SBIconView *)centralIconView displacedIcons:(STKIconLayout *)displacedIconsLayout
+- (instancetype)initWithIconView:(SBIconView *)iconView
+                        inLayout:(STKIconLayout *)iconViewLayout
+                        position:(STKPositionMask)position
+                 centralIconView:(SBIconView *)centralIconView
+                  displacedIcons:(STKIconLayout *)displacedIconsLayout
 {
     if ((self = [super initWithFrame:CGRectZero])) {
 
