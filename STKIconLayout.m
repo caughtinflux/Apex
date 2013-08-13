@@ -88,7 +88,7 @@
 
 - (NSArray *)allIcons
 {
-    if (!_hasBeenModified) {
+    if (!_hasBeenModified && !_allIcons) {
         return _allIcons;
     }
 
