@@ -36,6 +36,8 @@ typedef NS_ENUM(NSInteger, STKLayoutPosition) {
 // This method is thread safe
 - (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position;
 
+- (STKLayoutPosition)positionForIcon:(id)icon;
+
 
 NSString * STKNSStringFromPosition(STKLayoutPosition pos);
 

@@ -4,11 +4,11 @@
 @class SBIconView, STKIconLayout;
 @protocol STKSelectionViewDelegate;
 
-@interface STKSelectionView : UIView
+@interface STKSelectionView : UIView <UITableViewDelegate, UITableViewDataSource>
 {
 @private
-    SBIconView *_iconView;
-    SBIconView *_centralIconView;
+    SBIconView *_selectedView;
+    SBIconView *_centralView;
     
     STKIconLayout *_iconViewsLayout;
     STKIconLayout *_displacedIconsLayout;

@@ -147,6 +147,14 @@
     }
 }
 
+- (STKLayoutPosition)positionForIcon:(id)icon
+{
+    if ([_topIcons containsObject:icon]) return STKLayoutPositionTop;
+    if ([_bottomIcons containsObject:icon]) return STKLayoutPositionBottom;
+    if ([_leftIcons containsObject:icon]) return STKLayoutPositionLeft;
+    if ([_rightIcons containsObject:icon]) return STKLayoutPositionRight;
+}
+
 - (NSString *)description
 {
     return [NSString stringWithFormat:@"%@ top.count: %i bottom.count: %i left.count: %i right.count: %i", [super description], _topIcons.count, _bottomIcons.count, _leftIcons.count, _rightIcons.count];
