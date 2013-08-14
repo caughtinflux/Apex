@@ -2,7 +2,7 @@
 #import "STKConstants.h"
 #import "STKIconLayout.h"
 #import "STKIconLayoutHandler.h"
-#import "substrate.h"
+#import "STKSelectionView.h"
 
 #import <objc/runtime.h>
 
@@ -47,12 +47,15 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
     CGFloat                   _lastDistanceFromCenter;
     BOOL                      _needsLayout;
     BOOL                      _closingForSwitcher;
+    BOOL                      _ignoreRecognizers;
 
     UISwipeGestureRecognizer *_swipeRecognizer;
     UITapGestureRecognizer   *_tapRecognizer;
 
     id<SBIconViewDelegate>    _previousDelegate;
 
+
+    STKSelectionView         *_currentSelectionView;
     STKIconLayout            *_placeHolderViewsLayout;
     STKIconLayout            *_iconsHiddenForPlaceHolders;
 
@@ -527,7 +530,10 @@ static BOOL __stackInMotion;
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
-    SBIconView *touchedIconView = nil;
+    if (_currentSelectionView && CGRectContainsPoint(_currentSelectionView.frame, point)) {
+        return _currentSelectionView;
+    }
+
     CGRect centralIconViewFrame = [self _iconViewForIcon:_centralIcon].bounds;
     
     if (CGRectContainsPoint(centralIconViewFrame, point)) {
@@ -536,10 +542,11 @@ static BOOL __stackInMotion;
 
     for (SBIconView *iconView in [_iconViewsLayout allIcons]) {
         if (CGRectContainsPoint(iconView.frame, point)) {
-            touchedIconView = iconView;
+            return iconView;
         }
     }
-    return touchedIconView;
+
+    return nil;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -837,6 +844,11 @@ static BOOL __stackInMotion;
     [contentView addGestureRecognizer:_tapRecognizer];
 }
 
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)other
+{
+    return (other == _currentSelectionView.listTableView.panGestureRecognizer);
+}
+
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
     if (recognizer == _tapRecognizer) {
@@ -856,6 +868,10 @@ static BOOL __stackInMotion;
 
 - (void)_handleCloseGesture:(UIGestureRecognizer *)sender
 {
+    if (_ignoreRecognizers) {
+        return;
+    }
+
     if (self.isEditing && [sender isKindOfClass:[UITapGestureRecognizer class]]) {
         self.isEditing = NO;
         return;
@@ -1241,7 +1257,18 @@ static BOOL __stackInMotion;
     }
 
     if ([iconView.icon.leafIdentifier isEqualToString:STKPlaceHolderIconIdentifier]) {
-        // FINISH ME
+        _currentSelectionView = [[[STKSelectionView alloc] initWithIconView:iconView
+            inLayout:_iconViewsLayout
+            position:[self _locationMaskForIcon:_centralIcon]
+            centralIconView:[self _iconViewForIcon:_centralIcon]
+            displacedIcons:_displacedIconsLayout]
+        autorelease];
+        
+        [[self _iconViewForIcon:_centralIcon].superview addSubview:_currentSelectionView];
+        _ignoreRecognizers = YES;
+
+        EXECUTE_BLOCK_AFTER_DELAY(10, ^{ [_currentSelectionView removeFromSuperview]; [_currentSelectionView release]; _currentSelectionView = nil; _ignoreRecognizers = NO; });
+
         return;
     }
 

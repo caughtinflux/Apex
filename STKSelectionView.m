@@ -5,12 +5,12 @@
 #import "STKSelectionViewCell.h"
 
 #import <SpringBoard/SpringBoard.h>
-#import <AppList/AppList.h>
+#import <objc/runtime.h>
 
 @interface STKSelectionView ()
 {
     UITableView *_listTableView;
-    NSArray     *_availableAppIdentifiers;
+    NSArray     *_availableAppIcons;
     SBIconModel *_model;
 
     STKLayoutPosition _position;
@@ -25,27 +25,34 @@ static NSString * const CellIdentifier = @"STKIconCell";
 
 - (instancetype)initWithIconView:(SBIconView *)iconView inLayout:(STKIconLayout *)iconViewLayout position:(STKPositionMask)position centralIconView:(SBIconView *)centralIconView displacedIcons:(STKIconLayout *)displacedIconsLayout
 {
-    if ((self = [super initWithFrame:CGRectZero])) {
+    if ((self = [super initWithFrame:CGRectMake(0, 0, 75, 300)])) {
         _selectedView = [iconView retain];
         _centralView = [centralIconView retain];
         _mask = position;
         _position = [iconViewLayout positionForIcon:iconView];
-        _availableAppIdentifiers = [NSMutableArray array];
+        _model = (SBIconModel *)[[objc_getClass("SBIconController") sharedInstance] model];
+        _availableAppIcons = [NSMutableArray new];
 
-        _model = [[objc_getClass("SBIconController") sharedInstance] model];
         BOOL found = NO;
-        for (id *ident in [_model visibleIconIdentifiers]) {
-            if (!found && [ident isEqual:_centralView.leafIdentifier]) {
+        for (id ident in [_model visibleIconIdentifiers]) {
+            if (!found && [ident isEqual:_centralView.icon.leafIdentifier]) {
                 continue;
             }
-            [_availableAppIdentifiers addObject:ident];
+            [(NSMutableArray *)_availableAppIcons addObject:[_model expectedIconForDisplayIdentifier:ident]];
         }
 
-        CGRect frame = CGRectZero;
+        NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES];
+        [(NSMutableArray *)_availableAppIcons sortUsingDescriptors:@[descriptor]];
+
+        CGRect frame = CGRectMake(0, 0, 150, 300);
         _listTableView = [[UITableView alloc] initWithFrame:frame style:UITableViewStylePlain];
         _listTableView.dataSource = self;
         _listTableView.delegate = self;
+        _listTableView.backgroundColor = [UIColor clearColor];
+        _listTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
         [_listTableView registerClass:[STKSelectionViewCell class] forCellReuseIdentifier:CellIdentifier];
+
+        [self addSubview:_listTableView];
     }
     return self;
 }
@@ -56,6 +63,15 @@ static NSString * const CellIdentifier = @"STKIconCell";
     return nil;
 }
 
+- (void)dealloc
+{
+    [_selectedView release];
+    [_centralView release];
+    [_availableAppIcons release];
+    [_listTableView release];
+
+    [super dealloc];
+}
 
 #pragma mark - UITableView Data Source
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
@@ -65,16 +81,32 @@ static NSString * const CellIdentifier = @"STKIconCell";
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return _availableAppIdentifiers.count;
+    return _availableAppIcons.count;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return [objc_getClass("SBIconView") defaultIconImageSize].height + 10;
 }
 
 - (STKSelectionViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     STKSelectionViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     
-    cell.icon = [_model expectedIconForDisplayIdentifier:_availableAppIdentifiers[indexPath.row - 1]];
+    cell.icon = _availableAppIcons[indexPath.row];
     
     return cell;
+}
+
+#pragma mark - Header/Footer Methods
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section
+{
+    return 0;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section
+{
+    return [[[UIView alloc] initWithFrame:CGRectZero] autorelease];
 }
 
 @end

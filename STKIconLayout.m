@@ -153,6 +153,8 @@
     if ([_bottomIcons containsObject:icon]) return STKLayoutPositionBottom;
     if ([_leftIcons containsObject:icon]) return STKLayoutPositionLeft;
     if ([_rightIcons containsObject:icon]) return STKLayoutPositionRight;
+
+    return NSNotFound;
 }
 
 - (NSString *)description

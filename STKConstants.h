@@ -26,7 +26,6 @@
 #define kCentralIconPreviewScale 0.95f
 #define kStackPreviewIconScale   0.81f
 
-
 #define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
 
 #define SHOW_USER_NOTIFICATION(_title, _message, _dismissButtonTitle) \

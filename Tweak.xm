@@ -93,7 +93,7 @@ static BOOL _switcherIsVisible;
 
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
-        self.location == SBIconViewLocationSwitcher || self.location == SBIconViewLocationDock || [self.superview isKindOfClass:%c(SBFolderIconListView)] ||
+        self.location != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] ||
         ![icon isLeafIcon] ||
         [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop

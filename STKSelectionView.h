@@ -1,6 +1,7 @@
 #import <UIKit/UIKit.h>
 #import "STKIconLayoutHandler.h"
 
+
 @class SBIconView, STKIconLayout;
 @protocol STKSelectionViewDelegate;
 
@@ -37,6 +38,7 @@
 @property (nonatomic, readonly) SBIconView *centralIconView;
 @property (nonatomic, readonly) STKIconLayout *iconViewsLayout;
 @property (nonatomic, readonly) STKIconLayout *displacedIconsLayout;
+@property (nonatomic, readonly) UITableView *listTableView;
 
 /**
 *   Set this property to be notified about events in the selection view
