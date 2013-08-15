@@ -29,7 +29,7 @@ static inline        STKStackManager * STKManagerForView(SBIconView *iconView);
 static inline               NSString * STKGetLayoutPathForIcon(SBIcon *icon);
 
 static inline            void   STKSetActiveManager(STKStackManager *manager);
-static inline STKStackManager * STKGetActiveManager(void);
+extern "C" STKStackManager * STKGetActiveManager(void);
 static inline            void   STKCloseActiveManager(void);
 
 
@@ -88,7 +88,7 @@ static BOOL _switcherIsVisible;
 %hook SBIconView
 
 - (void)setIcon:(SBIcon *)icon
-{    
+{
     %orig(icon);
 
     if (!icon ||
@@ -416,6 +416,7 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
             NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
             stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
             if (![stackManager isEmpty]) {
+                NSLog(@"Lost layout! Saving now");
                 [stackManager saveLayoutToFile:layoutPath];
             }
         }
@@ -533,7 +534,7 @@ static inline void STKSetActiveManager(STKStackManager *manager)
     _activeManager = manager;
 }
 
-static inline STKStackManager * STKGetActiveManager(void)
+extern "C"  STKStackManager * STKGetActiveManager(void)
 {
     return _activeManager;
 }

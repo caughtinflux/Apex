@@ -2,6 +2,19 @@
 
 @class SBIcon;
 
+#ifdef __cplusplus 
+extern "C" {
+#endif
+
+    extern NSString * const STKTopIconsKey;
+    extern NSString * const STKBottomIconsKey;
+    extern NSString * const STKLeftIconsKey;
+    extern NSString * const STKRightIconsKey;
+
+#ifdef __cplusplus
+}
+#endif
+
 @interface STKIconLayout : NSObject
 
 @property(nonatomic, readonly) NSArray *topIcons;
@@ -10,15 +23,17 @@
 @property(nonatomic, readonly) NSArray *rightIcons;
 
 typedef NS_ENUM(NSInteger, STKLayoutPosition) {
-	STKLayoutPositionTop = 1,
-	STKLayoutPositionBottom,
-	STKLayoutPositionLeft,
-	STKLayoutPositionRight,
+    STKLayoutPositionTop = 1,
+    STKLayoutPositionBottom,
+    STKLayoutPositionLeft,
+    STKLayoutPositionRight,
 };
 
-// All these arrays contain SBIcon objects
 // Returns an autoreleased instance
++ (instancetype)layoutWithDictionary:(NSDictionary *)dictionary;
 + (instancetype)layoutWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons;
+
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary;
 - (instancetype)initWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons;
 
 + (NSArray *)allPositions;
@@ -37,6 +52,8 @@ typedef NS_ENUM(NSInteger, STKLayoutPosition) {
 - (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position;
 
 - (STKLayoutPosition)positionForIcon:(id)icon;
+
+- (NSDictionary *)dictionaryRepresentation;
 
 
 NSString * STKNSStringFromPosition(STKLayoutPosition pos);

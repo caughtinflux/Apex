@@ -9,6 +9,8 @@ extern "C" {
 #endif
     extern NSString * const STKStackManagerCentralIconKey;
     extern NSString * const STKStackManagerStackIconsKey;
+    extern NSString * const STKStackManagerCustomLayoutKey;
+
     extern NSString * const STKRecalculateLayoutsNotification;
 #ifdef __cplusplus
 }

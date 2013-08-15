@@ -29,17 +29,11 @@ static NSString * const CellIdentifier = @"STKIconCell";
     if ((self = [super initWithFrame:CGRectZero])) {
         _selectedView = [iconView retain];
         _centralView = [centralIconView retain];
+        _iconViewsLayout = [iconViewLayout retain];
         _mask = position;
         _position = [iconViewLayout positionForIcon:iconView];
         _listView = STKListViewForIcon(_centralView.icon);
         _model = (SBIconModel *)[[objc_getClass("SBIconController") sharedInstance] model];
-        
-        CGPoint iconOrigin = [_listView convertPoint:_selectedView.frame.origin fromView:_centralView];
-        CGSize defaultIconImageSize = [[_selectedView class] defaultIconImageSize];
-        CGSize maxLabelSize = [[_selectedView class] _maxLabelSize];
-
-        CGRect frame = (CGRect){{iconOrigin.x, [_listView originForIconAtX:0 Y:0].y}, {(defaultIconImageSize.width + 5 + maxLabelSize.width), _listView.bounds.size.height + 25}};
-        self.frame = frame;
 
         _availableAppIcons = [NSMutableArray new];
         BOOL found = NO;
@@ -53,7 +47,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
         NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES];
         [(NSMutableArray *)_availableAppIcons sortUsingDescriptors:@[descriptor]];
 
-        _listTableView = [[UITableView alloc] initWithFrame:(CGRect){CGRectZero.origin, frame.size} style:UITableViewStylePlain];
+        _listTableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
         _listTableView.dataSource = self;
         _listTableView.delegate = self;
         _listTableView.backgroundColor = [UIColor clearColor];
@@ -61,6 +55,17 @@ static NSString * const CellIdentifier = @"STKIconCell";
         [_listTableView registerClass:[STKSelectionViewCell class] forCellReuseIdentifier:CellIdentifier];
 
         [self addSubview:_listTableView];
+
+        _selectedView.alpha = 0.f;
+        _centralView.alpha = 0.2;
+        MAP([_iconViewsLayout allIcons], ^(SBIconView *iv) {
+            if (iv == _selectedView) {
+                return;
+            }
+            iv.alpha = (iv.icon.isPlaceholder? 0.8 : 0.2f);
+        });
+
+        [self setNeedsLayout];
     }
     return self;
 }
@@ -75,10 +80,25 @@ static NSString * const CellIdentifier = @"STKIconCell";
 {
     [_selectedView release];
     [_centralView release];
+    [_iconViewsLayout release];
     [_availableAppIcons release];
     [_listTableView release];
 
     [super dealloc];
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+
+    CGPoint iconOrigin = [_listView convertPoint:_selectedView.frame.origin fromView:_centralView];
+    CGSize defaultIconImageSize = [[_selectedView class] defaultIconImageSize];
+    CGSize maxLabelSize = [[_selectedView class] _maxLabelSize];
+
+    CGRect frame = (CGRect){{iconOrigin.x, 0}, {(defaultIconImageSize.width + 5 + maxLabelSize.width), [UIScreen mainScreen].bounds.size.height}};
+    self.frame = frame;
+
+    _listTableView.frame = (CGRect){CGRectZero.origin, frame.size};
 }
 
 #pragma mark - UITableView Data Source

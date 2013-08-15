@@ -1,6 +1,13 @@
 #import "STKIconLayout.h"
 #import "STKConstants.h"
 
+#import <objc/runtime.h>
+#import <SpringBoard/SpringBoard.h>
+
+NSString * const STKTopIconsKey = @"TopIcons";
+NSString * const STKBottomIconsKey = @"BottomIcons";
+NSString * const STKLeftIconsKey = @"LeftIcons";
+NSString * const STKRightIconsKey = @"RightIcons";
 
 @implementation STKIconLayout
 {
@@ -9,13 +16,59 @@
     NSMutableArray *_leftIcons;
     NSMutableArray *_rightIcons;
 
-    NSArray        *_allIcons;
-    BOOL            _hasBeenModified;
+    NSArray             *_allIcons;
+    NSMutableDictionary *_dictRepr;
+    BOOL                 _hasBeenModified;
 } 
+
++ (instancetype)layoutWithDictionary:(NSDictionary *)dict
+{
+    return [[[self alloc] initWithDictionary:dict] autorelease];
+}
 
 + (instancetype)layoutWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons
 {
     return [[[self alloc] initWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons] autorelease];
+}
+
+- (instancetype)initWithDictionary:(NSDictionary *)dict
+{
+    NSMutableArray *topIcons = [NSMutableArray array];
+    NSMutableArray *bottomIcons = [NSMutableArray array];
+    NSMutableArray *leftIcons = [NSMutableArray array];
+    NSMutableArray *rightIcons = [NSMutableArray array];
+
+    SBIconModel *model = (SBIconModel *)[[objc_getClass("SBIconController") sharedInstance] model];
+    
+    MAP(dict[STKTopIconsKey], ^(NSString *ID) { 
+        id icon = [model expectedIconForDisplayIdentifier:ID];
+        if (icon) {
+            [topIcons addObject:icon];
+        }
+    });
+
+    MAP(dict[STKBottomIconsKey], ^(NSString *ID) { 
+        id icon = [model expectedIconForDisplayIdentifier:ID];
+        if (icon) {
+            [bottomIcons addObject:icon];
+        }
+    });
+
+    MAP(dict[STKLeftIconsKey], ^(NSString *ID) { 
+        id icon = [model expectedIconForDisplayIdentifier:ID];
+        if (icon) {
+            [leftIcons addObject:icon];
+        }
+    });
+
+    MAP(dict[STKRightIconsKey], ^(NSString *ID) { 
+        id icon = [model expectedIconForDisplayIdentifier:ID];
+        if (icon) {
+            [rightIcons addObject:icon];
+        }
+    });
+
+    return [self initWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons];
 }
 
 - (instancetype)initWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons
@@ -88,20 +141,21 @@
 
 - (NSArray *)allIcons
 {
-    if (!_hasBeenModified && !_allIcons) {
+    if (!_hasBeenModified && _allIcons) {
         return _allIcons;
     }
 
-    NSMutableArray *ret = [NSMutableArray arrayWithCapacity:self.totalIconCount];
+    [_allIcons release];
+    _allIcons = nil;
+
+    _allIcons = [[NSMutableArray alloc] initWithCapacity:self.totalIconCount];
     
-    [ret addObjectsFromArray:self.topIcons];
-    [ret addObjectsFromArray:self.bottomIcons];
-    [ret addObjectsFromArray:self.leftIcons];
-    [ret addObjectsFromArray:self.rightIcons];
+    [(NSMutableArray *)_allIcons addObjectsFromArray:self.topIcons];
+    [(NSMutableArray *)_allIcons addObjectsFromArray:self.bottomIcons];
+    [(NSMutableArray *)_allIcons addObjectsFromArray:self.leftIcons];
+    [(NSMutableArray *)_allIcons addObjectsFromArray:self.rightIcons];
 
-    _allIcons = [ret retain];
-
-    return ret;
+    return _allIcons;
 }
 
 - (NSUInteger)totalIconCount
@@ -155,6 +209,32 @@
     if ([_rightIcons containsObject:icon]) return STKLayoutPositionRight;
 
     return NSNotFound;
+}
+
+- (NSDictionary *)dictionaryRepresentation
+{
+    if (_dictRepr && !_hasBeenModified) {
+        return _dictRepr;
+    }
+
+    [_dictRepr release];
+    _dictRepr = nil;
+    _dictRepr = [[NSMutableDictionary alloc] initWithCapacity:self.totalIconCount];
+
+    if (_topIcons) {
+        _dictRepr[STKTopIconsKey] = [_topIcons valueForKey:@"leafIdentifier"];
+    }
+    if (_bottomIcons) {
+        _dictRepr[STKBottomIconsKey] = [_bottomIcons valueForKey:@"leafIdentifier"];
+    }
+    if (_leftIcons) {
+        _dictRepr[STKLeftIconsKey] = [_leftIcons valueForKey:@"leafIdentifier"];
+    }
+    if (_rightIcons) {
+        _dictRepr[STKRightIconsKey] = [_rightIcons valueForKey:@"leafIdentifier"];
+    }
+
+    return _dictRepr;
 }
 
 - (NSString *)description

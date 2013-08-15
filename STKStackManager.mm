@@ -14,11 +14,11 @@
 
 
 // Keys to be used for persistence dict
-NSString * const STKStackManagerCentralIconKey = @"STKCentralIcon";
-NSString * const STKStackManagerStackIconsKey  = @"STKStackIcons";
+NSString * const STKStackManagerCentralIconKey  = @"STKCentralIcon";
+NSString * const STKStackManagerStackIconsKey   = @"STKStackIcons";
+NSString * const STKStackManagerCustomLayoutKey = @"STKCustomLayout";
 
 NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
-
 
 
 #define kMaximumDisplacement kEnablingThreshold + 40
@@ -28,6 +28,8 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 #define kGhostlyRequesterID  1
 #define kOverlayDuration     0.12
 #define kPopoutDistance      9
+
+#define EQ_COORDS(_a, _b) (_a.xPos == _b.xPos && _a.yPos == _b.yPos)
 
 
 #pragma mark - Private Method Declarations
@@ -39,6 +41,8 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
     STKIconLayout            *_offScreenIconsLayout;
     STKIconLayout            *_iconViewsLayout;
     STKInteractionHandler     _interactionHandler;
+
+    STKIconCoordinates        _iconCoordinates;
 
     CGFloat                   _distanceRatio;
     CGFloat                   _popoutCompensationRatio;
@@ -145,10 +149,17 @@ static BOOL __stackInMotion;
 #pragma mark - Public Methods
 - (instancetype)initWithContentsOfFile:(NSString *)file
 {
+    DLog();
     _iconController = [objc_getClass("SBIconController") sharedInstance];
     SBIconModel *model = [(SBIconController *)_iconController model];
 
     NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:file];
+    NSDictionary *customLayout = attributes[STKStackManagerCustomLayoutKey];
+    SBIcon *centralIcon = [model expectedIconForDisplayIdentifier:attributes[STKStackManagerCentralIconKey]];
+
+    if (customLayout) {
+        return [self initWithCentralIcon:centralIcon withCustomLayout:customLayout];
+    }
 
     NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
     for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
@@ -162,7 +173,6 @@ static BOOL __stackInMotion;
         }
     }
 
-    SBIcon *centralIcon = [model expectedIconForDisplayIdentifier:attributes[STKStackManagerCentralIconKey]];
     if (!centralIcon) {
         CLog(@"Central Icon: %@ doesn't exist, dying quietly...", attributes[STKStackManagerCentralIconKey]);
         return nil;
@@ -183,7 +193,7 @@ static BOOL __stackInMotion;
         _centralIcon = [centralIcon retain];
         STKPositionMask mask = [self _locationMaskForIcon:_centralIcon];
 
-        if (!icons) {
+        if (!icons || icons.count == 0) {
             _appearingIconsLayout = [[STKIconLayoutHandler emptyLayoutForIconAtPosition:mask] retain];
             _isEmpty = YES;
         }
@@ -191,19 +201,55 @@ static BOOL __stackInMotion;
             _appearingIconsLayout = [[STKIconLayoutHandler layoutForIcons:icons aroundIconAtPosition:mask] retain];
         }
 
-        _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
-
         [icons release];
-
-        [self _calculateDistanceRatio];
-        [self _findIconsWithOffScreenTargets];
-        
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_relayoutRequested:) name:STKRecalculateLayoutsNotification object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateOpen) name:[NSString stringWithFormat:@"OpenSesame %@", _centralIcon.leafIdentifier] object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateClosed) name:[NSString stringWithFormat:@"CloseSesame %@", _centralIcon.leafIdentifier] object:nil];
+        [self _setup];
     }
     
     return self;
+}
+
+- (instancetype)initWithCentralIcon:(SBIcon *)centralIcon withCustomLayout:(NSDictionary *)customLayout
+{
+    STKIconLayout *layout = [STKIconLayout layoutWithDictionary:customLayout];
+    if ([layout allIcons].count == 0) {
+        return [self initWithCentralIcon:centralIcon stackIcons:nil];
+    }
+
+    STKIconCoordinates currentCoords = [STKIconLayoutHandler coordinatesForIcon:centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
+    STKIconCoordinates savedCoords;
+
+    CLog(@"In layout %@, curr.x: %i curr.y: %i, saved.x: %i, saved.y: %i", customLayout, currentCoords.xPos, currentCoords.yPos, [customLayout[@"xPos"] integerValue], [customLayout[@"yPos"] integerValue]);
+
+    // Make sure the objects do exist since 0 is a valid coordinate that many icons may have.
+    savedCoords.xPos = (customLayout[@"xPos"] ? [customLayout[@"xPos"] integerValue] : NSNotFound);
+    savedCoords.yPos = (customLayout[@"yPos"] ? [customLayout[@"yPos"] integerValue] : NSNotFound);
+
+    if (!(EQ_COORDS(savedCoords, currentCoords)) {
+        CLog(@"Coords have changed, creating usually");
+        // The location of the icon has changed, hence calculate layouts accordingly
+        return [self initWithCentralIcon:centralIcon stackIcons:[layout allIcons]];
+    }
+
+    if ((self = [super init])) {
+        _centralIcon = [centralIcon retain];
+        _appearingIconsLayout = [layout retain];
+        [self _setup];
+    }
+
+    return self;
+}
+
+- (void)_setup
+{
+    _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
+    _iconCoordinates = [STKIconLayoutHandler coordinatesForIcon:_centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
+
+    [self _calculateDistanceRatio];
+    [self _findIconsWithOffScreenTargets];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_relayoutRequested:) name:STKRecalculateLayoutsNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateOpen) name:[NSString stringWithFormat:@"OpenSesame %@", _centralIcon.leafIdentifier] object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(__animateClosed) name:[NSString stringWithFormat:@"CloseSesame %@", _centralIcon.leafIdentifier] object:nil];
 }
 
 - (void)dealloc
@@ -250,9 +296,13 @@ static BOOL __stackInMotion;
             // Check if the directory exists in the first place
             [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:NO attributes:@{NSFilePosixPermissions : @511} error:NULL];
         }
+        NSMutableDictionary *dictionaryRepresentation = [[[_appearingIconsLayout dictionaryRepresentation] mutableCopy] autorelease];
+        dictionaryRepresentation[@"xPos"] = @(_iconCoordinates.xPos);
+        dictionaryRepresentation[@"yPos"] = @(_iconCoordinates.yPos);
 
-        NSDictionary *fileDict = @{ STKStackManagerCentralIconKey : _centralIcon.leafIdentifier,
-                                    STKStackManagerStackIconsKey  : [[_appearingIconsLayout allIcons] valueForKeyPath:@"leafIdentifier"] };
+        NSDictionary *fileDict = @{ STKStackManagerCentralIconKey  : _centralIcon.leafIdentifier,
+                                    STKStackManagerStackIconsKey   : [[_appearingIconsLayout allIcons] valueForKeyPath:@"leafIdentifier"],
+                                    STKStackManagerCustomLayoutKey : dictionaryRepresentation};
         [fileDict writeToFile:file atomically:YES];
     }
 }
@@ -269,20 +319,24 @@ static BOOL __stackInMotion;
 
     NSArray *stackIcons = [_appearingIconsLayout allIcons];
 
-    [_appearingIconsLayout release];
+    STKIconCoordinates current = [STKIconLayoutHandler coordinatesForIcon:_centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
+    BOOL needsRecal = YES;
+    if (EQ_COORDS(current, _iconCoordinates)) {
+        needsRecal = NO;
+    }
+
     [_displacedIconsLayout release];
 
     if (_isEmpty) {
+        [_appearingIconsLayout release];
         _appearingIconsLayout = [[STKIconLayoutHandler emptyLayoutForIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
     }
-    else {
+    else if (needsRecal) {
+        [_appearingIconsLayout release];
         _appearingIconsLayout = [[STKIconLayoutHandler layoutForIcons:stackIcons aroundIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
     }
 
-    _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
-
-    [self _calculateDistanceRatio];
-    [self _findIconsWithOffScreenTargets];
+    [self _setup];
 
     if (_hasSetup) {
         [self cleanupView];
@@ -1267,18 +1321,23 @@ static BOOL __stackInMotion;
         _currentSelectionView.alpha = 1.f;
         
         [UIView animateWithDuration:kAnimationDuration animations:^{
-            [[self _iconViewForIcon:_centralIcon].superview addSubview:_currentSelectionView];
+            [[_iconController contentView] addSubview:_currentSelectionView];
+
             _currentSelectionView.alpha = 1.f;
             [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iconView){ if (![iconView.icon.leafIdentifier isEqual:_centralIcon.leafIdentifier]) iconView.alpha = 0.f; }];
+            [_iconController dock].superview.alpha = 0.f;
         }];
 
 
         _ignoreRecognizers = YES;
 
         EXECUTE_BLOCK_AFTER_DELAY(10, ^{ 
-            [UIView animateWithDuration:kAnimationDuration/2.0f animations:^{
+            [UIView animateWithDuration:kAnimationDuration animations:^{
                 _currentSelectionView.alpha = 0.f;
                 [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iconView){ iconView.alpha = 1.f; }];
+                [_iconController dock].superview.alpha = 1.f;
+
+
             } completion:^(BOOL finished) {
                 if (!finished) {
                     return;
