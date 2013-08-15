@@ -19,6 +19,7 @@
         _iconView.location = 1337;
 
         [self addSubview:_iconView];
+        [self setNeedsLayout];
     }
 
     return self;
@@ -39,8 +40,12 @@
 {
     [super layoutSubviews];
 
+    _iconView.frame = (CGRect){{_iconView.frame.origin.x, _iconView.frame.origin.y}, {_iconView.frame.size.width, [[_iconView class] defaultIconImageSize].height}};
+
     SBIconLabelImageView *labelView = [_iconView valueForKey:@"_labelView"];
-    labelView.frame = (CGRect){ {CGRectGetMaxX(_iconView.frame) + 10, CGRectGetMidY(self.bounds)}, labelView.frame.size};
+    labelView.frame = (CGRect){{CGRectGetMaxX(_iconView.bounds) + 5, ((_iconView.iconImageView.image.size.height * 0.5f) - (labelView.frame.size.height * 0.5f))}, 
+                               labelView.frame.size};
 }
 
 @end
+

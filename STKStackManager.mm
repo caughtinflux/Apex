@@ -312,8 +312,7 @@ static BOOL __stackInMotion;
         [iconView setDelegate:self];
 
         iconView.frame = centralIconView.bounds;
-        [iconView setIconLabelAlpha:0.f];
-        [[iconView valueForKeyPath:@"_shadow"] setAlpha:0.f];
+        [self _setAlpha:0.f forLabelAndShadowOfIconView:iconView];
         if (!_isEmpty) {
             iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
         }
@@ -571,6 +570,8 @@ static BOOL __stackInMotion;
             
             iconView.delegate = self;
             iconView.userInteractionEnabled = YES;
+
+            iconView.alpha = 1.f;
 
             if (!_isEmpty) {
                 [self _setAlpha:1.f forLabelAndShadowOfIconView:iconView];
@@ -1263,11 +1264,32 @@ static BOOL __stackInMotion;
             centralIconView:[self _iconViewForIcon:_centralIcon]
             displacedIcons:_displacedIconsLayout]
         autorelease];
+        _currentSelectionView.alpha = 1.f;
         
-        [[self _iconViewForIcon:_centralIcon].superview addSubview:_currentSelectionView];
+        [UIView animateWithDuration:kAnimationDuration animations:^{
+            [[self _iconViewForIcon:_centralIcon].superview addSubview:_currentSelectionView];
+            _currentSelectionView.alpha = 1.f;
+            [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iconView){ if (![iconView.icon.leafIdentifier isEqual:_centralIcon.leafIdentifier]) iconView.alpha = 0.f; }];
+        }];
+
+
         _ignoreRecognizers = YES;
 
-        EXECUTE_BLOCK_AFTER_DELAY(10, ^{ [_currentSelectionView removeFromSuperview]; [_currentSelectionView release]; _currentSelectionView = nil; _ignoreRecognizers = NO; });
+        EXECUTE_BLOCK_AFTER_DELAY(10, ^{ 
+            [UIView animateWithDuration:kAnimationDuration/2.0f animations:^{
+                _currentSelectionView.alpha = 0.f;
+                [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iconView){ iconView.alpha = 1.f; }];
+            } completion:^(BOOL finished) {
+                if (!finished) {
+                    return;
+                }
+
+                [_currentSelectionView removeFromSuperview];
+                [_currentSelectionView release];
+                _currentSelectionView = nil;
+                _ignoreRecognizers = NO;
+            }];
+        });
 
         return;
     }
