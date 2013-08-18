@@ -1,4 +1,10 @@
 #import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
+
+typedef NS_ENUM(NSInteger, STKSelectionViewCellLabelPosition) {
+	STKSelectionViewCellLabelPositionRight = 1,
+	STKSelectionViewCellLabelPositionLeft
+};
 
 @class SBIcon;
 

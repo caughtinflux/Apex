@@ -6,7 +6,7 @@
 
 @implementation STKSelectionViewCell
 {
-    SBIconView *_iconView;
+    SBIconView  *_iconView;
 }
 
 - (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
@@ -25,15 +25,10 @@
     return self;
 }
 
-- (void)setIcon:(SBIcon *)icon
+- (void)dealloc
 {
-    if (_icon != icon) {
-        [_icon release];
-        _icon = [icon retain];
-
-        [_iconView setIcon:_icon];
-        [self setNeedsLayout];
-    }
+    [_icon release];
+    [super dealloc];
 }
 
 - (void)layoutSubviews
@@ -45,6 +40,17 @@
     SBIconLabelImageView *labelView = [_iconView valueForKey:@"_labelView"];
     labelView.frame = (CGRect){{CGRectGetMaxX(_iconView.bounds) + 5, ((_iconView.iconImageView.image.size.height * 0.5f) - (labelView.frame.size.height * 0.5f))}, 
                                labelView.frame.size};
+}
+
+- (void)setIcon:(SBIcon *)icon
+{
+    if (_icon != icon) {
+        [_icon release];
+        _icon = [icon retain];
+
+        [_iconView setIcon:_icon];
+        [self setNeedsLayout];
+    }
 }
 
 @end
