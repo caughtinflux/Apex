@@ -48,8 +48,11 @@ typedef NS_ENUM(NSInteger, STKLayoutPosition) {
 - (NSArray *)allIcons;
 - (NSUInteger)totalIconCount;
 
-// This method is thread safe
+
 - (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position;
+- (void)removeIcon:(id)icon fromIconsAtPosition:(STKLayoutPosition)position;
+// This removes `icon` from all positions it can be found in
+- (void)removeIcon:(id)icon;
 
 - (STKLayoutPosition)positionForIcon:(id)icon;
 

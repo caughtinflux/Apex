@@ -201,6 +201,28 @@ NSString * const STKRightIconsKey = @"RightIcons";
     }
 }
 
+- (void)removeIcon:(id)icon fromIconsAtPosition:(STKLayoutPosition)position
+{
+    if (!icon || position < STKLayoutPositionTop || position > STKLayoutPositionRight) {
+        return;
+    }
+    @synchronized(self) {
+        NSMutableArray *array = (NSMutableArray *)[self iconsForPosition:position];
+        [array removeObject:icon];
+    }
+}
+
+- (void)removeIcon:(id)icon
+{
+    if (!icon) {
+        return;
+    }
+    [_topIcons removeObject:icon];
+    [_bottomIcons removeObject:icon];
+    [_leftIcons removeObject:icon];
+    [_rightIcons removeObject:icon];
+}
+
 - (STKLayoutPosition)positionForIcon:(id)icon
 {
     if ([_topIcons containsObject:icon]) return STKLayoutPositionTop;
