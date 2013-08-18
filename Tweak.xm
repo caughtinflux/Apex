@@ -29,7 +29,7 @@ static inline        STKStackManager * STKManagerForView(SBIconView *iconView);
 static inline               NSString * STKGetLayoutPathForIcon(SBIcon *icon);
 
 static inline            void   STKSetActiveManager(STKStackManager *manager);
-extern "C" STKStackManager * STKGetActiveManager(void);
+static inline STKStackManager * STKGetActiveManager(void);
 static inline            void   STKCloseActiveManager(void);
 
 
@@ -534,7 +534,7 @@ static inline void STKSetActiveManager(STKStackManager *manager)
     _activeManager = manager;
 }
 
-extern "C"  STKStackManager * STKGetActiveManager(void)
+static inline STKStackManager * STKGetActiveManager(void)
 {
     return _activeManager;
 }
