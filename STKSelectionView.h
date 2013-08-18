@@ -5,7 +5,7 @@
 @class SBIconView, STKIconLayout;
 @protocol STKSelectionViewDelegate;
 
-@interface STKSelectionView : UIView <UITableViewDelegate, UITableViewDataSource>
+@interface STKSelectionView : UIView <UIScrollViewDelegate, UITableViewDelegate, UITableViewDataSource>
 {
 @private
     SBIconView *_selectedView;
@@ -44,6 +44,8 @@
 *   Set this property to be notified about events in the selection view
 */
 @property (nonatomic, assign) id<STKSelectionViewDelegate> delegate;
+
+- (void)scrollToDefault;
 
 @end
 
