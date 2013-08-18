@@ -34,6 +34,6 @@ typedef struct {
 + (STKIconLayout *)emptyLayoutForIconAtPosition:(STKPositionMask)position;
 
 // Returns a STKIconLayout instance with objects to indicate where there are empty spaces in `layout`
-+ (STKIconLayout *)layoutForPlaceHoldersInLayout:(STKIconLayout *)layout withPosition:(STKPositionMask)position placeHolderClass:(Class)placeHolderClass;
++ (STKIconLayout *)layoutForPlaceHoldersInLayout:(STKIconLayout *)layout withPosition:(STKPositionMask)position;
 
 @end

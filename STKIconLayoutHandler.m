@@ -139,11 +139,12 @@ static SBIconListView *_centralIconListView;
     return [self layoutForIcons:fullSizeStackArray aroundIconAtPosition:position];
 }
 
-+ (STKIconLayout *)layoutForPlaceHoldersInLayout:(STKIconLayout *)layout withPosition:(STKPositionMask)position placeHolderClass:(Class)placeHolderClass
++ (STKIconLayout *)layoutForPlaceHoldersInLayout:(STKIconLayout *)layout withPosition:(STKPositionMask)position
 {
     // Create an array with four objects to represent a full stack
-    NSArray *fullSizeStackArray = @[[[placeHolderClass new] autorelease], [[placeHolderClass new] autorelease], [[placeHolderClass new] autorelease], [[placeHolderClass new] autorelease]];
-    
+    Class iconClass = objc_getClass("STKPlaceHolderIcon");
+    NSArray *fullSizeStackArray = @[[[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease]];
+
     // Get a layout object that represents how the icon would look with a full stack
     STKIconLayout *fullLayout = [self layoutForIcons:fullSizeStackArray aroundIconAtPosition:position];
 
@@ -152,17 +153,15 @@ static SBIconListView *_centralIconListView;
     NSMutableArray *leftIcons = [NSMutableArray array];
     NSMutableArray *rightIcons = [NSMutableArray array];
 
-
     void(^addPlaceHoldersToArray)(NSMutableArray *array, NSInteger numPlaceHolders) = ^(NSMutableArray *array, NSInteger numPlaceHolders) {
         if (numPlaceHolders <= 0) { 
             return;
         }
 
         do {
-            [array addObject:[[placeHolderClass new] autorelease]];
+            [array addObject:[[iconClass new] autorelease]];
         } while (--numPlaceHolders > 0);
     };
-
 
     if ((layout.topIcons == nil || layout.topIcons.count == 0 || layout.topIcons.count < fullLayout.topIcons.count)  && !(position & STKPositionTouchingTop)) {
         addPlaceHoldersToArray(topIcons, (fullLayout.topIcons.count - layout.topIcons.count));
