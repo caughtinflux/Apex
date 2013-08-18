@@ -18,12 +18,13 @@
 }
 
 /**
-*   Returns: STKSelectionListView instance.
-*
-*   Param `iconView`: The icon view around which the selection UI is to be shown
-*   Param `iconViewsLayout`: The layout containing SBIconView instances of all the icons in the stack
-*   Param `centralIconView`: The central icon view for the stack
-*   Param `displacedIconsLayout`: Layout containing homescreen icons that are displaced
+*   @param iconView The icon view around which the selection UI is to be shown
+*   @param iconViewLayout The layout containing SBIconView instances of all the icons in the stack
+*	@param position The bitmask containing position of the central icon view
+*   @param centralIconView The central icon view for the stack
+*   @param displacedIconsLayout Layout containing homescreen icons that are displaced
+*	
+*	@return STKSelectionListView instance, with an automatically calculated frame
 */
 - (instancetype)initWithIconView:(SBIconView *)iconView
                         inLayout:(STKIconLayout *)iconViewLayout
@@ -46,6 +47,7 @@
 @property (nonatomic, assign) id<STKSelectionViewDelegate> delegate;
 
 - (void)scrollToDefault;
+- (void)moveToIconView:(SBIconView *)iconView;
 
 @end
 

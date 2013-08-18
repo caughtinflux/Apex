@@ -116,6 +116,8 @@ static SBIconListView *_centralIconListView;
         displacedRightIcons = [self _iconsRightOfIcon:centralIcon];
     }
 
+    _centralIconListView = nil;
+    
     return [STKIconLayout layoutWithIconsAtTop:displacedTopIcons bottom:displacedBottomIcons left:displacedLeftIcons right:displacedRightIcons]; 
 }
 

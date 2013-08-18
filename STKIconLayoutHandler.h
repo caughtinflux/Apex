@@ -21,7 +21,7 @@ typedef struct {
 @interface STKIconLayoutHandler : NSObject
 
 // Set the exact position by OR'ing the different values in the enum
-// It will just explode in your face if you do rubbish like setting both TouchingTop and TouchingBottom
+// It will just explode in your face if you try to pull crap.
 // I mean it.
 + (STKIconLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(STKPositionMask)position;
 
