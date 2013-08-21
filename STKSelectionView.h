@@ -35,25 +35,31 @@
 /**
 *   All these properties are simply the arguments passed into the designated intializer
 */
-@property (nonatomic, readonly) SBIconView *iconView;
+@property (nonatomic, readonly) SBIconView *iconView; // iconView=_selectedView
 @property (nonatomic, readonly) SBIconView *centralIconView;
 @property (nonatomic, readonly) STKIconLayout *iconViewsLayout;
 @property (nonatomic, readonly) STKIconLayout *displacedIconsLayout;
 @property (nonatomic, readonly) UITableView *listTableView;
+
+/*
+*	The currently selected icon in the list.
+*/
+@property (nonatomic, readonly) SBIcon *highlightedIcon;
 
 /**
 *   Set this property to be notified about events in the selection view
 */
 @property (nonatomic, assign) id<STKSelectionViewDelegate> delegate;
 
-- (void)scrollToDefault;
+- (void)scrollToDefaultAnimated:(BOOL)animated;
 - (void)moveToIconView:(SBIconView *)iconView;
+- (void)prepareForRemoval;
 
 @end
 
 
 @protocol STKSelectionViewDelegate <NSObject>
 @optional
-- (void)iconView:(SBIconView *)iconView tappedInSelectionView:(STKSelectionView *)selectionView;
+- (void)closeButtonTappedOnSelectionView:(STKSelectionView *)selectionView;
 @end
 

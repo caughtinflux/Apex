@@ -23,25 +23,29 @@ extern "C" {
 @property(nonatomic, readonly) NSArray *rightIcons;
 
 typedef NS_ENUM(NSInteger, STKLayoutPosition) {
-    STKLayoutPositionTop = 1,
+	STKLayoutPositionNone = 0,
+    STKLayoutPositionTop,
     STKLayoutPositionBottom,
     STKLayoutPositionLeft,
     STKLayoutPositionRight,
 };
 
++ (NSArray *)allPositions;
+
 // Returns an autoreleased instance
 + (instancetype)layoutWithDictionary:(NSDictionary *)dictionary;
 + (instancetype)layoutWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons;
++ (instancetype)layoutWithLayout:(STKIconLayout *)layout;
 
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary;
 - (instancetype)initWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons;
-
-+ (NSArray *)allPositions;
+- (instancetype)initWithLayout:(STKIconLayout *)layout;
 
 @property (nonatomic, assign) BOOL containsPlaceholders;
 
 - (void)enumerateThroughAllIconsUsingBlock:(void(^)(id, STKLayoutPosition))block;
 - (void)enumerateIconsUsingBlockWithIndexes:(void(^)(id icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block;
+
 
 // Methods to query all the things
 - (NSArray *)iconsForPosition:(STKLayoutPosition)position;
@@ -51,10 +55,13 @@ typedef NS_ENUM(NSInteger, STKLayoutPosition) {
 
 - (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position;
 - (void)removeIcon:(id)icon fromIconsAtPosition:(STKLayoutPosition)position;
-// This removes `icon` from all positions it can be found in
-- (void)removeIcon:(id)icon;
+- (void)removeIcon:(id)icon; // Removes `icon` from all positions it can be found in
+- (void)removeAllIconsFromPosition:(STKLayoutPosition)position;
+- (void)removeAllIcons;
+
 
 - (STKLayoutPosition)positionForIcon:(id)icon;
+
 
 - (NSDictionary *)dictionaryRepresentation;
 

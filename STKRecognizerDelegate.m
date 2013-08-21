@@ -7,7 +7,17 @@
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
-    return (otherGestureRecognizer == [[objc_getClass("SBIconController") sharedInstance] scrollView].panGestureRecognizer);
+    return (otherGestureRecognizer == [[CLASS("SBIconController") sharedInstance] scrollView].panGestureRecognizer);
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
+{
+	Class superviewClass = [recognizer.view.superview class];
+	if ([superviewClass isKindOfClass:[CLASS("SBFolderIconListView") class]] || [superviewClass isKindOfClass:[CLASS("SBDockIconListView") class]]) {
+		return NO;
+	}
+
+	return YES;
 }
 
 @end

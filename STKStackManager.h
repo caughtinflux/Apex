@@ -1,8 +1,9 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <SpringBoard/SBIconViewDelegate-Protocol.h>
+#import "STKSelectionView.h"
 
-typedef void(^STKInteractionHandler)(SBIconView *tappedIconView);
+typedef void(^STKInteractionHandler)(SBIconView *tappedIconView, BOOL didLoseEmptiness);
 
 #ifdef __cplusplus 
 extern "C" {
@@ -20,7 +21,7 @@ extern "C" {
 
 @class SBIcon, STKIconLayout;
 
-@interface STKStackManager : NSObject <SBIconViewDelegate, UIGestureRecognizerDelegate>
+@interface STKStackManager : NSObject <SBIconViewDelegate, UIGestureRecognizerDelegate, STKSelectionViewDelegate>
 
 + (NSString *)layoutsPath;
 
@@ -30,6 +31,7 @@ extern "C" {
 @property (nonatomic, readonly) BOOL hasSetup;
 @property (nonatomic, readonly) BOOL isExpanded;
 @property (nonatomic, readonly) BOOL isEmpty;
+@property (nonatomic, readonly) BOOL layoutDiffersFromFile;
 @property (nonatomic, readonly) CGFloat currentIconDistance; // Distance of all the icons from the center.
 @property (nonatomic, readonly) SBIcon *centralIcon;
 @property (nonatomic, readonly) STKIconLayout *appearingIconsLayout;
@@ -41,21 +43,24 @@ extern "C" {
 @property (nonatomic, assign) BOOL closesOnHomescreenEdit; 
 
 /**
-*	Returns: An instance of a STKStackManager class, nil if `file` is corrupt or could not be read
-*	Param `file`: Path to an archived dictionary that looks like this: @{STKStackManagerCentralIconKey : <central icon identifier>,
+*	@return An instance of a STKStackManager class, nil if `file` is corrupt or could not be read
+*	@param file Path to an archived dictionary that looks like this: @{STKStackManagerCentralIconKey : <central icon identifier>,
 *																		 STKStackManagerStackIconsKey  : <array of stack icon identifiers>}
 */
 - (instancetype)initWithContentsOfFile:(NSString *)file;
 
 /**
-*	Returns: An instance of a STKStackManager class
-*	Param `centralIcon`: The icon on the home screen that will be at the centre of the stack
-*	Param `stackIcons`:  Sub-apps in the stack. Pass nil for this argument to display empty placeholders
+*	@return An instance of a STKStackManager class
+*	@param centralIcon The icon on the home screen that will be at the centre of the stack
+*	@param icons Sub-apps in the stack. Pass nil for this argument to display empty placeholders
 */
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons;
 
 /**
-*	Persistence
+*	Persist the layout to path
+*	@param path The full path to which the layout is to be persisted
+*	@warning *Warning*: path must be writable
+*	@see file
 */
 - (void)saveLayoutToFile:(NSString *)path;
 
@@ -65,14 +70,23 @@ extern "C" {
 */
 - (void)recalculateLayouts;
 
+/**
+*	Sets up the "app-peeking" preview for each app
+* 	@warning *Important*: Calls setupView if necessary
+*	@see setupView
+*/
 - (void)setupPreview;
 
-// Set Up Stack Icons' Views
+/**
+*	 Set Up Stack Icons' Views
+*/
 - (void)setupViewIfNecessary;
 - (void)setupView;
 - (void)cleanupView;
 
-// Call this method to prepare the manager
+/**
+*	Call this method to prepare the manager
+*/
 - (void)touchesBegan;
 
 - (void)touchesDraggedForDistance:(CGFloat)distance;

@@ -31,6 +31,11 @@ NSString * const STKRightIconsKey = @"RightIcons";
     return [[[self alloc] initWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons] autorelease];
 }
 
++ (instancetype)layoutWithLayout:(STKIconLayout *)layout
+{
+    return [[[self alloc] initWithLayout:layout] autorelease];
+}
+
 - (instancetype)initWithDictionary:(NSDictionary *)dict
 {
     NSMutableArray *topIcons = [NSMutableArray array];
@@ -78,6 +83,17 @@ NSString * const STKRightIconsKey = @"RightIcons";
         _bottomIcons = [bottomIcons mutableCopy];
         _leftIcons   = [leftIcons mutableCopy];
         _rightIcons  = [rightIcons mutableCopy];
+    }
+    return self;
+}
+
+- (instancetype)initWithLayout:(STKIconLayout *)layout
+{
+    if ((self = [super init])) {
+        _topIcons = [layout.topIcons copy];
+        _bottomIcons = [layout.bottomIcons copy];
+        _leftIcons = [layout.leftIcons copy];
+        _rightIcons = [layout.rightIcons copy];
     }
     return self;
 }
@@ -194,6 +210,10 @@ NSString * const STKRightIconsKey = @"RightIcons";
                 array = &_rightIcons;
                 break;
             }
+
+            default: {
+
+            }
         }
 
         _hasBeenModified = YES;
@@ -217,10 +237,22 @@ NSString * const STKRightIconsKey = @"RightIcons";
     if (!icon) {
         return;
     }
+
     [_topIcons removeObject:icon];
     [_bottomIcons removeObject:icon];
     [_leftIcons removeObject:icon];
     [_rightIcons removeObject:icon];
+}
+
+- (void)removeAllIconsFromPosition:(STKLayoutPosition)position
+{
+    [(NSMutableArray *)[self iconsForPosition:position] removeAllObjects];
+}
+
+- (void)removeAllIcons
+{
+    for (NSNumber *position in [[self class] allPositions])
+        [(NSMutableArray *)[self iconsForPosition:[position integerValue]] removeAllObjects];   
 }
 
 - (STKLayoutPosition)positionForIcon:(id)icon
@@ -241,7 +273,7 @@ NSString * const STKRightIconsKey = @"RightIcons";
 
     [_dictRepr release];
     _dictRepr = nil;
-    _dictRepr = [[NSMutableDictionary alloc] initWithCapacity:self.totalIconCount];
+    _dictRepr = [[NSMutableDictionary alloc] initWithCapacity:4];
 
     if (_topIcons) {
         _dictRepr[STKTopIconsKey] = [_topIcons valueForKey:@"leafIdentifier"];
@@ -275,6 +307,8 @@ NSString * STKNSStringFromPosition(STKLayoutPosition pos)
             return @"STKLayoutPositionLeft";
         case STKLayoutPositionRight:
             return @"STKLayoutPositionRight";
+        default:
+            return @"STKLayoutPositionNone";
     }
 }
 

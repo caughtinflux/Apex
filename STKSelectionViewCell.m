@@ -27,7 +27,9 @@
 
 - (void)dealloc
 {
+    [_iconView release];
     [_icon release];
+
     [super dealloc];
 }
 

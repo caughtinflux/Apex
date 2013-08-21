@@ -9,6 +9,7 @@
 #import <SpringBoard/SpringBoard.h>
 #import <objc/message.h>
 #import <notify.h>
+#import <stdlib.h>
 
 #pragma mark - Function Declarations
 
@@ -60,17 +61,6 @@ static BOOL _switcherIsVisible;
 //////////////////////////////////////////////////////////////////
 
 %hook SBIconViewMap
-- (void)iconViewDidChangeLocation:(SBIconView *)iconView
-{
-    if (iconView.location != SBIconViewLocationHomeScreen) {
-        // If the icon is going intp a folder
-        STKCleanupIconView(iconView);
-    }
-
-    // All the icons' manager will need to re-calculate layouts if any one icon moves.
-    [[NSNotificationCenter defaultCenter] postNotificationName:STKRecalculateLayoutsNotification object:nil userInfo:nil];
-}
-
 %new
 - (SBIconView *)safeIconViewForIcon:(SBIcon *)icon
 {
@@ -87,15 +77,17 @@ static BOOL _switcherIsVisible;
 #pragma mark - SBIconView Hook
 %hook SBIconView
 
-- (void)setIcon:(SBIcon *)icon
+- (void)setLocation:(SBIconViewLocation)loc
 {
-    %orig(icon);
-
+    %orig(loc);
+    
+    SBIcon *icon = self.icon;
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
         self.location != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] ||
         ![icon isLeafIcon] ||
-        [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
+        [[STKPreferences sharedPreferences] iconIsInStack:icon] ||
+        [[CLASS("SBIconController") sharedInstance] isEditing]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
         // Make sure the recognizer is not added to icons in the stack
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
@@ -109,21 +101,11 @@ static BOOL _switcherIsVisible;
     }
 
     STKSetupIconView(self);
-
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_editingStateChanged:) name:STKEditingStateChangedNotification object:nil];
 }
 
 - (BOOL)canReceiveGrabbedIcon:(SBIconView *)iconView
 {
     return ((ICON_HAS_STACK(self.icon) || ICON_HAS_STACK(iconView.icon)) ? NO : %orig());
-}
-
-- (void)dealloc
-{
-    // Remove each registered notification individually, so we don't conflict with other tweaks.
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
-
-    %orig();
 }
 
 #define kBandingFactor  0.15 // The factor by which the distance should be multiplied to simulate the rubber banding effect
@@ -281,7 +263,16 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)setIsEditing:(BOOL)isEditing
 {
     %orig(isEditing);
-    [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
+    for (SBIconListView *lv in [self valueForKey:@"_rootIconLists"]) {
+        [lv makeIconViewsPerformBlock:^(SBIconView *iv) {
+            if (isEditing) {
+                STKRemovePanRecognizerFromIconView(iv);
+            }
+            else {
+                STKAddPanRecognizerToIconView(iv);
+            }
+        }];
+    }
 }
 
 // Ghost all the other stacks' sub-apps when the list view is being ghosted
@@ -411,18 +402,29 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         // Check if the manager can be created from file
         if ([[NSFileManager defaultManager] fileExistsAtPath:layoutPath]) { 
             stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
+            if (stackManager.layoutDiffersFromFile) {
+                CLog(@"Icon layout changed! Saving now");
+                [stackManager saveLayoutToFile:layoutPath];
+            }
         }
         else {
             NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
             stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
             if (![stackManager isEmpty]) {
-                NSLog(@"Lost layout! Saving now");
+                CLog(@"Lost layout! Saving now");
                 [stackManager saveLayoutToFile:layoutPath];
             }
         }
 
         stackManager.interactionHandler = \
-            ^(SBIconView *tappedIconView) {
+            ^(SBIconView *tappedIconView, BOOL didLoseEmptiness) {
+                if (didLoseEmptiness) {
+                    [stackManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:stackManager.centralIcon]];
+                    [[STKPreferences sharedPreferences] reloadPreferences];
+                    
+                    return;
+                }
+
                 if (stackManager != STKGetActiveManager()) {
                     return;
                 }
@@ -431,7 +433,6 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
                     stackManager.closesOnHomescreenEdit = NO;
                     [tappedIconView.icon launch];
                     stackManager.closesOnHomescreenEdit = YES;
-                    // [stackManager closeStack];
                 }
                 else if (stackManager.isEmpty) {
                     [stackManager cleanupView];
@@ -444,9 +445,6 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         objc_setAssociatedObject(iconView, stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [stackManager release];
     }
-    
-    // [stackManager recalculateLayouts];
-    // [[NSNotificationCenter defaultCenter] postNotificationName:STKRecalculateLayoutsNotification object:nil userInfo:nil];
 
     if (stackManager.isEmpty == NO) {
         [stackManager setupPreview];
@@ -464,6 +462,9 @@ static inline void STKRemoveManagerFromView(SBIconView *iconView)
 
 static void STKAddPanRecognizerToIconView(SBIconView *iconView)
 {
+    if (!iconView) {
+        return;
+    }
     UIPanGestureRecognizer *panRecognizer = objc_getAssociatedObject(iconView, panGRKey);
     // Don't add a recognizer if it already exists
     if (!panRecognizer) {
@@ -487,6 +488,12 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
     // Clear out the associative references. 
     objc_setAssociatedObject(recognizer, recognizerDelegateKey, nil, OBJC_ASSOCIATION_RETAIN); // Especially this one. The pan recogniser getting wiped out should remove this already. But still, better to be sure.
     objc_setAssociatedObject(iconView, panGRKey, nil, OBJC_ASSOCIATION_ASSIGN);
+
+    for (UIGestureRecognizer *r in iconView.gestureRecognizers) {
+        if ([r isKindOfClass:[UIPanGestureRecognizer class]]) {
+            [iconView removeGestureRecognizer:r];
+        }
+    }
 }
 
 static inline void STKSetupIconView(SBIconView *iconView)
@@ -499,7 +506,7 @@ static inline void STKSetupIconView(SBIconView *iconView)
 }
 
 static inline void STKCleanupIconView(SBIconView *iconView)
-{
+{        
     STKRemovePanRecognizerFromIconView(iconView);
     STKRemoveManagerFromView(iconView);
 }

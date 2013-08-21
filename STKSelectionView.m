@@ -3,6 +3,8 @@
 #import "STKIconLayout.h"
 #import "STKIconLayoutHandler.h"
 #import "STKSelectionViewCell.h"
+#import "STKPlaceHolderIcon.h"
+#import "STKPreferences.h"
 
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
@@ -10,10 +12,12 @@
 #define PTOS NSStringFromCGPoint
 #define RTOS NSStringFromCGRect
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 @interface STKSelectionView ()
 {
     UITableView       *_listTableView;
-    NSArray           *_availableAppIcons;
+    NSMutableArray    *_availableAppIcons;
     SBIconModel       *_model;
     SBIconListView    *_listView;
 
@@ -22,9 +26,11 @@
 
     UIImageView       *_highlightView;
     NSIndexPath       *_indexPathToSelect;
+
+    SBIcon            *_highlightedIcon;
 }
 
-- (void)_findAndHighlightSelection;
+- (void)_scrollToNearest;
 
 /**
     @param icon: The icon for which is index path is to be found
@@ -34,11 +40,15 @@
 - (void)_setHidesHighlight:(BOOL)hide;
 
 @end
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static NSString * const CellIdentifier = @"STKIconCell";
 
 @implementation STKSelectionView
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 - (instancetype)initWithIconView:(SBIconView *)iconView inLayout:(STKIconLayout *)iconViewLayout position:(STKPositionMask)position centralIconView:(SBIconView *)centralIconView displacedIcons:(STKIconLayout *)displacedIconsLayout
 {
     if ((self = [super initWithFrame:CGRectZero])) {
@@ -51,22 +61,27 @@ static NSString * const CellIdentifier = @"STKIconCell";
         _model = (SBIconModel *)[[objc_getClass("SBIconController") sharedInstance] model];
 
         _availableAppIcons = [NSMutableArray new];
-        BOOL found = NO;
+        
         for (id ident in [_model visibleIconIdentifiers]) {
-            if (!found && [ident isEqual:_centralView.icon.leafIdentifier]) {
+            // Icons in a stack are already removed from -[SBIconModel visibleIconIdentifiers]
+            // Now we need to nemove the central and other icons with stacks
+            if (ICONID_HAS_STACK(ident) || [ident isEqual:_centralView.icon.leafIdentifier]) {
                 continue;
             }
-            [(NSMutableArray *)_availableAppIcons addObject:[_model expectedIconForDisplayIdentifier:ident]];
+            [_availableAppIcons addObject:[_model expectedIconForDisplayIdentifier:ident]];
         }
 
-        if (![_selectedView.icon isPlaceholder]) {
-            // The selected icon view's icon will not be in the model's visible app IDs. Make sure we add it, and then scroll to it.
-            // Do it only if the icon is an actual app icon
-            [(NSMutableArray *)_availableAppIcons addObject:_selectedView.icon];
+        // The selected icon view's icon will not be in the model's visible app IDs, so add it.
+        [_availableAppIcons addObject:_selectedView.icon];
+
+        if (!_selectedView.icon.isPlaceholder) {
+            // Add a placeholder to available icons so the user can have a "None"-like option
+            STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
+            [_availableAppIcons addObject:ph];
         }
 
         NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES];
-        [(NSMutableArray *)_availableAppIcons sortUsingDescriptors:@[descriptor]];
+        [_availableAppIcons sortUsingDescriptors:@[descriptor]];
 
         _listTableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
         _listTableView.dataSource = self;
@@ -87,10 +102,11 @@ static NSString * const CellIdentifier = @"STKIconCell";
             if (iv == _selectedView) {
                 return;
             }
-            iv.alpha = (iv.icon.isPlaceholder? 0.8 : 0.2f);
+            iv.alpha = (iv.icon.isPlaceholder ? 0.8 : 0.2f);
         });
 
         [self setNeedsLayout];
+        [self _setHidesHighlight:NO];
     }
     return self;
 }
@@ -103,12 +119,27 @@ static NSString * const CellIdentifier = @"STKIconCell";
 
 - (void)dealloc
 {
+    _listTableView.delegate = nil;
+    _listTableView.dataSource = nil;
+
     [_selectedView release];
+    _selectedView = nil;
+    
     [_centralView release];
+    _centralView = nil;
+
     [_iconViewsLayout release];
+
     [_availableAppIcons release];
+    _availableAppIcons = nil;
+
+    [_highlightView removeFromSuperview];
     [_highlightView release];
+    _highlightView = nil;
+
+    [_listTableView removeFromSuperview];
     [_listTableView release];
+    _listTableView = nil;
 
     [super dealloc];
 }
@@ -131,22 +162,49 @@ static NSString * const CellIdentifier = @"STKIconCell";
 
     _listTableView.contentInset = UIEdgeInsetsMake(ABS(iconOrigin.y - _listTableView.frame.origin.y), 0, ABS(iconLowerEdge.y - _listTableView.frame.size.height), 0);
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (void)scrollToDefault
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+- (void)scrollToDefaultAnimated:(BOOL)animated
 {
-    if ([_selectedView.icon isPlaceholder]) {
-        return;
-    }
+    NSIndexPath *ip = ^{
+        if ([_selectedView.icon isPlaceholder]) {
+            return [NSIndexPath indexPathForRow:0 inSection:0];
+        }
 
-    [UIView animateWithDuration:0.2 animations:^{
-        [_listTableView scrollToRowAtIndexPath:[self _indexPathForIcon:_selectedView.icon] atScrollPosition:UITableViewScrollPositionTop animated:NO];
-        [self _setHidesHighlight:NO];
-    }];
+        return [self _indexPathForIcon:_selectedView.icon];
+    }();
+    
+    [_listTableView selectRowAtIndexPath:ip animated:animated scrollPosition:UITableViewScrollPositionTop];
+    [self _setHidesHighlight:NO];
 }
 
-#pragma mark - Private Methods
+- (void)moveToIconView:(SBIconView *)iconView
+{
+
+}
+
+- (void)prepareForRemoval
+{
+    _centralView.alpha = 1.f;
+    MAP([_iconViewsLayout allIcons], ^(SBIconView *iv) {
+        iv.alpha = 1.f;
+    });
+}
+
+- (SBIcon *)highlightedIcon
+{
+    return _availableAppIcons[[_listTableView indexPathForSelectedRow].row];
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define R_AREA(_r2 /* D2! */)  _r2.size.width * _r2.size.height
-- (void)_findAndHighlightSelection
+- (void)_scrollToNearest
 {
     CGRect rect = [self convertRect:_highlightView.frame toView:_listTableView];
     NSArray *ips = [_listTableView indexPathsForRowsInRect:rect];
@@ -175,8 +233,8 @@ static NSString * const CellIdentifier = @"STKIconCell";
     }();
     
     if (indexToSelect) {
-        [UIView animateWithDuration:0.2f animations:^{
-            [_listTableView scrollToRowAtIndexPath:indexToSelect atScrollPosition:UITableViewScrollPositionTop animated:NO];
+        [UIView animateWithDuration:0.29f animations:^{
+            [_listTableView selectRowAtIndexPath:indexToSelect animated:YES scrollPosition:UITableViewScrollPositionTop];
             [self _setHidesHighlight:NO];
         }];
     }
@@ -196,28 +254,51 @@ static NSString * const CellIdentifier = @"STKIconCell";
     _highlightView.alpha = (hide ? 0.f : 1.f);
 }
 
-
-#pragma mark - Delegates, DataSources etc.
-- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+- (void)_iconTapped:(UITapGestureRecognizer *)gr
 {
-    [self _setHidesHighlight:YES];
+    NSIndexPath *ip = objc_getAssociatedObject(gr, @selector(indexPath));
+    [_listTableView selectRowAtIndexPath:ip animated:YES scrollPosition:UITableViewScrollPositionTop];
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#pragma mark - Delegates, DataSources etc.
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
     if (!decelerate) {
-        [self _findAndHighlightSelection];
+        [self _scrollToNearest];
     }
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{   
+    [self _scrollToNearest];
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    [self _findAndHighlightSelection];
+    // We need to set up our own recognizers, so that taps on cells outside of the content inset will be picked up too
+    cell = (STKSelectionViewCell *)cell;
+    UITapGestureRecognizer *gr = [[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_iconTapped:)] autorelease];
+    [cell addGestureRecognizer:gr];
+
+    // Associate the index path with gr, so the -_iconTapped: can get it back from the recognizer
+    objc_setAssociatedObject(gr, @selector(indexPath), indexPath, OBJC_ASSOCIATION_RETAIN);
 }
 
-- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
+- (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    [self _findAndHighlightSelection];
+    cell = (STKSelectionViewCell *)cell;
+
+    id recognizer = cell.gestureRecognizers[0];
+    objc_removeAssociatedObjects(recognizer);
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
@@ -253,5 +334,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
 {
     return [[[UIView alloc] initWithFrame:CGRectZero] autorelease];
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @end

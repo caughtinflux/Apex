@@ -6,10 +6,11 @@ typedef NS_ENUM(NSInteger, STKSelectionViewCellLabelPosition) {
 	STKSelectionViewCellLabelPositionLeft
 };
 
-@class SBIcon;
+@class SBIcon, SBIconView;
 
 @interface STKSelectionViewCell : UITableViewCell
 
 @property (nonatomic, retain) SBIcon *icon;
+@property (nonatomic, readonly) SBIconView *iconView;
 
 @end
