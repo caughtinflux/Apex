@@ -5,6 +5,7 @@
 #import "STKStackManager.h"
 #import "STKRecognizerDelegate.h"
 #import "STKPreferences.h"
+#import "SBIconModel+Additions.h"
 
 #import <SpringBoard/SpringBoard.h>
 #import <objc/message.h>
@@ -32,7 +33,6 @@ static inline               NSString * STKGetLayoutPathForIcon(SBIcon *icon);
 static inline            void   STKSetActiveManager(STKStackManager *manager);
 static inline STKStackManager * STKGetActiveManager(void);
 static inline            void   STKCloseActiveManager(void);
-
 
 #pragma mark - Direction !
 typedef enum {
@@ -87,6 +87,7 @@ static BOOL _switcherIsVisible;
         self.location != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] ||
         ![icon isLeafIcon] ||
         [[STKPreferences sharedPreferences] iconIsInStack:icon] ||
+        [[CLASS(SBIconController) sharedInstance] isEditing]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
         // Make sure the recognizer is not added to icons in the stack
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
@@ -336,6 +337,16 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     }
     return isVisible;
 }
+
+%new
+- (void)stk_reloadIconVisibility
+{
+    NSSet *visibleIconTags = MSHookIvar<NSSet *>(self, "_visibleIconTags");
+    NSSet *hiddenIconTags = MSHookIvar<NSSet *>(self, "_hiddenIconTags");
+
+    [self setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
+}
+
 %end
 /**************************************************************************************************************************/
 /**************************************************************************************************************************/
@@ -361,10 +372,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     _switcherIsVisible = YES;
 
     SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
-    NSSet *visibleIconTags = MSHookIvar<NSSet *>(model, "_visibleIconTags");
-    NSSet *hiddenIconTags = MSHookIvar<NSSet *>(model, "_hiddenIconTags");
-
-    [model setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
+    [model stk_reloadIconVisibility];
     
     return %orig(animationDuration);
 }
