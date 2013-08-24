@@ -21,6 +21,13 @@ NSString * const STKRightIconsKey = @"RightIcons";
     BOOL                 _hasBeenModified;
 } 
 
+// SublimeClang throws an errors on @(somePos). Really. Annoying
+#define TO_NUMBER(_i) [NSNumber numberWithInteger:_i]
++ (NSArray *)allPositions
+{
+    return @[TO_NUMBER(STKLayoutPositionTop), TO_NUMBER(STKLayoutPositionBottom), TO_NUMBER(STKLayoutPositionLeft), TO_NUMBER(STKLayoutPositionRight)];
+}
+
 + (instancetype)layoutWithDictionary:(NSDictionary *)dict
 {
     return [[[self alloc] initWithDictionary:dict] autorelease];
@@ -113,14 +120,7 @@ NSString * const STKRightIconsKey = @"RightIcons";
     [super dealloc];
 }
 
-// SublimeClang throws an errors on @(somePos). Really. Annoying
-#define TO_NUMBER(_i) [NSNumber numberWithInteger:_i]
-+ (NSArray *)allPositions
-{
-    return @[TO_NUMBER(STKLayoutPositionTop), TO_NUMBER(STKLayoutPositionBottom), TO_NUMBER(STKLayoutPositionLeft), TO_NUMBER(STKLayoutPositionRight)];
-}
-
-- (void)enumerateThroughAllIconsUsingBlock:(void(^)(id, STKLayoutPosition))block
+- (void)enumerateIconsUsingBlock:(void(^)(id, STKLayoutPosition))block
 {
     MAP([[self class] allPositions], ^(NSNumber *number) {
         MAP([self iconsForPosition:[number integerValue]], ^(SBIcon *icon) { 
@@ -221,6 +221,24 @@ NSString * const STKRightIconsKey = @"RightIcons";
     }
 }
 
+- (void)setIcon:(id)icon atIndex:(NSUInteger)idx position:(STKLayoutPosition)position
+{
+    if (!icon || position < STKLayoutPositionTop || position > STKLayoutPositionRight) {
+        return;
+    }
+    @synchronized(self) {
+        NSMutableArray *icons = (NSMutableArray *)[self iconsForPosition:position];
+        if (idx < icons.count){
+            [icons removeObjectAtIndex:idx];
+            [icons insertObject:icon atIndex:idx];
+        }
+        else {
+            [icons addObject:icon];
+        }
+       _hasBeenModified = YES;
+    }
+}
+
 - (void)removeIcon:(id)icon fromIconsAtPosition:(STKLayoutPosition)position
 {
     if (!icon || position < STKLayoutPositionTop || position > STKLayoutPositionRight) {
@@ -229,6 +247,7 @@ NSString * const STKRightIconsKey = @"RightIcons";
     @synchronized(self) {
         NSMutableArray *array = (NSMutableArray *)[self iconsForPosition:position];
         [array removeObject:icon];
+        _hasBeenModified = YES;
     }
 }
 
@@ -238,21 +257,46 @@ NSString * const STKRightIconsKey = @"RightIcons";
         return;
     }
 
-    [_topIcons removeObject:icon];
-    [_bottomIcons removeObject:icon];
-    [_leftIcons removeObject:icon];
-    [_rightIcons removeObject:icon];
+    @synchronized(self) {
+        [_topIcons removeObject:icon];
+        [_bottomIcons removeObject:icon];
+        [_leftIcons removeObject:icon];
+        [_rightIcons removeObject:icon];
+
+        _hasBeenModified = YES;
+    }
 }
 
 - (void)removeAllIconsFromPosition:(STKLayoutPosition)position
 {
-    [(NSMutableArray *)[self iconsForPosition:position] removeAllObjects];
+    @synchronized(self) {
+        [(NSMutableArray *)[self iconsForPosition:position] removeAllObjects];
+        _hasBeenModified = YES;
+    }
 }
 
 - (void)removeAllIcons
 {
-    for (NSNumber *position in [[self class] allPositions])
-        [(NSMutableArray *)[self iconsForPosition:[position integerValue]] removeAllObjects];   
+    @synchronized(self) {
+        for (NSNumber *position in [[self class] allPositions])
+            [(NSMutableArray *)[self iconsForPosition:[position integerValue]] removeAllObjects];   
+
+        _hasBeenModified = YES;
+    }
+}
+
+- (void)removeIconAtIndex:(NSUInteger)idx fromIconsAtPosition:(STKLayoutPosition)position;
+{
+    @synchronized(self) {
+        NSMutableArray *array = (NSMutableArray *)[self iconsForPosition:position];
+        if (array.count > 0 && idx < array.count) {
+            [array removeObjectAtIndex:idx];
+        }
+        else {
+            NSLog(@"[%@] %s: Index %i is out of bounds of array at position: %i. Dying silently", kSTKTweakName, __PRETTY_FUNCTION__, idx, position);
+        }
+        _hasBeenModified = YES;
+    }
 }
 
 - (STKLayoutPosition)positionForIcon:(id)icon
@@ -263,6 +307,19 @@ NSString * const STKRightIconsKey = @"RightIcons";
     if ([_rightIcons containsObject:icon]) return STKLayoutPositionRight;
 
     return NSNotFound;
+}
+
+- (void)getPosition:(STKLayoutPosition *)positionRef andIndex:(NSUInteger *)idxRef forIcon:(id)icon
+{
+    STKLayoutPosition pos = [self positionForIcon:icon];
+    if (positionRef) {
+        *positionRef = pos;
+    }
+    
+    NSUInteger idx = [[self iconsForPosition:pos] indexOfObject:icon];
+    if (idxRef) {
+        *idxRef = idx;
+    }
 }
 
 - (NSDictionary *)dictionaryRepresentation
