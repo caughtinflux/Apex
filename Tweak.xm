@@ -87,7 +87,6 @@ static BOOL _switcherIsVisible;
         self.location != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] ||
         ![icon isLeafIcon] ||
         [[STKPreferences sharedPreferences] iconIsInStack:icon] ||
-        [[CLASS("SBIconController") sharedInstance] isEditing]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
         // Make sure the recognizer is not added to icons in the stack
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
@@ -122,23 +121,21 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     STKStackManager *stackManager = STKManagerForView(self);
     STKStackManager *activeManager = STKGetActiveManager();
 
-    if ([[%c(SBIconController) sharedInstance] hasOpenFolder] || stackManager.isExpanded || (activeManager != nil && activeManager != stackManager) || ([self.superview isKindOfClass:%c(SBFolderIconListView)])) {
+    if (stackManager.isExpanded || (activeManager != nil && activeManager != stackManager) || ([self.superview isKindOfClass:%c(SBFolderIconListView)])) {
         return;
     }
 
     if (sender.state == UIGestureRecognizerStateBegan) {
-        if (self.location == SBIconViewLocationSwitcher || [[%c(SBIconController) sharedInstance] isEditing]) {
-            // Preliminary check
-            STKCleanupIconView(self);
-            return;
-        }
-
         CGPoint translation = [sender translationInView:view];
+
         if (!((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0)) {
+            // horizontal swipe
+            sender.enabled = NO;
+            sender.enabled = YES;
             return;
         }
             
-        // Turn off scrolling if it's s vertical swipe
+        // Turn off scrolling in the list view
         [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = NO;
 
         // Update the target distance based on icons positions when the pan begins
