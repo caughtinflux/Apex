@@ -3,8 +3,6 @@
 #import <SpringBoard/SBIconViewDelegate-Protocol.h>
 #import "STKSelectionView.h"
 
-typedef void(^STKInteractionHandler)(SBIconView *tappedIconView, BOOL didLoseEmptiness);
-
 #ifdef __cplusplus 
 extern "C" {
 #endif
@@ -19,6 +17,8 @@ extern "C" {
 
 #define kEnablingThreshold 33
 
+typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOOL didChangeState);
+
 @class SBIcon, STKIconLayout;
 
 @interface STKStackManager : NSObject <SBIconViewDelegate, UIGestureRecognizerDelegate, STKSelectionViewDelegate>
@@ -26,7 +26,7 @@ extern "C" {
 + (NSString *)layoutsPath;
 
 /**
-*	Properties to derive information from
+*   Properties to derive information from
 */
 @property (nonatomic, readonly) BOOL hasSetup;
 @property (nonatomic, readonly) BOOL isExpanded;
@@ -43,69 +43,70 @@ extern "C" {
 @property (nonatomic, assign) BOOL closesOnHomescreenEdit; 
 
 /**
-*	@return An instance of a STKStackManager class, nil if `file` is corrupt or could not be read
-*	@param file Path to an archived dictionary that looks like this: @{STKStackManagerCentralIconKey : <central icon identifier>,
-*																		 STKStackManagerStackIconsKey  : <array of stack icon identifiers>}
+*   @return An instance of a STKStackManager class, nil if `file` is corrupt or could not be read
+*   @param file Path to an archived dictionary that looks like this:   @{STKStackManagerCentralIconKey: <central icon identifier>,
+*                                                                        STKStackManagerStackIconsKey: <array of stack icon identifiers>,
+                                                                         STKStackManagerCustomLayoutKey: <dict containing a custom layout>}
 */
 - (instancetype)initWithContentsOfFile:(NSString *)file;
 
 /**
-*	@return An instance of a STKStackManager class
-*	@param centralIcon The icon on the home screen that will be at the centre of the stack
-*	@param icons Sub-apps in the stack. Pass nil for this argument to display empty placeholders
+*   @return An instance of a STKStackManager class
+*   @param centralIcon The icon on the home screen that will be at the centre of the stack
+*   @param icons Sub-apps in the stack. Pass nil for this argument to display empty placeholders
 */
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons;
 
 /**
-*	Persist the layout to path
-*	@param path The full path to which the layout is to be persisted
-*	@warning *Warning*: path must be writable
-*	@see file
+*   Persist the layout to path
+*   @param path The full path to which the layout is to be persisted
+*   @warning *Warning*: path must be writable
+*   @see file
 */
 - (void)saveLayoutToFile:(NSString *)path;
 
 /**
-*	Call this method when the location of the icon changes
-*	You can also send STKRecaluculateLayoutsNotification through +[NSNotificationCenter defaultCenter]
+*   Call this method when the location of the icon changes
+*   You can also send STKRecaluculateLayoutsNotification through +[NSNotificationCenter defaultCenter]
 */
 - (void)recalculateLayouts;
 
 /**
-*	Sets up the "app-peeking" preview for each app
-* 	@warning *Important*: Calls setupView if necessary
-*	@see setupView
+*   Sets up the "app-peeking" preview for each app
+*   @warning *Important*: Calls setupView if necessary
+*   @see setupView
 */
 - (void)setupPreview;
 
 /**
-*	 Set Up Stack Icons' Views
+*    Set Up Stack Icons' Views
 */
 - (void)setupViewIfNecessary;
 - (void)setupView;
 - (void)cleanupView;
 
 /**
-*	Call this method to prepare the manager
+*   Call this method to prepare the manager
 */
 - (void)touchesBegan;
 
 - (void)touchesDraggedForDistance:(CGFloat)distance;
 
 /**
-*	Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
-*	If the stack opens up, the receiver automatically sets up swipe and tap recognisers on the icon content view, which, when fired, will call the interactionHandler with a nil argument.
+*   Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
+*   If the stack opens up, the receiver automatically sets up swipe and tap recognisers on the icon content view, which, when fired, will call the interactionHandler with a nil argument.
 */
 - (void)touchesEnded;
 
 /**
-*	Description: Close the stack irrespective of what's happening. -touchesEnded might call this.
-*	Param `completionHandler`: Block that will be called once stack closing animations finish
+*   Description: Close the stack irrespective of what's happening. -touchesEnded might call this.
+*   Param `completionHandler`: Block that will be called once stack closing animations finish
 */
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler;
 - (void)closeForSwitcherWithCompletionHandler:(void(^)(void))completionHandler;
 
 /**
-*	Convenience methods
+*   Convenience methods
 */
 - (void)openStack;
 - (void)closeStack;
@@ -113,9 +114,9 @@ extern "C" {
 - (void)setStackIconAlpha:(CGFloat)alpha;
 
 /**
-*	HAXX: This method should be called as a proxy for -[UIView hitTest:withEvent:] inside SBIconView, so we can process if any stack icons should be receiving touches.
-*	It's necessary, because the icons are added as a subview of the central iconView.
-*	Parameters same as -[UIView hitTest:withEvent:]
+*   HAXX: This method should be called as a proxy for -[UIView hitTest:withEvent:] inside SBIconView, so we can process if any stack icons should be receiving touches.
+*   It's necessary, because the icons are added as a subview of the central iconView.
+*   Parameters same as -[UIView hitTest:withEvent:]
 */
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;
 
