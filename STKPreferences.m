@@ -41,7 +41,6 @@
 - (void)reloadPreferences
 {
     [_currentPrefs release];
-    [_layouts release];
 
     _currentPrefs = [[NSDictionary alloc] initWithContentsOfFile:kPrefPath];
     if (!_currentPrefs) {
