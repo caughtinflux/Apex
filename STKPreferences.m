@@ -12,6 +12,7 @@
     NSDictionary *_currentPrefs;
     NSArray      *_layouts;
     NSArray      *_iconsInGroups;
+    NSArray      *_iconsInStacks;
     NSSet        *_iconsWithStacks;
 }
 
@@ -54,6 +55,8 @@
     
     [_iconsInGroups release];
     _iconsInGroups = nil;
+    [_iconsInStacks release];
+    _iconsInStacks = nil;
 
     [_iconsWithStacks release];
     _iconsWithStacks = nil;
@@ -61,7 +64,7 @@
 
 - (NSSet *)identifiersForIconsWithStack
 {
-    static NSString *fileType = @".layout";
+    static NSString * const fileType = @".layout";
     if (!_iconsWithStacks) {
         if (!_layouts) {
             _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[STKStackManager layoutsPath] error:nil] retain];
@@ -119,35 +122,35 @@
 
 - (BOOL)iconIsInStack:(SBIcon *)icon
 {
-    if (!_iconsInGroups) {
+    if (!_iconsInStacks) {
         [self _refreshGroupedIcons];
     }
 
     return [_iconsInGroups containsObject:icon.leafIdentifier];
+    return [_iconsInStacks containsObject:icon.leafIdentifier];
 }
 
-- (BOOL)saveLayoutWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons
+- (BOOL)removeLayoutForIcon:(SBIcon *)icon
 {
-    return [self saveLayoutWithCentralIconID:centralIcon.leafIdentifier stackIconIDs:[icons valueForKeyPath:@"leafIdentifier"]];
+    return [self removeLayoutForIconID:icon.leafIdentifier];
 }
 
-- (BOOL)saveLayoutWithCentralIconID:(NSString *)iconID stackIconIDs:(NSArray *)stackIconIDs
+- (BOOL)removeLayoutForIconID:(NSString *)iconID
 {
-    NSDictionary *attributes = @{STKStackManagerCentralIconKey : iconID,
-                                 STKStackManagerStackIconsKey  : stackIconIDs}; // KVC FTW
-
-    BOOL success = [attributes writeToFile:[self layoutPathForIconID:iconID] atomically:YES];
-    if (success) {
-        // Only reload if the write succeeded, hence save IO operations
-        [self reloadPreferences];
+    NSError *err = nil;
+    BOOL ret = [[NSFileManager defaultManager] removeItemAtPath:[self layoutPathForIconID:iconID] error:&err];
+    if (err) {
+        NSLog(@"%@ An error occurred when trying to remove layout for %@. Error %i, %@", kSTKTweakName, iconID, err.code, err);
     }
 
-    return success;
+    [self reloadPreferences];
+    
+    return ret;
 }
 
 - (void)_refreshGroupedIcons
 {
-    [_iconsInGroups release];
+    [_iconsInStacks release];
 
     NSMutableArray *groupedIcons = [NSMutableArray array];
     NSSet *identifiers = [self identifiersForIconsWithStack];
