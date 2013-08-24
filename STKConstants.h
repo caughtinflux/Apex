@@ -20,7 +20,6 @@
 
 #define BOOL_TO_STRING(b) (b ? @"YES" : @"NO")
 
-
 #define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/%@/com.a3tweaks.%@.plist", kSTKTweakName, NSHomeDirectory(), kSTKTweakName]
 
 #define kCentralIconPreviewScale 0.95f
@@ -72,4 +71,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif // STK_CONSTANTS_H
