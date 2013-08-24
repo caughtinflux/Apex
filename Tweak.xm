@@ -408,7 +408,6 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         if ([[NSFileManager defaultManager] fileExistsAtPath:layoutPath]) { 
             stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
             if (stackManager.layoutDiffersFromFile) {
-                CLog(@"Icon layout changed! Saving now");
                 [stackManager saveLayoutToFile:layoutPath];
             }
         }
@@ -416,31 +415,37 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
             NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
             stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
             if (![stackManager isEmpty]) {
-                CLog(@"Lost layout! Saving now");
                 [stackManager saveLayoutToFile:layoutPath];
             }
         }
 
         stackManager.interactionHandler = \
-            ^(SBIconView *tappedIconView, BOOL didLoseEmptiness) {
-                if (didLoseEmptiness) {
-                    [stackManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:stackManager.centralIcon]];
-                    [[STKPreferences sharedPreferences] reloadPreferences];
+            ^(STKStackManager *manager, SBIconView *tappedIconView, BOOL didChangeState) {
+                if (didChangeState) {
+                    if (manager.isEmpty) {
+                        [[STKPreferences sharedPreferences] removeLayoutForIcon:stackManager.centralIcon];
+                    }
+                    else {
+                        [manager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:manager.centralIcon]];
+                    }
+
+                    SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
+                    [model stk_reloadIconVisibility];
                     
                     return;
                 }
 
-                if (stackManager != STKGetActiveManager()) {
+                if (manager != STKGetActiveManager()) {
                     return;
                 }
 
                 if (tappedIconView) {
-                    stackManager.closesOnHomescreenEdit = NO;
+                    manager.closesOnHomescreenEdit = NO;
                     [tappedIconView.icon launch];
-                    stackManager.closesOnHomescreenEdit = YES;
+                    manager.closesOnHomescreenEdit = YES;
                 }
-                else if (stackManager.isEmpty) {
-                    [stackManager cleanupView];
+                else if (manager.isEmpty) {
+                    [manager cleanupView];
                 }
 
                 STKSetActiveManager(nil);
