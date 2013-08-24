@@ -80,7 +80,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
             [_availableAppIcons addObject:ph];
         }
 
-        NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES];
+        NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(caseInsensitiveCompare:)];
         [_availableAppIcons sortUsingDescriptors:@[descriptor]];
 
         _listTableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];

@@ -86,8 +86,7 @@ static BOOL _switcherIsVisible;
         _wantsSafeIconViewRetrieval || 
         self.location != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] ||
         ![icon isLeafIcon] ||
-        [[STKPreferences sharedPreferences] iconIsInStack:icon] ||
-        [[CLASS(SBIconController) sharedInstance] isEditing]) {
+        [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
         // Make sure the recognizer is not added to icons in the stack
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
@@ -328,6 +327,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %hook SBIconModel
 - (BOOL)isIconVisible:(SBIcon *)icon
 {
+    CLog(@"-[SBIconModel isIconVisible:]");
     BOOL isVisible = %orig();
     if (_switcherIsVisible == NO) {
         if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
@@ -430,6 +430,7 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
                     }
 
                     SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
+                    CLog(@"Reloading!");
                     [model stk_reloadIconVisibility];
                     
                     return;
