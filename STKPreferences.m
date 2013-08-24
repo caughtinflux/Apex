@@ -11,7 +11,6 @@
 {
     NSDictionary *_currentPrefs;
     NSArray      *_layouts;
-    NSArray      *_iconsInGroups;
     NSArray      *_iconsInStacks;
     NSSet        *_iconsWithStacks;
 }
@@ -53,8 +52,6 @@
     [_layouts release];
     _layouts = nil;
     
-    [_iconsInGroups release];
-    _iconsInGroups = nil;
     [_iconsInStacks release];
     _iconsInStacks = nil;
 
@@ -126,7 +123,6 @@
         [self _refreshGroupedIcons];
     }
 
-    return [_iconsInGroups containsObject:icon.leafIdentifier];
     return [_iconsInStacks containsObject:icon.leafIdentifier];
 }
 
@@ -159,7 +155,7 @@
         [groupedIcons addObjectsFromArray:[(NSArray *)[self stackIconsForIcon:centralIcon] valueForKeyPath:@"leafIdentifier"]];
     }
 
-     _iconsInGroups = [groupedIcons copy];
+    _iconsInStacks = [groupedIcons copy];
 }
 
 @end
