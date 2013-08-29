@@ -8,22 +8,48 @@
 #import <objc/runtime.h>
 
 @implementation STKStackManager 
+{
+    SBIcon                   *_centralIcon;
+    STKIconLayout            *_appearingIconsLayout;
+    STKIconLayout            *_displacedIconsLayout;
+    STKIconLayout            *_offScreenIconsLayout;
+    STKIconLayout            *_iconViewsLayout;
+    STKInteractionHandler     _interactionHandler;
 
-// Make the property use this ivar
-@synthesize currentIconDistance = _lastDistanceFromCenter;
+    NSOperationQueue         *_closingOpQueue;
 
-static BOOL __isStackOpen;
 static BOOL __stackInMotion;
+    STKIconCoordinates        _iconCoordinates;
 
 + (BOOL)anyStackOpen
-{
     return __isStackOpen;
+    CGFloat                   _distanceRatio;
+    CGFloat                   _popoutCompensationRatio;
+    CGFloat                   _lastDistanceFromCenter;
+
+    BOOL                      _longPressed; 
+    BOOL                      _needsLayout;
+    BOOL                      _layoutDiffersFromFile;
+    BOOL                      _closingForSwitcher;
+    BOOL                      _hasPlaceHolders;
+    BOOL                      _isClosingSelectionView;
+
+    UISwipeGestureRecognizer *_swipeRecognizer;
+    UITapGestureRecognizer   *_tapRecognizer;
+
+    id<SBIconViewDelegate>    _previousDelegate;
+
+    STKSelectionView         *_currentSelectionView;
+    STKIconLayout            *_placeHolderViewsLayout;
+    STKIconLayout            *_iconsHiddenForPlaceHolders;
+
+    STKLayoutPosition         _selectionViewPosition;
+    NSUInteger                _selectionViewIndex;
+
+    SBIconController         *_iconController;
 }
 
-+ (BOOL)anyStackInMotion
-{
-    return __stackInMotion;
-}
+@synthesize currentIconDistance = _lastDistanceFromCenter;
 
 + (NSString *)layoutsPath
 {

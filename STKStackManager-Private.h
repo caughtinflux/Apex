@@ -29,44 +29,6 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 
 #pragma mark - Private Method Declarations
 @interface STKStackManager ()
-{
-    SBIcon                   *_centralIcon;
-    STKIconLayout            *_appearingIconsLayout;
-    STKIconLayout            *_displacedIconsLayout;
-    STKIconLayout            *_offScreenIconsLayout;
-    STKIconLayout            *_iconViewsLayout;
-    STKInteractionHandler     _interactionHandler;
-
-    NSOperationQueue         *_closingOpQueue;
-
-    STKIconCoordinates        _iconCoordinates;
-
-    CGFloat                   _distanceRatio;
-    CGFloat                   _popoutCompensationRatio;
-    CGFloat                   _lastDistanceFromCenter;
-
-    BOOL                      _longPressed; 
-    BOOL                      _needsLayout;
-    BOOL                      _layoutDiffersFromFile;
-    BOOL                      _closingForSwitcher;
-    BOOL                      _hasPlaceHolders;
-    BOOL                      _isClosingSelectionView;
-
-    UISwipeGestureRecognizer *_swipeRecognizer;
-    UITapGestureRecognizer   *_tapRecognizer;
-
-    id<SBIconViewDelegate>    _previousDelegate;
-
-    STKSelectionView         *_currentSelectionView;
-    STKIconLayout            *_placeHolderViewsLayout;
-    STKIconLayout            *_iconsHiddenForPlaceHolders;
-
-    STKLayoutPosition         _selectionViewPosition;
-    NSUInteger                _selectionViewIndex;
-
-    SBIconController         *_iconController;
-}
-
 /*
 *   Icon moving
 */
@@ -121,8 +83,6 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 
 - (void)_addIcon:(SBIcon *)icon atIndex:(NSUInteger)idx position:(STKLayoutPosition)position;
 - (STKIconLayout *)_layoutForIconsToHideUsingListViewOrigin;
-- (BOOL)_removeIconFromIconLists:(SBIcon *)icon;
-- (void)_addIconToIconLists:(SBIcon *)icon;
 - (SBIcon *)_displacedIconAtPosition:(STKLayoutPosition)position intersectingAppearingIconView:(SBIconView *)iconView;
 
 @end
