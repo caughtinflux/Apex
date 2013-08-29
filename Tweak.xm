@@ -5,6 +5,7 @@
 #import "STKStackManager.h"
 #import "STKRecognizerDelegate.h"
 #import "STKPreferences.h"
+#import "STKIconLayout.h"
 #import "SBIconModel+Additions.h"
 
 #import <SpringBoard/SpringBoard.h>
@@ -327,7 +328,6 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %hook SBIconModel
 - (BOOL)isIconVisible:(SBIcon *)icon
 {
-    CLog(@"-[SBIconModel isIconVisible:]");
     BOOL isVisible = %orig();
     if (_switcherIsVisible == NO) {
         if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
@@ -341,10 +341,19 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %new
 - (void)stk_reloadIconVisibility
 {
+    [self stk_reloadIconVisibilityForSwitcher:NO];
+}
+
+%new
+- (void)stk_reloadIconVisibilityForSwitcher:(BOOL)forSwitcher
+{
     NSSet *visibleIconTags = MSHookIvar<NSSet *>(self, "_visibleIconTags");
     NSSet *hiddenIconTags = MSHookIvar<NSSet *>(self, "_hiddenIconTags");
 
     [self setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
+    if (!forSwitcher) {
+        [self layout];
+    }
 }
 
 %end
@@ -372,7 +381,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     _switcherIsVisible = YES;
 
     SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
-    [model stk_reloadIconVisibility];
+    [model stk_reloadIconVisibilityForSwitcher:YES];
     
     return %orig(animationDuration);
 }
@@ -402,21 +411,26 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
     __block STKStackManager * stackManager = STKManagerForView(iconView);
 
     if (!stackManager) {
-        NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
-
-        // Check if the manager can be created from file
-        if ([[NSFileManager defaultManager] fileExistsAtPath:layoutPath]) { 
-            stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
-            if (stackManager.layoutDiffersFromFile) {
-                [stackManager saveLayoutToFile:layoutPath];
+        if (ICON_HAS_STACK(iconView.icon)) {
+            NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
+            
+            // Check if the manager can be created from file
+            if ([[NSFileManager defaultManager] fileExistsAtPath:layoutPath]) { 
+                stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
+                if (stackManager.layoutDiffersFromFile) {
+                    [stackManager saveLayoutToFile:layoutPath];
+                }
+            }
+            else {
+                NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
+                stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
+                if (![stackManager isEmpty]) {
+                    [stackManager saveLayoutToFile:layoutPath];
+                }
             }
         }
         else {
-            NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
-            stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
-            if (![stackManager isEmpty]) {
-                [stackManager saveLayoutToFile:layoutPath];
-            }
+            stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:nil];
         }
 
         stackManager.interactionHandler = \
@@ -428,12 +442,8 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
                     else {
                         [manager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:manager.centralIcon]];
                     }
-
-                    SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
-                    CLog(@"Reloading!");
-                    [model stk_reloadIconVisibility];
-                    
-                    return;
+                    [[STKPreferences sharedPreferences] reloadPreferences];
+                    return; 
                 }
 
                 if (manager != STKGetActiveManager()) {
@@ -449,6 +459,7 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
                     [manager cleanupView];
                 }
 
+                [manager closeStack];
                 STKSetActiveManager(nil);
             };
 
