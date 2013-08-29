@@ -28,6 +28,8 @@
     NSIndexPath       *_indexPathToSelect;
 
     SBIcon            *_highlightedIcon;
+    UIButton          *_doneButton;
+    BOOL               _displayingDoneButton;
 }
 
 - (void)_scrollToNearest;
@@ -38,6 +40,10 @@
 */
 - (NSIndexPath *)_indexPathForIcon:(SBIcon *)icon;
 - (void)_setHidesHighlight:(BOOL)hide;
+
+- (void)_showDoneButton;
+- (void)_hideDoneButton;
+- (void)_doneButtonTapped:(UIButton *)button;
 
 @end
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -105,6 +111,13 @@ static NSString * const CellIdentifier = @"STKIconCell";
             iv.alpha = (iv.icon.isPlaceholder ? 0.8 : 0.2f);
         });
 
+
+        _doneButton = [[UIButton buttonWithType:UIButtonTypeCustom] retain];
+        [_doneButton setImage:UIIMAGE_NAMED(@"CheckButton") forState:UIControlStateNormal];
+        [_doneButton addTarget:self action:@selector(_doneButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+        _doneButton.frame = (CGRect){ CGPointZero, [UIIMAGE_NAMED(@"CheckButton") size] };
+        _doneButton.tag = 4321;
+
         [self setNeedsLayout];
         [self _setHidesHighlight:NO];
     }
@@ -136,6 +149,10 @@ static NSString * const CellIdentifier = @"STKIconCell";
     [_highlightView removeFromSuperview];
     [_highlightView release];
     _highlightView = nil;
+
+    [_doneButton removeFromSuperview];
+    [_doneButton release];
+    _doneButton = nil;
 
     [_listTableView removeFromSuperview];
     [_listTableView release];
@@ -179,11 +196,21 @@ static NSString * const CellIdentifier = @"STKIconCell";
     
     [_listTableView selectRowAtIndexPath:ip animated:animated scrollPosition:UITableViewScrollPositionTop];
     [self _setHidesHighlight:NO];
+    [self _showDoneButton];
 }
 
-- (void)moveToIconView:(SBIconView *)iconView
+- (void)moveToIconView:(SBIconView *)iconView animated:(BOOL)animated completion:(void(^)(void))completionBlock
 {
-
+    [_selectedView release];
+    _selectedView = [iconView retain];
+    
+    [UIView animateWithDuration:(animated ? 0.2f : 0.0f) animations:^{
+        [self layoutSubviews];
+    } completion:^(BOOL done) {
+        if (done && completionBlock) {
+            completionBlock();
+        }
+    }];
 }
 
 - (void)prepareForRemoval
@@ -259,6 +286,33 @@ static NSString * const CellIdentifier = @"STKIconCell";
     NSIndexPath *ip = objc_getAssociatedObject(gr, @selector(indexPath));
     [_listTableView selectRowAtIndexPath:ip animated:YES scrollPosition:UITableViewScrollPositionTop];
 }
+
+- (void)_showDoneButton;
+{  
+    if (_displayingDoneButton) {
+        return;
+    }
+    STKSelectionViewCell *cell = (STKSelectionViewCell *)[_listTableView cellForRowAtIndexPath:[_listTableView indexPathForSelectedRow]];
+    SBIconView *iconView = cell.iconView;
+    _doneButton.center = (CGPoint){ CGRectGetMaxX(iconView.iconImageView.frame), CGRectGetMinY(iconView.iconImageView.frame) + 2 };
+    cell.hitTestOverrideSubviewTag = 4321;
+    [iconView addSubview:_doneButton];
+    _displayingDoneButton = YES;
+}
+
+- (void)_hideDoneButton;
+{
+    [(STKSelectionViewCell *)_doneButton.superview.superview setHitTestOverrideSubviewTag:0];
+    [_doneButton removeFromSuperview];
+    _displayingDoneButton = NO;
+}
+
+- (void)_doneButtonTapped:(UIButton *)button
+{
+    if ([_delegate respondsToSelector:@selector(closeButtonTappedOnSelectionView:)]) {
+        [_delegate closeButtonTappedOnSelectionView:self];
+    }
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -276,6 +330,22 @@ static NSString * const CellIdentifier = @"STKIconCell";
 {   
     [self _scrollToNearest];
 }
+
+- (void)scrollViewDidScrollToTop:(UIScrollView *)scrollView
+{
+    [self _scrollToNearest];
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    [self _hideDoneButton];
+}
+
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
+{
+    [self _showDoneButton];
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -321,7 +391,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
     STKSelectionViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     
     cell.icon = _availableAppIcons[indexPath.row];
-    
+
     return cell;
 }
 

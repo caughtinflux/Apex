@@ -52,7 +52,7 @@
 @property (nonatomic, assign) id<STKSelectionViewDelegate> delegate;
 
 - (void)scrollToDefaultAnimated:(BOOL)animated;
-- (void)moveToIconView:(SBIconView *)iconView;
+- (void)moveToIconView:(SBIconView *)iconView animated:(BOOL)animated completion:(void(^)(void))completionBlock;
 - (void)prepareForRemoval;
 
 @end
