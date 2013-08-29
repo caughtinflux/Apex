@@ -12,5 +12,6 @@ typedef NS_ENUM(NSInteger, STKSelectionViewCellLabelPosition) {
 
 @property (nonatomic, retain) SBIcon *icon;
 @property (nonatomic, readonly) SBIconView *iconView;
+@property (nonatomic, assign) NSInteger hitTestOverrideSubviewTag;
 
 @end
