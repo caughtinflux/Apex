@@ -21,7 +21,7 @@ typedef struct {
 @interface STKIconLayoutHandler : NSObject
 
 // Set the exact position by OR'ing the different values in the enum
-// It will just explode in your face if you do rubbish like setting both TouchingTop and TouchingBottom
+// It will just explode in your face if you try to pull crap.
 // I mean it.
 + (STKIconLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(STKPositionMask)position;
 
@@ -30,6 +30,10 @@ typedef struct {
 + (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)icon usingLayout:(STKIconLayout *)layout;
 + (STKIconCoordinates)coordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation;
 
-+ (STKIconLayout *)layoutForPlaceHoldersInLayout:(STKIconLayout *)layout withPosition:(STKPositionMask)position placeHolderClass:(Class)placeHolderClass;
+// Returns a layout containing four id<NSObject> to indicate where the icons would go.
++ (STKIconLayout *)emptyLayoutForIconAtPosition:(STKPositionMask)position;
+
+// Returns a STKIconLayout instance with objects to indicate where there are empty spaces in `layout`
++ (STKIconLayout *)layoutForPlaceHoldersInLayout:(STKIconLayout *)layout withPosition:(STKPositionMask)position;
 
 @end

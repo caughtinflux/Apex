@@ -20,12 +20,10 @@
 
 #define BOOL_TO_STRING(b) (b ? @"YES" : @"NO")
 
-
 #define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/%@/com.a3tweaks.%@.plist", kSTKTweakName, NSHomeDirectory(), kSTKTweakName]
 
 #define kCentralIconPreviewScale 0.95f
 #define kStackPreviewIconScale   0.81f
-
 
 #define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
 
@@ -50,8 +48,10 @@
 #ifdef __cplusplus 
 extern "C" {
 #endif
+    
     extern NSString * const STKEditingStateChangedNotification;
     extern NSString * const STKStackClosingEventNotification; // This notification is posted when something happens to make the stack close
+    extern NSString * const STKPlaceHolderIconIdentifier;
     
     extern NSString * const SBLockStateChangeNotification;
 
@@ -67,10 +67,8 @@ extern "C" {
     extern inline CGFloat STKGetCurrentTargetDistance(void);
     extern inline void    STKUpdateTargetDistanceInListView(SBIconListView *listView);
 
-    extern NSUInteger STKGetCPUFrequency(void);
-
 #ifdef __cplusplus 
 }
 #endif
 
-#endif
+#endif // STK_CONSTANTS_H
