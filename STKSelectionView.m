@@ -175,9 +175,10 @@ static NSString * const CellIdentifier = @"STKIconCell";
     self.frame = frame;
 
     _listTableView.frame = (CGRect){{self.bounds.origin.x + 3, self.bounds.origin.y}, frame.size};
-    _highlightView.center = [self convertPoint:_selectedView.iconImageView.center fromView:_selectedView];
-
     _listTableView.contentInset = UIEdgeInsetsMake(ABS(iconOrigin.y - _listTableView.frame.origin.y), 0, ABS(iconLowerEdge.y - _listTableView.frame.size.height), 0);
+
+    CGPoint highlightCenter = [self convertPoint:_selectedView.iconImageView.center fromView:_selectedView];
+    _highlightView.center = (CGPoint){ highlightCenter.x, highlightCenter.y - 1 };
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
