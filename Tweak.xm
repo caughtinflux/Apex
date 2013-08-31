@@ -82,6 +82,10 @@ static BOOL _switcherIsVisible;
 {
     %orig(loc);
     
+    if ([[%c(SBIconController) sharedInstance] isEditing]) {
+        return;
+    }
+    
     SBIcon *icon = self.icon;
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
@@ -439,8 +443,9 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
                     if (manager.isEmpty) {
                         [[STKPreferences sharedPreferences] removeLayoutForIcon:stackManager.centralIcon];
                     }
-                    else {
-                        [manager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:manager.centralIcon]];
+                    else {  
+                        NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:manager.centralIcon];
+                        [manager saveLayoutToFile:layoutPath];
                     }
                     [[STKPreferences sharedPreferences] reloadPreferences];
                     return; 
