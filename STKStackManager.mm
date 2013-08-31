@@ -1075,6 +1075,10 @@
                 }
                 break;
             }
+
+            default: {
+                ;
+            }
         }
     }];
 }
@@ -1327,11 +1331,10 @@
             BOOL isPlaceholder = iconViewToChange.icon.isPlaceholder;
             if ((isPlaceholder && iconToAdd.isPlaceholder) || [iconViewToChange.icon.leafIdentifier isEqualToString:iconToAdd.leafIdentifier]) {
                 // If both icons are the same, simply exit.
-                // It is better to simply check a BOOL instead of comparing string, which is why the placeholder check is first
+                // It is better to simply check a BOOL instead of comparing strings, which is why the placeholder check is first
                 return;
             }
 
-            // SBIcon *previousIcon = iconViewToChange.icon; // Keep a reference to the previous icon
             [iconViewToChange setIcon:iconToAdd];
 
             SBIconView *centralView = [self _iconViewForIcon:_centralIcon];
