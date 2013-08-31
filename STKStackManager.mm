@@ -5,6 +5,7 @@
 
 #import "SBIconModel+Additions.h"
 #import "SBIconViewMap+AcervosSafety.h"
+#import "NSOperationQueue+STKMainQueueDispatch.h"
 
 #import <objc/runtime.h>
 
@@ -19,7 +20,8 @@
     STKIconLayout            *_iconViewsLayout;
     STKInteractionHandler     _interactionHandler;
 
-    NSOperationQueue         *_closingOpQueue;
+    NSOperationQueue         *_closingAnimationOpQueue;
+    NSOperationQueue         *_postCloseOpQueue;
 
     STKIconCoordinates        _iconCoordinates;
 
@@ -158,9 +160,13 @@
     _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
     _iconCoordinates = [STKIconLayoutHandler coordinatesForIcon:_centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
 
-    _closingOpQueue = [[NSOperationQueue alloc] init];
-    [_closingOpQueue setSuspended:YES];
-    [_closingOpQueue setMaxConcurrentOperationCount:1];
+    _postCloseOpQueue = [[NSOperationQueue alloc] init];
+    [_postCloseOpQueue setSuspended:YES];
+    [_postCloseOpQueue setMaxConcurrentOperationCount:1];
+
+    _closingAnimationOpQueue = [[NSOperationQueue alloc] init];
+    [_closingAnimationOpQueue setSuspended:YES];
+    [_closingAnimationOpQueue setMaxConcurrentOperationCount:1];
 
     [self _calculateDistanceRatio];
     [self _findIconsWithOffScreenTargets];
@@ -195,8 +201,11 @@
     [_displacedIconsLayout release];
     [_offScreenIconsLayout release];
 
-    [_closingOpQueue cancelAllOperations];
-    [_closingOpQueue release];
+    [_postCloseOpQueue cancelAllOperations];
+    [_postCloseOpQueue release];
+
+    [_closingAnimationOpQueue cancelAllOperations];
+    [_closingAnimationOpQueue release];
 
     [self _cleanupGestureRecognizers];
 
@@ -621,6 +630,11 @@
         [_offScreenIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition pos) {
             [self _iconViewForIcon:icon].alpha = 1.f;
         }];
+
+        [_closingAnimationOpQueue setSuspended:NO];
+        [_closingAnimationOpQueue waitUntilAllOperationsAreFinished];
+        [_closingAnimationOpQueue setSuspended:YES];
+
     } completion:^(BOOL finished) {
         if (finished) {
             // Remove the icon view's delegates
@@ -658,9 +672,9 @@
             
             _isExpanded = NO;
 
-            [_closingOpQueue setSuspended:NO];
-            [_closingOpQueue waitUntilAllOperationsAreFinished];
-            [_closingOpQueue setSuspended:YES];
+            [_postCloseOpQueue setSuspended:NO];
+            [_postCloseOpQueue waitUntilAllOperationsAreFinished];
+            [_postCloseOpQueue setSuspended:YES];
 
             if (completionBlock) {
                 completionBlock();
@@ -1027,10 +1041,8 @@
     [_offScreenIconsLayout release];
     _offScreenIconsLayout = [[STKIconLayout alloc] init]; 
 
-
+    CGRect listViewBounds = STKListViewForIcon(_centralIcon).bounds;
     [_displacedIconsLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
-        CGRect listViewBounds = STKListViewForIcon(_centralIcon).bounds;
-
         CGPoint target = [self _displacedOriginForIcon:icon withPosition:position];
         CGRect targetRect = (CGRect){{target.x, target.y}, [self _iconViewForIcon:icon].frame.size};
 
@@ -1103,6 +1115,10 @@
 - (void)_addOverlays
 {
     for (SBIconView *iconView in [_iconViewsLayout allIcons]) {
+        if (iconView.icon.isPlaceholder) {
+            continue;
+        }
+
         UIImageView *imageView = objc_getAssociatedObject(iconView, @selector(overlayView));
         if (!imageView) {
             imageView = [[UIImageView alloc] initWithImage:[UIImage imageWithContentsOfFile:PATH_TO_IMAGE(@"EditingOverlay")]];
@@ -1138,10 +1154,13 @@
 
 - (void)_insertPlaceHolders
 {
+    if (_hasPlaceHolders) {
+        return;
+    }
     // Create a layout of placeholders. It has icons in positions where icons should be, but it is left to us to make sure it isn't placed over a icon already there
     STKIconLayout *placeHolderLayout = [STKIconLayoutHandler layoutForPlaceHoldersInLayout:_appearingIconsLayout withPosition:[self _locationMaskForIcon:_centralIcon]];
     SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
-    SBIconListView *listView = STKListViewForIcon(_centralIcon);
+    // SBIconListView *listView = STKListViewForIcon(_centralIcon);
 
     [placeHolderLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
         SBIconView *iconView = [[[objc_getClass("SBIconView") alloc] initWithDefaultSize] autorelease];
@@ -1160,15 +1179,19 @@
             _iconsHiddenForPlaceHolders = [[STKIconLayout alloc] init];
         }
 
-        CGPoint originInListViewTerms = [listView convertPoint:newOrigin fromView:centralIconView];
-        [_iconsHiddenForPlaceHolders addIcon:[listView iconAtPoint:originInListViewTerms index:NULL] toIconsAtPosition:position];
+        [_displacedIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition pos) {
+            SBIconView *displacedView = [self _iconViewForIcon:icon];
+            if (CGRectIntersectsRect(displacedView.frame, [centralIconView convertRect:iconView.frame toView:displacedView.superview])) {
+                [_iconsHiddenForPlaceHolders addIcon:displacedView.icon toIconsAtPosition:position];        
+            }
+        }];
 
         iconView.alpha = 0.f;
         [centralIconView insertSubview:iconView belowSubview:centralIconView.iconImageView];
         [UIView animateWithDuration:kOverlayDuration animations:^{ iconView.alpha = 1.f; } ];
-
-        _hasPlaceHolders = YES;
     }];
+
+    _hasPlaceHolders = YES;
 
     MAP([_iconsHiddenForPlaceHolders allIcons], ^(SBIcon *icon){ [self _iconViewForIcon:icon].alpha = 0.f; });
 }
@@ -1223,8 +1246,11 @@
     [UIView animateWithDuration:kAnimationDuration * 0.5 animations:^{
         _currentSelectionView.alpha = 1.f;
 
-        // Hide all other icons and the dock
-        [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iv) { if (iv != [self _iconViewForIcon:_centralIcon]) iv.alpha = 0.f; } ];
+        [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iv) { 
+            if (iv != [self _iconViewForIcon:_centralIcon]){
+                iv.alpha = 0.f; 
+            }
+        }];
         [_iconController dock].superview.alpha = 0.f;
     }];
 }
@@ -1237,27 +1263,33 @@
 
     _isClosingSelectionView = YES;
 
-    // Set the alphas back to normal
-    [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iv) { 
-        if ((iv != [self _iconViewForIcon:_centralIcon]) && !([[_iconsHiddenForPlaceHolders allIcons] containsObject:iv.icon])) {
-            iv.alpha = 1.f; 
+    [UIView animateWithDuration:kAnimationDuration * 0.5 animations:^{
+        // Set the alphas back to normal
+        [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iv) { 
+            if ((iv != [self _iconViewForIcon:_centralIcon]) && !([[_iconsHiddenForPlaceHolders allIcons] containsObject:iv.icon]) && !([[_offScreenIconsLayout allIcons] containsObject:iv.icon])) {
+                iv.alpha = 1.f; 
+            }
+        }];
+        [_iconController dock].superview.alpha = 1.f;
+
+        SBIcon *selectedIcon = [[_currentSelectionView highlightedIcon] retain];
+        [self _addIcon:selectedIcon atIndex:(_isEmpty ? 0 : _selectionViewIndex) position:_selectionViewPosition];
+        [selectedIcon release];
+
+        [_currentSelectionView prepareForRemoval];
+        _currentSelectionView.alpha = 0.f;
+        
+    } completion:^(BOOL done) {
+        if (done) {
+            [_currentSelectionView removeFromSuperview];
+            [_currentSelectionView release];
+         
+            _currentSelectionView = nil;
+            _selectionViewPosition = STKLayoutPositionNone;
+            _selectionViewIndex = 1337;
+            _isClosingSelectionView = NO;
         }
     }];
-    [_iconController dock].superview.alpha = 1.f;
-
-    SBIcon *selectedIcon = [[_currentSelectionView highlightedIcon] retain];
-    [self _addIcon:selectedIcon atIndex:(_isEmpty ? 0 : _selectionViewIndex) position:_selectionViewPosition];
-    [selectedIcon release];
-
-    [_currentSelectionView prepareForRemoval];
-    [_currentSelectionView removeFromSuperview];
-    [_currentSelectionView release];
-
-    _currentSelectionView = nil;
-    _selectionViewPosition = STKLayoutPositionNone;
-    _selectionViewIndex = 1337;
-
-    _isClosingSelectionView = NO;
 }
 
 - (void)closeButtonTappedOnSelectionView:(STKSelectionView *)selectionView
@@ -1265,55 +1297,37 @@
     [self _hideActiveSelectionView];
 }
 
-- (void)_addIcon:(SBIcon *)iconToAdd atIndex:(NSUInteger)idx position:(STKLayoutPosition)position
+- (void)_addIcon:(SBIcon *)iconToAdd atIndex:(NSUInteger)idx position:(STKLayoutPosition)addPosition
 {
     if (_isEmpty) {
-        if (iconToAdd.isPlaceholder || !(idx < [_iconViewsLayout iconsForPosition:position].count)) {
+        if (iconToAdd.isPlaceholder || !(idx < [_iconViewsLayout iconsForPosition:addPosition].count)) {
             return;
         }    
 
-        SBIconView *iconView = [_iconViewsLayout iconsForPosition:position][idx];
+        SBIconView *iconView = [_iconViewsLayout iconsForPosition:addPosition][idx];
         [iconView setIcon:iconToAdd]; // Convert the placeholder icon into a regular app icon. SBIconView <3
         
         [_appearingIconsLayout removeAllIcons];
         [_appearingIconsLayout release];
         _appearingIconsLayout = [[STKIconLayout alloc] init];
-        [_appearingIconsLayout addIcon:iconToAdd toIconsAtPosition:position];
+        [_appearingIconsLayout addIcon:iconToAdd toIconsAtPosition:addPosition];
 
         [self _setAlpha:1.f forLabelAndShadowOfIconView:iconView];
 
+        [self _repositionDisplacedIcons];
+
         _isEmpty = NO;
-        _hasPlaceHolders = YES;
-        _isEditing = YES;
-
-        _iconsHiddenForPlaceHolders = [[self _layoutForIconsToHideUsingListViewOrigin] retain];
-
-        [_displacedIconsLayout release];
-        _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
-
-        [_displacedIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition pos) {
-            CGPoint newOrigin = [self _displacedOriginForIcon:icon withPosition:pos usingLayout:_appearingIconsLayout];
-            SBIconView *iv = [self _iconViewForIcon:icon];
-            iv.frame = (CGRect){ newOrigin, iv.frame.size };
-            if ([[_iconsHiddenForPlaceHolders iconsForPosition:pos] containsObject:icon]) {
-                iv.alpha = 0.f;
-            }
-        }];
-
-        if (_interactionHandler) {
-            _interactionHandler(self, nil, YES);
-        }
+        _hasPlaceHolders = YES; // We already have these, courtesy all the empty icons in the stack. :P
+        self.isEditing = YES;
     } 
     else {  // isEmpty == NO
-        NSArray *iconViews = [_iconViewsLayout iconsForPosition:position];
+        NSArray *iconViews = [_iconViewsLayout iconsForPosition:addPosition];
         if (idx <= (iconViews.count - 1)) {
-            SBIconView *iconViewToChange = iconViews[idx];            
-            if ([iconViewToChange.icon.leafIdentifier isEqualToString:iconToAdd.leafIdentifier]) {
-                return;
-            }
+            SBIconView *iconViewToChange = iconViews[idx];
             BOOL isPlaceholder = iconViewToChange.icon.isPlaceholder;
-            if (isPlaceholder && iconToAdd.isPlaceholder) {
-                // If both are placeholders, don't unecessarily change crap
+            if ((isPlaceholder && iconToAdd.isPlaceholder) || [iconViewToChange.icon.leafIdentifier isEqualToString:iconToAdd.leafIdentifier]) {
+                // If both icons are the same, simply exit.
+                // It is better to simply check a BOOL instead of comparing string, which is why the placeholder check is first
                 return;
             }
 
@@ -1326,7 +1340,7 @@
 
             if (iconToAdd.isPlaceholder) {
                 // Remove the icon that is to be replaced with a placeholder from _appearingIcons
-                [_appearingIconsLayout removeIconAtIndex:idx fromIconsAtPosition:position];
+                [_appearingIconsLayout removeIconAtIndex:idx fromIconsAtPosition:addPosition];
                 [self _setAlpha:0.f forLabelAndShadowOfIconView:iconViewToChange];
 
                 // Setting this makes the icon view be removed as a part of the placeholder removal routine.
@@ -1339,38 +1353,52 @@
                 objc_setAssociatedObject(iconViewToChange, @selector(overlayView), nil, OBJC_ASSOCIATION_ASSIGN);
             }
             else {
-                [_appearingIconsLayout setIcon:iconToAdd atIndex:idx position:position];
+                [_appearingIconsLayout setIcon:iconToAdd atIndex:idx position:addPosition];
                 [self _setAlpha:1.f forLabelAndShadowOfIconView:iconViewToChange];
             }
             
             if (isPlaceholder) {
-                // Since we're converting a placholder icon, find the icon hidden underneath it, and un-hide it. Capiche?
-                SBIcon *hiddenIcon = [self _displacedIconAtPosition:position intersectingAppearingIconView:iconViewToChange];
-                if (hiddenIcon) {
-                    SBIconView *hiddenIconView = [self _iconViewForIcon:hiddenIcon];
-                    hiddenIconView.alpha = 1.f;
-                }
+                [_closingAnimationOpQueue stk_addOperationToRunOnMainThreadWithBlock:^{
+                    // Since we're converting a placholder icon, find the icon hidden underneath it, and un-hide it. Capiche?
+                    SBIcon *hiddenIcon = [self _displacedIconAtPosition:addPosition intersectingAppearingIconView:iconViewToChange];
+                    if (hiddenIcon) {
+                        SBIconView *hiddenIconView = [self _iconViewForIcon:hiddenIcon];
+                        hiddenIconView.alpha = 1.f;
+                    }
+                }];
             }
 
             // If _appearingIconsLayout has count 0, we've removed all non-placeholders from it in the if (iconToAdd.isPlaceholder) check
             _isEmpty = ([_appearingIconsLayout totalIconCount] == 0);            
             if (_isEmpty) {
-                self.isEditing = NO;
-                [_closingOpQueue addOperationWithBlock:^{
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [self _iconViewForIcon:_centralIcon].transform = CGAffineTransformMakeScale(1.f, 1.f);    
+                // We are definitely not editing now, since the stack has switched over to imitate an empty stack
+                _isEditing = NO;
+                _hasPlaceHolders = NO;
+
+                [_closingAnimationOpQueue stk_addOperationToRunOnMainThreadWithBlock:^{
+                    for (SBIcon *icon in [_iconsHiddenForPlaceHolders allIcons]) {
+                        [self _iconViewForIcon:icon].alpha = 1.f;
+                    }
+                }];
+
+                [_postCloseOpQueue stk_addOperationToRunOnMainThreadWithBlock:^{
+                    MAP([_iconsHiddenForPlaceHolders allIcons], ^(SBIcon *icon) {
+                        [self _iconViewForIcon:icon].alpha = 1.f;
                     });
+                    [self _iconViewForIcon:_centralIcon].transform = CGAffineTransformMakeScale(1.f, 1.f);
                 }];
             }
 
-            if (_interactionHandler) {
-                _interactionHandler(self, nil, YES);
-            }
+            [self _repositionDisplacedIcons];
         }
     }
 
+    if (_interactionHandler) {
+        _interactionHandler(self, nil, YES);
+    }
+
     BOOL layoutOpExists = NO;
-    for (STKIdentifiedOperation *operation in [_closingOpQueue operations]) {
+    for (STKIdentifiedOperation *operation in [_postCloseOpQueue operations]) {
         if ([operation isKindOfClass:[STKIdentifiedOperation class]] && [operation.identifier isEqualToString:kSTKIconModelLayoutOpID]) {
             layoutOpExists = YES;
             break;
@@ -1382,45 +1410,34 @@
             SBIconModel *model = [_iconController model];
             [model stk_reloadIconVisibilityForSwitcher:NO]; 
             [[NSNotificationCenter defaultCenter] postNotificationName:STKRecalculateLayoutsNotification object:nil userInfo:nil];
-            
         } identifier:kSTKIconModelLayoutOpID queue:dispatch_get_main_queue()];
 
-        [_closingOpQueue addOperation:op];
+        [_postCloseOpQueue addOperation:op];
     }
 }
 
-- (STKIconLayout *)_layoutForIconsToHideUsingListViewOrigin
+- (void)_repositionDisplacedIcons
 {
-    SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
-    SBIconListView *centralListView = STKListViewForIcon(_centralIcon);
+    STKIconLayout *previousDisplacedLayout = [_displacedIconsLayout retain];
 
-    __block STKIconLayout *layout = nil;
+    [_displacedIconsLayout release];
+    _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
 
-    [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition pos, NSArray *currArray, NSUInteger idx) {
-        if (iconView.icon.isPlaceholder) {
-            // Since this method exists for the sole reason of ignoring crap in the stack during addition.
-            // Hint: crap == placeholder icons
+    SBIconListView *listView = STKListViewForIcon(_centralIcon);
+    [previousDisplacedLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition dispPos) {
+        // Enumerate all the previously displaced icons, bringing them back to their original locations
+        if ([[_displacedIconsLayout iconsForPosition:dispPos] containsObject:icon]) {
+            // However, ignore any icons that are to be displaced currently, since we now have a new displaced icon layout
             return;
         }
 
-        for (SBIcon *dispIcon in [_displacedIconsLayout iconsForPosition:pos]) {
-            // Create the displaced icons frame manually using coordinates from the list view, since we need where it would be normally..
-            // ..not where it is currently is.
-            CGRect dispIconFrame = (CGRect){ [centralListView originForIcon:dispIcon], [centralListView defaultIconSize] };
-
-            CGRect iconViewFrameInListView = [centralIconView convertRect:iconView.frame toView:centralListView];
-            
-            if (CGRectIntersectsRect(dispIconFrame, iconViewFrameInListView)) {
-                if (!layout) {
-                    // Only instantiate if necessary, since we return nil if nothing's to be done. :P
-                    layout = [[STKIconLayout alloc] init];
-                }
-                [layout addIcon:dispIcon toIconsAtPosition:pos];
-            }    
-        }
+        SBIconView *displacedIconView = [self _iconViewForIcon:icon];
+        CGPoint originalOrigin = [listView originForIcon:icon];
+        displacedIconView.frame = (CGRect){ originalOrigin, displacedIconView.frame.size };
+        displacedIconView.alpha = 1.f;
     }];
 
-    return [layout autorelease];
+    [self _findIconsWithOffScreenTargets];
 }
 
 - (SBIcon *)_displacedIconAtPosition:(STKLayoutPosition)position intersectingAppearingIconView:(SBIconView *)iconView
