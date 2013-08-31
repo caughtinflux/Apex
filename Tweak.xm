@@ -272,6 +272,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
             }
             else {
                 STKAddPanRecognizerToIconView(iv);
+                STKStackManager *manager = STKManagerForView(iv);
+                [manager recalculateLayouts];
             }
         }];
     }
