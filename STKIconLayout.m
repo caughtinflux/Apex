@@ -9,17 +9,21 @@ NSString * const STKBottomIconsKey = @"BottomIcons";
 NSString * const STKLeftIconsKey = @"LeftIcons";
 NSString * const STKRightIconsKey = @"RightIcons";
 
-@implementation STKIconLayout
+@interface STKIconLayout ()
 {
-    NSMutableArray *_topIcons;
-    NSMutableArray *_bottomIcons;
-    NSMutableArray *_leftIcons;
-    NSMutableArray *_rightIcons;
-
+    NSMutableArray      *_topIcons;
+    NSMutableArray      *_bottomIcons;
+    NSMutableArray      *_leftIcons;
+    NSMutableArray      *_rightIcons;
     NSArray             *_allIcons;
     NSMutableDictionary *_dictRepr;
     BOOL                 _hasBeenModified;
 } 
+// Returns a pointer to a non-nil array ivar for pos
+- (NSMutableArray **)_nonNilArrayForPosition:(STKLayoutPosition)pos;
+@end
+
+@implementation STKIconLayout
 
 // SublimeClang throws an errors on @(somePos). Really. Annoying
 #define TO_NUMBER(_i) [NSNumber numberWithInteger:_i]
@@ -185,39 +189,8 @@ NSString * const STKRightIconsKey = @"RightIcons";
         return;
     }
     @synchronized(self) {
-        NSMutableArray **array = NULL;
-        switch (position) {
-            case STKLayoutPositionTop: {
-                if (!_topIcons)  _topIcons = [NSMutableArray new];
-                array = &_topIcons;
-                break;
-            }
-
-            case STKLayoutPositionBottom: {
-                if (!_bottomIcons) _bottomIcons = [NSMutableArray new];
-                array = &_bottomIcons;
-                break;
-            }
-
-            case STKLayoutPositionLeft: {
-                if (!_leftIcons) _leftIcons = [NSMutableArray new];
-                array = &_leftIcons;
-                break;
-            }
-            
-            case STKLayoutPositionRight: {
-                if (!_rightIcons) _rightIcons = [NSMutableArray new];
-                array = &_rightIcons;
-                break;
-            }
-
-            default: {
-
-            }
-        }
-
+        [*([self _nonNilArrayForPosition:position]) addObject:icon];
         _hasBeenModified = YES;
-        [*array addObject:icon];
     }
 }
 
@@ -227,13 +200,17 @@ NSString * const STKRightIconsKey = @"RightIcons";
         return;
     }
     @synchronized(self) {
-        NSMutableArray *icons = (NSMutableArray *)[self iconsForPosition:position];
-        if (idx < icons.count){
-            [icons removeObjectAtIndex:idx];
-            [icons insertObject:icon atIndex:idx];
+        NSMutableArray **icons = [self _nonNilArrayForPosition:position];
+        if (icons == NULL) {
+            // The position is invalid
+            return;
+        }
+        if (idx < [*icons count]){
+            [*icons removeObjectAtIndex:idx];
+            [*icons insertObject:icon atIndex:idx];
         }
         else {
-            [icons addObject:icon];
+            [*icons addObject:icon];
         }
        _hasBeenModified = YES;
     }
@@ -281,6 +258,18 @@ NSString * const STKRightIconsKey = @"RightIcons";
         for (NSNumber *position in [[self class] allPositions])
             [(NSMutableArray *)[self iconsForPosition:[position integerValue]] removeAllObjects];   
 
+        [_topIcons release];
+        _topIcons = nil;
+        
+        [_bottomIcons release];
+        _bottomIcons = nil;
+        
+        [_leftIcons release];
+        _leftIcons = nil;
+        
+        [_rightIcons release];
+        _rightIcons = nil;
+        
         _hasBeenModified = YES;
     }
 }
@@ -351,6 +340,40 @@ NSString * const STKRightIconsKey = @"RightIcons";
 - (NSString *)description
 {
     return [NSString stringWithFormat:@"%@ top.count: %i bottom.count: %i left.count: %i right.count: %i", [super description], _topIcons.count, _bottomIcons.count, _leftIcons.count, _rightIcons.count];
+}
+
+- (NSMutableArray **)_nonNilArrayForPosition:(STKLayoutPosition)pos
+{
+    NSMutableArray **array = NULL;
+    switch (pos) {
+        case STKLayoutPositionTop: {
+            if (!_topIcons)  _topIcons = [NSMutableArray new];
+            array = &_topIcons;
+            break;
+        }
+
+        case STKLayoutPositionBottom: {
+            if (!_bottomIcons) _bottomIcons = [NSMutableArray new];
+            array = &_bottomIcons;
+            break;
+        }
+
+        case STKLayoutPositionLeft: {
+            if (!_leftIcons) _leftIcons = [NSMutableArray new];
+            array = &_leftIcons;
+            break;
+        }
+        
+        case STKLayoutPositionRight: {
+            if (!_rightIcons) _rightIcons = [NSMutableArray new];
+            array = &_rightIcons;
+            break;
+        }
+        default: {
+            ;
+        }
+    }
+    return array;
 }
 
 NSString * STKNSStringFromPosition(STKLayoutPosition pos)
