@@ -611,15 +611,15 @@
 {
     UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
     CGFloat scale = (_isEmpty ? 1.f : kCentralIconPreviewScale);
-    
+
     if (animateCentralIcon && !_isEmpty) {
-        [UIView animateWithDuration:(duration * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [UIView animateWithDuration:(duration * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
             // Animate central imageview shrink/grow
             centralView.transform = CGAffineTransformMakeScale(scale - 0.1f, scale - 0.1f);
         } completion:^(BOOL finished) {
             if (finished) {
                 // Animate it back to `scale`
-                [UIView animateWithDuration:(duration * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                [UIView animateWithDuration:(duration * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
                     centralView.transform = CGAffineTransformMakeScale(scale, scale);
                 } completion:nil];
             }
