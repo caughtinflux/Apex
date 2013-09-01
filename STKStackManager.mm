@@ -416,9 +416,8 @@
 
     CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter);
 
-    [_iconController prepareToGhostCurrentPageIconsForRequester:kGhostlyRequesterID skipIcon:_centralIcon];
+    // [_iconController prepareToGhostCurrentPageIconsForRequester:kGhostlyRequesterID skipIcon:_centralIcon];
     [self _setGhostlyAlphaForAllIcons:alpha excludingCentralIcon:YES];
-
     [self _setPageControlAlpha:alpha];
 
     BOOL hasVerticalIcons = ([_appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([_appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
@@ -449,14 +448,14 @@
                 CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
                 [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(centralIconTransformScale, centralIconTransformScale);
             }
-            else {
+            else {      
                 [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
                 iv.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
             }
         }
         else {
             iv.alpha = (1 - alpha);
-        }
+        }      
     }];
 }
 
@@ -1548,7 +1547,7 @@
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
 {
-    return iconView.userInteractionEnabled;
+    return iconView.userInteractionEnabled; 
 }
 
 - (BOOL)iconPositionIsEditable:(SBIconView *)iconView

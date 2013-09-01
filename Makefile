@@ -1,4 +1,4 @@
-DEBUG = 1
+# DEBUG = 1
 TARGET = iphone:clang:latest:3.0
 
 include theos/makefiles/common.mk
@@ -6,7 +6,7 @@ include theos/makefiles/common.mk
 TWEAK_NAME = Acervos
 Acervos_FILES =  Tweak.xm STKConstants.m STKIconLayout.m STKIconLayoutHandler.m STKStackManager.mm STKIdentifiedOperation.m NSOperationQueue+STKMainQueueDispatch.m STKPlaceHolderIcon.xm STKSelectionView.m STKSelectionViewCell.m STKRecognizerDelegate.m STKPreferences.m
 Acervos_FRAMEWORKS = Foundation CoreFoundation UIKit CoreGraphics QuartzCore
-Acervos_CFLAGS = -Wall -Werror
+Acervos_CFLAGS = -Wall -Werror -O3
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

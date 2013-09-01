@@ -87,7 +87,7 @@ static BOOL _switcherIsVisible;
     SBIcon *icon = self.icon;
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
-        self.location != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] ||
+        self.location != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] || [self isInDock] ||
         ![icon isLeafIcon] ||
         [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
@@ -123,6 +123,11 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     UIView *view = [STKListViewForIcon(self.icon) superview];
     STKStackManager *stackManager = STKManagerForView(self);
     STKStackManager *activeManager = STKGetActiveManager();
+
+    if (self.location != SBIconViewLocationHomeScreen) {
+        STKCleanupIconView(self);
+        return;
+    }
 
     if (stackManager.isExpanded || (activeManager != nil && activeManager != stackManager) || ([self.superview isKindOfClass:%c(SBFolderIconListView)])) {
         return;
