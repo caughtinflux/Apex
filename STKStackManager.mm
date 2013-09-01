@@ -480,6 +480,20 @@
     [self closeStackWithCompletionHandler:nil];
 }
 
+- (BOOL)handleHomeButtonPress
+{
+    BOOL didIntercept = NO;
+    if (_currentSelectionView) {
+        [self _hideActiveSelectionView];
+        didIntercept = YES;
+    }
+    else if (_isEditing) {
+        CLog(@"Is editing, turning it off!");
+        self.isEditing = NO;
+        didIntercept = YES;
+    }
+    return didIntercept;
+}
 
 #pragma mark - Setter/Getter Overrides
 - (void)setIsEditing:(BOOL)editing

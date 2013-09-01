@@ -111,6 +111,12 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 - (void)openStack;
 - (void)closeStack;
 
+/**
+*	Self-Explanatory
+*	@return YES if the press was intercepted.
+*/
+- (BOOL)handleHomeButtonPress;
+
 - (void)setStackIconAlpha:(CGFloat)alpha;
 
 /**

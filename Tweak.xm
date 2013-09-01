@@ -371,9 +371,15 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %hook SBUIController
 - (BOOL)clickedMenuButton
 {
-    if ((STKGetActiveManager()) != nil) {
-        STKCloseActiveManager();
-        return NO;
+    %log();
+    STKStackManager *activeManager = STKGetActiveManager();
+    if (activeManager) {
+        BOOL manDidIntercept = [activeManager handleHomeButtonPress];
+        CLog(@"Did intercept: %@", BOOL_TO_STRING(manDidIntercept));
+        if (!manDidIntercept) {
+            [activeManager closeStack];
+        }
+        return YES;
     }
     else {
         return %orig();
