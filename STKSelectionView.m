@@ -30,8 +30,11 @@
     SBIcon            *_highlightedIcon;
     UIButton          *_doneButton;
     BOOL               _displayingDoneButton;
+
+    STKSelectionCellPosition _cellPosition;
 }
 
+- (void)_setupSubviews;
 - (void)_scrollToNearest;
 
 /**
@@ -88,38 +91,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
 
         NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(caseInsensitiveCompare:)];
         [_availableAppIcons sortUsingDescriptors:@[descriptor]];
-
-        _listTableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
-        _listTableView.dataSource = self;
-        _listTableView.delegate = self;
-        _listTableView.backgroundColor = [UIColor clearColor];
-        _listTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
-        [_listTableView registerClass:[STKSelectionViewCell class] forCellReuseIdentifier:CellIdentifier];
-
-        [self addSubview:_listTableView];
-
-        _highlightView = [[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"SelectionHighlight")];
-        _highlightView.alpha = 0.f;
-        [self insertSubview:_highlightView belowSubview:_listTableView];
-
-        _selectedView.alpha = 0.f;
-        _centralView.alpha = 0.2;
-        MAP([_iconViewsLayout allIcons], ^(SBIconView *iv) {
-            if (iv == _selectedView) {
-                return;
-            }
-            iv.alpha = (iv.icon.isPlaceholder ? 0.8 : 0.2f);
-        });
-
-
-        _doneButton = [[UIButton buttonWithType:UIButtonTypeCustom] retain];
-        [_doneButton setImage:UIIMAGE_NAMED(@"CheckButton") forState:UIControlStateNormal];
-        [_doneButton addTarget:self action:@selector(_doneButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
-        _doneButton.frame = (CGRect){ CGPointZero, [UIIMAGE_NAMED(@"CheckButton") size] };
-        _doneButton.tag = 4321;
-
-        [self setNeedsLayout];
-        [self _setHidesHighlight:NO];
+        [self _setupSubviews];
     }
     return self;
 }
@@ -172,10 +144,18 @@ static NSString * const CellIdentifier = @"STKIconCell";
     CGSize maxLabelSize = [[_selectedView class] _maxLabelSize];
 
     CGRect frame = (CGRect){{iconOrigin.x - 3, 0}, {(defaultIconImageSize.width + 5 + maxLabelSize.width), [UIScreen mainScreen].bounds.size.height}};
+    
+    if (CGRectGetMaxX(frame) > CGRectGetMaxX(self.superview.bounds)) {
+        _cellPosition = STKSelectionCellPositionLeft;
+    }
+    else {
+        _cellPosition = STKSelectionCellPositionRight;
+    }
+
     self.frame = frame;
 
     _listTableView.frame = (CGRect){{self.bounds.origin.x + 3, self.bounds.origin.y}, frame.size};
-    _listTableView.contentInset = UIEdgeInsetsMake(ABS(iconOrigin.y - _listTableView.frame.origin.y), 0, ABS(iconLowerEdge.y - _listTableView.frame.size.height), 0);
+    _listTableView.contentInset = UIEdgeInsetsMake(ABS(iconOrigin.y - _listTableView.frame.origin.y), 0, ABS(iconLowerEdge.y - _listTableView.frame.size.height) + 1, 0);
 
     CGPoint highlightCenter = [self convertPoint:_selectedView.iconImageView.center fromView:_selectedView];
     _highlightView.center = (CGPoint){ highlightCenter.x, highlightCenter.y - 1 };
@@ -231,6 +211,46 @@ static NSString * const CellIdentifier = @"STKIconCell";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+- (void)_setupSubviews
+{
+    _cellPosition = STKSelectionCellPositionRight;
+    
+    _listTableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
+    _listTableView.dataSource = self;
+    _listTableView.delegate = self;
+    _listTableView.backgroundColor = [UIColor clearColor];
+    _listTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    [_listTableView registerClass:[STKSelectionViewCell class] forCellReuseIdentifier:CellIdentifier];
+
+    [self addSubview:_listTableView];
+
+    _highlightView = [[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"SelectionHighlight")];
+    _highlightView.alpha = 0.f;
+    [self insertSubview:_highlightView belowSubview:_listTableView];
+
+    _selectedView.alpha = 0.f;
+    _centralView.alpha = 0.2;
+    MAP([_iconViewsLayout allIcons], ^(SBIconView *iv) {
+        if (iv == _selectedView) {
+            return;
+        }
+        iv.alpha = (iv.icon.isPlaceholder ? 0.8 : 0.2f);
+    });
+
+
+    _doneButton = [[UIButton buttonWithType:UIButtonTypeCustom] retain];
+    [_doneButton setImage:UIIMAGE_NAMED(@"CheckButton") forState:UIControlStateNormal];
+    [_doneButton addTarget:self action:@selector(_doneButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    _doneButton.frame = (CGRect){ CGPointZero, [UIIMAGE_NAMED(@"CheckButton") size] };
+    _doneButton.tag = 4321;
+
+    self.clipsToBounds = NO;
+    _listTableView.clipsToBounds = NO;
+
+    [self setNeedsLayout];
+    [self _setHidesHighlight:NO];
+}
+
 #define R_AREA(_r2 /* D2! */)  _r2.size.width * _r2.size.height
 - (void)_scrollToNearest
 {
@@ -360,6 +380,8 @@ static NSString * const CellIdentifier = @"STKIconCell";
     UITapGestureRecognizer *gr = [[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_iconTapped:)] autorelease];
     [cell addGestureRecognizer:gr];
 
+    cell.clipsToBounds = NO;
+
     // Associate the index path with gr, so the -_iconTapped: can get it back from the recognizer
     objc_setAssociatedObject(gr, @selector(indexPath), indexPath, OBJC_ASSOCIATION_RETAIN);
 }
@@ -392,6 +414,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
     STKSelectionViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     
     cell.icon = _availableAppIcons[indexPath.row];
+    cell.position = _cellPosition;
 
     return cell;
 }

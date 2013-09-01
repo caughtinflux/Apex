@@ -1,9 +1,9 @@
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 
-typedef NS_ENUM(NSInteger, STKSelectionViewCellLabelPosition) {
-	STKSelectionViewCellLabelPositionRight = 1,
-	STKSelectionViewCellLabelPositionLeft
+typedef NS_ENUM(NSInteger, STKSelectionCellPosition) {
+	STKSelectionCellPositionRight = 1,
+	STKSelectionCellPositionLeft
 };
 
 @class SBIcon, SBIconView;
@@ -13,5 +13,7 @@ typedef NS_ENUM(NSInteger, STKSelectionViewCellLabelPosition) {
 @property (nonatomic, retain) SBIcon *icon;
 @property (nonatomic, readonly) SBIconView *iconView;
 @property (nonatomic, assign) NSInteger hitTestOverrideSubviewTag;
+
+@property (nonatomic, assign) STKSelectionCellPosition position;
 
 @end
