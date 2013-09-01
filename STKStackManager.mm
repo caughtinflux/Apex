@@ -1517,6 +1517,11 @@
 
 - (void)iconTapped:(SBIconView *)iconView
 {
+    if (!iconView.userInteractionEnabled) {
+        // WHY.
+        return;
+    }
+
     if (_longPressed) {
         _longPressed = NO;
         return;
@@ -1543,7 +1548,7 @@
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
 {
-    return ([_iconController hasOpenFolder] ? NO : YES);
+    return iconView.userInteractionEnabled;
 }
 
 - (BOOL)iconPositionIsEditable:(SBIconView *)iconView
