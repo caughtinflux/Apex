@@ -174,6 +174,23 @@ static NSString * const CellIdentifier = @"STKIconCell";
     }];
 }
 
+- (void)prepareForDisplay
+{
+    _selectedView.alpha = 0.f;
+    
+    _centralView.alpha = 0.2;
+    _centralView.userInteractionEnabled = NO;
+    
+    MAP([_iconViewsLayout allIcons], ^(SBIconView *iv) {
+        iv.userInteractionEnabled = NO;
+        
+        if (iv == _selectedView) {
+            return;
+        }
+        iv.alpha = (iv.icon.isPlaceholder ? 0.8 : 0.2f);
+    });
+}
+
 - (void)prepareForRemoval
 {
     _centralView.alpha = 1.f;
@@ -239,21 +256,6 @@ static NSString * const CellIdentifier = @"STKIconCell";
     _highlightView = [[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"SelectionHighlight")];
     _highlightView.alpha = 0.f;
     [self insertSubview:_highlightView belowSubview:_listTableView];
-
-    _selectedView.alpha = 0.f;
-    
-    _centralView.alpha = 0.2;
-    _centralView.userInteractionEnabled = NO;
-    
-    MAP([_iconViewsLayout allIcons], ^(SBIconView *iv) {
-        iv.userInteractionEnabled = NO;
-        
-        if (iv == _selectedView) {
-            return;
-        }
-        iv.alpha = (iv.icon.isPlaceholder ? 0.8 : 0.2f);
-    });
-
 
     _doneButton = [[UIButton buttonWithType:UIButtonTypeCustom] retain];
     [_doneButton setImage:UIIMAGE_NAMED(@"CheckButton") forState:UIControlStateNormal];

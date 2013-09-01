@@ -17,11 +17,6 @@ extern "C" {
 
 @interface STKIconLayout : NSObject
 
-@property(nonatomic, readonly) NSArray *topIcons;
-@property(nonatomic, readonly) NSArray *bottomIcons;
-@property(nonatomic, readonly) NSArray *leftIcons;
-@property(nonatomic, readonly) NSArray *rightIcons;
-
 typedef NS_ENUM(NSInteger, STKLayoutPosition) {
     STKLayoutPositionNone = 0,
     STKLayoutPositionTop,
@@ -30,7 +25,8 @@ typedef NS_ENUM(NSInteger, STKLayoutPosition) {
     STKLayoutPositionRight,
 };
 
-+ (NSArray *)allPositions;
+#define STKLayoutPositionIsVertical(_position) (_position == STKLayoutPositionTop || _position == STKLayoutPositionBottom)
+#define STKLayoutPositionIsHorizontal(_position) (_position == STKLayoutPositionLeft || _position == STKLayoutPositionRight)
 
 // Returns an autoreleased instance
 + (instancetype)layoutWithDictionary:(NSDictionary *)dictionary;
@@ -41,6 +37,12 @@ typedef NS_ENUM(NSInteger, STKLayoutPosition) {
 - (instancetype)initWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons;
 - (instancetype)initWithLayout:(STKIconLayout *)layout;
 
++ (NSArray *)allPositions;
+
+@property (nonatomic, readonly) NSArray *topIcons;
+@property (nonatomic, readonly) NSArray *bottomIcons;
+@property (nonatomic, readonly) NSArray *leftIcons;
+@property (nonatomic, readonly) NSArray *rightIcons;
 @property (nonatomic, assign) BOOL containsPlaceholders;
 
 - (void)enumerateIconsUsingBlock:(void(^)(id, STKLayoutPosition))block;

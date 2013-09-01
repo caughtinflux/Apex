@@ -79,7 +79,9 @@ static BOOL _switcherIsVisible;
 %hook SBIconView
 
 - (void)setLocation:(SBIconViewLocation)loc
-{    
+{   
+    %orig();
+    
     if ([[%c(SBIconController) sharedInstance] isEditing]) {
         return;
     }
@@ -87,7 +89,7 @@ static BOOL _switcherIsVisible;
     SBIcon *icon = self.icon;
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
-        self.location != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] || [self isInDock] ||
+        loc != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] || [self isInDock] ||
         ![icon isLeafIcon] ||
         [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
@@ -363,6 +365,8 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %new
 - (void)stk_reloadIconVisibilityForSwitcher:(BOOL)forSwitcher
 {
+    CLog(@"-[SBIconModel stk_reloadIconVisibilityForSwitcher:]");
+    
     NSSet *visibleIconTags = MSHookIvar<NSSet *>(self, "_visibleIconTags");
     NSSet *hiddenIconTags = MSHookIvar<NSSet *>(self, "_hiddenIconTags");
 

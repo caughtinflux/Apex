@@ -841,7 +841,6 @@
         if (IS_GREATER((*currentCoord + (moveDistance / popComp)), *targetCoord, position)) {
             // Don't compensate for anything if the icon is moving past the target
             moveDistance /= popComp;
-            moveDistance /= distanceRatio;
         }
 
         // Modify the target to allow for a `kBandingAllowance` distance extra for the rubber banding effect
@@ -1281,9 +1280,11 @@
     _currentSelectionView.alpha = 0.f;
     [[_iconController contentView] addSubview:_currentSelectionView];
     [_currentSelectionView layoutSubviews];
+
     [_currentSelectionView scrollToDefaultAnimated:NO];
 
-    [UIView animateWithDuration:kAnimationDuration * 0.5 animations:^{
+    [UIView animateWithDuration:kAnimationDuration animations:^{
+        [_currentSelectionView prepareForDisplay];
         _currentSelectionView.alpha = 1.f;
 
         [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iv) { 
@@ -1303,7 +1304,7 @@
 
     _isClosingSelectionView = YES;
 
-    [UIView animateWithDuration:kAnimationDuration * 0.5 animations:^{
+    [UIView animateWithDuration:kAnimationDuration animations:^{
         // Set the alphas back to normal
         [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iv) { 
             if ((iv != [self _iconViewForIcon:_centralIcon]) && !([[_iconsHiddenForPlaceHolders allIcons] containsObject:iv.icon]) && !([[_offScreenIconsLayout allIcons] containsObject:iv.icon])) {
@@ -1318,6 +1319,11 @@
 
         [_currentSelectionView prepareForRemoval];
         _currentSelectionView.alpha = 0.f;
+
+        MAP([_offScreenIconsLayout allIcons], ^(SBIcon *icon) {
+            // _offScreenIconsLayout is all new at this point
+            [self _iconViewForIcon:icon].alpha = 0.f;
+        });
         
     } completion:^(BOOL done) {
         if (done) {
@@ -1394,6 +1400,7 @@
             else {
                 [_appearingIconsLayout setIcon:iconToAdd atIndex:idx position:addPosition];
                 [self _setAlpha:1.f forLabelAndShadowOfIconView:iconViewToChange];
+                [self _addOverlays];
             }
             
             if (isPlaceholder) {
@@ -1464,9 +1471,9 @@
 
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
     [previousDisplacedLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition dispPos) {
-        // Enumerate all the previously displaced icons, bringing them back to their original locations
+        // Enumerate all the previously displaced icons, bringing them back to their original locations, setting alphas as necessary
         if ([[_displacedIconsLayout iconsForPosition:dispPos] containsObject:icon]) {
-            // However, ignore any icons that are to be displaced currently, since we now have a new displaced icon layout
+            // Ignore any icons that are to be displaced again, since we now have a new displaced icon layout
             return;
         }
 
@@ -1474,16 +1481,24 @@
         CGPoint originalOrigin = [listView originForIcon:icon];
         displacedIconView.frame = (CGRect){ originalOrigin, displacedIconView.frame.size };
         displacedIconView.alpha = 1.f;
+
+        if (_hasPlaceHolders) {
+            if (_iconsHiddenForPlaceHolders) {
+                _iconsHiddenForPlaceHolders = [[STKIconLayout alloc] init];
+            }
+            for (SBIconView *iconView in [_iconViewsLayout iconsForPosition:dispPos]) {
+                CGRect viewFrame = [iconView.superview convertRect:iconView.frame toView:displacedIconView.superview];
+                
+                if (CGRectIntersectsRect(viewFrame, displacedIconView.frame)) {
+                    [_iconsHiddenForPlaceHolders addIcon:icon toIconsAtPosition:dispPos];
+                    displacedIconView.alpha = 0.f;
+                }
+            }
+        }
     }];
 
-    MAP([_offScreenIconsLayout allIcons], ^(SBIcon *icon) {
-        [self _iconViewForIcon:icon].alpha = 1.f;
-    });
-
+    MAP([_offScreenIconsLayout allIcons], ^(SBIcon *icon) { [self _iconViewForIcon:icon].alpha = 1.f; });
     [self _findIconsWithOffScreenTargets];
-    MAP([_offScreenIconsLayout allIcons], ^(SBIcon *icon) {
-        [self _iconViewForIcon:icon].alpha = 0.f;
-    });
 }
 
 - (SBIcon *)_displacedIconAtPosition:(STKLayoutPosition)position intersectingAppearingIconView:(SBIconView *)iconView

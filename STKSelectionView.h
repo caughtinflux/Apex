@@ -53,6 +53,8 @@
 
 - (void)scrollToDefaultAnimated:(BOOL)animated;
 - (void)moveToIconView:(SBIconView *)iconView animated:(BOOL)animated completion:(void(^)(void))completionBlock;
+
+- (void)prepareForDisplay;
 - (void)prepareForRemoval;
 
 @end
