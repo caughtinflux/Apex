@@ -467,7 +467,7 @@
 
 - (void)closeForSwitcherWithCompletionHandler:(void(^)(void))completionHandler;
 {
-    [self _animateToClosedPositionWithCompletionBlock:completionHandler duration:kAnimationDuration animateCentralIcon:NO forSwitcher:YES];
+    [self _animateToClosedPositionWithCompletionBlock:completionHandler duration:kAnimationDuration animateCentralIcon:YES forSwitcher:YES];
 }
 
 - (void)openStack
@@ -488,7 +488,6 @@
         didIntercept = YES;
     }
     else if (_isEditing) {
-        CLog(@"Is editing, turning it off!");
         self.isEditing = NO;
         didIntercept = YES;
     }
@@ -612,20 +611,20 @@
 {
     UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
     CGFloat scale = (_isEmpty ? 1.f : kCentralIconPreviewScale);
-
-    [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        // Animate central imageview shrink/grow
-        if (animateCentralIcon) {
+    
+    if (animateCentralIcon && !_isEmpty) {
+        [UIView animateWithDuration:(duration * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            // Animate central imageview shrink/grow
             centralView.transform = CGAffineTransformMakeScale(scale - 0.1f, scale - 0.1f);
-        }
-    } completion:^(BOOL finished) {
-        if (finished) {
-            // Animate it back to `scale`
-            [UIView animateWithDuration:(duration / 2.0) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                centralView.transform = CGAffineTransformMakeScale(scale, scale);
-            } completion:nil];
-        }
-    }];
+        } completion:^(BOOL finished) {
+            if (finished) {
+                // Animate it back to `scale`
+                [UIView animateWithDuration:(duration * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                    centralView.transform = CGAffineTransformMakeScale(scale, scale);
+                } completion:nil];
+            }
+        }];
+    }
     
     // Make sure we're not in the editing state
     self.isEditing = NO;
@@ -648,6 +647,10 @@
         [_closingAnimationOpQueue setSuspended:NO];
         [_closingAnimationOpQueue waitUntilAllOperationsAreFinished];
         [_closingAnimationOpQueue setSuspended:YES];
+
+        if (!animateCentralIcon) {
+            centralView.transform = CGAffineTransformMakeScale(scale, scale);
+        }
 
     } completion:^(BOOL finished) {
         if (finished) {

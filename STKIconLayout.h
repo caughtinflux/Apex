@@ -23,7 +23,7 @@ extern "C" {
 @property(nonatomic, readonly) NSArray *rightIcons;
 
 typedef NS_ENUM(NSInteger, STKLayoutPosition) {
-	STKLayoutPositionNone = 0,
+    STKLayoutPositionNone = 0,
     STKLayoutPositionTop,
     STKLayoutPositionBottom,
     STKLayoutPositionLeft,
@@ -54,18 +54,18 @@ typedef NS_ENUM(NSInteger, STKLayoutPosition) {
 - (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position;
 
 /**
-*	@param icon The icon to set at idx
-*	@see idx
-*	@param idx The index at which icon is to be set
-*	@see icon
-*	@param The STKLayoutPosition at which the icon is to be set
+*   @param icon The icon to set at idx
+*   @see idx
+*   @param idx The index at which icon is to be set
+*   @see icon
+*   @param The STKLayoutPosition at which the icon is to be set
 *
-*	This method replaces the curr_icon at STKLayoutPosition position with index idx with icon, only if idx is less than the number of icons currently in that position. If the index is greater,
-*	the icon is simply added to the icons at that position
-*	@see icon
-*	@see idx
-*	@see position
-* 	
+*   This method replaces the curr_icon at STKLayoutPosition position with index idx with icon, only if idx is less than the number of icons currently in that position. If the index is greater,
+*   the icon is simply added to the icons at that position
+*   @see icon
+*   @see idx
+*   @see position
+*   
 */
 - (void)setIcon:(id)icon atIndex:(NSUInteger)idx position:(STKLayoutPosition)position;
 
@@ -77,9 +77,9 @@ typedef NS_ENUM(NSInteger, STKLayoutPosition) {
 
 
 /**
-*	@param icon The icon for which the position is to be found
-*	@return The first position where icon is found
-*	@see icon
+*   @param icon The icon for which the position is to be found
+*   @return The first position where icon is found
+*   @see icon
 */
 - (STKLayoutPosition)positionForIcon:(id)icon;
 - (void)getPosition:(STKLayoutPosition *)positionRef andIndex:(NSUInteger *)idxRef forIcon:(id)icon;

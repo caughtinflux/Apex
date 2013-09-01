@@ -79,9 +79,7 @@ static BOOL _switcherIsVisible;
 %hook SBIconView
 
 - (void)setLocation:(SBIconViewLocation)loc
-{
-    %orig(loc);
-    
+{    
     if ([[%c(SBIconController) sharedInstance] isEditing]) {
         return;
     }
@@ -104,6 +102,7 @@ static BOOL _switcherIsVisible;
         [[%c(SBIconViewMap) homescreenMap] _addIconView:self forIcon:icon];
     }
 
+    %log();
     STKSetupIconView(self);
 }
 
@@ -467,12 +466,9 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
                     manager.closesOnHomescreenEdit = NO;
                     [tappedIconView.icon launch];
                     manager.closesOnHomescreenEdit = YES;
+                    [manager closeStack];
                 }
-                else if (manager.isEmpty) {
-                    [manager cleanupView];
-                }
-
-                [manager closeStack];
+                
                 STKSetActiveManager(nil);
             };
 
@@ -533,6 +529,10 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
 
 static inline void STKSetupIconView(SBIconView *iconView)
 {
+    if (iconView.icon == STKGetActiveManager().centralIcon) {
+        return;
+    }
+    
     STKAddPanRecognizerToIconView(iconView);
     STKStackManager *manager = STKSetupManagerForView(iconView);
 
@@ -583,13 +583,7 @@ static inline STKStackManager * STKGetActiveManager(void)
 
 static inline void STKCloseActiveManager(void)
 {
-    STKStackManager *manager = STKGetActiveManager();
-    [manager closeStackWithCompletionHandler:^{
-        if (manager.isEmpty) {
-            [manager cleanupView];
-        }
-    }];
-
+    [STKGetActiveManager() closeStack];
     STKSetActiveManager(nil);
 }
 
