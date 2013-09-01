@@ -53,9 +53,32 @@
 
 @synthesize currentIconDistance = _lastDistanceFromCenter;
 
-+ (NSString *)layoutsPath
++ (BOOL)isValidLayoutAtPath:(NSString *)path
 {
-    return [NSHomeDirectory() stringByAppendingFormat:@"/Library/Preferences/%@/Layouts", kSTKTweakName];
+    NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:path];
+    if (!dict) {
+        return NO;
+    }
+
+    SBIconModel *model = (SBIconModel *)[[objc_getClass("SBIconController") sharedInstance] model];
+    NSArray *stackIconIDs = dict[STKStackManagerStackIconsKey];
+
+    if (![model expectedIconForDisplayIdentifier:dict[STKStackManagerCentralIconKey]] || !stackIconIDs) {
+        return NO;
+    }
+
+    NSUInteger count = 0;
+    for (NSString *ident in stackIconIDs) {
+        if ([model expectedIconForDisplayIdentifier:ident]) {
+            count++;
+        }
+    }
+
+    if (count == 0) {
+        return NO;
+    }
+
+    return YES;
 }
 
 
@@ -81,6 +104,7 @@
             [stackIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
         }
         else {
+            _layoutDiffersFromFile = YES;
             NSLog(@"[%@] Couldn't get icon for identifier %@. Confirm that the ID is correct and the app is installed.", kSTKTweakName, identifier);
         }
     }
@@ -227,10 +251,6 @@
     }
 
     @synchronized(self) {
-        if (![[NSFileManager defaultManager] fileExistsAtPath:[STKStackManager layoutsPath]]) {
-            // Check if the directory exists in the first place
-            [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:NO attributes:@{NSFilePosixPermissions : @511} error:NULL];
-        }
         NSMutableDictionary *dictionaryRepresentation = [[[_appearingIconsLayout dictionaryRepresentation] mutableCopy] autorelease];
         dictionaryRepresentation[@"xPos"] = @(_iconCoordinates.xPos);
         dictionaryRepresentation[@"yPos"] = @(_iconCoordinates.yPos);

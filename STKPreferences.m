@@ -21,6 +21,11 @@
 
 @implementation STKPreferences
 
++ (NSString *)layoutsDirectory
+{
+    return [NSHomeDirectory() stringByAppendingFormat:@"/Library/Preferences/%@/Layouts", kSTKTweakName];
+}
+
 + (instancetype)sharedPreferences
 {
     static id sharedInstance;
@@ -29,8 +34,8 @@
     dispatch_once(&predicate, ^{
         sharedInstance = [[self alloc] init];
 
-        [[NSFileManager defaultManager] createDirectoryAtPath:[STKStackManager layoutsPath] withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions : @511} error:NULL];
-        [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[STKStackManager layoutsPath] error:NULL]; // Make sure the permissions are correct anyway
+        [[NSFileManager defaultManager] createDirectoryAtPath:[self layoutsDirectory] withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions : @511} error:NULL];
+        [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[self layoutsDirectory] error:NULL]; // Make sure the permissions are correct anyway
 
         [sharedInstance reloadPreferences];
     });
@@ -63,7 +68,7 @@
     static NSString * const fileType = @".layout";
     if (!_iconsWithStacks) {
         if (!_layouts) {
-            _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[STKStackManager layoutsPath] error:nil] retain];
+            _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[[self class] layoutsDirectory] error:nil] retain];
         }
 
         NSMutableSet *identifiersSet = [[[NSMutableSet alloc] initWithCapacity:_layouts.count] autorelease];
@@ -103,7 +108,7 @@
 
 - (NSString *)layoutPathForIconID:(NSString *)iconID
 {
-    return [NSString stringWithFormat:@"%@/%@.layout", [STKStackManager layoutsPath], iconID];
+    return [NSString stringWithFormat:@"%@/%@.layout", [[self class] layoutsDirectory], iconID];
 }
 
 - (NSString *)layoutPathForIcon:(SBIcon *)icon

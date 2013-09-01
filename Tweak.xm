@@ -426,25 +426,29 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
     __block STKStackManager * stackManager = STKManagerForView(iconView);
 
     if (!stackManager) {
+
         if (ICON_HAS_STACK(iconView.icon)) {
             NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
-            
-            // Check if the manager can be created from file
-            if ([[NSFileManager defaultManager] fileExistsAtPath:layoutPath]) { 
+            if (![STKStackManager isValidLayoutAtPath:layoutPath]) {
+                [[STKPreferences sharedPreferences] removeLayoutForIcon:iconView.icon];
+            }
+            else {
                 stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
                 if (stackManager.layoutDiffersFromFile) {
                     [stackManager saveLayoutToFile:layoutPath];
                 }
-            }
-            else {
-                NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
-                stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
-                if (![stackManager isEmpty]) {
-                    [stackManager saveLayoutToFile:layoutPath];
-                }
+                else if (!stackManager) {
+                    // Control should not get here, since
+                    // we are already checking if the layout is invalid
+                    NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
+                    stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
+                    if (![stackManager isEmpty]) {
+                        [stackManager saveLayoutToFile:layoutPath];
+                    }
+                }    
             }
         }
-        else {
+        else {            
             stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:nil];
         }
 
@@ -600,5 +604,8 @@ static inline void STKCloseActiveManager(void)
         CLog(@"Build date: %s, %s", __DATE__, __TIME__);
         
         %init();
+
+        // Set up the singleton
+        [STKPreferences sharedPreferences];
     }
 }

@@ -3,6 +3,8 @@
 @class SBIcon;
 @interface STKPreferences : NSObject
 
++ (NSString *)layoutsDirectory;
+
 + (instancetype)sharedPreferences;
 
 - (void)reloadPreferences;
