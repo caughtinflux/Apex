@@ -1454,7 +1454,14 @@
         displacedIconView.alpha = 1.f;
     }];
 
+    MAP([_offScreenIconsLayout allIcons], ^(SBIcon *icon) {
+        [self _iconViewForIcon:icon].alpha = 1.f;
+    });
+
     [self _findIconsWithOffScreenTargets];
+    MAP([_offScreenIconsLayout allIcons], ^(SBIcon *icon) {
+        [self _iconViewForIcon:icon].alpha = 0.f;
+    });
 }
 
 - (SBIcon *)_displacedIconAtPosition:(STKLayoutPosition)position intersectingAppearingIconView:(SBIconView *)iconView
