@@ -99,8 +99,8 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 - (void)touchesEnded;
 
 /**
-*   Description: Close the stack irrespective of what's happening. -touchesEnded might call this.
-*   Param `completionHandler`: Block that will be called once stack closing animations finish
+*   Close the stack irrespective of what's happening. -touchesEnded might call this.
+*   @param completionHandler Block that will be called once stack closing animations finish
 */
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler;
 - (void)closeForSwitcherWithCompletionHandler:(void(^)(void))completionHandler;
