@@ -17,7 +17,7 @@
 @interface STKSelectionView ()
 {
     UITableView       *_listTableView;
-    NSMutableArray    *_availableAppIcons;
+    NSArray           *_availableAppIcons;
     SBIconModel       *_model;
     SBIconListView    *_listView;
 
@@ -35,6 +35,7 @@
 }
 
 - (void)_setupSubviews;
+- (NSArray *)_filterAvailableAppIcons;
 - (void)_scrollToNearest;
 
 /**
@@ -69,28 +70,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
         _listView = STKListViewForIcon(_centralView.icon);
         _model = (SBIconModel *)[[objc_getClass("SBIconController") sharedInstance] model];
 
-        _availableAppIcons = [NSMutableArray new];
-        
-        for (id ident in [_model visibleIconIdentifiers]) {
-            // Icons in a stack are already removed from -[SBIconModel visibleIconIdentifiers]
-            // Now we need to nemove the central and other icons with stacks
-            if (ICONID_HAS_STACK(ident) || [ident isEqual:_centralView.icon.leafIdentifier]) {
-                continue;
-            }
-            [_availableAppIcons addObject:[_model expectedIconForDisplayIdentifier:ident]];
-        }
-
-        // The selected icon view's icon will not be in the model's visible app IDs, so add it.
-        [_availableAppIcons addObject:_selectedView.icon];
-
-        if (!_selectedView.icon.isPlaceholder) {
-            // Add a placeholder to available icons so the user can have a "None"-like option
-            STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
-            [_availableAppIcons addObject:ph];
-        }
-
-        NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(caseInsensitiveCompare:)];
-        [_availableAppIcons sortUsingDescriptors:@[descriptor]];
+        _availableAppIcons = [[self _filterAvailableAppIcons] retain];
         [self _setupSubviews];
     }
     return self;
@@ -214,6 +194,35 @@ static NSString * const CellIdentifier = @"STKIconCell";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+- (NSArray *)_filterAvailableAppIcons
+{
+    NSMutableArray *icons = [NSMutableArray new];
+
+    for (id ident in [_model visibleIconIdentifiers]) {
+        // Icons in a stack are already removed from -[SBIconModel visibleIconIdentifiers]
+        // Now we need to nemove the central and other icons with stacks
+        if (ICONID_HAS_STACK(ident) || [ident isEqual:_centralView.icon.leafIdentifier] || [[[_iconViewsLayout allIcons] valueForKeyPath:@"icon.leafIdentifier"] containsObject:ident]) {
+            continue;
+        }
+
+        [icons addObject:[_model expectedIconForDisplayIdentifier:ident]];
+    }
+
+    // The selected icon view's icon will not be in the model's visible app IDs, so add it.
+    [icons addObject:_selectedView.icon];
+
+    if (!_selectedView.icon.isPlaceholder) {
+        // Add a placeholder to available icons so the user can have a "None"-like option
+        STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
+        [icons addObject:ph];
+    }
+
+    NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(caseInsensitiveCompare:)];
+    [icons sortUsingDescriptors:@[descriptor]];
+
+    return [icons autorelease];
+}
+
 - (void)_setupSubviews
 {
     _cellPosition = STKSelectionCellPositionRight;
