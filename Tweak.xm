@@ -46,20 +46,20 @@ typedef enum {
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 
 
-/////////////////////////////////////////////////////////////////////////
-///////////////// STATIC VARIABLES /////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
+/****************************************************************************************************************************************
+                                                      STATIC VARIABLES
+****************************************************************************************************************************************/
 static BOOL _wantsSafeIconViewRetrieval;
 static BOOL _switcherIsVisible;
-///////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
+/****************************************************************************************************************************************/
+/****************************************************************************************************************************************/
 
 
 
 
-////////////////////////////////////////////////////////////////////
-///////////////////// REAL SHIT STARTS ////////////////////////////
-//////////////////////////////////////////////////////////////////
+/****************************************************************************************************************************************/
+/****************************************************  REAL SHIT STARTS  ****************************************************************/
+/****************************************************************************************************************************************/
 
 %hook SBIconViewMap
 %new
@@ -102,7 +102,6 @@ static BOOL _switcherIsVisible;
         [[%c(SBIconViewMap) homescreenMap] _addIconView:self forIcon:icon];
     }
 
-    %log();
     STKSetupIconView(self);
 }
 
@@ -326,6 +325,9 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     STKCloseActiveManager();
 }
 %end
+/****************************************************************************************************************************************/
+/****************************************************************************************************************************************/
+
 
 /**************************************************************************************************************************/
 /****************************************************** Icon Hiding *******************************************************/
@@ -334,7 +336,11 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (BOOL)isIconVisible:(SBIcon *)icon
 {
     BOOL isVisible = %orig();
-    if (_switcherIsVisible == NO) {
+
+    // Picked this one up from https://github.com/big-boss/Libhide/blob/master/dylib/classes/iconhide.xm#L220
+    BOOL isInSpotlight = [((SBIconController *)[%c(SBIconController) sharedInstance]).searchController.searchView isKeyboardVisible];
+
+    if (_switcherIsVisible == NO && isInSpotlight == NO) {
         if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
             isVisible = NO;
         }
@@ -370,11 +376,9 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %hook SBUIController
 - (BOOL)clickedMenuButton
 {
-    %log();
     STKStackManager *activeManager = STKGetActiveManager();
     if (activeManager) {
         BOOL manDidIntercept = [activeManager handleHomeButtonPress];
-        CLog(@"Did intercept: %@", BOOL_TO_STRING(manDidIntercept));
         if (!manDidIntercept) {
             [activeManager closeStack];
         }
