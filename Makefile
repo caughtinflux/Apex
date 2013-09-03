@@ -22,3 +22,6 @@ before-install::
 	$(ECHO_NOTHING)echo Install time: `date`$(ECHO_END)
 	$(ECHO_NOTHING)echo$(ECHO_END)
 	$(ECHO_NOTHING)echo$(ECHO_END)
+
+SUBPROJECTS += SpotlightHelper
+include $(THEOS_MAKE_PATH)/aggregate.mk

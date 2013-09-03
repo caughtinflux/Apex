@@ -9,6 +9,8 @@
 
 - (void)reloadPreferences;
 
+@property (nonatomic, readonly) NSArray *identifiersForIconsInStacks;
+
 - (NSSet *)identifiersForIconsWithStack;
 - (NSArray *)stackIconsForIcon:(SBIcon *)icon;
 

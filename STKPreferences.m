@@ -2,20 +2,31 @@
 #import "STKConstants.h"
 #import "STKStackManager.h"
 
+#import <CoreFoundation/CoreFoundation.h>
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
 
 #define kLastEraseDateKey @"LastEraseDate"
 
+#define kSTKSpringBoardPortName           CFSTR("com.a3tweaks.springboard.iconid.messageport")
+#define kSTKSearchdPortName               CFSTR("com.a3tweaks.searchd.messageport")
+#define kSTKIdentifiersRequestMessageName @"com.a3tweaks.searchd.wantshiddenidents"
+#define kSTKIdentifiersRequestMessageID   (SInt32)1337
+#define kSTKIdentifiersUpdateMessageID    (SInt32)1234
+
 @interface STKPreferences ()
 {
-    NSDictionary *_currentPrefs;
-    NSArray      *_layouts;
-    NSArray      *_iconsInStacks;
-    NSSet        *_iconsWithStacks;
+    NSDictionary     *_currentPrefs;
+    NSArray          *_layouts;
+    NSArray          *_iconsInStacks;
+    NSSet            *_iconsWithStacks;
+
+    CFMessagePortRef  _localPort;
+    BOOL              _isSendingMessage;
 }
 
 - (void)_refreshGroupedIcons;
+- (void)_sendUpdateToSearchd;
 
 @end
 
@@ -43,6 +54,35 @@
     return sharedInstance;
 }
 
+- (instancetype)init
+{
+    if ((self = [super init])) {
+        _localPort = CFMessagePortCreateLocal(kCFAllocatorDefault, 
+                                              kSTKSpringBoardPortName,
+                                              (CFMessagePortCallBack)STKLocalPortCallBack,
+                                              NULL,
+                                              NULL);
+
+        CFRunLoopSourceRef runLoopSource = CFMessagePortCreateRunLoopSource(kCFAllocatorDefault, _localPort, 0);
+        CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, kCFRunLoopCommonModes);
+        CFRelease(runLoopSource);
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    CFMessagePortInvalidate(_localPort);
+    CFRelease(_localPort);
+
+    [_currentPrefs release];
+    [_layouts release];
+    [_iconsInStacks release];
+    [_iconsWithStacks release];
+
+    [super dealloc];
+}
+
 - (void)reloadPreferences
 {
     [_currentPrefs release];
@@ -61,25 +101,29 @@
 
     [_iconsWithStacks release];
     _iconsWithStacks = nil;
+
+    [self _sendUpdateToSearchd];
 }
 
 - (NSSet *)identifiersForIconsWithStack
 {
     static NSString * const fileType = @".layout";
     if (!_iconsWithStacks) {
-        if (!_layouts) {
-            _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[[self class] layoutsDirectory] error:nil] retain];
-        }
-
-        NSMutableSet *identifiersSet = [[[NSMutableSet alloc] initWithCapacity:_layouts.count] autorelease];
-
-        for (NSString *layout in _layouts) {
-            if ([layout hasSuffix:fileType]) {
-                [identifiersSet addObject:[layout substringToIndex:(layout.length - fileType.length)]];
+        @synchronized(self) {
+            if (!_layouts) {
+                _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[[self class] layoutsDirectory] error:nil] retain];
             }
-        }
 
-        _iconsWithStacks = [[NSSet alloc] initWithSet:identifiersSet];
+            NSMutableSet *identifiersSet = [[[NSMutableSet alloc] initWithCapacity:_layouts.count] autorelease];
+
+            for (NSString *layout in _layouts) {
+                if ([layout hasSuffix:fileType]) {
+                    [identifiersSet addObject:[layout substringToIndex:(layout.length - fileType.length)]];
+                }
+            }
+
+            _iconsWithStacks = [[NSSet alloc] initWithSet:identifiersSet];
+        }
     }
     return _iconsWithStacks;
 }
@@ -105,6 +149,13 @@
     return stackIcons;
 }
 
+- (NSArray *)identifiersForIconsInStacks
+{
+    if (!_iconsInStacks) {
+        [self _refreshGroupedIcons];
+    }
+    return _iconsInStacks;
+}
 
 - (NSString *)layoutPathForIconID:(NSString *)iconID
 {
@@ -137,29 +188,82 @@
 
 - (BOOL)removeLayoutForIconID:(NSString *)iconID
 {
-    NSError *err = nil;
-    BOOL ret = [[NSFileManager defaultManager] removeItemAtPath:[self layoutPathForIconID:iconID] error:&err];
-    if (err) {
-        NSLog(@"%@ An error occurred when trying to remove layout for %@. Error %i, %@", kSTKTweakName, iconID, err.code, err);
-    }
+    @synchronized(self) {
+        NSError *err = nil;
+        BOOL ret = [[NSFileManager defaultManager] removeItemAtPath:[self layoutPathForIconID:iconID] error:&err];
+        if (err) {
+            NSLog(@"%@ An error occurred when trying to remove layout for %@. Error %i, %@", kSTKTweakName, iconID, err.code, err);
+        }
 
-    [self reloadPreferences];
-    
-    return ret;
+        [self reloadPreferences];
+        
+        return ret;
+    }
 }
 
 - (void)_refreshGroupedIcons
 {
-    [_iconsInStacks release];
+    @synchronized(self) {
+        [_iconsInStacks release];
 
-    NSMutableArray *groupedIcons = [NSMutableArray array];
-    NSSet *identifiers = [self identifiersForIconsWithStack];
-    for (NSString *identifier in identifiers) {
-        SBIcon *centralIcon = [[(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model] expectedIconForDisplayIdentifier:identifier];
-        [groupedIcons addObjectsFromArray:[(NSArray *)[self stackIconsForIcon:centralIcon] valueForKeyPath:@"leafIdentifier"]];
+        NSMutableArray *groupedIcons = [NSMutableArray array];
+        NSSet *identifiers = [self identifiersForIconsWithStack];
+        for (NSString *identifier in identifiers) {
+            SBIcon *centralIcon = [[(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model] expectedIconForDisplayIdentifier:identifier];
+            [groupedIcons addObjectsFromArray:[(NSArray *)[self stackIconsForIcon:centralIcon] valueForKeyPath:@"leafIdentifier"]];
+        }
+
+        _iconsInStacks = [groupedIcons copy];
     }
+}
 
-    _iconsInStacks = [groupedIcons copy];
+- (void)_sendUpdateToSearchd
+{
+    if (_isSendingMessage) {
+        return;
+    }
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        CFMessagePortRef remotePort = CFMessagePortCreateRemote(kCFAllocatorDefault, kSTKSearchdPortName);
+        if (!remotePort || !CFMessagePortIsValid(remotePort)) {
+            return;
+        }
+
+        _isSendingMessage = YES;
+        if (!_iconsInStacks) {
+            [self _refreshGroupedIcons];
+        }
+
+        NSLog(@"[%@] Preferences changed and connection to searchd is active, sending changes.", kSTKTweakName);
+        CFDataRef dataToSend = (CFDataRef)[NSKeyedArchiver archivedDataWithRootObject:_iconsInStacks];
+        SInt32 err = CFMessagePortSendRequest(remotePort, kSTKIdentifiersUpdateMessageID, dataToSend, 0.5, 0, NULL, NULL);
+        
+        if (err != kCFMessagePortSuccess) {
+            NSLog(@"[%@] An error occurred when sending the update message to searchd: %i", kSTKTweakName, (int)err);
+        }
+
+        _isSendingMessage = NO;
+
+        CFMessagePortInvalidate(remotePort);
+        CFRelease(remotePort);
+    });
+}
+
+CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef data, void *info)
+{
+    CFDataRef returnData = NULL;
+    if (data) {
+        if (msgid == kSTKIdentifiersRequestMessageID) {
+            if (![[STKPreferences sharedPreferences] valueForKey:@"_iconsInStacks"]) {
+                [[STKPreferences sharedPreferences] _refreshGroupedIcons];
+            }
+
+            returnData = (CFDataRef)[[NSKeyedArchiver archivedDataWithRootObject:[[STKPreferences sharedPreferences] valueForKey:@"_iconsInStacks"]] retain];
+
+            // Retain, because "The system releases the returned CFData object  "
+        }
+    }
+    
+    return returnData;
 }
 
 @end
