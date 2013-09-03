@@ -1,7 +1,7 @@
 Package: com.a3tweaks.acervos
 Name: Acervos
 Depends: mobilesubstrate
-Version: 0.1.3
+Version: 0.2
 Architecture: iphoneos-arm
 Description: Folders, what folders?
 Maintainer: A3Tweaks

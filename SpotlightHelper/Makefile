@@ -1,4 +1,5 @@
 # DEBUG = 1
+NORESPRING = 1
 
 include theos/makefiles/common.mk
 
