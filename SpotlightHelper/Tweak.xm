@@ -22,7 +22,7 @@ static void STKUpdateIdentifiers(void)
     }
 
     CFDataRef returnData = NULL;
-    NSLog(@"Sending message to SpringBoard to retrieve stacked icon identifiers");
+    NSLog(@"Retrieving stacked icon identifiers from SpringBoard");
     SInt32 err = CFMessagePortSendRequest(_remotePort,
                                           kSTKIdentifiersRequestMessageID,
                                           (CFDataRef)[kSTKIdentifiersRequestMessageName dataUsingEncoding:NSUTF8StringEncoding],
