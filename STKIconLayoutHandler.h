@@ -3,7 +3,7 @@
 #import "STKConstants.h"
 
 typedef NS_OPTIONS(NSUInteger, STKPositionMask) {
-	STKPositionRegular        = 0,
+    STKPositionRegular        = 0,
     STKPositionTouchingTop    = 1 << 0,
     STKPositionTouchingBottom = 1 << 1,
     STKPositionTouchingLeft   = 1 << 2,
@@ -12,9 +12,9 @@ typedef NS_OPTIONS(NSUInteger, STKPositionMask) {
 };
 
 typedef struct {
-	NSUInteger xPos;
-	NSUInteger yPos;
-	NSUInteger index;
+    NSUInteger xPos;
+    NSUInteger yPos;
+    NSUInteger index;
 } STKIconCoordinates;
 
 @class STKIconLayout, SBIcon;

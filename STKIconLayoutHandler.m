@@ -31,8 +31,8 @@ static SBIconListView *_centralIconListView;
 {
     NSAssert((icons != nil), (@"You must pass in a non-nil array to -[STKIconLayoutHandler layoutForIcons:]"));
 
-    NSMutableArray *topIcons    = [NSMutableArray array]; // 0
-    NSMutableArray *bottomIcons = [NSMutableArray array]; // 1
+    NSMutableArray *bottomIcons = [NSMutableArray array]; // 0 (Give bottom icons preference, since they're easier to tap with a downward swipe)
+    NSMutableArray *topIcons    = [NSMutableArray array]; // 1
     NSMutableArray *leftIcons   = [NSMutableArray array]; // 2
     NSMutableArray *rightIcons  = [NSMutableArray array]; // 3
 
@@ -46,21 +46,22 @@ static SBIconListView *_centralIconListView;
 
         switch (layoutLocation) {
             case 0: {
-                if ((position & STKPositionTouchingTop) == STKPositionTouchingTop) {
-                    [bottomIcons addObject:icons[i]];
-                }
-                else {
-                    [topIcons addObject:icons[i]];
-                }
-                break;
-            }
-
-            case 1: {
                 if (((position & STKPositionTouchingBottom) == STKPositionTouchingBottom)) {
                     [topIcons addObject:icons[i]];
                 }
                 else {
                     [bottomIcons addObject:icons[i]];
+                }
+                break;
+            }
+
+            case 1: {
+                
+                if ((position & STKPositionTouchingTop) == STKPositionTouchingTop) {
+                    [bottomIcons addObject:icons[i]];
+                }
+                else {
+                    [topIcons addObject:icons[i]];
                 }
                 break;
             }
@@ -165,7 +166,7 @@ static SBIconListView *_centralIconListView;
         } while (--numPlaceHolders > 0);
     };
 
-    if ((layout.topIcons == nil || layout.topIcons.count == 0 || layout.topIcons.count < fullLayout.topIcons.count)  && !(position & STKPositionTouchingTop)) {
+    if ((layout.topIcons == nil || layout.topIcons.count == 0 || layout.topIcons.count < fullLayout.topIcons.count) && !(position & STKPositionTouchingTop)) {
         addPlaceHoldersToArray(topIcons, (fullLayout.topIcons.count - layout.topIcons.count));
     }
 
