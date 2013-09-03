@@ -364,9 +364,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 %new
 - (void)stk_reloadIconVisibilityForSwitcher:(BOOL)forSwitcher
-{
-    CLog(@"-[SBIconModel stk_reloadIconVisibilityForSwitcher:]");
-    
+{    
     NSSet *visibleIconTags = MSHookIvar<NSSet *>(self, "_visibleIconTags");
     NSSet *hiddenIconTags = MSHookIvar<NSSet *>(self, "_hiddenIconTags");
 

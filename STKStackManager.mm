@@ -258,6 +258,9 @@
         NSDictionary *fileDict = @{ STKStackManagerCentralIconKey  : _centralIcon.leafIdentifier,
                                     STKStackManagerStackIconsKey   : [[_appearingIconsLayout allIcons] valueForKeyPath:@"leafIdentifier"],
                                     STKStackManagerCustomLayoutKey : dictionaryRepresentation};
+
+        CLog(@"Saving layout: %@", dictionaryRepresentation);
+
         [fileDict writeToFile:file atomically:YES];
 
         _layoutDiffersFromFile = NO;
@@ -272,13 +275,22 @@
 
     [_displacedIconsLayout release];
 
+    STKPositionMask mask = [self _locationMaskForIcon:_centralIcon];
+
     if (_isEmpty) {
         [_appearingIconsLayout release];
-        _appearingIconsLayout = [[STKIconLayoutHandler emptyLayoutForIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
+        _appearingIconsLayout = [[STKIconLayoutHandler emptyLayoutForIconAtPosition:mask] retain];
     }
-    else if (!(EQ_COORDS(current, _iconCoordinates))) {
+    else if (!(EQ_COORDS(current, _iconCoordinates)) && ([STKIconLayoutHandler layout:_appearingIconsLayout requiresRelayoutForPosition:mask])) {
         [_appearingIconsLayout release];
         _appearingIconsLayout = [[STKIconLayoutHandler layoutForIcons:stackIcons aroundIconAtPosition:[self _locationMaskForIcon:_centralIcon]] retain];
+    }
+    else if (EQ_COORDS(current, _iconCoordinates) == NO) {
+        // The coords have changed, but a re-layout isn't necessary
+        _iconCoordinates = current;
+        if (_interactionHandler) {
+            _interactionHandler(self, nil, YES);
+        }
     }
 
     [self _setup];

@@ -95,6 +95,32 @@ static SBIconListView *_centralIconListView;
     return [self _processLayoutForSymmetry:[STKIconLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons] withPosition:position];
 }
 
++ (BOOL)layout:(STKIconLayout *)layout requiresRelayoutForPosition:(STKPositionMask)position
+{
+    if ((position & STKPositionTouchingTop) == STKPositionTouchingTop) {
+        if (layout.topIcons.count > 0) {
+            return YES;
+        }
+    }
+    if ((position & STKPositionTouchingBottom) == STKPositionTouchingBottom) {
+        if (layout.bottomIcons.count > 0) {
+            return YES;
+        }
+    }
+    if ((position & STKPositionTouchingLeft) == STKPositionTouchingLeft) {
+        if (layout.leftIcons.count > 0) {
+            return YES;
+        }
+    }
+    if ((position & STKPositionTouchingRight) == STKPositionTouchingRight) {
+        if (layout.rightIcons.count > 0) {
+            return YES;
+        }
+    }
+
+    return NO;
+}
+
 + (STKIconLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)centralIcon usingLayout:(STKIconLayout *)layout
 {
     NSArray *displacedTopIcons    = nil;
@@ -104,16 +130,16 @@ static SBIconListView *_centralIconListView;
     
     _centralIconListView = STKListViewForIcon(centralIcon);
 
-    if (layout.topIcons) {
+    if (layout.topIcons.count > 0) {
         displacedTopIcons = [self _iconsAboveIcon:centralIcon];
     }
-    if (layout.bottomIcons) {
+    if (layout.bottomIcons.count > 0) {
         displacedBottomIcons = [self _iconsBelowIcon:centralIcon];
     }
-    if (layout.leftIcons) {
+    if (layout.leftIcons.count > 0) {
         displacedLeftIcons = [self _iconsLeftOfIcon:centralIcon];
     }
-    if (layout.rightIcons) {
+    if (layout.rightIcons.count > 0) {
         displacedRightIcons = [self _iconsRightOfIcon:centralIcon];
     }
 
@@ -121,6 +147,7 @@ static SBIconListView *_centralIconListView;
     
     return [STKIconLayout layoutWithIconsAtTop:displacedTopIcons bottom:displacedBottomIcons left:displacedLeftIcons right:displacedRightIcons]; 
 }
+
 
 + (STKIconCoordinates)coordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation
 {
@@ -132,7 +159,6 @@ static SBIconListView *_centralIconListView;
 
     return (STKIconCoordinates){iconX, iconY, iconIndex};
 }
-
 
 + (STKIconLayout *)emptyLayoutForIconAtPosition:(STKPositionMask)position
 {

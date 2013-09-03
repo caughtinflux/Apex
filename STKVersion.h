@@ -1,1 +1,1 @@
-#define kPackageVersion "0.2-3+debug"
+#define kPackageVersion "0.2-10+debug"
