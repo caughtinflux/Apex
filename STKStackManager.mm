@@ -259,8 +259,6 @@
                                     STKStackManagerStackIconsKey   : [[_appearingIconsLayout allIcons] valueForKeyPath:@"leafIdentifier"],
                                     STKStackManagerCustomLayoutKey : dictionaryRepresentation};
 
-        CLog(@"Saving layout: %@", dictionaryRepresentation);
-
         [fileDict writeToFile:file atomically:YES];
 
         _layoutDiffersFromFile = NO;
