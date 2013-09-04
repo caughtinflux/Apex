@@ -275,7 +275,8 @@
 
     STKPositionMask mask = [self _locationMaskForIcon:_centralIcon];
 
-    if (_isEmpty) {
+    if (_isEmpty || [_appearingIconsLayout allIcons].count == 0) {
+        _isEmpty = YES;
         [_appearingIconsLayout release];
         _appearingIconsLayout = [[STKIconLayoutHandler emptyLayoutForIconAtPosition:mask] retain];
     }
@@ -287,7 +288,7 @@
         // The coords have changed, but a re-layout isn't necessary
         _iconCoordinates = current;
         if (_interactionHandler) {
-            _interactionHandler(self, nil, YES);
+            _interactionHandler(self, nil, YES, nil);
         }
     }
 
@@ -297,6 +298,12 @@
         [self cleanupView];
         [self setupPreview];
     }
+}
+
+- (void)removeIconFromAppearingIcons:(SBIcon *)icon
+{
+    [_appearingIconsLayout removeIcon:icon];
+    [self recalculateLayouts];
 }
 
 #pragma mark - Adding Stack Icons
@@ -328,6 +335,10 @@
         }
 
         [_iconViewsLayout addIcon:iconView toIconsAtPosition:position];
+
+        if ([centralIconView isGhostly]) {
+            iconView.alpha = 0.f;
+        }
 
         [centralIconView insertSubview:iconView atIndex:0];
         iconView.userInteractionEnabled = NO;
@@ -370,7 +381,7 @@
 
         // Check if it's the last object
         if (!_isEmpty && idx == currentArray.count - 1) {
-            if (!_closingForSwitcher) {
+            if (!_closingForSwitcher && ![[self _iconViewForIcon:_centralIcon] isGhostly]) {
                 iconView.alpha = 1.f;
             }
 
@@ -479,7 +490,7 @@
     else {
         [self _animateToClosedPositionWithCompletionBlock:^{
             if (_interactionHandler) {
-                _interactionHandler(self, nil, NO);
+                _interactionHandler(self, nil, NO, nil);
             }   
         } duration:kAnimationDuration animateCentralIcon:NO forSwitcher:NO];
     }
@@ -923,7 +934,7 @@
     }
 
     [self _cleanupGestureRecognizers];
-    [self closeStackWithCompletionHandler:^{ if (_interactionHandler) _interactionHandler(self, nil, NO); }];
+    [self closeStackWithCompletionHandler:^{ if (_interactionHandler) _interactionHandler(self, nil, NO, nil); }];
 }
 
 - (void)_cleanupGestureRecognizers
@@ -1209,7 +1220,7 @@
     // Create a layout of placeholders. It has icons in positions where icons should be, but it is left to us to make sure it isn't placed over a icon already there
     STKIconLayout *placeHolderLayout = [STKIconLayoutHandler layoutForPlaceHoldersInLayout:_appearingIconsLayout withPosition:[self _locationMaskForIcon:_centralIcon]];
     SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
-    // SBIconListView *listView = STKListViewForIcon(_centralIcon);
+    SBIconListView *listView = STKListViewForIcon(_centralIcon);
 
     [placeHolderLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
         SBIconView *iconView = [[[objc_getClass("SBIconView") alloc] initWithDefaultSize] autorelease];
@@ -1228,21 +1239,24 @@
             _iconsHiddenForPlaceHolders = [[STKIconLayout alloc] init];
         }
 
-        [_displacedIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition pos) {
-            SBIconView *displacedView = [self _iconViewForIcon:icon];
-            if (CGRectIntersectsRect(displacedView.frame, [centralIconView convertRect:iconView.frame toView:displacedView.superview])) {
-                [_iconsHiddenForPlaceHolders addIcon:displacedView.icon toIconsAtPosition:position];        
-            }
-        }];
-
         iconView.alpha = 0.f;
         [centralIconView insertSubview:iconView belowSubview:centralIconView.iconImageView];
-        [UIView animateWithDuration:kOverlayDuration animations:^{ iconView.alpha = 1.f; } ];
+
+        for (SBIcon *ic in [listView icons]) {
+            SBIconView *displacedView = [self _iconViewForIcon:ic];
+            if (CGRectIntersectsRect(displacedView.frame, [centralIconView convertRect:iconView.frame toView:displacedView.superview])) {
+                [_iconsHiddenForPlaceHolders addIcon:displacedView.icon toIconsAtPosition:position];        
+                displacedView.alpha = 0.f;
+                break;
+            }
+        }
+
+        [UIView animateWithDuration:kOverlayDuration animations:^{ 
+            iconView.alpha = 1.f;
+        }];
     }];
 
     _hasPlaceHolders = YES;
-
-    MAP([_iconsHiddenForPlaceHolders allIcons], ^(SBIcon *icon){ [self _iconViewForIcon:icon].alpha = 0.f; });
 }
 
 - (void)_removePlaceHolders
@@ -1450,7 +1464,7 @@
     }
 
     if (_interactionHandler) {
-        _interactionHandler(self, nil, YES);
+        _interactionHandler(self, nil, YES, (iconToAdd.isPlaceholder ? nil : iconToAdd));
     }
 
     BOOL layoutOpExists = NO;
@@ -1513,9 +1527,8 @@
 
 - (SBIcon *)_displacedIconAtPosition:(STKLayoutPosition)position intersectingAppearingIconView:(SBIconView *)iconView
 {
-    SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
     for (SBIcon *dispIcon in [_displacedIconsLayout iconsForPosition:position]) {
-        if (CGRectIntersectsRect([self _iconViewForIcon:dispIcon].frame, ([centralIconView convertRect:iconView.frame toView:STKListViewForIcon(_centralIcon)]))) {
+        if (CGRectIntersectsRect([self _iconViewForIcon:dispIcon].frame, ([iconView.superview convertRect:iconView.frame toView:[self _iconViewForIcon:dispIcon].superview]))) {
             return dispIcon;
         }
     }
@@ -1541,8 +1554,7 @@
 
 - (void)iconTapped:(SBIconView *)iconView
 {
-    if (!iconView.userInteractionEnabled) {
-        // WHY.
+    if (!iconView.userInteractionEnabled || [iconView isGhostly]) {
         return;
     }
 
@@ -1558,7 +1570,7 @@
 
     [iconView setHighlighted:YES delayUnhighlight:YES];
     if (_interactionHandler) {
-        _interactionHandler(self, iconView, NO);
+        _interactionHandler(self, iconView, NO, nil);
     }
 }
 

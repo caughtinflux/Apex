@@ -206,6 +206,18 @@ static NSString * const CellIdentifier = @"STKIconCell";
 {
     return _availableAppIcons[[_listTableView indexPathForSelectedRow].row];
 }
+
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+    if (_cellPosition == STKSelectionCellPositionLeft) {
+
+        goto supercall;
+    }
+
+supercall:
+    return [super hitTest:point withEvent:event];
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -214,22 +226,31 @@ static NSString * const CellIdentifier = @"STKIconCell";
 - (NSArray *)_filterAvailableAppIcons
 {
     NSMutableArray *icons = [NSMutableArray new];
+    NSArray *appearingIconIDs = [[_iconViewsLayout allIcons] valueForKeyPath:@"icon.leafIdentifier"];
 
     for (id ident in [_model visibleIconIdentifiers]) {
-        // Icons in a stack are already removed from -[SBIconModel visibleIconIdentifiers]
+        // Icons in a stack are removed from -[SBIconModel visibleIconIdentifiers], we need to add those 
         // Now we need to nemove the central and other icons with stacks
-        if (ICONID_HAS_STACK(ident) || [ident isEqual:_centralView.icon.leafIdentifier] || [[[_iconViewsLayout allIcons] valueForKeyPath:@"icon.leafIdentifier"] containsObject:ident]) {
+        if (ICONID_HAS_STACK(ident) || [ident isEqual:_centralView.icon.leafIdentifier] || [appearingIconIDs containsObject:ident]) {
             continue;
         }
 
         [icons addObject:[_model expectedIconForDisplayIdentifier:ident]];
     }
 
-    // The selected icon view's icon will not be in the model's visible app IDs, so add it.
+    
+    for (NSString *hiddenIcon in [STKPreferences sharedPreferences].identifiersForIconsInStacks) {
+        id icon = [_model expectedIconForDisplayIdentifier:hiddenIcon];
+        if (icon && ![appearingIconIDs containsObject:hiddenIcon]) {
+            [icons addObject:icon];
+        }
+    }
+
+    // The selected icon view's icon will be omitted as a part of the above check
     [icons addObject:_selectedView.icon];
 
     if (!_selectedView.icon.isPlaceholder) {
-        // Add a placeholder to available icons so the user can have a "None"-like option
+        // Add a placeholder to available icons so the user can have a "None"-like option, only if the current icon view isn't already a place holder
         STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
         [icons addObject:ph];
     }
@@ -299,10 +320,15 @@ static NSString * const CellIdentifier = @"STKIconCell";
         return ips[1];
     }();
     
+
     if (indexToSelect) {
         [UIView animateWithDuration:0.29f animations:^{
             [_listTableView selectRowAtIndexPath:indexToSelect animated:YES scrollPosition:UITableViewScrollPositionTop];
             [self _setHidesHighlight:NO];
+        } completion:^(BOOL done) {
+            if (done) {
+                [self _showDoneButton];
+            }
         }];
     }
 }

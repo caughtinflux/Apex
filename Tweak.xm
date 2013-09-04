@@ -269,18 +269,22 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %hook SBIconController
 - (void)setIsEditing:(BOOL)isEditing
 {
+    BOOL didChange = !(self.isEditing == isEditing);
     %orig(isEditing);
-    for (SBIconListView *lv in [self valueForKey:@"_rootIconLists"]) {
-        [lv makeIconViewsPerformBlock:^(SBIconView *iv) {
-            if (isEditing) {
-                STKRemovePanRecognizerFromIconView(iv);
-            }
-            else {
-                STKAddPanRecognizerToIconView(iv);
-                STKStackManager *manager = STKManagerForView(iv);
-                [manager recalculateLayouts];
-            }
-        }];
+    
+    if (didChange) {
+        for (SBIconListView *lv in [self valueForKey:@"_rootIconLists"]) {
+            [lv makeIconViewsPerformBlock:^(SBIconView *iv) {
+                if (isEditing) {
+                    STKRemovePanRecognizerFromIconView(iv);
+                }
+                else {
+                    STKAddPanRecognizerToIconView(iv);
+                    STKStackManager *manager = STKManagerForView(iv);
+                    [manager recalculateLayouts];
+                }
+            }];
+        }
     }
 }
 
@@ -460,12 +464,24 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         }
 
         stackManager.interactionHandler = \
-            ^(STKStackManager *manager, SBIconView *tappedIconView, BOOL didChangeState) {
+            ^(STKStackManager *manager, SBIconView *tappedIconView, BOOL didChangeState, SBIcon *addedIcon) {
                 if (didChangeState) {
                     if (manager.isEmpty) {
                         [[STKPreferences sharedPreferences] removeLayoutForIcon:stackManager.centralIcon];
                     }
-                    else {  
+                    else {
+                        SBIcon *centralIconForManagerWithAddedIcon = [[STKPreferences sharedPreferences] centralIconForIcon:addedIcon];
+                        if (centralIconForManagerWithAddedIcon) {
+                            STKStackManager *otherManager = STKManagerForView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:centralIconForManagerWithAddedIcon]);
+                            [otherManager removeIconFromAppearingIcons:addedIcon];
+                            if (otherManager.isEmpty) {
+                                [[STKPreferences sharedPreferences] removeLayoutForIcon:otherManager.centralIcon];
+                            }
+                            else {
+                                [otherManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:otherManager.centralIcon]];
+                            }
+                        }
+
                         NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:manager.centralIcon];
                         [manager saveLayoutToFile:layoutPath];
                     }

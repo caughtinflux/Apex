@@ -17,7 +17,7 @@ extern "C" {
 
 #define kEnablingThreshold 33
 
-typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOOL didChangeState);
+typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOOL didChangeState, SBIcon *addedIcon);
 
 @class SBIcon, STKIconLayout;
 
@@ -70,6 +70,8 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 *   You can also send STKRecaluculateLayoutsNotification through +[NSNotificationCenter defaultCenter]
 */
 - (void)recalculateLayouts;
+
+- (void)removeIconFromAppearingIcons:(SBIcon *)icon;
 
 /**
 *   Sets up the "app-peeking" preview for each app
