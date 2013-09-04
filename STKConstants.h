@@ -18,6 +18,8 @@
     #define CLog(...)
 #endif
 
+#define STKLog(fmt, ...) NSLog((@"[" kSTKTweakName @"]" fmt), ##__VA_ARGS__)
+
 #define BOOL_TO_STRING(b) (b ? @"YES" : @"NO")
 
 #define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/%@/com.a3tweaks.%@.plist", kSTKTweakName, NSHomeDirectory(), kSTKTweakName]
