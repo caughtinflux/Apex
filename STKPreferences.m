@@ -149,6 +149,36 @@
     return stackIcons;
 }
 
+- (id)centralIconForIcon:(id)icon
+{
+    id ret = nil;
+
+    if (_iconsWithStacks) {
+        [self _refreshGroupedIcons];
+    }
+
+    BOOL wantsIcon = [icon isKindOfClass:[objc_getClass("SBIcon") class]];
+    if (!wantsIcon && ![icon isKindOfClass:[NSString class]]) {
+        return nil;
+    }
+
+    NSString *identifier = (wantsIcon ? [(SBIcon *)icon leafIdentifier] : (NSString *)icon);
+
+    // find the NSString object with the matching string
+    NSUInteger ivarArrayIdx = [_iconsInStacks indexOfObject:identifier];
+    if (ivarArrayIdx == NSNotFound) {
+        return nil;
+    }
+
+    NSString *iconIDFromIvar = _iconsInStacks[ivarArrayIdx];
+    ret = objc_getAssociatedObject(iconIDFromIvar, @selector(centralIconID));
+    if (ret && wantsIcon) {
+        ret = [[(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model] expectedIconForDisplayIdentifier:(NSString *)ret];
+    }
+
+    return ret;
+}
+
 - (NSArray *)identifiersForIconsInStacks
 {
     if (!_iconsInStacks) {
@@ -208,9 +238,14 @@
 
         NSMutableArray *groupedIcons = [NSMutableArray array];
         NSSet *identifiers = [self identifiersForIconsWithStack];
+
         for (NSString *identifier in identifiers) {
             SBIcon *centralIcon = [[(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model] expectedIconForDisplayIdentifier:identifier];
-            [groupedIcons addObjectsFromArray:[(NSArray *)[self stackIconsForIcon:centralIcon] valueForKeyPath:@"leafIdentifier"]];
+            
+            for (NSString *groupedIconIdentifier in [(NSArray *)[self stackIconsForIcon:centralIcon] valueForKeyPath:@"leafIdentifier"]) {
+                objc_setAssociatedObject(groupedIconIdentifier, @selector(centralIconID), identifier, OBJC_ASSOCIATION_COPY);
+                [groupedIcons addObject:groupedIconIdentifier];
+            }
         }
 
         _iconsInStacks = [groupedIcons copy];
@@ -233,17 +268,16 @@
             [self _refreshGroupedIcons];
         }
 
-        NSLog(@"[%@] Preferences changed and connection to searchd is active, sending changes.", kSTKTweakName);
+        STKLog(@"Preferences changed and connection to searchd is active, sending changes.");
         CFDataRef dataToSend = (CFDataRef)[NSKeyedArchiver archivedDataWithRootObject:_iconsInStacks];
         SInt32 err = CFMessagePortSendRequest(remotePort, kSTKIdentifiersUpdateMessageID, dataToSend, 0.5, 0, NULL, NULL);
         
         if (err != kCFMessagePortSuccess) {
-            NSLog(@"[%@] An error occurred when sending the update message to searchd: %i", kSTKTweakName, (int)err);
+            STKLog(@"An error occurred when sending the update message to searchd: %i", (int)err);
         }
 
         _isSendingMessage = NO;
 
-        CFMessagePortInvalidate(remotePort);
         CFRelease(remotePort);
     });
 }

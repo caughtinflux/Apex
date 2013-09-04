@@ -14,6 +14,10 @@
 - (NSSet *)identifiersForIconsWithStack;
 - (NSArray *)stackIconsForIcon:(SBIcon *)icon;
 
+// Pass in a NSString for `icon`, you get an NSString in return
+// If `icon` is a SBIcon instance, you get a SBIcon in return!
+- (id)centralIconForIcon:(id)icon;
+
 - (NSString *)layoutPathForIconID:(NSString *)iconID;
 - (NSString *)layoutPathForIcon:(SBIcon *)icon;
 
