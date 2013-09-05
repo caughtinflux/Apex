@@ -302,7 +302,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
                 }
                 else {
                     STKStackManager *manager = STKManagerForView(iv);
-                    if (!manager) {
+                    if (!manager && iv.icon.isLeafIcon) {
                         STKSetupIconView(iv);
                         return;
                     }
