@@ -95,7 +95,7 @@ static SBIconListView *_centralIconListView;
     return [self _processLayoutForSymmetry:[STKIconLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons] withPosition:position];
 }
 
-+ (BOOL)layout:(STKIconLayout *)layout requiresRelayoutForPosition:(STKPositionMask)position
++ (BOOL)layout:(STKIconLayout *)layout requiresRelayoutForPosition:(STKPositionMask)position suggestedLayout:(__autoreleasing STKIconLayout **)outLayout
 {
     if ((position & STKPositionTouchingTop) == STKPositionTouchingTop) {
         if (layout.topIcons.count > 0) {
@@ -117,6 +117,14 @@ static SBIconListView *_centralIconListView;
             return YES;
         }
     }
+
+    if (layout.topIcons.count > 1 || layout.bottomIcons.count > 1 || layout.leftIcons.count > 1 || layout.rightIcons.count > 1) {
+        if (outLayout) {
+            *outLayout = [self _processLayoutForSymmetry:layout withPosition:position];
+        }
+        return YES;
+    }
+
 
     return NO;
 }
@@ -216,10 +224,30 @@ static SBIconListView *_centralIconListView;
 
 + (STKIconLayout *)_processLayoutForSymmetry:(STKIconLayout *)layout withPosition:(STKPositionMask)position
 {
-    NSMutableArray *topArray = [layout.topIcons.mutableCopy autorelease];
-    NSMutableArray *bottomArray = [layout.bottomIcons.mutableCopy autorelease];
-    NSMutableArray *leftArray = [layout.leftIcons.mutableCopy autorelease];
-    NSMutableArray *rightArray = [layout.rightIcons.mutableCopy autorelease];
+    NSMutableArray *topArray    = layout.topIcons    ? [layout.topIcons.mutableCopy autorelease]    : [NSMutableArray array];
+    NSMutableArray *bottomArray = layout.bottomIcons ? [layout.bottomIcons.mutableCopy autorelease] : [NSMutableArray array];
+    NSMutableArray *leftArray   = layout.leftIcons   ? [layout.leftIcons.mutableCopy autorelease]   : [NSMutableArray array];
+    NSMutableArray *rightArray  = layout.rightIcons  ? [layout.rightIcons.mutableCopy autorelease]  : [NSMutableArray array];
+    
+    void (^processArray)(NSMutableArray *array) = ^(NSMutableArray *array) {
+        if ((leftArray.count == 0) && !(position & STKPositionTouchingLeft)) {  
+            [leftArray addObject:array[1]];
+            [array removeObjectAtIndex:1];
+        }
+        else if ((rightArray.count == 0) && !(position & STKPositionTouchingRight)) {
+            CLog(@"We can add to the right array, doing so :)");
+            [rightArray addObject:array[1]]; 
+            [array removeObjectAtIndex:1];
+        }
+        else if ((bottomArray.count == 0) && !(position & STKPositionTouchingBottom)) {
+            [bottomArray addObject:array[1]];
+            [array removeObjectAtIndex:1];
+        }
+        else if ((topArray.count == 0) && !(position & STKPositionTouchingTop)) {
+            [topArray addObject:array[1]];
+            [array removeObjectAtIndex:1];
+        }
+    };
 
     NSMutableArray *extraArray = nil;
 
@@ -231,17 +259,7 @@ static SBIconListView *_centralIconListView;
         extraArray = bottomArray;
     }
 
-    if (extraArray) {
-        if ((leftArray.count == 0) && !(position & STKPositionTouchingLeft)) {  
-            [leftArray addObject:extraArray[1]];
-            [extraArray removeObjectAtIndex:1];
-        }
-        else if ((rightArray.count == 0) && !(position & STKPositionTouchingRight)) {
-            [rightArray addObject:extraArray[1]]; 
-            [extraArray removeObjectAtIndex:1];
-        }
-    }
-
+    if (extraArray) processArray(extraArray);
 
     extraArray = nil; // Set it back to nil for a pass at the horizontals
 
@@ -252,16 +270,7 @@ static SBIconListView *_centralIconListView;
         extraArray = rightArray;
     }
 
-    if (extraArray) {
-        if ((topArray.count == 0) && !(position & STKPositionTouchingTop)) {
-            [topArray addObject:extraArray[1]];
-            [extraArray removeObjectAtIndex:1];
-        }
-        else if ((bottomArray.count == 0) && !(position & STKPositionTouchingBottom)) {
-            [bottomArray addObject:extraArray[1]];
-            [extraArray removeObjectAtIndex:1];
-        }
-    }
+    if (extraArray) processArray(extraArray);
 
     return [STKIconLayout layoutWithIconsAtTop:topArray bottom:bottomArray left:leftArray right:rightArray];
 }
@@ -269,6 +278,9 @@ static SBIconListView *_centralIconListView;
 + (NSArray *)_iconsAboveIcon:(SBIcon *)icon
 {
     STKIconCoordinates coordinates = [self coordinatesForIcon:icon withOrientation:kCurrentOrientation];
+    if (STKCoordinatesAreValid(coordinates) == NO) {
+        return nil;
+    }
     NSArray *ret = [[self _iconsInColumnWithX:coordinates.xPos] subarrayWithRange:NSMakeRange(0, coordinates.yPos)];
     return ret;
 }
@@ -276,6 +288,9 @@ static SBIconListView *_centralIconListView;
 + (NSArray *)_iconsBelowIcon:(SBIcon *)icon
 {
     STKIconCoordinates coordinates = [self coordinatesForIcon:icon withOrientation:kCurrentOrientation];
+    if (STKCoordinatesAreValid(coordinates) == NO) {
+        return nil;
+    }
     NSArray *iconsInColumn = [self _iconsInColumnWithX:coordinates.xPos];
     
     NSRange range;
@@ -288,6 +303,9 @@ static SBIconListView *_centralIconListView;
 + (NSArray *)_iconsLeftOfIcon:(SBIcon *)icon
 {
     STKIconCoordinates coordinates = [self coordinatesForIcon:icon withOrientation:kCurrentOrientation];
+    if (STKCoordinatesAreValid(coordinates) == NO) {
+        return nil;
+    }
     NSArray *iconsInRow = [self _iconsInRowWithY:coordinates.yPos];
     
     NSRange range;
@@ -300,6 +318,9 @@ static SBIconListView *_centralIconListView;
 + (NSArray *)_iconsRightOfIcon:(SBIcon *)icon
 {
     STKIconCoordinates coordinates = [self coordinatesForIcon:icon withOrientation:kCurrentOrientation];
+    if (STKCoordinatesAreValid(coordinates) == NO) {
+        return nil;
+    }
     NSArray *iconsInRow = [self _iconsInRowWithY:coordinates.yPos];
     
     NSRange range;

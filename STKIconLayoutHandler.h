@@ -22,6 +22,8 @@ typedef struct {
 									    ((a & STKPositionTouchingLeft) == (b & STKPositionTouchingLeft)) && ((a & STKPositionTouchingRight) == (b & STKPositionTouchingRight)) && \
 									    ((a & STKPositionDock) == (b & STKPositionDock)) )
 
+#define STKCoordinatesAreValid(_coords) (_coords.xPos != NSNotFound && _coords.yPos != NSNotFound && _coords.index != NSNotFound)
+
 @class STKIconLayout, SBIcon;
 @interface STKIconLayoutHandler : NSObject
 
@@ -30,7 +32,7 @@ typedef struct {
 // I mean it.
 + (STKIconLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(STKPositionMask)position;
 
-+ (BOOL)layout:(STKIconLayout *)layout requiresRelayoutForPosition:(STKPositionMask)position;
++ (BOOL)layout:(STKIconLayout *)layout requiresRelayoutForPosition:(STKPositionMask)position suggestedLayout:(__autoreleasing STKIconLayout **)outLayout;
 
 // Returns an STKIconLayout object whose properties contain SBIcons to be faded out when the new icons are coming in
 // This, is plain magic.
