@@ -26,7 +26,6 @@
 }
 
 - (void)_refreshGroupedIcons;
-- (void)_sendUpdateToSearchd;
 
 @end
 
@@ -101,8 +100,6 @@
 
     [_iconsWithStacks release];
     _iconsWithStacks = nil;
-
-    [self _sendUpdateToSearchd];
 }
 
 - (NSSet *)identifiersForIconsWithStack
@@ -252,35 +249,6 @@
     }
 }
 
-- (void)_sendUpdateToSearchd
-{
-    if (_isSendingMessage) {
-        return;
-    }
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        CFMessagePortRef remotePort = CFMessagePortCreateRemote(kCFAllocatorDefault, kSTKSearchdPortName);
-        if (!remotePort || !CFMessagePortIsValid(remotePort)) {
-            return;
-        }
-
-        _isSendingMessage = YES;
-        if (!_iconsInStacks) {
-            [self _refreshGroupedIcons];
-        }
-
-        STKLog(@"Preferences changed and connection to searchd is active, sending changes.");
-        CFDataRef dataToSend = (CFDataRef)[NSKeyedArchiver archivedDataWithRootObject:_iconsInStacks];
-        SInt32 err = CFMessagePortSendRequest(remotePort, kSTKIdentifiersUpdateMessageID, dataToSend, 0.5, 0, NULL, NULL);
-        
-        if (err != kCFMessagePortSuccess) {
-            STKLog(@"An error occurred when sending the update message to searchd: %i", (int)err);
-        }
-
-        _isSendingMessage = NO;
-
-        CFRelease(remotePort);
-    });
-}
 
 CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef data, void *info)
 {
@@ -293,7 +261,7 @@ CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef d
 
             returnData = (CFDataRef)[[NSKeyedArchiver archivedDataWithRootObject:[[STKPreferences sharedPreferences] valueForKey:@"_iconsInStacks"]] retain];
 
-            // Retain, because "The system releases the returned CFData object  "
+            // Retain, because "The system releases the returned CFData object"
         }
     }
     
