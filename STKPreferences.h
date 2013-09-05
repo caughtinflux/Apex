@@ -10,6 +10,7 @@
 - (void)reloadPreferences;
 
 @property (nonatomic, readonly) NSArray *identifiersForIconsInStacks;
+@property (nonatomic, assign) BOOL previewEnabled;
 
 - (NSSet *)identifiersForIconsWithStack;
 - (NSArray *)stackIconsForIcon:(SBIcon *)icon;

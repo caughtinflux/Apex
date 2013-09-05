@@ -345,7 +345,7 @@
 
         iconView.frame = centralIconView.bounds;
         [self _setAlpha:0.f forLabelAndShadowOfIconView:iconView];
-        if (!_isEmpty) {
+        if (!_isEmpty && _showsPreview) {
             iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
         }
 
@@ -364,6 +364,7 @@
     }];
 
     [centralIconView bringSubviewToFront:centralIconView.iconImageView];
+    [self _calculateDistanceRatio];
 
     _hasSetup = YES;
 }
@@ -395,7 +396,7 @@
         CGPoint newOrigin = frame.origin;
 
         // Check if it's the last object
-        if (!_isEmpty && idx == currentArray.count - 1) {
+        if (!_isEmpty && _showsPreview && idx == currentArray.count - 1) {
             if (!_closingForSwitcher && ![[self _iconViewForIcon:_centralIcon] isGhostly]) {
                 iconView.alpha = 1.f;
             }
@@ -416,7 +417,7 @@
         frame.origin = newOrigin; 
         iconView.frame = frame;
 
-        if (!_isEmpty) {
+        if (!_isEmpty && _showsPreview) {
             // Scale the icon back down to the smaller size, only if there indeed _are_ any icons
             iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
         }
@@ -473,20 +474,22 @@
             }
             [self _setAlpha:(1 - alpha) forLabelAndShadowOfIconView:iv];
 
-            CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
-            if (_lastDistanceFromCenter <= midWayDistance) {
-                // If the icons are past the halfway mark, start increasing/decreasing their scale.
-                // This looks beatuiful. Yay me.
-                CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kStackPreviewIconScale);
-                iv.iconImageView.transform = CGAffineTransformMakeScale(stackIconTransformScale, stackIconTransformScale);
+            if (_showsPreview) {
+                CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
+                if (_lastDistanceFromCenter <= midWayDistance) {
+                    // If the icons are past the halfway mark, start increasing/decreasing their scale.
+                    // This looks beatuiful. Yay me.
+                    CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kStackPreviewIconScale);
+                    iv.iconImageView.transform = CGAffineTransformMakeScale(stackIconTransformScale, stackIconTransformScale);
+                    
                 
-            
-                CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
-                [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(centralIconTransformScale, centralIconTransformScale);
-            }
-            else {      
-                [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
-                iv.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+                    CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
+                    [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(centralIconTransformScale, centralIconTransformScale);
+                }
+                else {      
+                    [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+                    iv.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+                }
             }
         }
         else {
@@ -665,7 +668,7 @@
 - (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon forSwitcher:(BOOL)forSwitcher
 {
     UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
-    CGFloat scale = (_isEmpty ? 1.f : kCentralIconPreviewScale);
+    CGFloat scale = (_isEmpty || !_showsPreview ? 1.f : kCentralIconPreviewScale);
 
     if (animateCentralIcon && !_isEmpty) {
         [UIView animateWithDuration:(duration * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
@@ -679,6 +682,10 @@
                 } completion:nil];
             }
         }];
+    }
+
+    if (_isEmpty || (!animateCentralIcon && !_showsPreview)) {
+        centralView.transform = CGAffineTransformMakeScale(scale, scale);
     }
     
     // Make sure we're not in the editing state
@@ -723,7 +730,7 @@
             [_offScreenIconsLayout release];
             _offScreenIconsLayout = nil;
 
-            if (_isEmpty) {
+            if (_isEmpty || !_showsPreview) {
                 // We can remove the place holder icon views if the stack is empty. No need to have 4 icon views hidden behind every damn icon.
                 [self cleanupView];
                 
@@ -731,9 +738,11 @@
                 [_offScreenIconsLayout release];
                 _offScreenIconsLayout = nil;
                 
-                [_appearingIconsLayout removeAllIcons];
-                [_appearingIconsLayout release];
-                _appearingIconsLayout = nil;
+                if (_isEmpty) {
+                    [_appearingIconsLayout removeAllIcons];
+                    [_appearingIconsLayout release];
+                    _appearingIconsLayout = nil;    
+                }
                 
                 [_displacedIconsLayout removeAllIcons];
                 [_displacedIconsLayout release];
@@ -869,7 +878,7 @@
         moveDistance *= distanceRatio;
 
         CGFloat multFactor = (IS_LESSER((*currentCoord + moveDistance), *targetCoord, position) ? (idx + 1) : 1);
-        CGFloat popComp = (((idx == currentArray.count - 1) && !(_isEmpty)) ? ((*targetCoord - kPopoutDistance * negator) / *targetCoord) : 1.f);
+        CGFloat popComp = (((idx == currentArray.count - 1) && !(_isEmpty || !_showsPreview)) ? ((*targetCoord - kPopoutDistance * negator) / *targetCoord) : 1.f);
 
         moveDistance *= (multFactor * popComp);
 
@@ -1104,7 +1113,7 @@
     CGFloat horizontalDistance = referencePoint.x - horizontalOrigin.x;
 
     _distanceRatio = (horizontalDistance / verticalDistance);
-    _popoutCompensationRatio = (_isEmpty ? 1.f : (verticalDistance / (verticalDistance - kPopoutDistance))); // This is the ratio of the target distance of a stack icon to a displaced icon, respectively
+    _popoutCompensationRatio = ((_isEmpty || _showsPreview) ? 1.f : (verticalDistance / (verticalDistance - kPopoutDistance))); // This is the ratio of the target distance of a stack icon to a displaced icon, respectively
 }
 
 - (void)_findIconsWithOffScreenTargets

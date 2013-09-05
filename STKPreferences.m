@@ -13,6 +13,11 @@
 #define kSTKIdentifiersRequestMessageName @"com.a3tweaks.searchd.wantshiddenidents"
 #define kSTKIdentifiersRequestMessageID   (SInt32)1337
 #define kSTKIdentifiersUpdateMessageID    (SInt32)1234
+#define kSTKPrefsChangedNotification      CFSTR("com.a3tweaks.acervos.prefschanged")
+
+#define GETBOOL(_dict, _key, _default) (_dict[_key] ? [_dict[_key] boolValue] : _default);
+
+static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 
 @interface STKPreferences ()
 {
@@ -26,7 +31,6 @@
 }
 
 - (void)_refreshGroupedIcons;
-
 @end
 
 @implementation STKPreferences
@@ -48,6 +52,8 @@
         [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[self layoutsDirectory] error:NULL]; // Make sure the permissions are correct anyway
 
         [sharedInstance reloadPreferences];
+
+        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)STKPrefsChanged, kSTKPrefsChangedNotification, NULL, 0);
     });
 
     return sharedInstance;
@@ -88,7 +94,8 @@
 
     _currentPrefs = [[NSDictionary alloc] initWithContentsOfFile:kPrefPath];
     if (!_currentPrefs) {
-        _currentPrefs = [[NSDictionary alloc] init];
+        _currentPrefs = [[NSMutableDictionary alloc] init];
+        [(NSMutableDictionary *)_currentPrefs setObject:@(YES) forKey:STKStackPreviewEnabledKey];
         [_currentPrefs writeToFile:kPrefPath atomically:YES];
     }
 
@@ -100,6 +107,11 @@
 
     [_iconsWithStacks release];
     _iconsWithStacks = nil;
+}
+
+- (BOOL)previewEnabled
+{
+    return GETBOOL(_currentPrefs, STKStackPreviewEnabledKey, YES);
 }
 
 - (NSSet *)identifiersForIconsWithStack
@@ -266,6 +278,11 @@ CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef d
     }
     
     return returnData;
+}
+
+static void STKPrefsChanged (CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object,CFDictionaryRef userInfo)
+{
+    [[STKPreferences sharedPreferences] reloadPreferences];
 }
 
 @end

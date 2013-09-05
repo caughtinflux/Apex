@@ -104,7 +104,9 @@ static BOOL _switcherIsVisible;
         [[%c(SBIconViewMap) homescreenMap] _addIconView:self forIcon:icon];
     }
 
-    STKSetupIconView(self);
+    if (!STKManagerForView(self)) {
+        STKSetupIconView(self);
+    }
 }
 
 - (BOOL)canReceiveGrabbedIcon:(SBIconView *)iconView
@@ -464,7 +466,6 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
     __block STKStackManager * stackManager = STKManagerForView(iconView);
 
     if (!stackManager) {
-
         if (ICON_HAS_STACK(iconView.icon)) {
             NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
             if (![STKStackManager isValidLayoutAtPath:layoutPath]) {
@@ -489,6 +490,8 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         else {            
             stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:nil];
         }
+
+        stackManager.showsPreview = [STKPreferences sharedPreferences].previewEnabled;
 
         stackManager.interactionHandler = \
             ^(STKStackManager *manager, SBIconView *tappedIconView, BOOL didChangeState, SBIcon *addedIcon) {
@@ -535,7 +538,7 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         [stackManager release];
     }
 
-    if (stackManager.isEmpty == NO) {
+    if (stackManager.isEmpty == NO && stackManager.showsPreview) {
         [stackManager setupPreview];
     }
     
@@ -594,7 +597,7 @@ static inline void STKSetupIconView(SBIconView *iconView)
     STKAddPanRecognizerToIconView(iconView);
     STKStackManager *manager = STKSetupManagerForView(iconView);
 
-    CGFloat scale = (manager.isEmpty ? 1.f : kCentralIconPreviewScale);
+    CGFloat scale = (manager.isEmpty || !manager.showsPreview ? 1.f : kCentralIconPreviewScale);
     iconView.iconImageView.transform = CGAffineTransformMakeScale(scale, scale);
 }
 

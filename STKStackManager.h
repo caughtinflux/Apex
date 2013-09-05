@@ -41,6 +41,7 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 
 @property (nonatomic, assign) BOOL isEditing;
 @property (nonatomic, assign) BOOL closesOnHomescreenEdit; 
+@property (nonatomic, assign) BOOL showsPreview;
 
 /**
 *   @return An instance of a STKStackManager class, nil if `file` is corrupt or could not be read
