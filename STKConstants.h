@@ -39,6 +39,7 @@
 
 #define ICONID_HAS_STACK(ID) ([[[STKPreferences sharedPreferences] identifiersForIconsWithStack] containsObject:ID])
 #define ICON_HAS_STACK(icon) ICONID_HAS_STACK(icon.leafIdentifier)
+#define ICON_IS_IN_STACK(_icon) [[STKPreferences sharedPreferences] iconIsInStack:_icon]
 
 #define PATH_TO_IMAGE(_name) [[NSBundle bundleWithPath:@"/Library/Application Support/Acervos.bundle"] pathForResource:_name ofType:@"png"]
 #define UIIMAGE_NAMED(_name) [[[UIImage alloc] initWithContentsOfFile:PATH_TO_IMAGE(_name)] autorelease]
