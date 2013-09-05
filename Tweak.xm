@@ -79,10 +79,10 @@ static BOOL _switcherIsVisible;
 %hook SBIconView
 
 - (void)setLocation:(SBIconViewLocation)loc
-{   
+{
     %orig();
     
-    if ([[%c(SBIconController) sharedInstance] isEditing]) {
+    if ([[%c(SBIconController) sharedInstance] isEditing] || _switcherIsVisible || self.superview == nil) {
         return;
     }
     
@@ -267,6 +267,28 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 #pragma mark - SBIconController Hook
 %hook SBIconController
+- (SBFolder *)createNewFolderFromRecipientIcon:(SBIcon *)recepient grabbedIcon:(SBIcon *)grabbed
+{ 
+    STKCleanupIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:recepient]);
+    STKCleanupIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:grabbed]);
+    
+    return %orig();
+}
+
+- (void)animateIcons:(NSArray *)icons intoFolderIcon:(SBFolderIcon *)folderIcon openFolderOnFinish:(BOOL)openFolder complete:(void(^)(void))completionBlock
+{
+    void (^otherBlock)(void) = ^{
+        for (SBIcon *icon in icons) {
+            STKCleanupIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:icon]);
+        }
+        if (completionBlock) {
+            completionBlock();
+        }
+    };
+
+    %orig(icons, folderIcon, openFolder, otherBlock);
+}
+
 - (void)setIsEditing:(BOOL)isEditing
 {
     BOOL didChange = !(self.isEditing == isEditing);
@@ -279,8 +301,13 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
                     STKRemovePanRecognizerFromIconView(iv);
                 }
                 else {
-                    STKAddPanRecognizerToIconView(iv);
                     STKStackManager *manager = STKManagerForView(iv);
+                    if (!manager) {
+                        STKSetupIconView(iv);
+                        return;
+                    }
+
+                    STKAddPanRecognizerToIconView(iv);
                     [manager recalculateLayouts];
                 }
             }];
