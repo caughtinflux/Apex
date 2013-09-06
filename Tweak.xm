@@ -19,6 +19,8 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView); // Create
 static void STKRemoveManagerFromView(SBIconView *iconView); // Removes the manager from view, closing the stack if it was open
 static void STKAddPanRecognizerToIconView(SBIconView *iconView);
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
+static void STKAddGrabberImagesToIconView(SBIconView *iconView);
+static void STKRemoveGrabberImagesFromIconView(SBIconView *iconView);
 
 
 static inline void STKSetupIconView(SBIconView *iconView); // Adds recogniser and sets up stack manager for the preview
@@ -82,7 +84,7 @@ static BOOL _switcherIsVisible;
 {
     %orig();
     
-    if ([[%c(SBIconController) sharedInstance] isEditing] || _switcherIsVisible || self.superview == nil) {
+    if ([[%c(SBIconController) sharedInstance] isEditing] || _switcherIsVisible || !self.superview) {
         return;
     }
     
@@ -252,7 +254,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 {
     STKStackManager *activeManager = STKGetActiveManager();
     
-    if ((activeManager != nil) && (STKManagerForView(self) == activeManager)) {
+    if (activeManager && (STKManagerForView(self) == activeManager)) {
         // Only if `self`'s manager is the active manager should we bother forwarding touches.
         UIView *view = [activeManager hitTest:point withEvent:event];
         if (view) {
@@ -454,11 +456,12 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 
 #pragma mark - Associated Object Keys
+// I've assigned these to selectors so I get easy access to these stuffs via cycript
 static SEL const panGRKey = @selector(acervosPanKey);
 static SEL const stackManagerKey = @selector(acervosManagerKey);
 static SEL const topGrabberViewKey = @selector(acervosTopGrabberKey);
 static SEL const bottomGrabberViewKey = @selector(acervosBottomGrabberKey);
-static SEL const recognizerDelegateKey = @selector(acervosDelegateKey);
+static SEL const recognizerDelegateKey = @selector(acervosDelegateKey); 
 
 #pragma mark - Static Function Definitions
 static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
@@ -588,6 +591,36 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
     }
 }
 
+static void STKAddGrabberImagesToIconView(SBIconView *iconView)
+{
+    UIImageView *topView = objc_getAssociatedObject(iconView, topGrabberViewKey);
+    if (!topView) {
+        topView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"TopGrabber")] autorelease];
+        topView.center = (CGPoint){iconView.iconImageView.center.x, (iconView.iconImageView.frame.origin.y)};
+        [iconView addSubview:topView];
+
+        objc_setAssociatedObject(iconView, topGrabberViewKey, topView, OBJC_ASSOCIATION_ASSIGN);
+    }
+
+    UIImageView *bottomView = objc_getAssociatedObject(iconView, bottomGrabberViewKey);
+    if (!bottomView) {
+        bottomView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"BottomGrabber")] autorelease];
+        bottomView.center = (CGPoint){iconView.iconImageView.center.x, (CGRectGetMaxY(iconView.iconImageView.frame) - 1)};
+        [iconView addSubview:bottomView];
+
+        objc_setAssociatedObject(iconView, bottomGrabberViewKey, bottomView, OBJC_ASSOCIATION_ASSIGN);
+    }
+}
+
+static void STKRemoveGrabberImagesFromIconView(SBIconView *iconView)
+{
+    [(UIView *)objc_getAssociatedObject(iconView, topGrabberViewKey) removeFromSuperview];
+    [(UIView *)objc_getAssociatedObject(iconView, bottomGrabberViewKey) removeFromSuperview];  
+
+    objc_setAssociatedObject(iconView, topGrabberViewKey, nil, OBJC_ASSOCIATION_ASSIGN);
+    objc_setAssociatedObject(iconView, bottomGrabberViewKey, nil, OBJC_ASSOCIATION_ASSIGN);
+}
+
 static inline void STKSetupIconView(SBIconView *iconView)
 {
     if (iconView.icon == STKGetActiveManager().centralIcon) {
@@ -599,14 +632,18 @@ static inline void STKSetupIconView(SBIconView *iconView)
 
     CGFloat scale = (manager.isEmpty || !manager.showsPreview ? 1.f : kCentralIconPreviewScale);
     iconView.iconImageView.transform = CGAffineTransformMakeScale(scale, scale);
+
+    if (!manager.showsPreview && !manager.isEmpty) {
+        STKAddGrabberImagesToIconView(iconView);
+    }
 }
 
 static inline void STKCleanupIconView(SBIconView *iconView)
 {        
     STKRemovePanRecognizerFromIconView(iconView);
     STKRemoveManagerFromView(iconView);
+    STKRemoveGrabberImagesFromIconView(iconView);
 }
-
 
 
 #pragma mark - Inliner Definitions
