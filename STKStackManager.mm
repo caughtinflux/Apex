@@ -1583,6 +1583,11 @@
         return;
     }
 
+    if (!_isEditing) {
+        self.isEditing = NO;
+        return;
+    }
+
     if (![iconView.icon.leafIdentifier isEqual:_centralIcon.leafIdentifier] && (_isEditing || [iconView.icon.leafIdentifier isEqualToString:STKPlaceHolderIconIdentifier])) {
         [self _showSelectionViewOnIconView:iconView];
         return;
