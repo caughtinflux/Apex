@@ -9,6 +9,7 @@
 #import "SBIconModel+Additions.h"
 
 #import <SpringBoard/SpringBoard.h>
+#import <IconSupport/ISIconSupport.h>
 #import <objc/message.h>
 #import <notify.h>
 #import <stdlib.h>
@@ -694,6 +695,12 @@ static inline void STKCloseActiveManager(void)
         CLog(@"Build date: %s, %s", __DATE__, __TIME__);
         
         %init();
+
+        void *handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
+        if (!handle) {
+            CLog(@"IconSupport isn't installed, icons will not show up in iTunes!");
+        }
+        [[objc_getClass("ISIconSupport") sharedInstance] addExtension:kSTKTweakName];
 
         // Set up the singleton
         [STKPreferences sharedPreferences];
