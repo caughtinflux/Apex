@@ -1331,6 +1331,8 @@
 
     [_currentSelectionView scrollToDefaultAnimated:NO];
 
+    [_iconController scrollView].scrollEnabled = NO;
+
     [UIView animateWithDuration:kAnimationDuration animations:^{
         [_currentSelectionView prepareForDisplay];
         _currentSelectionView.alpha = 1.f;
@@ -1377,6 +1379,8 @@
         if (done) {
             [_currentSelectionView removeFromSuperview];
             [_currentSelectionView release];
+
+            [_iconController scrollView].scrollEnabled = YES;
          
             _currentSelectionView = nil;
             _selectionViewPosition = STKLayoutPositionNone;
