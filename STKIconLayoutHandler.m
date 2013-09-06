@@ -235,7 +235,6 @@ static SBIconListView *_centralIconListView;
             [array removeObjectAtIndex:1];
         }
         else if ((rightArray.count == 0) && !(position & STKPositionTouchingRight)) {
-            CLog(@"We can add to the right array, doing so :)");
             [rightArray addObject:array[1]]; 
             [array removeObjectAtIndex:1];
         }
