@@ -9,7 +9,9 @@
 #import "SBIconModel+Additions.h"
 
 #import <SpringBoard/SpringBoard.h>
+
 #import <IconSupport/ISIconSupport.h>
+
 #import <objc/message.h>
 #import <notify.h>
 #import <stdlib.h>
@@ -456,6 +458,9 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 /********************************************************************************************************************************************************************************************************/
 
 
+
+/********************************************************************************************************************************************************************************************************/
+/********************************************************************************************************************************************************************************************************/
 #pragma mark - Associated Object Keys
 // I've assigned these to selectors so I get easy access to these stuffs via cycript
 static SEL const panGRKey = @selector(acervosPanKey);
@@ -514,6 +519,9 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
                             else {
                                 [otherManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:otherManager.centralIcon]];
                             }
+                        }
+                        if (!manager.showsPreview) {
+                            STKAddGrabberImagesToIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:stackManager.centralIcon]);
                         }
 
                         NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:manager.centralIcon];
