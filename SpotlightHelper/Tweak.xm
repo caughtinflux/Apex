@@ -4,9 +4,9 @@
 #import <dlfcn.h>
 #import <substrate.h>
 
-#define kSTKSpringBoardPortName           CFSTR("com.a3tweaks.springboard.iconid.messageport")
-#define kSTKSearchdPortName               CFSTR("com.a3tweaks.searchd.messageport")
-#define kSTKIdentifiersRequestMessageName @"com.a3tweaks.searchd.wantshiddenidents"
+#define kSTKSpringBoardPortName           CFSTR("com.a3tweaks.apex.springboardport")
+#define kSTKSearchdPortName               CFSTR("com.a3tweaks.apex.searchdport")
+#define kSTKIdentifiersRequestMessageName @"com.a3tweaks.apex.searchd.wantshiddenidents"
 #define kSTKIdentifiersRequestMessageID   (SInt32)1337
 #define kSTKIdentifiersUpdateMessageID    (SInt32)1234
 

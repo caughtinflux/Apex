@@ -7,12 +7,12 @@
 #import <objc/runtime.h>
 #import <sys/sysctl.h>
 
-NSString * const STKTweakName                       = @"Acervos";
+NSString * const STKTweakName                       = @"Apex";
 NSString * const STKEditingStateChangedNotification = @"STKEditingStateChanged";
 NSString * const STKStackClosingEventNotification   = @"STKStackClosingEvent";
-NSString * const STKPlaceHolderIconIdentifier       = @"com.a3tweaks.placeholderid";
+NSString * const STKPlaceHolderIconIdentifier       = @"com.a3tweaks.apex.placeholderid";
 
-CFStringRef const STKPrefsChangedNotificationName = CFSTR("com.a3tweaks.acervos.prefschanged");
+CFStringRef const STKPrefsChangedNotificationName = CFSTR("com.a3tweaks.apex.prefschanged");
 
 // SpringBoard constants
 NSString * const SBLockStateChangeNotification = @"com.apple.springboard.lockstate";

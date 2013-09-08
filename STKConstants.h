@@ -8,7 +8,7 @@
 
 #import "STKVersion.h"
 
-#define kSTKTweakName @"Acervos"
+#define kSTKTweakName @"Apex"
 
 #ifdef DEBUG
     #define DLog(fmt, ...) NSLog((@"[%@] %s [Line %d] " fmt), kSTKTweakName, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
@@ -41,7 +41,7 @@
 #define ICON_HAS_STACK(icon) ICONID_HAS_STACK(icon.leafIdentifier)
 #define ICON_IS_IN_STACK(_icon) [[STKPreferences sharedPreferences] iconIsInStack:_icon]
 
-#define PATH_TO_IMAGE(_name) [[NSBundle bundleWithPath:@"/Library/Application Support/Acervos.bundle"] pathForResource:_name ofType:@"png"]
+#define PATH_TO_IMAGE(_name) [[NSBundle bundleWithPath:@"/Library/Application Support/Apex.bundle"] pathForResource:_name ofType:@"png"]
 #define UIIMAGE_NAMED(_name) [[[UIImage alloc] initWithContentsOfFile:PATH_TO_IMAGE(_name)] autorelease]
 
 #define MAP(_array, _block) for (id elem in _array) { _block(elem); }

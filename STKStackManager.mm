@@ -4,7 +4,7 @@
 #import "STKIdentifiedOperation.h"
 
 #import "SBIconModel+Additions.h"
-#import "SBIconViewMap+AcervosSafety.h"
+#import "SBIconViewMap+STKSafety.h"
 #import "NSOperationQueue+STKMainQueueDispatch.h"
 #import "STKPreferences.h"
 
@@ -110,12 +110,12 @@
         }
         else {
             _layoutDiffersFromFile = YES;
-            NSLog(@"[%@] Couldn't get icon for identifier %@. Confirm that the ID is correct and the app is installed.", kSTKTweakName, identifier);
+            STKLog(@"Couldn't get icon for identifier %@. Confirm that the ID is correct and the app is installed.", identifier);
         }
     }
 
     if (!centralIcon) {
-        NSLog(@"[%@] Central Icon: %@ doesn't exist, dying quietly...", kSTKTweakName, attributes[STKStackManagerCentralIconKey]);
+        STKLog(@"Central Icon: %@ doesn't exist, dying quietly...", attributes[STKStackManagerCentralIconKey]);
         return nil;
     }
 

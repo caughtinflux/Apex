@@ -469,12 +469,12 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 /********************************************************************************************************************************************************************************************************/
 #pragma mark - Associated Object Keys
 // I've assigned these to selectors so I get easy access to these stuffs via cycript
-static SEL const panGRKey              = @selector(acervosPanKey);
-static SEL const stackManagerKey       = @selector(acervosManagerKey);
-static SEL const topGrabberViewKey     = @selector(acervosTopGrabberKey);
-static SEL const bottomGrabberViewKey  = @selector(acervosBottomGrabberKey);
-static SEL const recognizerDelegateKey = @selector(acervosDelegateKey);
-static SEL const prefsCallbackObserver = @selector(acervosCallbackKey);
+static SEL const panGRKey              = @selector(apexPanKey);
+static SEL const stackManagerKey       = @selector(apexManagerKey);
+static SEL const topGrabberViewKey     = @selector(apexTopGrabberKey);
+static SEL const bottomGrabberViewKey  = @selector(apexBottomGrabberKey);
+static SEL const recognizerDelegateKey = @selector(apexDelegateKey);
+static SEL const prefsCallbackObserver = @selector(apexCallbackKey);
 
 #pragma mark - Static Function Definitions
 static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)

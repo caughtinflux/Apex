@@ -1,5 +1,5 @@
-Package: com.a3tweaks.acervos
-Name: Acervos
+Package: com.a3tweaks.apex
+Name: Apex
 Depends: mobilesubstrate, com.chpwn.iconsupport, firmware (>= 6.0)
 Version: 0.2
 Architecture: iphoneos-arm
