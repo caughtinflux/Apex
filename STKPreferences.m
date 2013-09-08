@@ -13,21 +13,25 @@
 #define kSTKIdentifiersRequestMessageName @"com.a3tweaks.searchd.wantshiddenidents"
 #define kSTKIdentifiersRequestMessageID   (SInt32)1337
 #define kSTKIdentifiersUpdateMessageID    (SInt32)1234
-#define kSTKPrefsChangedNotification      CFSTR("com.a3tweaks.acervos.prefschanged")
 
 #define GETBOOL(_dict, _key, _default) (_dict[_key] ? [_dict[_key] boolValue] : _default);
 
 static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 
 @interface STKPreferences ()
-{
-    NSDictionary     *_currentPrefs;
-    NSArray          *_layouts;
-    NSArray          *_iconsInStacks;
-    NSSet            *_iconsWithStacks;
+{   
+    NSDictionary        *_currentPrefs;
+    NSArray             *_layouts;
+    NSArray             *_iconsInStacks;
+    NSSet               *_iconsWithStacks;
 
-    CFMessagePortRef  _localPort;
-    BOOL              _isSendingMessage;
+    CFMessagePortRef     _localPort;
+    BOOL                 _isSendingMessage;
+
+    NSMutableArray      *_observers;
+    NSMutableArray      *_callbacks;
+
+    NSMutableDictionary *_cachedLayouts;
 }
 
 - (void)_refreshGroupedIcons;
@@ -53,7 +57,7 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 
         [sharedInstance reloadPreferences];
 
-        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)STKPrefsChanged, kSTKPrefsChangedNotification, NULL, 0);
+        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)STKPrefsChanged, STKPrefsChangedNotificationName, NULL, 0);
     });
 
     return sharedInstance;
@@ -240,6 +244,52 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     }
 }
 
+- (id)registerCallbackForPrefsChange:(STKPreferencesCallbackBlock)callback
+{
+    if (!callback) {
+        return nil;
+    }
+    if (!_callbacks) {
+        _callbacks = [[NSMutableArray alloc] init];
+    }
+
+    id obs = [[[NSObject alloc] init] autorelease];
+    [_callbacks addObject:[callback copy]];
+    [_observers addObject:obs];
+
+    return obs;
+}
+
+- (void)unregisterCallbackWithObserver:(id)obs
+{
+    if (!obs) {
+        return;
+    }
+    NSUInteger idx = [_observers indexOfObject:obs];
+    if (idx == NSNotFound) {
+        return;
+    }
+    [_callbacks removeObjectAtIndex:idx];
+    [_observers removeObjectAtIndex:idx];
+}
+
+- (NSDictionary *)cachedLayoutDictForIcon:(SBIcon *)centralIcon
+{
+    NSDictionary *layout = _cachedLayouts[centralIcon.leafIdentifier];
+    if (!layout) {
+        NSDictionary *customLayout = [NSDictionary dictionaryWithContentsOfFile:[[STKPreferences sharedPreferences] layoutPathForIcon:centralIcon]][STKStackManagerCustomLayoutKey];
+        if (customLayout) {
+            _cachedLayouts[centralIcon.leafIdentifier] = customLayout;
+        }
+    } 
+    return layout;
+}
+
+- (void)refreshCachedLayoutDictForIcon:(SBIcon *)centralIcon
+{
+    [_cachedLayouts removeObjectForKey:centralIcon.leafIdentifier];
+}
+
 - (void)_refreshGroupedIcons
 {
     @synchronized(self) {
@@ -261,7 +311,6 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     }
 }
 
-
 CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef data, void *info)
 {
     CFDataRef returnData = NULL;
@@ -280,9 +329,12 @@ CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef d
     return returnData;
 }
 
-static void STKPrefsChanged (CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object,CFDictionaryRef userInfo)
+static void STKPrefsChanged (CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
     [[STKPreferences sharedPreferences] reloadPreferences];
+    for (STKPreferencesCallbackBlock cb in [[STKPreferences sharedPreferences] valueForKey:@"_callbacks"]) {
+        cb();
+    }
 }
 
 @end

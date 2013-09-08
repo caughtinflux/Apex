@@ -48,7 +48,7 @@
 
     STKLayoutPosition         _selectionViewPosition;
     NSUInteger                _selectionViewIndex;
-
+    
     BOOL                      _hasLayoutOp;
     NSMutableArray           *_iconsToHideOnClose;
     NSMutableArray           *_iconsToShowOnClose;
@@ -135,7 +135,7 @@
         STKPositionMask mask = [self _locationMaskForIcon:_centralIcon];
 
         if (!icons || icons.count == 0) {
-            _appearingIconsLayout = [[STKIconLayoutHandler emptyLayoutForIconAtPosition:mask] retain];
+            _needsLayout = YES;
             _isEmpty = YES;
         }
         else {
@@ -186,7 +186,9 @@
 
 - (void)_setup
 {
-    _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
+    if (!_isEmpty) {
+        _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
+    }
     _iconCoordinates = [STKIconLayoutHandler coordinatesForIcon:_centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
 
     _postCloseOpQueue = [[NSOperationQueue alloc] init];
@@ -196,9 +198,6 @@
     _closingAnimationOpQueue = [[NSOperationQueue alloc] init];
     [_closingAnimationOpQueue setSuspended:YES];
     [_closingAnimationOpQueue setMaxConcurrentOperationCount:1];
-
-    [self _calculateDistanceRatio];
-    [self _findIconsWithOffScreenTargets];
 
     _iconController = [objc_getClass("SBIconController") sharedInstance];
 
@@ -307,7 +306,8 @@
         }
     }
 
-    [self _setup];
+    _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
+    _iconCoordinates = [STKIconLayoutHandler coordinatesForIcon:_centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
 
     if (_hasSetup) {
         [self cleanupView];
@@ -577,6 +577,20 @@
     MAP([_iconViewsLayout allIcons], ^(SBIconView *iv) {
         iv.alpha = alpha;
     });
+}
+
+- (void)setShowsPreview:(BOOL)showsPrev
+{
+    if (showsPrev == _showsPreview) {
+        return;
+    }
+    _showsPreview = showsPrev;
+    if (_showsPreview && !_isEmpty) {
+        [self setupPreview];
+    }
+    if (!_showsPreview && !_isExpanded) {
+        [self cleanupView]; // Make sure we don't do this if the stack is open.
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

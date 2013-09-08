@@ -12,6 +12,8 @@ NSString * const STKEditingStateChangedNotification = @"STKEditingStateChanged";
 NSString * const STKStackClosingEventNotification   = @"STKStackClosingEvent";
 NSString * const STKPlaceHolderIconIdentifier       = @"com.a3tweaks.placeholderid";
 
+CFStringRef const STKPrefsChangedNotificationName = CFSTR("com.a3tweaks.acervos.prefschanged");
+
 // SpringBoard constants
 NSString * const SBLockStateChangeNotification = @"com.apple.springboard.lockstate";
 

@@ -58,6 +58,8 @@ extern "C" {
     
     extern NSString * const SBLockStateChangeNotification;
 
+    extern CFStringRef const STKPrefsChangedNotificationName;
+
     // Function to translate a number from one range to another
     // For instance 248 in the range [0, 320] -> something 0.0 -> 0.1
     extern inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax);

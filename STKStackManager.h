@@ -44,7 +44,7 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 @property (nonatomic, assign) BOOL showsPreview;
 
 /**
-*   @return An instance of a STKStackManager class, nil if `file` is corrupt or could not be read
+*   @return An instance of STKStackManager, nil if `file` is corrupt or could not be read
 *   @param file Path to an archived dictionary that looks like this:   @{STKStackManagerCentralIconKey: <central icon identifier>,
 *                                                                        STKStackManagerStackIconsKey: <array of stack icon identifiers>,
                                                                          STKStackManagerCustomLayoutKey: <dict containing a custom layout>}
@@ -52,11 +52,18 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 - (instancetype)initWithContentsOfFile:(NSString *)file;
 
 /**
-*   @return An instance of a STKStackManager class
+*   @return An instance of STKStackManager
 *   @param centralIcon The icon on the home screen that will be at the centre of the stack
 *   @param icons Sub-apps in the stack. Pass nil for this argument to display empty placeholders
 */
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon stackIcons:(NSArray *)icons;
+
+/**
+*	@return An instance of STKStackManager
+*	@param centralIcon The icon on the home screen that will be at the centre of the stack
+*	@param customLayout A dictionary for STKIconLayout to init with
+*/
+- (instancetype)initWithCentralIcon:(SBIcon *)centralIcon withCustomLayout:(NSDictionary *)customLayout;
 
 /**
 *   Persist the layout to path

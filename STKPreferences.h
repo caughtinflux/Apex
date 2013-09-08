@@ -1,5 +1,7 @@
 #import <Foundation/Foundation.h>
 
+typedef void(^STKPreferencesCallbackBlock)(void);
+
 @class SBIcon;
 @interface STKPreferences : NSObject
 
@@ -27,5 +29,11 @@
 
 - (BOOL)removeLayoutForIcon:(SBIcon *)icon;
 - (BOOL)removeLayoutForIconID:(NSString *)iconID;
+
+- (id)registerCallbackForPrefsChange:(STKPreferencesCallbackBlock)callbackBlock;
+- (void)unregisterCallbackWithObserver:(id)observer;
+
+- (NSDictionary *)cachedLayoutDictForIcon:(SBIcon *)centralIcon;
+- (void)refreshCachedLayoutDictForIcon:(SBIcon *)centralIcon;
 
 @end
