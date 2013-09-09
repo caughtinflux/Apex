@@ -114,6 +114,23 @@ static BOOL _switcherIsVisible;
     }
 }
 
+- (void)setIcon:(SBIcon *)icon
+{
+    %orig();
+
+    STKStackManager *man = STKManagerForView(self);
+
+    if (man) {
+        if (!icon) {
+            STKCleanupIconView(self);
+        }
+        else if (man.centralIcon != icon) {
+            STKCleanupIconView(self);
+            STKSetupIconView(self);
+        }
+    }
+}
+
 - (BOOL)canReceiveGrabbedIcon:(SBIconView *)iconView
 {
     return ((ICON_HAS_STACK(self.icon) || ICON_HAS_STACK(iconView.icon)) ? NO : %orig());
