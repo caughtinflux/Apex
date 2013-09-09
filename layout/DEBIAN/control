@@ -1,7 +1,7 @@
 Package: com.a3tweaks.apex
 Name: Apex
 Depends: mobilesubstrate, com.chpwn.iconsupport, firmware (>= 6.0)
-Version: 0.2
+Version: 0.5-beta
 Architecture: iphoneos-arm
 Description: Folders, what folders?
 Maintainer: A3Tweaks
