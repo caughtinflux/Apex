@@ -256,8 +256,8 @@
 
     @synchronized(self) {
         NSMutableDictionary *dictionaryRepresentation = [[[_appearingIconsLayout dictionaryRepresentation] mutableCopy] autorelease];
-        dictionaryRepresentation[@"xPos"] = @(_iconCoordinates.xPos);
-        dictionaryRepresentation[@"yPos"] = @(_iconCoordinates.yPos);
+        dictionaryRepresentation[@"xPos"] = [NSNumber numberWithInteger:_iconCoordinates.xPos];
+        dictionaryRepresentation[@"yPos"] = [NSNumber numberWithInteger:_iconCoordinates.yPos];
 
         NSDictionary *fileDict = @{ STKStackManagerCentralIconKey  : _centralIcon.leafIdentifier,
                                     STKStackManagerStackIconsKey   : [[_appearingIconsLayout allIcons] valueForKeyPath:@"leafIdentifier"],
