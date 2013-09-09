@@ -1,14 +1,15 @@
 #import <UIKit/UIKit.h>
 #import "STKIconLayoutHandler.h"
 
+
 @class SBIconView, STKIconLayout;
 @protocol STKSelectionViewDelegate;
 
-@interface STKSelectionView : UIView
+@interface STKSelectionView : UIView <UIScrollViewDelegate, UITableViewDelegate, UITableViewDataSource>
 {
 @private
-    SBIconView *_iconView;
-    SBIconView *_centralIconView;
+    SBIconView *_selectedView;
+    SBIconView *_centralView;
     
     STKIconLayout *_iconViewsLayout;
     STKIconLayout *_displacedIconsLayout;
@@ -17,12 +18,13 @@
 }
 
 /**
-*   Returns: STKSelectionListView instance.
-*
-*   Param `iconView`: The icon view around which the selection UI is to be shown
-*   Param `iconViewsLayout`: The layout containing SBIconView instances of all the icons in the stack
-*   Param `centralIconView`: The central icon view for the stack
-*   Param `displacedIconsLayout`: Layout containing homescreen icons that are displaced
+*   @param iconView The icon view around which the selection UI is to be shown
+*   @param iconViewLayout The layout containing SBIconView instances of all the icons in the stack
+*	@param position The bitmask containing position of the central icon view
+*   @param centralIconView The central icon view for the stack
+*   @param displacedIconsLayout Layout containing homescreen icons that are displaced
+*	
+*	@return STKSelectionListView instance, with an automatically calculated frame
 */
 - (instancetype)initWithIconView:(SBIconView *)iconView
                         inLayout:(STKIconLayout *)iconViewLayout
@@ -33,21 +35,33 @@
 /**
 *   All these properties are simply the arguments passed into the designated intializer
 */
-@property (nonatomic, readonly) SBIconView *iconView;
+@property (nonatomic, readonly) SBIconView *iconView; // iconView=_selectedView
 @property (nonatomic, readonly) SBIconView *centralIconView;
 @property (nonatomic, readonly) STKIconLayout *iconViewsLayout;
 @property (nonatomic, readonly) STKIconLayout *displacedIconsLayout;
+@property (nonatomic, readonly) UITableView *listTableView;
+
+/*
+*	The currently selected icon in the list.
+*/
+@property (nonatomic, readonly) SBIcon *highlightedIcon;
 
 /**
 *   Set this property to be notified about events in the selection view
 */
 @property (nonatomic, assign) id<STKSelectionViewDelegate> delegate;
 
+- (void)scrollToDefaultAnimated:(BOOL)animated;
+- (void)moveToIconView:(SBIconView *)iconView animated:(BOOL)animated completion:(void(^)(void))completionBlock;
+
+- (void)prepareForDisplay;
+- (void)prepareForRemoval;
+
 @end
 
 
 @protocol STKSelectionViewDelegate <NSObject>
 @optional
-- (void)iconView:(SBIconView *)iconView tappedInSelectionView:(STKSelectionView *)selectionView;
+- (void)closeButtonTappedOnSelectionView:(STKSelectionView *)selectionView;
 @end
 
