@@ -1,6 +1,6 @@
 #import <SpringBoard/SBIconViewMap.h>
 
 @class SBIcon, SBIconView;
-@interface SBIconViewMap (AcervosSafety)
+@interface SBIconViewMap (STKSafety)
 - (SBIconView *)safeIconViewForIcon:(SBIcon *)icon;
 @end

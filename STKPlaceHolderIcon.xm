@@ -21,6 +21,10 @@
 	return NO;
 }
 
+- (BOOL)isPlaceholder
+{
+	return YES;
+}
 
 - (UIImage *)getStandardIconImageForLocation:(NSInteger)location
 {
