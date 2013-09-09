@@ -11,6 +11,8 @@
 #import <SpringBoard/SpringBoard.h>
 
 #import <IconSupport/ISIconSupport.h>
+#import <Search/SPSearchResultSection.h>
+#import <Search/SPSearchResult.h>
 
 #import <objc/message.h>
 #import <notify.h>
@@ -479,8 +481,23 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 /********************************************************************************************************************************************************************************************************/
 /********************************************************************************************************************************************************************************************************/
+%hook SPSearchAgent
+- (id)sectionAtIndex:(NSUInteger)idx
+{
 
-
+    SPSearchResultSection *ret =%orig();
+    if (ret.hasDomain && ret.domain == 4) {
+        NSString *appID = ret.displayIdentifier;
+        SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:appID];
+        if (ICON_IS_IN_STACK(icon)) {
+            SBIcon *centralIcon = [[STKPreferences sharedPreferences] centralIconForIcon:[[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:appID]];
+            [(SPSearchResult *)ret.results[0] setAuxiliaryTitle:centralIcon.displayName];
+            [(SPSearchResult *)ret.results[0] setAuxiliarySubtitle:centralIcon.displayName];
+        }
+    }
+    return ret;
+}
+%end
 
 /********************************************************************************************************************************************************************************************************/
 /********************************************************************************************************************************************************************************************************/
