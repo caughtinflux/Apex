@@ -7,6 +7,7 @@
 #import "SBIconViewMap+STKSafety.h"
 #import "NSOperationQueue+STKMainQueueDispatch.h"
 #import "STKPreferences.h"
+#import "STKPlaceHolderIcon.h"
 
 #import <objc/runtime.h>
 
@@ -27,7 +28,6 @@
     STKIconCoordinates        _iconCoordinates;
 
     CGFloat                   _distanceRatio;
-    CGFloat                   _popoutCompensationRatio;
     CGFloat                   _lastDistanceFromCenter;
 
     BOOL                      _longPressed; 
@@ -43,7 +43,6 @@
     id<SBIconViewDelegate>    _previousDelegate;
 
     STKSelectionView         *_currentSelectionView;
-    STKIconLayout            *_placeHolderViewsLayout;
     STKIconLayout            *_iconsHiddenForPlaceHolders;
 
     STKLayoutPosition         _selectionViewPosition;
@@ -1125,7 +1124,6 @@
     CGFloat horizontalDistance = referencePoint.x - horizontalOrigin.x;
 
     _distanceRatio = (horizontalDistance / verticalDistance);
-    _popoutCompensationRatio = ((_isEmpty || _showsPreview) ? 1.f : (verticalDistance / (verticalDistance - kPopoutDistance))); // This is the ratio of the target distance of a stack icon to a displaced icon, respectively
 }
 
 - (void)_findIconsWithOffScreenTargets
@@ -1442,6 +1440,19 @@
 
             if (!iconToChangeWasPlaceholder) {
                 removedIcon = [iconViewToChange.icon retain];
+            }
+
+
+            // If `iconToAdd` is a sub-app, change it's icon view to a place holder
+            NSUInteger currentSubappIndex;
+            STKLayoutPosition currentSubappPosition;
+            [_appearingIconsLayout getPosition:&currentSubappPosition andIndex:&currentSubappIndex forIcon:iconToAdd];
+            if (currentSubappIndex != NSNotFound) {
+                STKPlaceHolderIcon *placeholder = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
+                [_appearingIconsLayout removeIcon:iconToAdd];
+
+                SBIconView *subAppViewToChange = [_iconViewsLayout iconsForPosition:currentSubappPosition][currentSubappIndex];
+                [subAppViewToChange setIcon:placeholder];
             }
 
             // Set the icon!

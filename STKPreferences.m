@@ -98,7 +98,7 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     _currentPrefs = [[NSDictionary alloc] initWithContentsOfFile:kPrefPath];
     if (!_currentPrefs) {
         _currentPrefs = [[NSMutableDictionary alloc] init];
-        [(NSMutableDictionary *)_currentPrefs setObject:@(YES) forKey:STKStackPreviewEnabledKey];
+        [(NSMutableDictionary *)_currentPrefs setObject:[NSNumber numberWithInt:YES] forKey:STKStackPreviewEnabledKey];
         [_currentPrefs writeToFile:kPrefPath atomically:YES];
     }
 

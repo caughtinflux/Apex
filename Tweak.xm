@@ -562,14 +562,16 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
                         SBIcon *centralIconForManagerWithAddedIcon = [[STKPreferences sharedPreferences] centralIconForIcon:addedIcon];
                         if (centralIconForManagerWithAddedIcon) {
                             STKStackManager *otherManager = STKManagerForView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:centralIconForManagerWithAddedIcon]);
-                            [otherManager removeIconFromAppearingIcons:addedIcon];
-                            if (otherManager.isEmpty) {
-                                [[STKPreferences sharedPreferences] removeLayoutForIcon:otherManager.centralIcon];
+                            if (otherManager != manager) {
+                                [otherManager removeIconFromAppearingIcons:addedIcon];
+                                if (otherManager.isEmpty) {
+                                    [[STKPreferences sharedPreferences] removeLayoutForIcon:otherManager.centralIcon];
+                                }
+                                else {
+                                    [otherManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:otherManager.centralIcon]];
+                                }
+                                [[STKPreferences sharedPreferences] refreshCachedLayoutDictForIcon:otherManager.centralIcon];
                             }
-                            else {
-                                [otherManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:otherManager.centralIcon]];
-                            }
-                            [[STKPreferences sharedPreferences] refreshCachedLayoutDictForIcon:otherManager.centralIcon];
                         }
                         if (!manager.showsPreview) {
                             STKAddGrabberImagesToIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:stackManager.centralIcon]);

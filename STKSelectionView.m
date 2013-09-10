@@ -226,12 +226,11 @@ supercall:
 - (NSArray *)_filterAvailableAppIcons
 {
     NSMutableArray *icons = [NSMutableArray new];
-    NSArray *appearingIconIDs = [[_iconViewsLayout allIcons] valueForKeyPath:@"icon.leafIdentifier"];
 
     for (id ident in [_model visibleIconIdentifiers]) {
         // Icons in a stack are removed from -[SBIconModel visibleIconIdentifiers], we need to add those 
         // Now we need to nemove the central and other icons with stacks
-        if (ICONID_HAS_STACK(ident) || [ident isEqual:_centralView.icon.leafIdentifier] || [appearingIconIDs containsObject:ident]) {
+        if (ICONID_HAS_STACK(ident)) {
             continue;
         }
 
@@ -241,9 +240,7 @@ supercall:
     
     for (NSString *hiddenIcon in [STKPreferences sharedPreferences].identifiersForIconsInStacks) {
         id icon = [_model expectedIconForDisplayIdentifier:hiddenIcon];
-        if (icon && ![appearingIconIDs containsObject:hiddenIcon]) {
-            [icons addObject:icon];
-        }
+        [icons addObject:icon];
     }
 
     // The selected icon view's icon will be omitted as a part of the above check
