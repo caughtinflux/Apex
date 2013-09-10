@@ -216,9 +216,7 @@
         [self _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO];
     }
 
-    if (_previousDelegate) {
-        [self _iconViewForIcon:_centralIcon].delegate = _previousDelegate;
-    }
+    [self _iconViewForIcon:_centralIcon].delegate = _previousDelegate;
     
     if (_interactionHandler) {
         [_interactionHandler release];
@@ -1576,10 +1574,6 @@
     [iconView setHighlighted:YES];
 }
 
-- (void)icon:(id)arg1 touchMovedWithEvent:(id)arg2
-{
-}
-
 - (void)icon:(SBIconView *)iconView touchEnded:(BOOL)arg2
 {
     [iconView setHighlighted:NO];
@@ -1631,9 +1625,10 @@
     return NO;
 }
 
-- (BOOL)iconAllowJitter:(SBIconView *)iconView
-{
-    return YES;
+
+- (BOOL)iconViewDisplaysBadges:(SBIconView *)iconView
+{    
+    return [_iconController iconViewDisplaysBadges:iconView];   
 }
 
 @end
