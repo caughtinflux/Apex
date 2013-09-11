@@ -581,6 +581,7 @@
     if (showsPrev == _showsPreview) {
         return;
     }
+    
     _showsPreview = showsPrev;
     if (_showsPreview && !_isEmpty) {
         [self setupPreview];

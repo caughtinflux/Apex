@@ -4,8 +4,6 @@
 #import "Globals.h"
 #import "../STKConstants.h"
 
-#define BETA NO
-
 #define TEXT_COLOR [UIColor colorWithRed:76/255.0f green:86/255.0f blue:106/255.0f alpha:1.0f]
 #define TEXT_LARGE_FONT [UIFont fontWithName:@"HelveticaNeue" size:72.0f]
 #define TEXT_FONT [UIFont fontWithName:@"HelveticaNeue" size:15.0f]

@@ -27,8 +27,7 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     CFMessagePortRef     _localPort;
     BOOL                 _isSendingMessage;
 
-    NSMutableArray      *_observers;
-    NSMutableArray      *_callbacks;
+    STKPreferencesCallback _callback;
 
     NSMutableDictionary *_cachedLayouts;
 }
@@ -243,33 +242,18 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     }
 }
 
-- (id)registerCallbackForPrefsChange:(STKPreferencesCallbackBlock)callback
+- (void)registerCallbackForPrefsChange:(STKPreferencesCallback)callbackBlock
 {
-    if (!callback) {
-        return nil;
-    }
-    if (!_callbacks) {
-        _callbacks = [[NSMutableArray alloc] init];
-    }
-
-    id obs = [[[NSObject alloc] init] autorelease];
-    [_callbacks addObject:[callback copy]];
-    [_observers addObject:obs];
-
-    return obs;
-}
-
-- (void)unregisterCallbackWithObserver:(id)obs
-{
-    if (!obs) {
+    if (!callbackBlock) {
         return;
     }
-    NSUInteger idx = [_observers indexOfObject:obs];
-    if (idx == NSNotFound) {
-        return;
+
+    if (_callback) {
+        [_callback release];
+        _callback = nil;
     }
-    [_callbacks removeObjectAtIndex:idx];
-    [_observers removeObjectAtIndex:idx];
+
+    _callback = [callbackBlock copy];
 }
 
 - (NSDictionary *)cachedLayoutDictForIcon:(SBIcon *)centralIcon
@@ -281,6 +265,7 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
             _cachedLayouts[centralIcon.leafIdentifier] = customLayout;
         }
     } 
+    CLog(@"%@", layout);
     return layout;
 }
 
@@ -331,7 +316,8 @@ CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef d
 static void STKPrefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
     [[STKPreferences sharedPreferences] reloadPreferences];
-    for (STKPreferencesCallbackBlock cb in [[STKPreferences sharedPreferences] valueForKey:@"_callbacks"]) {
+    STKPreferencesCallback cb = [[STKPreferences sharedPreferences] valueForKey:@"_callback"];
+    if (cb) {
         cb();
     }
 }

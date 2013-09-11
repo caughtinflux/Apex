@@ -18,7 +18,7 @@
     #define CLog(...)
 #endif
 
-#define STKLog(fmt, ...) NSLog((@"[" kSTKTweakName @"]" fmt), ##__VA_ARGS__)
+#define STKLog(fmt, ...) NSLog((@"[" kSTKTweakName @"] " fmt), ##__VA_ARGS__)
 
 #define BOOL_TO_STRING(b) (b ? @"YES" : @"NO")
 
