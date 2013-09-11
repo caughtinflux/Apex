@@ -698,11 +698,14 @@ static void STKAddCallbackForIconView(SBIconView *iconView)
 
         if (!manager.isEmpty) {
             if (previewEnabled) {
+                iconView.iconImageView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
                 STKRemoveGrabberImagesFromIconView(iconView);
             }
             else {
+                iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
                 STKAddGrabberImagesToIconView(iconView);
             }
+            manager.showsPreview = previewEnabled;
         }
     };
     obs = [[STKPreferences sharedPreferences] registerCallbackForPrefsChange:callbackBlock];

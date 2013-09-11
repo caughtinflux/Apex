@@ -1,5 +1,6 @@
 #import <UIKit/UIKit.h>
 #import <Preferences/PSSpecifier.h>
+#import "../STKConstants.h"
 
 @interface UIImage(Extras)
 + (UIImage *)imageNamed:(NSString *)name inBundle:(NSBundle *)bundle;

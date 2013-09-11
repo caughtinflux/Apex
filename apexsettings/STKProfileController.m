@@ -1,5 +1,6 @@
 #import "STKProfileController.h"
 #import "Localization.h"
+#import "../STKConstants.h"
 #import <Preferences/PSSpecifier.h>
 
 #define TEXT_COLOR [UIColor colorWithRed:76/255.0f green:86/255.0f blue:106/255.0f alpha:1.0f]
@@ -14,35 +15,35 @@
 - (id)initForContentSize:(CGSize)size
 {
     if ([[PSViewController class] instancesRespondToSelector:@selector(initForContentSize:)])
-		self = [super initForContentSize:size];
-	else
-		self = [super init];
-	
+        self = [super initForContentSize:size];
+    else
+        self = [super init];
+    
     if (self)
     {
-		CGRect frame;
-		frame.origin = (CGPoint){0, 0};
-		frame.size = size;
+        CGRect frame;
+        frame.origin = (CGPoint){0, 0};
+        frame.size = size;
         
-		_tableView = [[UITableView alloc] initWithFrame:frame style:UITableViewStyleGrouped];
-		[_tableView setDataSource:self];
-		[_tableView setDelegate:self];
-		[_tableView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleTopMargin];
+        _tableView = [[UITableView alloc] initWithFrame:frame style:UITableViewStyleGrouped];
+        [_tableView setDataSource:self];
+        [_tableView setDelegate:self];
+        [_tableView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleTopMargin];
     }
-	return self;
+    return self;
 }
 
 - (void)dealloc
 {
-	[_tableView setDelegate:nil];
-	[_tableView setDataSource:nil];
-	[_tableView release];
-	[super dealloc];
+    [_tableView setDelegate:nil];
+    [_tableView setDataSource:nil];
+    [_tableView release];
+    [super dealloc];
 }
 
 - (UIView *)view
 {
-	return _tableView;
+    return _tableView;
 }
 
 - (UITableView *)table
@@ -52,7 +53,7 @@
 
 - (CGSize)contentSize
 {
-	return [_tableView frame].size;
+    return [_tableView frame].size;
 }
 
 - (id)navigationTitle
@@ -87,6 +88,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    DLog();
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     
     NSString *handleString;

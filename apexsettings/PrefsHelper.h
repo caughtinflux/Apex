@@ -1,9 +1,10 @@
 #import <Foundation/Foundation.h>
 #import "Globals.h"
 
-@interface STKPrefsHelper : NSObject {
+@interface STKPrefsHelper : NSObject
+{
 @private
-	NSBundle *ownBundle;
+    NSBundle *ownBundle;
 }
 
 + (instancetype)sharedHelper;
