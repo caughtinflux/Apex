@@ -695,13 +695,14 @@ static void STKAddCallbackForIconView(SBIconView *iconView)
     void (^callbackBlock)(void) = ^{
         BOOL previewEnabled = [STKPreferences sharedPreferences].previewEnabled;
         STKStackManager *manager = STKManagerForView(iconView);
-        [manager setShowsPreview:previewEnabled];
 
-        if (previewEnabled && !manager.isEmpty) {
-            STKRemoveGrabberImagesFromIconView(iconView);
-        }
-        else {
-            STKAddGrabberImagesToIconView(iconView);
+        if (!manager.isEmpty) {
+            if (previewEnabled) {
+                STKRemoveGrabberImagesFromIconView(iconView);
+            }
+            else {
+                STKAddGrabberImagesToIconView(iconView);
+            }
         }
     };
     obs = [[STKPreferences sharedPreferences] registerCallbackForPrefsChange:callbackBlock];

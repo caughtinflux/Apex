@@ -1,0 +1,10 @@
+{
+    entry = {
+	bundle = ApexSettings;
+	cell = PSLinkCell;
+	detail = STKPrefsController;
+	icon = ApexSettings.png;
+	isController = 1;
+	label = Apex;
+    };
+}

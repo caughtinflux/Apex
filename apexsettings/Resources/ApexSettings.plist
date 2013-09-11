@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>id</key>
+			<string>THANKS</string>
+			<key>footerText</key>
+			<string>AUTHORS_PURCHASED</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.a3tweaks.Apex</string>
+			<key>key</key>
+			<string>STKStackPreviewEnabled</string>
+			<key>label</key>
+			<string>SHOW_PREVIEW</string>
+			<key>PostNotification</key>
+			<string>com.a3tweaks.apex.prefschanged</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>icon</key>
+			<string>TheCreators.png</string>
+			<key>label</key>
+			<string>THE_CREATORS</string>
+			<key>detail</key>
+			<string>STKProfileController</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>LOCALIZATION_ABOUT</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>icon</key>
+			<string>A3tweaksSupport.png</string>
+			<key>label</key>
+			<string>SUPPORT_EMAIL_LINK</string>
+			<key>action</key>
+			<string>showMailDialog</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>© 2013 Aditya KD and Newar Choukeir</string>
+		</dict>
+
+	</array>
+	<key>title</key>
+	<string>Apex</string>
+</dict>
+</plist>
