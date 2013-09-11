@@ -86,6 +86,7 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     [_layouts release];
     [_iconsInStacks release];
     [_iconsWithStacks release];
+    [_cachedLayouts release];
 
     [super dealloc];
 }
@@ -262,10 +263,14 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     if (!layout) {
         NSDictionary *customLayout = [NSDictionary dictionaryWithContentsOfFile:[[STKPreferences sharedPreferences] layoutPathForIcon:centralIcon]][STKStackManagerCustomLayoutKey];
         if (customLayout) {
+            if (!_cachedLayouts) {
+                _cachedLayouts = [NSMutableDictionary new];
+            }
             _cachedLayouts[centralIcon.leafIdentifier] = customLayout;
+            layout = customLayout;
         }
     } 
-    CLog(@"%@", layout);
+
     return layout;
 }
 

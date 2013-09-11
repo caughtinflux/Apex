@@ -247,6 +247,9 @@ supercall:
         STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
         [icons addObject:ph];
     }
+    else {
+        [icons addObject:_selectedView.icon];
+    }
 
     NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(caseInsensitiveCompare:)];
     [icons sortUsingDescriptors:@[descriptor]];
