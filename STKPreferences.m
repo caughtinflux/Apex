@@ -27,8 +27,7 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     CFMessagePortRef     _localPort;
     BOOL                 _isSendingMessage;
 
-    NSMutableArray      *_observers;
-    NSMutableArray      *_callbacks;
+    STKPreferencesCallback _callback;
 
     NSMutableDictionary *_cachedLayouts;
 }
@@ -52,7 +51,7 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
         sharedInstance = [[self alloc] init];
 
         [[NSFileManager defaultManager] createDirectoryAtPath:[self layoutsDirectory] withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions : @511} error:NULL];
-        [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[self layoutsDirectory] error:NULL]; // Make sure the permissions are correct anyway
+        [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[self layoutsDirectory] error:NULL]; // Set the persimissions to 755? Idk, it works.
 
         [sharedInstance reloadPreferences];
 
@@ -87,6 +86,7 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     [_layouts release];
     [_iconsInStacks release];
     [_iconsWithStacks release];
+    [_cachedLayouts release];
 
     [super dealloc];
 }
@@ -243,33 +243,18 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     }
 }
 
-- (id)registerCallbackForPrefsChange:(STKPreferencesCallbackBlock)callback
+- (void)registerCallbackForPrefsChange:(STKPreferencesCallback)callbackBlock
 {
-    if (!callback) {
-        return nil;
-    }
-    if (!_callbacks) {
-        _callbacks = [[NSMutableArray alloc] init];
-    }
-
-    id obs = [[[NSObject alloc] init] autorelease];
-    [_callbacks addObject:[callback copy]];
-    [_observers addObject:obs];
-
-    return obs;
-}
-
-- (void)unregisterCallbackWithObserver:(id)obs
-{
-    if (!obs) {
+    if (!callbackBlock) {
         return;
     }
-    NSUInteger idx = [_observers indexOfObject:obs];
-    if (idx == NSNotFound) {
-        return;
+
+    if (_callback) {
+        [_callback release];
+        _callback = nil;
     }
-    [_callbacks removeObjectAtIndex:idx];
-    [_observers removeObjectAtIndex:idx];
+
+    _callback = [callbackBlock copy];
 }
 
 - (NSDictionary *)cachedLayoutDictForIcon:(SBIcon *)centralIcon
@@ -278,9 +263,14 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     if (!layout) {
         NSDictionary *customLayout = [NSDictionary dictionaryWithContentsOfFile:[[STKPreferences sharedPreferences] layoutPathForIcon:centralIcon]][STKStackManagerCustomLayoutKey];
         if (customLayout) {
+            if (!_cachedLayouts) {
+                _cachedLayouts = [NSMutableDictionary new];
+            }
             _cachedLayouts[centralIcon.leafIdentifier] = customLayout;
+            layout = customLayout;
         }
     } 
+
     return layout;
 }
 
@@ -331,7 +321,8 @@ CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef d
 static void STKPrefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
     [[STKPreferences sharedPreferences] reloadPreferences];
-    for (STKPreferencesCallbackBlock cb in [[STKPreferences sharedPreferences] valueForKey:@"_callbacks"]) {
+    STKPreferencesCallback cb = [[STKPreferences sharedPreferences] valueForKey:@"_callback"];
+    if (cb) {
         cb();
     }
 }
