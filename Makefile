@@ -14,8 +14,9 @@ include $(THEOS_MAKE_PATH)/tweak.mk
 before-all::
 	$(ECHO_NOTHING)python ./VersionUpdate.py $(THEOS_PACKAGE_VERSION)$(ECHO_END)
 	$(ECHO_NOTHING)touch -t 2012310000 Tweak.xm$(ECHO_END)
-	$(ECHO_NOTHING)touch -t 2012310000 apexsettings/STKPrefsController.m$(ECHO_END)	
+	$(ECHO_NOTHING)touch -t 2012310000 PrefBundle/STKPrefsController.m$(ECHO_END)	
 
 SUBPROJECTS += SpotlightHelper
-SUBPROJECTS += apexsettings
+SUBPROJECTS += PrefBundle
+
 include $(THEOS_MAKE_PATH)/aggregate.mk
