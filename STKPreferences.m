@@ -27,8 +27,7 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     CFMessagePortRef     _localPort;
     BOOL                 _isSendingMessage;
 
-    STKPreferencesCallback _callback;
-
+    NSMutableArray      *_callbacks;
     NSMutableDictionary *_cachedLayouts;
 }
 
@@ -249,12 +248,11 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
         return;
     }
 
-    if (_callback) {
-        [_callback release];
-        _callback = nil;
+    if (!_callbacks) {
+        _callbacks = [NSMutableArray new];
     }
 
-    _callback = [callbackBlock copy];
+    [_callbacks addObject:[[callbackBlock copy] autorelease]];
 }
 
 - (NSDictionary *)cachedLayoutDictForIcon:(SBIcon *)centralIcon
@@ -321,8 +319,7 @@ CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef d
 static void STKPrefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
     [[STKPreferences sharedPreferences] reloadPreferences];
-    STKPreferencesCallback cb = [[STKPreferences sharedPreferences] valueForKey:@"_callback"];
-    if (cb) {
+    for (STKPreferencesCallback cb in [[STKPreferences sharedPreferences] valueForKey:@"_callbacks"]) {
         cb();
     }
 }
