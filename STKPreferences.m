@@ -51,7 +51,7 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
         sharedInstance = [[self alloc] init];
 
         [[NSFileManager defaultManager] createDirectoryAtPath:[self layoutsDirectory] withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions : @511} error:NULL];
-        [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[self layoutsDirectory] error:NULL]; // Make sure the permissions are correct anyway
+        [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[self layoutsDirectory] error:NULL]; // Set the persimissions to 755? Idk, it works.
 
         [sharedInstance reloadPreferences];
 

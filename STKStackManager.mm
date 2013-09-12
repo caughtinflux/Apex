@@ -1,7 +1,6 @@
 #import "STKStackManager-Private.h"
 #import "STKIconLayoutHandler.h"
-#import "STKSelectionView.h"
-#import "STKIdentifiedOperation.h"
+#import "STKSelectionView.h"    
 
 #import "SBIconModel+Additions.h"
 #import "SBIconViewMap+STKSafety.h"
@@ -128,7 +127,7 @@
             _iconController = [objc_getClass("SBIconController") sharedInstance];
         }
 
-        [icons retain]; // Make sure it's not released until we're done with it
+        [icons retain];
 
         _centralIcon = [centralIcon retain];
         STKPositionMask mask = [self _locationMaskForIcon:_centralIcon];
@@ -158,7 +157,6 @@
     STKIconCoordinates currentCoords = [STKIconLayoutHandler coordinatesForIcon:centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
     STKIconCoordinates savedCoords;
 
-    // Make sure the objects do exist since 0 is a valid coordinate that many icons may have.
     savedCoords.xPos = (customLayout[@"xPos"] ? [customLayout[@"xPos"] integerValue] : NSNotFound);
     savedCoords.yPos = (customLayout[@"yPos"] ? [customLayout[@"yPos"] integerValue] : NSNotFound - 2);
 
@@ -450,7 +448,6 @@
 
     CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter);
 
-    // [_iconController prepareToGhostCurrentPageIconsForRequester:kGhostlyRequesterID skipIcon:_centralIcon];
     [self _setGhostlyAlphaForAllIcons:alpha excludingCentralIcon:YES];
     [self _setPageControlAlpha:alpha];
 
@@ -587,7 +584,7 @@
         [self setupPreview];
     }
     if (!_showsPreview && !_isExpanded) {
-        [self cleanupView]; // Make sure we don't do this if the stack is open.
+        [self cleanupView];
     }
 }
 
@@ -700,9 +697,8 @@
         centralView.transform = CGAffineTransformMakeScale(scale, scale);
     }
     
-    // Make sure we're not in the editing state
+
     self.isEditing = NO;
-    // Aand remove those F**king placeholders
     [self _removePlaceHolders];
 
     [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
@@ -1252,7 +1248,7 @@
     if (_hasPlaceHolders) {
         return;
     }
-    // Create a layout of placeholders. It has icons in positions where icons should be, but it is left to us to make sure it isn't placed over a icon already there
+    // Create a layout of placeholders. It has icons in positions where icons should be, but we need to make sure it isn't placed over a icon already there
     STKIconLayout *placeHolderLayout = [STKIconLayoutHandler layoutForPlaceHoldersInLayout:_appearingIconsLayout withPosition:[self _locationMaskForIcon:_centralIcon]];
     SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
@@ -1541,7 +1537,7 @@
 
         _hasLayoutOp = YES;
 
-        STKIdentifiedOperation *op = [STKIdentifiedOperation operationWithBlock:^{
+        [_postCloseOpQueue stk_addOperationToRunOnMainThreadWithBlock:^{
             SBIconModel *model = [_iconController model];
             [model _postIconVisibilityChangedNotificationShowing:_iconsToShowOnClose hiding:_iconsToHideOnClose];
             [[NSNotificationCenter defaultCenter] postNotificationName:STKRecalculateLayoutsNotification object:nil userInfo:nil];
@@ -1554,9 +1550,7 @@
 
             _hasLayoutOp = NO;
 
-        } identifier:kSTKIconModelLayoutOpID queue:dispatch_get_main_queue()];
-
-        [_postCloseOpQueue addOperation:op];
+        }];
     }
 
     if (needsToHide) {

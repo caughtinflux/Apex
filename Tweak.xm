@@ -98,8 +98,8 @@ static BOOL _switcherIsVisible;
         ![icon isLeafIcon] || [icon isDownloadingIcon] || 
         [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
-        // Make sure the recognizer is not added to icons in the stack
-        // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
+        // Don't add recognizer to icons in the stack already
+        // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, so cleanup.
         STKCleanupIconView(self);
         return;
     }
@@ -204,7 +204,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         CGFloat distance = fabsf(_initialPoint.y - point.y);
         
         if (distance < _previousDistance) {
-            // The swipe is going to the opposite direction, so make sure the manager moves its views in the corresponding direction too
+            // negate the change since swipe is going in the opposite direction
             change = -change;
         }
 
@@ -479,16 +479,16 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 /********************************************************************************************************************************************************************************************************/
 /********************************************************************************************************************************************************************************************************/
+#pragma mark - Search Agent Hook
 %hook SPSearchAgent
 - (id)sectionAtIndex:(NSUInteger)idx
 {
-
     SPSearchResultSection *ret =%orig();
     if (ret.hasDomain && ret.domain == 4) {
         NSString *appID = ret.displayIdentifier;
         SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:appID];
         if (ICON_IS_IN_STACK(icon)) {
-            SBIcon *centralIcon = [[STKPreferences sharedPreferences] centralIconForIcon:[[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:appID]];
+            SBIcon *centralIcon = [[STKPreferences sharedPreferences] centralIconForIcon:icon];
             [(SPSearchResult *)ret.results[0] setAuxiliaryTitle:centralIcon.displayName];
             [(SPSearchResult *)ret.results[0] setAuxiliarySubtitle:centralIcon.displayName];
         }
