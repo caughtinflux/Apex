@@ -237,19 +237,18 @@ supercall:
         [icons addObject:[_model expectedIconForDisplayIdentifier:ident]];
     }
 
-    
     for (NSString *hiddenIcon in [STKPreferences sharedPreferences].identifiersForIconsInStacks) {
         id icon = [_model expectedIconForDisplayIdentifier:hiddenIcon];
         [icons addObject:icon];
     }
 
-    // The selected icon view's icon will be omitted as a part of the above check
-    [icons addObject:_selectedView.icon];
-
     if (!_selectedView.icon.isPlaceholder) {
         // Add a placeholder to available icons so the user can have a "None"-like option, only if the current icon view isn't already a place holder
         STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
         [icons addObject:ph];
+    }
+    else {
+        [icons addObject:_selectedView.icon];
     }
 
     NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(caseInsensitiveCompare:)];

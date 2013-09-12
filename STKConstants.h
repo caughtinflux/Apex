@@ -18,11 +18,11 @@
     #define CLog(...)
 #endif
 
-#define STKLog(fmt, ...) NSLog((@"[" kSTKTweakName @"]" fmt), ##__VA_ARGS__)
+#define STKLog(fmt, ...) NSLog((@"[" kSTKTweakName @"] " fmt), ##__VA_ARGS__)
 
 #define BOOL_TO_STRING(b) (b ? @"YES" : @"NO")
 
-#define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/"kSTKTweakName@"/com.a3tweaks."kSTKTweakName@".plist", NSHomeDirectory()]
+#define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks."kSTKTweakName@".plist", NSHomeDirectory()]
 
 #define kCentralIconPreviewScale 0.95f
 #define kStackPreviewIconScale   0.81f
