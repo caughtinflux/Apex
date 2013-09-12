@@ -1248,7 +1248,7 @@
     if (_hasPlaceHolders) {
         return;
     }
-    // Create a layout of placeholders. It has icons in positions where icons should be, but we need to make sure it isn't placed over a icon already there
+    // Create a layout of placeholders. It has icons in positions where icons should be, but we need to ensure it isn't placed over a icon already there
     STKIconLayout *placeHolderLayout = [STKIconLayoutHandler layoutForPlaceHoldersInLayout:_appearingIconsLayout withPosition:[self _locationMaskForIcon:_centralIcon]];
     SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
     SBIconListView *listView = STKListViewForIcon(_centralIcon);

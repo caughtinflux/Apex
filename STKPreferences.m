@@ -308,7 +308,6 @@ CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef d
             }
 
             returnData = (CFDataRef)[[NSKeyedArchiver archivedDataWithRootObject:[[STKPreferences sharedPreferences] valueForKey:@"_iconsInStacks"]] retain];
-
             // Retain, because "The system releases the returned CFData object"
         }
     }
