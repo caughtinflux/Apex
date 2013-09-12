@@ -1,0 +1,2 @@
+ssh root@flux-iPhone.local screen -d -m /usr/bin/debugserver-jb localhost:1337 --attach=SpringBoard
+lldb -s ./.lldbinit

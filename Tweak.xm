@@ -5,32 +5,41 @@
 #import "STKStackManager.h"
 #import "STKRecognizerDelegate.h"
 #import "STKPreferences.h"
+#import "STKIconLayout.h"
+#import "SBIconModel+Additions.h"
 
 #import <SpringBoard/SpringBoard.h>
+
+#import <IconSupport/ISIconSupport.h>
+#import <Search/SPSearchResultSection.h>
+#import <Search/SPSearchResult.h>
+
 #import <objc/message.h>
 #import <notify.h>
+#import <stdlib.h>
 
 #pragma mark - Function Declarations
 
-static STKStackManager * STKSetupManagerForView(SBIconView *iconView); // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
-static void STKRemoveManagerFromView(SBIconView *iconView); // Removes the manager from view, closing the stack if it was open
+static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView); // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
+static void STKRemoveManagerFromIconView(SBIconView *iconView); // Removes the manager from view, closing the stack if it was open
 static void STKAddPanRecognizerToIconView(SBIconView *iconView);
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
+static void STKAddGrabberImagesToIconView(SBIconView *iconView);
+static void STKRemoveGrabberImagesFromIconView(SBIconView *iconView);
+
+static void STKPrefsChanged(void);
 
 
 static inline void STKSetupIconView(SBIconView *iconView); // Adds recogniser and sets up stack manager for the preview
 static inline void STKCleanupIconView(SBIconView *iconView); // Removes recogniser and stack manager
 
 
-
 // Inline Functions, prevent overhead if called too much.
-static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconView);
+static inline UIPanGestureRecognizer * STKPanRecognizerForIconView(SBIconView *iconView);
 static inline        STKStackManager * STKManagerForView(SBIconView *iconView);
-static inline               NSString * STKGetLayoutPathForIcon(SBIcon *icon);
-
-static inline            void   STKSetActiveManager(STKStackManager *manager);
-static inline STKStackManager * STKGetActiveManager(void);
-
+static inline                   void   STKSetActiveManager(STKStackManager *manager);
+static inline        STKStackManager * STKGetActiveManager(void);
+static inline                   void   STKCloseActiveManager(void);
 
 #pragma mark - Direction !
 typedef enum {
@@ -43,33 +52,22 @@ typedef enum {
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 
 
-/////////////////////////////////////////////////////////////////////////
-///////////////// STATIC VARIABLES /////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
+/****************************************************************************************************************************************
+                                                      STATIC VARIABLES
+****************************************************************************************************************************************/
 static BOOL _wantsSafeIconViewRetrieval;
 static BOOL _switcherIsVisible;
-///////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
+/****************************************************************************************************************************************/
+/****************************************************************************************************************************************/
 
 
 
 
-////////////////////////////////////////////////////////////////////
-///////////////////// REAL SHIT STARTS ////////////////////////////
-//////////////////////////////////////////////////////////////////
+/****************************************************************************************************************************************/
+/****************************************************  REAL SHIT STARTS  ****************************************************************/
+/****************************************************************************************************************************************/
 
 %hook SBIconViewMap
-- (void)iconViewDidChangeLocation:(SBIconView *)iconView
-{
-    if (iconView.location != SBIconViewLocationHomeScreen) {
-        // If the icon is going intp a folder
-        STKCleanupIconView(iconView);
-    }
-
-    // All the icons' manager will need to calculate layouts if any one icon moves.
-    [[NSNotificationCenter defaultCenter] postNotificationName:STKRecaluculateLayoutsNotification object:nil userInfo:nil];
-}
-
 %new
 - (SBIconView *)safeIconViewForIcon:(SBIcon *)icon
 {
@@ -85,19 +83,23 @@ static BOOL _switcherIsVisible;
 
 #pragma mark - SBIconView Hook
 %hook SBIconView
-
-- (void)setIcon:(SBIcon *)icon
-{    
-    %orig(icon);
-
+- (void)setLocation:(SBIconViewLocation)loc
+{
+    %orig();
+    
+    if ([[%c(SBIconController) sharedInstance] isEditing] || _switcherIsVisible || !self.superview) {
+        return;
+    }
+    
+    SBIcon *icon = self.icon;
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
-        self.location == SBIconViewLocationSwitcher || self.location == SBIconViewLocationDock || [self.superview isKindOfClass:%c(SBFolderIconListView)] ||
-        ![icon isLeafIcon] ||
+        loc != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] || [self isInDock] ||
+        ![icon isLeafIcon] || [icon isDownloadingIcon] || 
         [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
-        // Make sure the recognizer is not added to icons in the stack
-        // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, make sure the recognizer is removed
+        // Don't add recognizer to icons in the stack already
+        // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, so cleanup.
         STKCleanupIconView(self);
         return;
     }
@@ -107,24 +109,31 @@ static BOOL _switcherIsVisible;
         [[%c(SBIconViewMap) homescreenMap] _addIconView:self forIcon:icon];
     }
 
-    STKSetupIconView(self);
+    if (!STKManagerForView(self)) {
+        STKSetupIconView(self);
+    }
+}
 
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_closeStack:) name:STKStackClosingEventNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(stk_editingStateChanged:) name:STKEditingStateChangedNotification object:nil];
+- (void)setIcon:(SBIcon *)icon
+{
+    %orig();
+
+    STKStackManager *man = STKManagerForView(self);
+
+    if (man) {
+        if (!icon) {
+            STKCleanupIconView(self);
+        }
+        else if (man.centralIcon != icon) {
+            STKCleanupIconView(self);
+            STKSetupIconView(self);
+        }
+    }
 }
 
 - (BOOL)canReceiveGrabbedIcon:(SBIconView *)iconView
 {
     return ((ICON_HAS_STACK(self.icon) || ICON_HAS_STACK(iconView.icon)) ? NO : %orig());
-}
-
-- (void)dealloc
-{
-    // Remove each registered notification individually, so we don't conflict with other tweaks.
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:STKStackClosingEventNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:STKEditingStateChangedNotification object:nil];
-
-    %orig();
 }
 
 #define kBandingFactor  0.15 // The factor by which the distance should be multiplied to simulate the rubber banding effect
@@ -137,20 +146,32 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %new
 - (void)stk_panned:(UIPanGestureRecognizer *)sender
 {
+    static BOOL _cancelledRecognizer = NO;
+
     UIView *view = [STKListViewForIcon(self.icon) superview];
     STKStackManager *stackManager = STKManagerForView(self);
     STKStackManager *activeManager = STKGetActiveManager();
 
-    if ([[%c(SBIconController) sharedInstance] hasOpenFolder] || stackManager.isExpanded || (activeManager != nil && activeManager != stackManager)) {
+    if (self.location != SBIconViewLocationHomeScreen) {
+        STKCleanupIconView(self);
+        return;
+    }
+
+    if (stackManager.isExpanded || (activeManager != nil && activeManager != stackManager) || ([self.superview isKindOfClass:%c(SBFolderIconListView)])) {
         return;
     }
 
     if (sender.state == UIGestureRecognizerStateBegan) {
-        if (self.location == SBIconViewLocationSwitcher || [[%c(SBIconController) sharedInstance] isEditing]) {
-            // Preliminary check
-            STKCleanupIconView(self);
+        CGPoint translation = [sender translationInView:view];
+
+        if (!((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0)) {
+            // horizontal swipe
+            _cancelledRecognizer = YES;
             return;
         }
+            
+        // Turn off scrolling in the list view
+        [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = NO;
 
         // Update the target distance based on icons positions when the pan begins
         // This way, we can be sure that the icons are indeed in the required location 
@@ -161,37 +182,29 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         _currentDirection = STKDirectionFromVelocity([sender velocityInView:view]);
         _previousPoint = _initialPoint; // Previous point is also initial at the start :P
 
-        CGPoint translation = [sender translationInView:view];
-        if ((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0) {
-            // Turn off scrolling if it's s vertical swipe
-            [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = NO;
-        }
 
         STKSetActiveManager(stackManager);
+        [stackManager touchesBegan];
     }
 
     else if (sender.state == UIGestureRecognizerStateChanged) {
-        if ([[%c(SBIconController) sharedInstance] scrollView].isDragging) {
+        if ([[%c(SBIconController) sharedInstance] scrollView].isDragging || _cancelledRecognizer) {
+            _cancelledRecognizer = YES;
             return;
         }
 
         CGPoint point = [sender locationInView:view];
 
         // If the swipe is going beyond the point where it started from, stop the swipe.
-        if (_currentDirection == STKRecognizerDirectionUp) {
-            if (point.y > _initialPoint.y) 
-                return;
-        }
-        else if (_currentDirection == STKRecognizerDirectionDown) {
-            if (point.y < _initialPoint.y) 
-                return;
+        if (((_currentDirection == STKRecognizerDirectionUp) && (point.y > _initialPoint.y)) || ((_currentDirection == STKRecognizerDirectionDown) && (point.y < _initialPoint.y))) {
+            point = _initialPoint;
         }
 
         CGFloat change = fabsf(_previousPoint.y - point.y); // Vertical
         CGFloat distance = fabsf(_initialPoint.y - point.y);
         
         if (distance < _previousDistance) {
-            // The swipe is going to the opposite direction, so make sure the manager moves its views in the corresponding direction too
+            // negate the change since swipe is going in the opposite direction
             change = -change;
         }
 
@@ -209,20 +222,25 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     }
 
     else {
-        [stackManager touchesEnded];
+        if (_cancelledRecognizer == NO) {
+            [stackManager touchesEnded];
+
+            if (stackManager.isExpanded) {
+                STKSetActiveManager(stackManager);
+            }
+            else {
+                // The stack has closed, no manager is active no.
+                STKSetActiveManager(nil);
+            }
+        }
+
+        _cancelledRecognizer = NO;
 
         // Reset the static vars
         _previousPoint = CGPointZero;
         _initialPoint = CGPointZero;
         _previousDistance = 0.f;
         _currentDirection = STKRecognizerDirectionNone;
-
-        if (stackManager.isExpanded) {
-            STKSetActiveManager(stackManager);
-        }
-        else if (STKGetActiveManager() != nil) {
-            STKSetActiveManager(nil);
-        }
 
         [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = YES;
     }
@@ -260,11 +278,16 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %new
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
-    UIView *view = [STKManagerForView(self) hitTest:point withEvent:event];
-    if (view) {
-        return view;
-    }
+    STKStackManager *activeManager = STKGetActiveManager();
     
+    if (activeManager && (STKManagerForView(self) == activeManager)) {
+        // Only if `self`'s manager is the active manager should we bother forwarding touches.
+        UIView *view = [activeManager hitTest:point withEvent:event];
+        if (view) {
+            return view;
+        }    
+    }
+
     IMP hitTestIMP = class_getMethodImplementation([UIView class], _cmd);
     return hitTestIMP(self, _cmd, point, event);
 }
@@ -272,11 +295,54 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %end
 
 
+#pragma mark - SBIconController Hook
 %hook SBIconController
+- (SBFolder *)createNewFolderFromRecipientIcon:(SBIcon *)recepient grabbedIcon:(SBIcon *)grabbed
+{ 
+    STKCleanupIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:recepient]);
+    STKCleanupIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:grabbed]);
+    
+    return %orig();
+}
+
+- (void)animateIcons:(NSArray *)icons intoFolderIcon:(SBFolderIcon *)folderIcon openFolderOnFinish:(BOOL)openFolder complete:(void(^)(void))completionBlock
+{
+    void (^otherBlock)(void) = ^{
+        for (SBIcon *icon in icons) {
+            STKCleanupIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:icon]);
+        }
+        if (completionBlock) {
+            completionBlock();
+        }
+    };
+
+    %orig(icons, folderIcon, openFolder, otherBlock);
+}
+
 - (void)setIsEditing:(BOOL)isEditing
 {
+    BOOL didChange = !(self.isEditing == isEditing);
     %orig(isEditing);
-    [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingStateChangedNotification object:nil];
+    
+    if (didChange) {
+        for (SBIconListView *lv in [self valueForKey:@"_rootIconLists"]) {
+            [lv makeIconViewsPerformBlock:^(SBIconView *iv) {
+                if (isEditing) {
+                    STKRemovePanRecognizerFromIconView(iv);
+                }
+                else {
+                    STKStackManager *manager = STKManagerForView(iv);
+                    if (!manager && iv.icon.isLeafIcon) {
+                        STKSetupIconView(iv);
+                        return;
+                    }
+
+                    STKAddPanRecognizerToIconView(iv);
+                    [manager recalculateLayouts];
+                }
+            }];
+        }
+    }
 }
 
 // Ghost all the other stacks' sub-apps when the list view is being ghosted
@@ -324,44 +390,67 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     %orig(scrollView);
-    [STKGetActiveManager() closeStack];
+    STKCloseActiveManager();
 }
+%end
+/****************************************************************************************************************************************/
+/****************************************************************************************************************************************/
 
-- (void)openFolder:(id)folder animated:(BOOL)animated fromSwitcher:(BOOL)fromSwitcher
+
+/**************************************************************************************************************************/
+/****************************************************** Icon Hiding *******************************************************/
+#pragma mark - SBIconModel Hook
+%hook SBIconModel
+- (BOOL)isIconVisible:(SBIcon *)icon
 {
-    [[[%c(SBIconController) sharedInstance] currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *iconView) {
-        STKCleanupIconView(iconView);
-    }];
+    BOOL isVisible = %orig();
+
+    // Picked this one up from https://github.com/big-boss/Libhide/blob/master/dylib/classes/iconhide.xm#L220
+    BOOL isInSpotlight = [((SBIconController *)[%c(SBIconController) sharedInstance]).searchController.searchView isKeyboardVisible];
+
+    if (_switcherIsVisible == NO && isInSpotlight == NO) {
+        if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
+            isVisible = NO;
+        }
     
-    %orig(folder, animated, fromSwitcher);
+    }
+    return isVisible;
 }
 
-- (void)closeFolderAnimated:(BOOL)animated toSwitcher:(BOOL)toSwitcher
+%new
+- (void)stk_reloadIconVisibility
 {
-    [[[%c(SBIconController) sharedInstance] currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *iconView) {
-        STKSetupIconView(iconView);
-    }];
+    [self stk_reloadIconVisibilityForSwitcher:NO];
+}
 
-    %orig(animated, toSwitcher);
+%new
+- (void)stk_reloadIconVisibilityForSwitcher:(BOOL)forSwitcher
+{    
+    NSSet *visibleIconTags = MSHookIvar<NSSet *>(self, "_visibleIconTags");
+    NSSet *hiddenIconTags = MSHookIvar<NSSet *>(self, "_hiddenIconTags");
+
+    [self setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
+    if (!forSwitcher) {
+        [self layout];
+    }
 }
 
 %end
+/**************************************************************************************************************************/
+/**************************************************************************************************************************/
 
 
-%hook SBFolderSlidingView
-- (void)handleGestureInWallpaperContainer:(id)arg1
-{
-    %orig();
-    %log();
-}
-%end
-
+#pragma mark - SBUIController Hook
 %hook SBUIController
 - (BOOL)clickedMenuButton
 {
-    if ([STKStackManager anyStackOpen] || [STKStackManager anyStackInMotion]) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
-        return NO;
+    STKStackManager *activeManager = STKGetActiveManager();
+    if (activeManager) {
+        BOOL manDidIntercept = [activeManager handleHomeButtonPress];
+        if (!manDidIntercept) {
+            [activeManager closeStack];
+        }
+        return YES;
     }
     else {
         return %orig();
@@ -370,15 +459,12 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 - (BOOL)_activateSwitcher:(NSTimeInterval)animationDuration
 {
-    [[NSNotificationCenter defaultCenter] postNotificationName:STKStackClosingEventNotification object:nil];
+    STKCloseActiveManager();
 
     _switcherIsVisible = YES;
 
     SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
-    NSSet *visibleIconTags = MSHookIvar<NSSet *>(model, "_visibleIconTags");
-    NSSet *hiddenIconTags = MSHookIvar<NSSet *>(model, "_hiddenIconTags");
-
-    [model setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
+    [model stk_reloadIconVisibilityForSwitcher:YES];
     
     return %orig(animationDuration);
 }
@@ -391,67 +477,124 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
 %end
 
-
-%hook SBIconModel
-- (BOOL)isIconVisible:(SBIcon *)icon
+/********************************************************************************************************************************************************************************************************/
+/********************************************************************************************************************************************************************************************************/
+#pragma mark - Search Agent Hook
+%hook SPSearchAgent
+- (id)sectionAtIndex:(NSUInteger)idx
 {
-    BOOL isVisible = %orig();
-    if (_switcherIsVisible == NO) {
-        if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
-            isVisible = NO;
+    SPSearchResultSection *ret =%orig();
+    if (ret.hasDomain && ret.domain == 4) {
+        NSString *appID = ret.displayIdentifier;
+        SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:appID];
+        if (ICON_IS_IN_STACK(icon)) {
+            SBIcon *centralIcon = [[STKPreferences sharedPreferences] centralIconForIcon:icon];
+            [(SPSearchResult *)ret.results[0] setAuxiliaryTitle:centralIcon.displayName];
+            [(SPSearchResult *)ret.results[0] setAuxiliarySubtitle:centralIcon.displayName];
         }
-    
     }
-    return isVisible;
+    return ret;
 }
 %end
+
 /********************************************************************************************************************************************************************************************************/
 /********************************************************************************************************************************************************************************************************/
-
-
 #pragma mark - Associated Object Keys
-static const SEL panGRKey = @selector(acervosPanKey);
-static const SEL stackManagerKey = @selector(acervosManagerKey);
-static const SEL topGrabberViewKey = @selector(acervosTopGrabberKey);
-static const SEL bottomGrabberViewKey = @selector(acervosBottomGrabberKey);
-static const SEL recognizerDelegateKey = @selector(acervosDelegateKey);
+// I've assigned these to selectors so I get easy access to these stuffs via cycript
+static SEL const panGRKey              = @selector(apexPanKey);
+static SEL const stackManagerKey       = @selector(apexManagerKey);
+static SEL const topGrabberViewKey     = @selector(apexTopGrabberKey);
+static SEL const bottomGrabberViewKey  = @selector(apexBottomGrabberKey);
+static SEL const recognizerDelegateKey = @selector(apexDelegateKey);
+static SEL const prefsCallbackObserver = @selector(apexCallbackKey);
 
 #pragma mark - Static Function Definitions
-static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
+static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
 {
     __block STKStackManager * stackManager = STKManagerForView(iconView);
 
     if (!stackManager) {
-        NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
-
-        // Check if the manager can be created from file
-        if ([[NSFileManager defaultManager] fileExistsAtPath:layoutPath]) { 
-            stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
-        }
-        else {
-            NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
-            stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
-            if (![stackManager isEmpty]) {
-                [stackManager saveLayoutToFile:layoutPath];
+        if (ICON_HAS_STACK(iconView.icon)) {
+            NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
+            if (![STKStackManager isValidLayoutAtPath:layoutPath]) {
+                [[STKPreferences sharedPreferences] removeLayoutForIcon:iconView.icon];
+            }
+            else {
+                NSDictionary *cachedLayout = [[STKPreferences sharedPreferences] cachedLayoutDictForIcon:iconView.icon];
+                if (cachedLayout) {
+                    stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon withCustomLayout:cachedLayout];
+                }
+                else {
+                    stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
+                    if (stackManager.layoutDiffersFromFile) {
+                        [stackManager saveLayoutToFile:layoutPath];
+                    }
+                    else if (!stackManager) {
+                        // Control should not get here, since
+                        // we are already checking if the layout is invalid
+                        NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
+                        stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
+                        if (![stackManager isEmpty]) {
+                            [stackManager saveLayoutToFile:layoutPath];
+                        }
+                    }
+                }    
             }
         }
+        else {            
+            stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:nil];
+        }
+
+        stackManager.showsPreview = [STKPreferences sharedPreferences].previewEnabled;
 
         stackManager.interactionHandler = \
-            ^(SBIconView *tappedIconView) {
-                if (stackManager != STKGetActiveManager()) {
+            ^(STKStackManager *manager, SBIconView *tappedIconView, BOOL didChangeState, SBIcon *addedIcon) {
+                if (didChangeState) {
+                    if (manager.isEmpty) {
+                        [[STKPreferences sharedPreferences] removeLayoutForIcon:stackManager.centralIcon];
+                        if (!manager.showsPreview) {
+                            STKRemoveGrabberImagesFromIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:stackManager.centralIcon]);
+                        }
+                    }
+                    else {
+                        SBIcon *centralIconForManagerWithAddedIcon = [[STKPreferences sharedPreferences] centralIconForIcon:addedIcon];
+                        if (centralIconForManagerWithAddedIcon) {
+                            STKStackManager *otherManager = STKManagerForView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:centralIconForManagerWithAddedIcon]);
+                            if (otherManager != manager) {
+                                [otherManager removeIconFromAppearingIcons:addedIcon];
+                                if (otherManager.isEmpty) {
+                                    [[STKPreferences sharedPreferences] removeLayoutForIcon:otherManager.centralIcon];
+                                }
+                                else {
+                                    [otherManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:otherManager.centralIcon]];
+                                }
+                                [[STKPreferences sharedPreferences] refreshCachedLayoutDictForIcon:otherManager.centralIcon];
+                            }
+                        }
+                        if (!manager.showsPreview) {
+                            STKAddGrabberImagesToIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:stackManager.centralIcon]);
+                        }
+
+                        NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:manager.centralIcon];
+                        [manager saveLayoutToFile:layoutPath];
+                    }
+
+                    [[STKPreferences sharedPreferences] refreshCachedLayoutDictForIcon:manager.centralIcon];
+                    [[STKPreferences sharedPreferences] reloadPreferences];
+                    return; 
+                }
+
+                if (manager != STKGetActiveManager()) {
                     return;
                 }
 
                 if (tappedIconView) {
-                    stackManager.closesOnHomescreenEdit = NO;
-
+                    manager.closesOnHomescreenEdit = NO;
                     [tappedIconView.icon launch];
-                    
-                    stackManager.closesOnHomescreenEdit = YES;
-
-                    [stackManager closeStack];
+                    manager.closesOnHomescreenEdit = YES;
+                    [manager closeStack];
                 }
-
+                
                 STKSetActiveManager(nil);
             };
 
@@ -459,24 +602,26 @@ static STKStackManager * STKSetupManagerForView(SBIconView *iconView)
         objc_setAssociatedObject(iconView, stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [stackManager release];
     }
-    
-    [stackManager recalculateLayouts];
 
-    if (stackManager.isEmpty == NO) {
+    if (stackManager.isEmpty == NO && stackManager.showsPreview) {
         [stackManager setupPreview];
     }
     
     return stackManager;
 }
 
-static inline void STKRemoveManagerFromView(SBIconView *iconView)
+static void STKRemoveManagerFromIconView(SBIconView *iconView)
 {
+    [STKManagerForView(iconView) cleanupView];
     iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
     objc_setAssociatedObject(iconView, stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 static void STKAddPanRecognizerToIconView(SBIconView *iconView)
 {
+    if (!iconView) {
+        return;
+    }
     UIPanGestureRecognizer *panRecognizer = objc_getAssociatedObject(iconView, panGRKey);
     // Don't add a recognizer if it already exists
     if (!panRecognizer) {
@@ -494,32 +639,106 @@ static void STKAddPanRecognizerToIconView(SBIconView *iconView)
 
 static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
 {
-    UIPanGestureRecognizer *recognizer = STKPanRecognizerForView(iconView);
+    UIPanGestureRecognizer *recognizer = STKPanRecognizerForIconView(iconView);
     [iconView removeGestureRecognizer:recognizer];
 
     // Clear out the associative references. 
     objc_setAssociatedObject(recognizer, recognizerDelegateKey, nil, OBJC_ASSOCIATION_RETAIN); // Especially this one. The pan recogniser getting wiped out should remove this already. But still, better to be sure.
     objc_setAssociatedObject(iconView, panGRKey, nil, OBJC_ASSOCIATION_ASSIGN);
+
+    for (UIGestureRecognizer *r in iconView.gestureRecognizers) {
+        if ([r isKindOfClass:[UIPanGestureRecognizer class]]) {
+            [iconView removeGestureRecognizer:r];
+        }
+    }
 }
 
-static inline void STKSetupIconView(SBIconView *iconView)
+static void STKAddGrabberImagesToIconView(SBIconView *iconView)
 {
-    STKAddPanRecognizerToIconView(iconView);
-    STKStackManager *manager = STKSetupManagerForView(iconView);
+    UIImageView *topView = objc_getAssociatedObject(iconView, topGrabberViewKey);
+    if (!topView) {
+        topView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"TopGrabber")] autorelease];
+        topView.center = (CGPoint){iconView.iconImageView.center.x, (iconView.iconImageView.frame.origin.y)};
+        [iconView addSubview:topView];
 
-    CGFloat scale = (manager.isEmpty ? 1.f : kCentralIconPreviewScale);
-    iconView.iconImageView.transform = CGAffineTransformMakeScale(scale, scale);
+        objc_setAssociatedObject(iconView, topGrabberViewKey, topView, OBJC_ASSOCIATION_ASSIGN);
+    }
+
+    UIImageView *bottomView = objc_getAssociatedObject(iconView, bottomGrabberViewKey);
+    if (!bottomView) {
+        bottomView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"BottomGrabber")] autorelease];
+        bottomView.center = (CGPoint){iconView.iconImageView.center.x, (CGRectGetMaxY(iconView.iconImageView.frame) - 1)};
+        [iconView addSubview:bottomView];
+
+        objc_setAssociatedObject(iconView, bottomGrabberViewKey, bottomView, OBJC_ASSOCIATION_ASSIGN);
+    }
 }
 
-static inline void STKCleanupIconView(SBIconView *iconView)
+static void STKRemoveGrabberImagesFromIconView(SBIconView *iconView)
 {
-    STKRemovePanRecognizerFromIconView(iconView);
-    STKRemoveManagerFromView(iconView);
+    [(UIView *)objc_getAssociatedObject(iconView, topGrabberViewKey) removeFromSuperview];
+    [(UIView *)objc_getAssociatedObject(iconView, bottomGrabberViewKey) removeFromSuperview];  
+
+    objc_setAssociatedObject(iconView, topGrabberViewKey, nil, OBJC_ASSOCIATION_ASSIGN);
+    objc_setAssociatedObject(iconView, bottomGrabberViewKey, nil, OBJC_ASSOCIATION_ASSIGN);
+}
+
+
+static void STKPrefsChanged(void)
+{
+    BOOL previewEnabled = [STKPreferences sharedPreferences].previewEnabled;
+
+    for (SBIconListView *listView in [[%c(SBIconController) sharedInstance] valueForKey:@"_rootIconLists"]){
+        [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
+            if (!iconView) {
+                return;
+            }
+            
+            STKStackManager *manager = STKManagerForView(iconView);
+
+            if (!manager.isEmpty) {
+                if (previewEnabled) {
+                    iconView.iconImageView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
+                    STKRemoveGrabberImagesFromIconView(iconView);
+                }
+                else {
+                    iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+                    STKAddGrabberImagesToIconView(iconView);
+                }
+            }
+
+            manager.showsPreview = previewEnabled;
+        }];
+    }
 }
 
 
 
 #pragma mark - Inliner Definitions
+static inline void STKSetupIconView(SBIconView *iconView)
+{
+    if (iconView.icon == STKGetActiveManager().centralIcon) {
+        return;
+    }
+    
+    STKAddPanRecognizerToIconView(iconView);
+    STKStackManager *manager = STKSetupManagerForIconView(iconView);
+
+    CGFloat scale = (manager.isEmpty || !manager.showsPreview ? 1.f : kCentralIconPreviewScale);
+    iconView.iconImageView.transform = CGAffineTransformMakeScale(scale, scale);
+
+    if (manager && !manager.showsPreview && !manager.isEmpty) {
+        STKAddGrabberImagesToIconView(iconView);
+    }
+}
+
+static inline void STKCleanupIconView(SBIconView *iconView)
+{        
+    STKRemovePanRecognizerFromIconView(iconView);
+    STKRemoveManagerFromIconView(iconView);
+    STKRemoveGrabberImagesFromIconView(iconView);
+}
+
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point)
 {
     if (point.y == 0) {
@@ -529,7 +748,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point)
     return ((point.y < 0) ? STKRecognizerDirectionUp : STKRecognizerDirectionDown);
 }
 
-static inline UIPanGestureRecognizer * STKPanRecognizerForView(SBIconView *iconView)
+static inline UIPanGestureRecognizer * STKPanRecognizerForIconView(SBIconView *iconView)
 {
     return objc_getAssociatedObject(iconView, panGRKey);
 }
@@ -552,6 +771,12 @@ static inline STKStackManager * STKGetActiveManager(void)
     return _activeManager;
 }
 
+static inline void STKCloseActiveManager(void)
+{
+    [STKGetActiveManager() closeStack];
+    STKSetActiveManager(nil);
+}
+
 
 #pragma mark - Constructor
 %ctor
@@ -559,7 +784,19 @@ static inline STKStackManager * STKGetActiveManager(void)
     @autoreleasepool {
         CLog(@"Version %s", kPackageVersion);
         CLog(@"Build date: %s, %s", __DATE__, __TIME__);
+
+        STKLog(@"SpringBoard's gonna get fluxy now!");
         
         %init();
+        
+        dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
+    
+        [[objc_getClass("ISIconSupport") sharedInstance] addExtension:kSTKTweakName];
+
+        // Set up the singleton
+        [STKPreferences sharedPreferences];
+        [[STKPreferences sharedPreferences] registerCallbackForPrefsChange:^{
+            STKPrefsChanged();
+        }];
     }
 }

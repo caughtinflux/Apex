@@ -1,27 +1,38 @@
 #import <Foundation/Foundation.h>
 
+typedef void(^STKPreferencesCallback)(void);
+
 @class SBIcon;
 @interface STKPreferences : NSObject
+
++ (NSString *)layoutsDirectory;
 
 + (instancetype)sharedPreferences;
 
 - (void)reloadPreferences;
 
+@property (nonatomic, readonly) NSArray *identifiersForIconsInStacks;
+@property (nonatomic, assign) BOOL previewEnabled;
+
 - (NSSet *)identifiersForIconsWithStack;
 - (NSArray *)stackIconsForIcon:(SBIcon *)icon;
+
+// Pass in a NSString for `icon`, you get an NSString in return
+// If `icon` is a SBIcon instance, you get a SBIcon in return!
+- (id)centralIconForIcon:(id)icon;
 
 - (NSString *)layoutPathForIconID:(NSString *)iconID;
 - (NSString *)layoutPathForIcon:(SBIcon *)icon;
 
-
 - (BOOL)iconHasStack:(SBIcon *)icon;
 - (BOOL)iconIsInStack:(SBIcon *)icon;
 
-// icon: The central(visible) icon in the stack
-// icons: NSArray of SBIcon objects that will be in the stack
-// Returns: YES if the write completed successfully, else NO
-- (BOOL)saveLayoutWithCentralIcon:(SBIcon *)icon stackIcons:(NSArray *)icons;
+- (BOOL)removeLayoutForIcon:(SBIcon *)icon;
+- (BOOL)removeLayoutForIconID:(NSString *)iconID;
 
-- (BOOL)saveLayoutWithCentralIconID:(NSString *)iconID stackIconIDs:(NSArray *)stackIconIDs;
+- (void)registerCallbackForPrefsChange:(STKPreferencesCallback)callbackBlock;
+
+- (NSDictionary *)cachedLayoutDictForIcon:(SBIcon *)centralIcon;
+- (void)refreshCachedLayoutDictForIcon:(SBIcon *)centralIcon;
 
 @end
