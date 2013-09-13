@@ -109,7 +109,7 @@ CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef d
 
         [[NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/GraphicsServices.framework"] load];
         
-        void *func = (void *)(CFPropertyListRef(*)(CFStringRef))dlsym(RTLD_DEFAULT, "GSSystemCopyCapability");
+        void *func = (void *)dlsym(RTLD_DEFAULT, "GSSystemCopyCapability");
         MSHookFunction(func, (void *)n_GSSystemCopyCapability, (void **)&o_GSSystemCopyCapability);
 
         [[NSBundle bundleWithPath:@"/System/Library/SearchBundles/Application.searchBundle"] load];
@@ -118,7 +118,7 @@ CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef d
     }
 }
 
-__attribute__((destructor)) void _tearDown (void)
+__attribute__((destructor)) void _tearDown(void)
 {
     CFMessagePortInvalidate(_localPort);
     CFRelease(_localPort);
