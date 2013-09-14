@@ -448,7 +448,7 @@
 
 - (void)touchesDraggedForDistance:(CGFloat)distance
 {
-    if (_isExpanded && ![[_iconController scrollView] isDragging]) {
+    if (_isExpanded || [[_iconController scrollView] isDragging]) {
         return;
     }
 
@@ -458,6 +458,8 @@
     [self _setPageControlAlpha:alpha];
 
     BOOL hasVerticalIcons = ([_appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([_appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
+    CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
+
     [self _moveAllIconsInRespectiveDirectionsByDistance:distance performingTask:^(SBIconView *iv, STKLayoutPosition pos, NSUInteger idx) {
         if (idx == 0) {
             if (hasVerticalIcons && (pos == STKLayoutPositionTop || pos == STKLayoutPositionBottom)) {
@@ -474,8 +476,7 @@
             }
             [self _setAlpha:(1 - alpha) forLabelAndShadowOfIconView:iv];
 
-            if (_showsPreview) {
-                CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
+            if (_showsPreview) {       
                 if (_lastDistanceFromCenter <= midWayDistance) {
                     // If the icons are past the halfway mark, start increasing/decreasing their scale.
                     // This looks beautiful. Yay me.
@@ -497,18 +498,20 @@
         }
     }];
     
-    if (!_showsPreview) {
+    if (!_showsPreview && hasVerticalIcons) {
+        CGFloat grabberAlpha = STKScaleNumber(_lastDistanceFromCenter, 0, midWayDistance + 10, 1.0, 0.0);
+        distance *= 1.3f; // Make the grabbers go slightly faster than the icon view
         if (_topGrabberView) {
             if ((_topGrabberView.frame.origin.y - distance) < _topGrabberOriginalFrame.origin.y) {
                 _topGrabberView.frame = (CGRect){{_topGrabberView.frame.origin.x, _topGrabberView.frame.origin.y - distance}, _topGrabberView.frame.size};
             }
-            _topGrabberView.alpha = alpha * 2.f;
+            _topGrabberView.alpha = grabberAlpha;
         }
         if (_bottomGrabberView) {
             if ((_bottomGrabberView.frame.origin.y + distance) > _bottomGrabberOriginalFrame.origin.y) {
                 _bottomGrabberView.frame = (CGRect){{_bottomGrabberView.frame.origin.x, _bottomGrabberView.frame.origin.y + distance}, _bottomGrabberView.frame.size};
             }
-            _bottomGrabberView.alpha = alpha * 2.f;
+            _bottomGrabberView.alpha = grabberAlpha;
         }
     }
 }
