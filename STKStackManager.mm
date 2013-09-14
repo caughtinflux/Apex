@@ -498,19 +498,22 @@
         }
     }];
     
-    if (!_showsPreview && hasVerticalIcons) {
+    if (!_showsPreview) {
         CGFloat grabberAlpha = STKScaleNumber(_lastDistanceFromCenter, 0, midWayDistance + 10, 1.0, 0.0);
         distance *= 1.1f; // Make the grabbers go slightly faster than the icon view
         if (_topGrabberView) {
-            if ((_topGrabberView.frame.origin.y - distance) < _topGrabberOriginalFrame.origin.y) {
+            if (((_topGrabberView.frame.origin.y - distance) < _topGrabberOriginalFrame.origin.y) && _iconViewsLayout.topIcons.count > 0) {
                 _topGrabberView.frame = (CGRect){{_topGrabberView.frame.origin.x, _topGrabberView.frame.origin.y - distance}, _topGrabberView.frame.size};
             }
+            
             _topGrabberView.alpha = grabberAlpha;
+            
         }
         if (_bottomGrabberView) {
-            if ((_bottomGrabberView.frame.origin.y + distance) > _bottomGrabberOriginalFrame.origin.y) {
+            if (((_bottomGrabberView.frame.origin.y + distance) > _bottomGrabberOriginalFrame.origin.y) && _iconViewsLayout.bottomIcons.count > 0) {
                 _bottomGrabberView.frame = (CGRect){{_bottomGrabberView.frame.origin.x, _bottomGrabberView.frame.origin.y + distance}, _bottomGrabberView.frame.size};
             }
+         
             _bottomGrabberView.alpha = grabberAlpha;
         }
     }
@@ -698,9 +701,6 @@
 
         _topGrabberView.alpha = 0.f;
         _bottomGrabberView.alpha = 0.f;
-
-        _topGrabberView.frame = (CGRect){{_topGrabberView.frame.origin.x, _topGrabberView.frame.origin.y - 20}, _topGrabberView.frame.size};
-        _bottomGrabberView.frame = (CGRect){{_bottomGrabberView.frame.origin.x, _bottomGrabberView.frame.origin.y + 20}, _bottomGrabberView.frame.size};
         
     } completion:^(BOOL finished) {
         if (finished) {
