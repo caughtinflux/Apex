@@ -500,7 +500,7 @@
     
     if (!_showsPreview && hasVerticalIcons) {
         CGFloat grabberAlpha = STKScaleNumber(_lastDistanceFromCenter, 0, midWayDistance + 10, 1.0, 0.0);
-        distance *= 1.3f; // Make the grabbers go slightly faster than the icon view
+        distance *= 1.1f; // Make the grabbers go slightly faster than the icon view
         if (_topGrabberView) {
             if ((_topGrabberView.frame.origin.y - distance) < _topGrabberOriginalFrame.origin.y) {
                 _topGrabberView.frame = (CGRect){{_topGrabberView.frame.origin.x, _topGrabberView.frame.origin.y - distance}, _topGrabberView.frame.size};
