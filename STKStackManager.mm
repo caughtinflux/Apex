@@ -21,6 +21,9 @@
     STKIconLayout            *_iconViewsLayout;
     STKInteractionHandler     _interactionHandler;
 
+    CGRect                   _topGrabberOriginalFrame;
+    CGRect                   _bottomGrabberOriginalFrame;
+
     NSOperationQueue         *_closingAnimationOpQueue;
     NSOperationQueue         *_postCloseOpQueue;
 
@@ -229,6 +232,9 @@
 
     [_closingAnimationOpQueue cancelAllOperations];
     [_closingAnimationOpQueue release];
+
+    [_topGrabberView release];
+    [_bottomGrabberView release];
 
     [self _cleanupGestureRecognizers];
 
@@ -453,14 +459,14 @@
 
     BOOL hasVerticalIcons = ([_appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([_appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
     [self _moveAllIconsInRespectiveDirectionsByDistance:distance performingTask:^(SBIconView *iv, STKLayoutPosition pos, NSUInteger idx) {
-    	if (idx == 0) {
-    	    if (hasVerticalIcons && (pos == STKLayoutPositionTop || pos == STKLayoutPositionBottom)) {
-    	        _lastDistanceFromCenter = fabsf(iv.frame.origin.y - [self _iconViewForIcon:_centralIcon].bounds.origin.y);
-    	    }
-    	    else if (!hasVerticalIcons && (pos == STKLayoutPositionLeft || pos == STKLayoutPositionRight)) {
-    	       _lastDistanceFromCenter = fabsf(iv.frame.origin.x - [self _iconViewForIcon:_centralIcon].bounds.origin.x);
-    	    }
-    	}
+        if (idx == 0) {
+            if (hasVerticalIcons && (pos == STKLayoutPositionTop || pos == STKLayoutPositionBottom)) {
+                _lastDistanceFromCenter = fabsf(iv.frame.origin.y - [self _iconViewForIcon:_centralIcon].bounds.origin.y);
+            }
+            else if (!hasVerticalIcons && (pos == STKLayoutPositionLeft || pos == STKLayoutPositionRight)) {
+               _lastDistanceFromCenter = fabsf(iv.frame.origin.x - [self _iconViewForIcon:_centralIcon].bounds.origin.x);
+            }
+        }
 
         if (!_isEmpty) {
             if (iv.alpha <= 0.f) {
@@ -472,7 +478,7 @@
                 CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
                 if (_lastDistanceFromCenter <= midWayDistance) {
                     // If the icons are past the halfway mark, start increasing/decreasing their scale.
-                    // This looks beatuiful. Yay me.
+                    // This looks beautiful. Yay me.
                     CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kStackPreviewIconScale);
                     iv.iconImageView.transform = CGAffineTransformMakeScale(stackIconTransformScale, stackIconTransformScale);
                     
@@ -488,8 +494,23 @@
         }
         else {
             iv.alpha = (1 - alpha);
-        }      
+        }
     }];
+    
+    if (!_showsPreview) {
+        if (_topGrabberView) {
+            if ((_topGrabberView.frame.origin.y - distance) < _topGrabberOriginalFrame.origin.y) {
+                _topGrabberView.frame = (CGRect){{_topGrabberView.frame.origin.x, _topGrabberView.frame.origin.y - distance}, _topGrabberView.frame.size};
+            }
+            _topGrabberView.alpha = alpha * 2.f;
+        }
+        if (_bottomGrabberView) {
+            if ((_bottomGrabberView.frame.origin.y + distance) > _bottomGrabberOriginalFrame.origin.y) {
+                _bottomGrabberView.frame = (CGRect){{_bottomGrabberView.frame.origin.x, _bottomGrabberView.frame.origin.y + distance}, _bottomGrabberView.frame.size};
+            }
+            _bottomGrabberView.alpha = alpha * 2.f;
+        }
+    }
 }
 
 - (void)touchesEnded
@@ -571,6 +592,9 @@
     MAP([_iconViewsLayout allIcons], ^(SBIconView *iv) {
         iv.alpha = alpha;
     });
+
+    _topGrabberView.alpha = alpha;
+    _bottomGrabberView.alpha = alpha;
 }
 
 - (void)setShowsPreview:(BOOL)showsPrev
@@ -586,6 +610,20 @@
     if (!_showsPreview && !_isExpanded) {
         [self cleanupView];
     }
+}
+
+- (void)setTopGrabberView:(UIView *)view
+{
+    [_topGrabberView release];
+    _topGrabberView = [view retain];
+    _topGrabberOriginalFrame = view.frame;
+}
+
+- (void)setBottomGrabberView:(UIView *)view
+{
+    [_bottomGrabberView release];
+    _bottomGrabberView = [view retain];
+    _bottomGrabberOriginalFrame = view.frame;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -652,12 +690,14 @@
         }];
 
         [self _setPageControlAlpha:0];
-
         [self _setGhostlyAlphaForAllIcons:0.f excludingCentralIcon:YES];
+        [_offScreenIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition pos) { [self _iconViewForIcon:icon].alpha = 0.f; }];
 
-        [_offScreenIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition pos) {
-            [self _iconViewForIcon:icon].alpha = 0.f;
-        }];
+        _topGrabberView.alpha = 0.f;
+        _bottomGrabberView.alpha = 0.f;
+
+        _topGrabberView.frame = (CGRect){{_topGrabberView.frame.origin.x, _topGrabberView.frame.origin.y - 20}, _topGrabberView.frame.size};
+        _bottomGrabberView.frame = (CGRect){{_bottomGrabberView.frame.origin.x, _bottomGrabberView.frame.origin.y + 20}, _bottomGrabberView.frame.size};
         
     } completion:^(BOOL finished) {
         if (finished) {
@@ -721,6 +761,16 @@
         if (!animateCentralIcon) {
             centralView.transform = CGAffineTransformMakeScale(scale, scale);
         }
+
+        if (_showsPreview) {
+            return;
+        }
+
+        _topGrabberView.alpha = 1.f;
+        _bottomGrabberView.alpha = 1.f;
+
+        _topGrabberView.frame = _topGrabberOriginalFrame;
+        _bottomGrabberView.frame = _bottomGrabberOriginalFrame;
 
     } completion:^(BOOL finished) {
         if (finished) {

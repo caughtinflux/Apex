@@ -43,6 +43,9 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 @property (nonatomic, assign) BOOL closesOnHomescreenEdit; 
 @property (nonatomic, assign) BOOL showsPreview;
 
+@property (nonatomic, retain) UIView *topGrabberView;
+@property (nonatomic, retain) UIView *bottomGrabberView;
+
 /**
 *   @return An instance of STKStackManager, nil if `file` is corrupt or could not be read
 *   @param file Path to an archived dictionary that looks like this:   @{STKStackManagerCentralIconKey: <central icon identifier>,

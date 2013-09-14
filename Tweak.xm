@@ -27,6 +27,9 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView);
 static void STKAddGrabberImagesToIconView(SBIconView *iconView);
 static void STKRemoveGrabberImagesFromIconView(SBIconView *iconView);
 
+static UIView * STKGetTopGrabber(SBIconView *iconView);
+static UIView * STKGetBottomGrabber(SBIconView *iconView);
+
 static void STKPrefsChanged(void);
 
 
@@ -117,6 +120,9 @@ static BOOL _switcherIsVisible;
 - (void)setIcon:(SBIcon *)icon
 {
     %orig();
+    if (_wantsSafeIconViewRetrieval) {
+        return;
+    }
 
     STKStackManager *man = STKManagerForView(self);
 
@@ -129,6 +135,8 @@ static BOOL _switcherIsVisible;
             STKSetupIconView(self);
         }
     }
+
+    self.location = self.location;
 }
 
 - (BOOL)canReceiveGrabbedIcon:(SBIconView *)iconView
@@ -238,7 +246,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 
         // Reset the static vars
         _previousPoint = CGPointZero;
-        _initialPoint = CGPointZero;
+        _initialPoint = CGPointZero; 
         _previousDistance = 0.f;
         _currentDirection = STKRecognizerDirectionNone;
 
@@ -351,6 +359,9 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     %orig(value, requester, icon);
 
     STKStackManager *activeManager = STKGetActiveManager();
+    if (!activeManager) {
+        return;
+    }
     SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
     
     __block BOOL passedCentralIcon = NO;
@@ -372,6 +383,9 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     %orig(shouldGhost, requester, icon);
 
     STKStackManager *activeManager = STKGetActiveManager();
+    if (!activeManager) {
+        return;
+    }
     SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
 
     __block BOOL passedCentralIcon = NO;
@@ -483,7 +497,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 %hook SPSearchAgent
 - (id)sectionAtIndex:(NSUInteger)idx
 {
-    SPSearchResultSection *ret =%orig();
+    SPSearchResultSection *ret = %orig();
     if (ret.hasDomain && ret.domain == 4) {
         NSString *appID = ret.displayIdentifier;
         SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:appID];
@@ -659,7 +673,7 @@ static void STKAddGrabberImagesToIconView(SBIconView *iconView)
     if (!topView) {
         topView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"TopGrabber")] autorelease];
         topView.center = (CGPoint){iconView.iconImageView.center.x, (iconView.iconImageView.frame.origin.y)};
-        [iconView addSubview:topView];
+        [iconView insertSubview:topView belowSubview:iconView.iconImageView];
 
         objc_setAssociatedObject(iconView, topGrabberViewKey, topView, OBJC_ASSOCIATION_ASSIGN);
     }
@@ -668,8 +682,7 @@ static void STKAddGrabberImagesToIconView(SBIconView *iconView)
     if (!bottomView) {
         bottomView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"BottomGrabber")] autorelease];
         bottomView.center = (CGPoint){iconView.iconImageView.center.x, (CGRectGetMaxY(iconView.iconImageView.frame) - 1)};
-        [iconView addSubview:bottomView];
-
+        [iconView insertSubview:bottomView belowSubview:iconView.iconImageView];
         objc_setAssociatedObject(iconView, bottomGrabberViewKey, bottomView, OBJC_ASSOCIATION_ASSIGN);
     }
 }
@@ -684,6 +697,17 @@ static void STKRemoveGrabberImagesFromIconView(SBIconView *iconView)
 }
 
 
+static UIView * STKGetTopGrabber(SBIconView *iconView)
+{
+    return objc_getAssociatedObject(iconView, topGrabberViewKey);
+}
+
+static UIView * STKGetBottomGrabber(SBIconView *iconView)
+{
+    return objc_getAssociatedObject(iconView, bottomGrabberViewKey);
+}
+
+
 static void STKPrefsChanged(void)
 {
     BOOL previewEnabled = [STKPreferences sharedPreferences].previewEnabled;
@@ -695,15 +719,22 @@ static void STKPrefsChanged(void)
             }
             
             STKStackManager *manager = STKManagerForView(iconView);
+            if (!manager) {
+                return;
+            }
 
             if (!manager.isEmpty) {
                 if (previewEnabled) {
                     iconView.iconImageView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
                     STKRemoveGrabberImagesFromIconView(iconView);
+                    manager.topGrabberView = nil;
+                    manager.bottomGrabberView = nil;
                 }
                 else {
                     iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
                     STKAddGrabberImagesToIconView(iconView);
+                    manager.topGrabberView = STKGetTopGrabber(iconView);
+                    manager.bottomGrabberView = STKGetBottomGrabber(iconView);
                 }
             }
 
@@ -729,6 +760,8 @@ static inline void STKSetupIconView(SBIconView *iconView)
 
     if (manager && !manager.showsPreview && !manager.isEmpty) {
         STKAddGrabberImagesToIconView(iconView);
+        manager.topGrabberView = STKGetTopGrabber(iconView);
+        manager.bottomGrabberView = STKGetBottomGrabber(iconView);
     }
 }
 
