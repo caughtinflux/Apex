@@ -14,9 +14,6 @@
 #import <Search/SPSearchResultSection.h>
 #import <Search/SPSearchResult.h>
 
-#import <objc/message.h>
-#import <notify.h>
-#import <stdlib.h>
 
 #pragma mark - Function Declarations
 
@@ -362,6 +359,7 @@ static BOOL _hasVerticalIcons    = NO;
     %orig(shouldGhost, requester, icon);
 
     SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
+    NSNumber *ghostedRequesters = [self valueForKey:@"_ghostedRequesters"];
 
     [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
         if (iconView.icon == icon || iconView.icon == [STKGetActiveManager() centralIcon]) {
@@ -369,7 +367,13 @@ static BOOL _hasVerticalIcons    = NO;
         }
         
         STKStackManager *iconViewManager = STKManagerForView(iconView);
-        [iconViewManager setStackIconAlpha:((shouldGhost && [iconView isGhostly]) ? 0.0 : 1.0)];
+        if ([ghostedRequesters integerValue] > 0 || shouldGhost) {
+            // ignore  `shouldGhost` if ghostedRequesters > 0
+            [iconViewManager setStackIconAlpha:0.0];
+        }
+        else if (!shouldGhost) {
+            [iconViewManager setStackIconAlpha:1.f];
+        }
     }];
 }
 
