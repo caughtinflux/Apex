@@ -377,6 +377,7 @@
     }
 
     MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) {
+        iconView.delegate = nil;
         [iconView removeFromSuperview];
     });
 
@@ -452,12 +453,12 @@
         return;
     }
 
-    CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter);
+    BOOL hasVerticalIcons = ([_appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([_appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);    
+    CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter, (hasVerticalIcons ? STKGetCurrentTargetDistance() : STKGetCurrentTargetDistance() * _distanceRatio));
 
     [self _setGhostlyAlphaForAllIcons:alpha excludingCentralIcon:YES];
     [self _setPageControlAlpha:alpha];
 
-    BOOL hasVerticalIcons = ([_appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([_appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
     CGFloat midWayDistance = STKGetCurrentTargetDistance() / 2.0;
 
     [self _moveAllIconsInRespectiveDirectionsByDistance:distance performingTask:^(SBIconView *iv, STKLayoutPosition pos, NSUInteger idx) {

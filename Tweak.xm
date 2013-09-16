@@ -94,6 +94,7 @@ static BOOL _switcherIsVisible;
         return;
     }
     
+    id currentManager = STKManagerForView(self);
     SBIcon *icon = self.icon;
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
@@ -103,7 +104,9 @@ static BOOL _switcherIsVisible;
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
         // Don't add recognizer to icons in the stack already
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, so cleanup.
-        STKCleanupIconView(self);
+        if (currentManager) {
+            STKCleanupIconView(self);
+        }
         return;
     }
 
@@ -112,32 +115,11 @@ static BOOL _switcherIsVisible;
         [[%c(SBIconViewMap) homescreenMap] _addIconView:self forIcon:icon];
     }
 
-    if (!STKManagerForView(self)) {
+    if (!currentManager) {
         STKSetupIconView(self);
     }
 }
 
-- (void)setIcon:(SBIcon *)icon
-{
-    %orig();
-    if (_wantsSafeIconViewRetrieval) {
-        return;
-    }
-
-    STKStackManager *man = STKManagerForView(self);
-
-    if (man) {
-        if (!icon) {
-            STKCleanupIconView(self);
-        }
-        else if (man.centralIcon != icon) {
-            STKCleanupIconView(self);
-            STKSetupIconView(self);
-        }
-    }
-
-    self.location = self.location;
-}
 
 - (BOOL)canReceiveGrabbedIcon:(SBIconView *)iconView
 {
@@ -151,11 +133,12 @@ static CGPoint                _initialPoint     = CGPointZero;
 static CGFloat                _previousDistance = 0.0f; // Contains the distance from the initial point.
 static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; // Stores the direction of the current pan.
 
+static BOOL _cancelledRecognizer = NO;
+static BOOL _hasVerticalIcons    = NO;
+
 %new
 - (void)stk_panned:(UIPanGestureRecognizer *)sender
 {
-    static BOOL _cancelledRecognizer = NO;
-
     UIView *view = [STKListViewForIcon(self.icon) superview];
     STKStackManager *stackManager = STKManagerForView(self);
     STKStackManager *activeManager = STKGetActiveManager();
@@ -190,6 +173,7 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
         _currentDirection = STKDirectionFromVelocity([sender velocityInView:view]);
         _previousPoint = _initialPoint; // Previous point is also initial at the start :P
 
+        _hasVerticalIcons = ([stackManager.appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stackManager.appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
 
         STKSetActiveManager(stackManager);
         [stackManager touchesBegan];
@@ -216,8 +200,11 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
             change = -change;
         }
 
-
-        if ((change > 0) && (stackManager.currentIconDistance >= STKGetCurrentTargetDistance())) {
+        CGFloat targetDistance = STKGetCurrentTargetDistance();
+        if (!_hasVerticalIcons) {
+            targetDistance *= stackManager.distanceRatio;
+        }
+        if ((change > 0) && (stackManager.currentIconDistance >= targetDistance)) {
             // Factor this down to simulate elasticity when the icons have reached their target locations
             // Stack manager allows the icons to go beyond their targets for a little distance
             change *= kBandingFactor;
@@ -358,18 +345,10 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 {
     %orig(value, requester, icon);
 
-    STKStackManager *activeManager = STKGetActiveManager();
-    if (!activeManager) {
-        return;
-    }
     SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
-    
-    __block BOOL passedCentralIcon = NO;
 
     [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
-        // Only check if the icon's ID matches the active manager's central icon if it hasn't been checked and found already
-        if (passedCentralIcon == NO && [iconView.icon.leafIdentifier isEqualToString:activeManager.centralIcon.leafIdentifier]) {
-            passedCentralIcon = YES;
+        if (iconView.icon == icon || iconView.icon == [STKGetActiveManager() centralIcon]) {
             return;
         }
 
@@ -382,20 +361,13 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
 {
     %orig(shouldGhost, requester, icon);
 
-    STKStackManager *activeManager = STKGetActiveManager();
-    if (!activeManager) {
-        return;
-    }
     SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
 
-    __block BOOL passedCentralIcon = NO;
-
     [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
-        if (passedCentralIcon == NO && [iconView.icon.leafIdentifier isEqualToString:activeManager.centralIcon.leafIdentifier]) {
-            passedCentralIcon = YES;
+        if (iconView.icon == icon || iconView.icon == [STKGetActiveManager() centralIcon]) {
             return;
         }
-
+        
         STKStackManager *iconViewManager = STKManagerForView(iconView);
         [iconViewManager setStackIconAlpha:((shouldGhost && [iconView isGhostly]) ? 0.0 : 1.0)];
     }];
@@ -510,6 +482,10 @@ static STKRecognizerDirection _currentDirection = STKRecognizerDirectionNone; //
     return ret;
 }
 %end
+/********************************************************************************************************************************************************************************************************/
+/********************************************************************************************************************************************************************************************************/
+
+
 
 /********************************************************************************************************************************************************************************************************/
 /********************************************************************************************************************************************************************************************************/
@@ -815,11 +791,7 @@ static inline void STKCloseActiveManager(void)
 %ctor
 {
     @autoreleasepool {
-        CLog(@"Version %s", kPackageVersion);
-        CLog(@"Build date: %s, %s", __DATE__, __TIME__);
-
-        STKLog(@"SpringBoard's gonna get fluxy now!");
-        
+        STKLog(@"Initializing");
         %init();
         
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
