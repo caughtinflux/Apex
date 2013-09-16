@@ -3,6 +3,23 @@
 #import <GraphicsServices/GraphicsServices.h>
 #import <dlfcn.h>
 #import <substrate.h>
+#import <Search/SPApplication.h>
+#import <Search/SPSearchResultSection.h>
+#import <Search/SPSearchResult.h>
+
+@interface SPApplicationDatastore : NSObject
+{
+    NSMutableDictionary *_applications; 
+}
+- (void)getApplications;
+- (void)dealloc;
+- (id)init;
+- (id)searchDomains;
+- (BOOL)wantsEveryResultInItsOwnSection;
+- (void)performQuery:(id)arg1 withResultsPipe:(id)arg2;
+- (id)displayIdentifierForDomain:(unsigned int)arg1;
+- (id)resultForIdentifier:(id)arg1 domain:(unsigned int)arg2;
+@end
 
 #define kSTKSpringBoardPortName           CFSTR("com.a3tweaks.apex.springboardport")
 #define kSTKSearchdPortName               CFSTR("com.a3tweaks.apex.searchdport")
@@ -92,14 +109,16 @@ CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef d
 
         [[NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/GraphicsServices.framework"] load];
         
-        void *func = (void *)(CFPropertyListRef(*)(CFStringRef))dlsym(RTLD_DEFAULT, "GSSystemCopyCapability");
+        void *func = (void *)dlsym(RTLD_DEFAULT, "GSSystemCopyCapability");
         MSHookFunction(func, (void *)n_GSSystemCopyCapability, (void **)&o_GSSystemCopyCapability);
 
         [[NSBundle bundleWithPath:@"/System/Library/SearchBundles/Application.searchBundle"] load];
+
+        %init();
     }
 }
 
-__attribute__((destructor)) void _tearDown (void)
+__attribute__((destructor)) void _tearDown(void)
 {
     CFMessagePortInvalidate(_localPort);
     CFRelease(_localPort);

@@ -226,35 +226,28 @@ supercall:
 - (NSArray *)_filterAvailableAppIcons
 {
     NSMutableArray *icons = [NSMutableArray new];
-    NSArray *appearingIconIDs = [[_iconViewsLayout allIcons] valueForKeyPath:@"icon.leafIdentifier"];
 
     for (id ident in [_model visibleIconIdentifiers]) {
         // Icons in a stack are removed from -[SBIconModel visibleIconIdentifiers], we need to add those 
         // Now we need to nemove the central and other icons with stacks
-        if (ICONID_HAS_STACK(ident) || [ident isEqual:_centralView.icon.leafIdentifier] || [appearingIconIDs containsObject:ident]) {
+        if (ICONID_HAS_STACK(ident)) {
             continue;
         }
 
         [icons addObject:[_model expectedIconForDisplayIdentifier:ident]];
     }
 
-    
     for (NSString *hiddenIcon in [STKPreferences sharedPreferences].identifiersForIconsInStacks) {
         id icon = [_model expectedIconForDisplayIdentifier:hiddenIcon];
-        if (icon && ![appearingIconIDs containsObject:hiddenIcon]) {
+        if (icon && ![icons containsObject:icon]) {
             [icons addObject:icon];
         }
     }
 
-    // The selected icon view's icon will be omitted as a part of the above check
-    [icons addObject:_selectedView.icon];
-
-    if (!_selectedView.icon.isPlaceholder) {
-        // Add a placeholder to available icons so the user can have a "None"-like option, only if the current icon view isn't already a place holder
-        STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
-        [icons addObject:ph];
-    }
-
+    // Add a placeholder to available icons so the user can have a "None"-like option
+    STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
+    [icons addObject:ph];
+    
     NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(caseInsensitiveCompare:)];
     [icons sortUsingDescriptors:@[descriptor]];
 

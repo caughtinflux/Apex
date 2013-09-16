@@ -68,8 +68,10 @@
 
 - (void)setPosition:(STKSelectionCellPosition)position
 {
-    _position = position;
-    [self setNeedsLayout];
+    if (_position != position) {
+        _position = position;
+        [self setNeedsLayout];
+    }
 }
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event

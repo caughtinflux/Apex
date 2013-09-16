@@ -24,10 +24,19 @@ inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, 
     return (((numToScale - prevMin) * newRange) / oldRange) + newMin;
 }
 
-inline double STKAlphaFromDistance(double distance)
+inline double __attribute((__overloadable__)) STKAlphaFromDistance(double distance)
 {
     // Greater the distance, lower the alpha, therefore, switch places for newMax and newMin
     double alpha = (STKScaleNumber(distance, 0.0, STKGetCurrentTargetDistance(), 1.0, 0.0));
+    if (alpha < 0.0) {
+        alpha = 0.0;
+    }
+    return alpha;
+}
+
+inline double __attribute((__overloadable__)) STKAlphaFromDistance(double distance, CGFloat targetDistance)
+{
+    double alpha = STKScaleNumber(distance, 0.0, targetDistance, 1.0, 0.0);
     if (alpha < 0.0) {
         alpha = 0.0;
     }
