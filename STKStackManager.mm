@@ -2,7 +2,6 @@
 #import "STKIconLayoutHandler.h"
 #import "STKSelectionView.h"    
 
-#import "SBIconModel+Additions.h"
 #import "SBIconViewMap+STKSafety.h"
 #import "NSOperationQueue+STKMainQueueDispatch.h"
 #import "STKPreferences.h"
