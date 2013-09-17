@@ -109,6 +109,9 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 
     [_iconsWithStacks release];
     _iconsWithStacks = nil;
+
+    [_cachedLayouts release];
+    _cachedLayouts = nil;
 }
 
 - (BOOL)previewEnabled
@@ -270,11 +273,6 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     } 
 
     return layout;
-}
-
-- (void)refreshCachedLayoutDictForIcon:(SBIcon *)centralIcon
-{
-    [_cachedLayouts removeObjectForKey:centralIcon.leafIdentifier];
 }
 
 - (void)_refreshGroupedIcons
