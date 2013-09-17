@@ -82,6 +82,16 @@ static BOOL _switcherIsVisible;
 
 #pragma mark - SBIconView Hook
 %hook SBIconView
+
+- (void)setIcon:(SBIcon *)icon
+{
+    SBIcon *oldIcon = self.icon;
+    %orig();
+    if (icon != oldIcon && STKManagerForView(self)) {
+        STKCleanupIconView(self)
+;    }
+}
+
 - (void)setLocation:(SBIconViewLocation)loc
 {
     %orig();
@@ -545,7 +555,6 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
                                 else {
                                     [otherManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:otherManager.centralIcon]];
                                 }
-                                [[STKPreferences sharedPreferences] refreshCachedLayoutDictForIcon:otherManager.centralIcon];
                             }
                         }
                         if (!manager.showsPreview) {
@@ -556,7 +565,6 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
                         [manager saveLayoutToFile:layoutPath];
                     }
 
-                    [[STKPreferences sharedPreferences] refreshCachedLayoutDictForIcon:manager.centralIcon];
                     [[STKPreferences sharedPreferences] reloadPreferences];
                     return; 
                 }
