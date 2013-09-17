@@ -250,7 +250,7 @@
 
 - (void)saveLayoutToFile:(NSString *)file
 {
-    if (_isEmpty) {
+    if (_isEmpty || !file) {
         return;
     }
 
