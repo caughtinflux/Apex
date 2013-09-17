@@ -5,7 +5,7 @@ TARGET = iphone:clang:latest:3.0
 include theos/makefiles/common.mk
 
 TWEAK_NAME = Apex
-Apex_FILES =  Tweak.xm STKConstants.m STKIconLayout.m STKIconLayoutHandler.m STKStackManager.mm NSOperationQueue+STKMainQueueDispatch.m STKPlaceHolderIcon.xm STKSelectionView.m STKSelectionViewCell.m STKRecognizerDelegate.m STKPreferences.m
+Apex_FILES =  Tweak.xm STKConstants.m STKIconLayout.m STKIconLayoutHandler.m STKStackManager.m NSOperationQueue+STKMainQueueDispatch.m STKPlaceHolderIcon.xm STKSelectionView.m STKSelectionViewCell.m STKRecognizerDelegate.m STKPreferences.m
 Apex_FRAMEWORKS = Foundation CoreFoundation UIKit CoreGraphics QuartzCore
 Apex_CFLAGS = -Wall -Werror -O3
 

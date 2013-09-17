@@ -376,7 +376,7 @@
     }
 
     MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) {
-        iconView.delegate = nil;
+        // iconView.delegate = nil;
         [iconView removeFromSuperview];
     });
 
@@ -1152,6 +1152,9 @@
             returnPoint.y = originalFrame.origin.y;
             returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
             break;
+        }
+        default: {
+            ;
         }
     }
     
