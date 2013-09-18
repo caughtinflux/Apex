@@ -27,8 +27,7 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     CFMessagePortRef     _localPort;
     BOOL                 _isSendingMessage;
 
-    STKPreferencesCallback _callback;
-
+    NSMutableArray      *_callbacks;
     NSMutableDictionary *_cachedLayouts;
 }
 
@@ -110,6 +109,9 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 
     [_iconsWithStacks release];
     _iconsWithStacks = nil;
+
+    [_cachedLayouts release];
+    _cachedLayouts = nil;
 }
 
 - (BOOL)previewEnabled
@@ -249,19 +251,24 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
         return;
     }
 
-    if (_callback) {
-        [_callback release];
-        _callback = nil;
+    if (!_callbacks) {
+        _callbacks = [NSMutableArray new];
     }
 
-    _callback = [callbackBlock copy];
+    [_callbacks addObject:[[callbackBlock copy] autorelease]];
 }
 
 - (NSDictionary *)cachedLayoutDictForIcon:(SBIcon *)centralIcon
 {
     NSDictionary *layout = _cachedLayouts[centralIcon.leafIdentifier];
     if (!layout) {
-        NSDictionary *customLayout = [NSDictionary dictionaryWithContentsOfFile:[[STKPreferences sharedPreferences] layoutPathForIcon:centralIcon]][STKStackManagerCustomLayoutKey];
+        NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:centralIcon];
+        if (![STKStackManager isValidLayoutAtPath:layoutPath]) {
+            [[STKPreferences sharedPreferences] removeLayoutForIcon:centralIcon];
+            return nil;
+        }
+        
+        NSDictionary *customLayout = [NSDictionary dictionaryWithContentsOfFile:layoutPath][STKStackManagerCustomLayoutKey];
         if (customLayout) {
             if (!_cachedLayouts) {
                 _cachedLayouts = [NSMutableDictionary new];
@@ -272,11 +279,6 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     } 
 
     return layout;
-}
-
-- (void)refreshCachedLayoutDictForIcon:(SBIcon *)centralIcon
-{
-    [_cachedLayouts removeObjectForKey:centralIcon.leafIdentifier];
 }
 
 - (void)_refreshGroupedIcons
@@ -310,7 +312,6 @@ CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef d
             }
 
             returnData = (CFDataRef)[[NSKeyedArchiver archivedDataWithRootObject:[[STKPreferences sharedPreferences] valueForKey:@"_iconsInStacks"]] retain];
-
             // Retain, because "The system releases the returned CFData object"
         }
     }
@@ -321,8 +322,7 @@ CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef d
 static void STKPrefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
     [[STKPreferences sharedPreferences] reloadPreferences];
-    STKPreferencesCallback cb = [[STKPreferences sharedPreferences] valueForKey:@"_callback"];
-    if (cb) {
+    for (STKPreferencesCallback cb in [[STKPreferences sharedPreferences] valueForKey:@"_callbacks"]) {
         cb();
     }
 }

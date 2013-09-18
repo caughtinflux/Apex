@@ -65,7 +65,8 @@ extern "C" {
     extern inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax);
 
     // Wrapper functions
-    extern inline double STKAlphaFromDistance(double distance);
+    extern inline double __attribute((__overloadable__)) STKAlphaFromDistance(double distance);
+    extern inline double __attribute((__overloadable__)) STKAlphaFromDistance(double distance, CGFloat targetDistance);
 
     extern SBIconListView * STKListViewForIcon(SBIcon *icon);
 

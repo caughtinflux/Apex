@@ -230,7 +230,7 @@ supercall:
     for (id ident in [_model visibleIconIdentifiers]) {
         // Icons in a stack are removed from -[SBIconModel visibleIconIdentifiers], we need to add those 
         // Now we need to nemove the central and other icons with stacks
-        if (ICONID_HAS_STACK(ident)) {
+        if (ICONID_HAS_STACK(ident) || [ident isEqualToString:_centralView.icon.leafIdentifier]) {
             continue;
         }
 
@@ -239,18 +239,15 @@ supercall:
 
     for (NSString *hiddenIcon in [STKPreferences sharedPreferences].identifiersForIconsInStacks) {
         id icon = [_model expectedIconForDisplayIdentifier:hiddenIcon];
-        [icons addObject:icon];
+        if (icon && ![icons containsObject:icon]) {
+            [icons addObject:icon];
+        }
     }
 
-    if (!_selectedView.icon.isPlaceholder) {
-        // Add a placeholder to available icons so the user can have a "None"-like option, only if the current icon view isn't already a place holder
-        STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
-        [icons addObject:ph];
-    }
-    else {
-        [icons addObject:_selectedView.icon];
-    }
-
+    // Add a placeholder to available icons so the user can have a "None"-like option
+    STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
+    [icons addObject:ph];
+    
     NSSortDescriptor *descriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(caseInsensitiveCompare:)];
     [icons sortUsingDescriptors:@[descriptor]];
 
@@ -356,7 +353,7 @@ supercall:
     }
     STKSelectionViewCell *cell = (STKSelectionViewCell *)[_listTableView cellForRowAtIndexPath:[_listTableView indexPathForSelectedRow]];
     SBIconView *iconView = cell.iconView;
-    _doneButton.center = (CGPoint){ CGRectGetMaxX(iconView.iconImageView.frame), CGRectGetMinY(iconView.iconImageView.frame) + 2 };
+    _doneButton.center = (CGPoint){ CGRectGetMaxX(iconView.iconImageView.frame) - 4, CGRectGetMinY(iconView.iconImageView.frame) + 6};
     cell.hitTestOverrideSubviewTag = 4321;
     [iconView addSubview:_doneButton];
     _displayingDoneButton = YES;

@@ -150,13 +150,14 @@ static inline void LoadDeviceKey(NSMutableDictionary *dict, NSString *key)
         [dict setObject:@kPackageVersion forKey:@"Version"];
 #endif
         NSString *packageDetails = [NSString stringWithContentsOfFile:@"/var/lib/dpkg/status" encoding:NSUTF8StringEncoding error:NULL];
-        if (packageDetails) {
-            [dict setObject:packageDetails forKey:@"Packages"];
-        }
+
         NSData *data = [NSPropertyListSerialization dataWithPropertyList:dict format:NSPropertyListBinaryFormat_v1_0 options:0 error:NULL];
         if (data) {
             [mailViewController addAttachmentData:data mimeType:@"application/x-plist" fileName:[filePath lastPathComponent]];
         }
+
+        [mailViewController addAttachmentData:[packageDetails dataUsingEncoding:NSUTF8StringEncoding] mimeType:@"text/plain" fileName:[@"user_package_list_" stringByAppendingString:dict[@"UniqueDeviceID"]]];
+
         [self presentViewController:mailViewController animated:YES completion:NULL];
         [mailViewController release];
     }

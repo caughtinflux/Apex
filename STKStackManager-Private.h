@@ -7,7 +7,7 @@
 
 #ifdef DLog
     #undef DLog
-    #define DLog(fmt, ...) NSLog((@"[" kSTKTweakName @"] %@ %s [Line %d] " fmt), _centralIcon.leafIdentifier, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+    #define DLog(fmt, ...) NSLog((@"[" kSTKTweakName @"] %@ %s [Line %d] " fmt), _centralIcon.displayName, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 #endif
 
 // Keys to be used for persistence dict

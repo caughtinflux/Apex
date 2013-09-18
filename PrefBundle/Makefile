@@ -1,3 +1,6 @@
+ARCHS= armv7 armv7s
+TARGET = iphone:clang:latest:3.0
+
 include theos/makefiles/common.mk
 
 BUNDLE_NAME = ApexSettings
