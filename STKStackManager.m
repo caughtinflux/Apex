@@ -2,7 +2,6 @@
 #import "STKIconLayoutHandler.h"
 #import "STKSelectionView.h"    
 
-#import "SBIconModel+Additions.h"
 #import "SBIconViewMap+STKSafety.h"
 #import "NSOperationQueue+STKMainQueueDispatch.h"
 #import "STKPreferences.h"
@@ -66,6 +65,11 @@
         return NO;
     }
 
+    return [self isValidLayout:dict];
+}
+
++ (BOOL)isValidLayout:(NSDictionary *)dict
+{
     SBIconModel *model = (SBIconModel *)[[objc_getClass("SBIconController") sharedInstance] model];
     NSArray *stackIconIDs = dict[STKStackManagerStackIconsKey];
 
@@ -86,7 +90,6 @@
 
     return YES;
 }
-
 
 #pragma mark - Public Methods
 - (instancetype)initWithContentsOfFile:(NSString *)file
@@ -164,6 +167,7 @@
     savedCoords.yPos = (customLayout[@"yPos"] ? [customLayout[@"yPos"] integerValue] : NSNotFound - 2);
 
     if (!(EQ_COORDS(savedCoords, currentCoords))) {
+        CLog(@"coords are unequal: %@", centralIcon);
         // The location of the icon has changed, hence calculate layouts accordingly
         if ((self = [self initWithCentralIcon:centralIcon stackIcons:[layout allIcons]])) {
             [self _setLayoutDiffersFromFile:YES];
@@ -251,7 +255,7 @@
 
 - (void)saveLayoutToFile:(NSString *)file
 {
-    if (_isEmpty) {
+    if (_isEmpty || !file) {
         return;
     }
 
@@ -337,7 +341,7 @@
     SBIconView *centralIconView = [[objc_getClass("SBIconViewMap") homescreenMap] safeIconViewForIcon:_centralIcon];
     centralIconView.userInteractionEnabled = YES;
 
-    [_appearingIconsLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
+    [_appearingIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
         SBIconView *iconView = [[[objc_getClass("SBIconView") alloc] initWithDefaultSize] autorelease];
         iconView.location = (SBIconViewLocation)1337;
         
@@ -363,7 +367,6 @@
             [iconView removeGestureRecognizer:recognizer];
         }
     }];
-
     [centralIconView bringSubviewToFront:centralIconView.iconImageView];
     [self _calculateDistanceRatio];
 
@@ -1154,6 +1157,9 @@
             returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
             break;
         }
+        default: {
+            ;
+        }
     }
     
     return returnPoint;
@@ -1183,7 +1189,7 @@
     _offScreenIconsLayout = [[STKIconLayout alloc] init]; 
 
     CGRect listViewBounds = STKListViewForIcon(_centralIcon).bounds;
-    [_displacedIconsLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index) {
+    [_displacedIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
         CGPoint target = [self _displacedOriginForIcon:icon withPosition:position];
         CGRect targetRect = (CGRect){{target.x, target.y}, [self _iconViewForIcon:icon].frame.size};
 
@@ -1399,7 +1405,7 @@
         _currentSelectionView.alpha = 1.f;
 
         [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iv) { 
-            if (iv != [self _iconViewForIcon:_centralIcon]){
+            if (iv != [self _iconViewForIcon:_centralIcon]) {
                 iv.alpha = 0.f; 
             }
         }];

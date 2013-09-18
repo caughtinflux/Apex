@@ -73,7 +73,7 @@ typedef NS_ENUM(NSInteger, STKLayoutPosition) {
 
 - (void)removeIcon:(id)icon fromIconsAtPosition:(STKLayoutPosition)position;
 - (void)removeIcon:(id)icon; // Removes `icon` from all positions it can be found in
-- (void)removeAllIconsFromPosition:(STKLayoutPosition)position;
+- (void)removeAllIconsForPosition:(STKLayoutPosition)position;
 - (void)removeAllIcons;
 - (void)removeIconAtIndex:(NSUInteger)idx fromIconsAtPosition:(STKLayoutPosition)position;
 
