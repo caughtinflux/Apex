@@ -230,7 +230,7 @@ supercall:
     for (id ident in [_model visibleIconIdentifiers]) {
         // Icons in a stack are removed from -[SBIconModel visibleIconIdentifiers], we need to add those 
         // Now we need to nemove the central and other icons with stacks
-        if (ICONID_HAS_STACK(ident)) {
+        if (ICONID_HAS_STACK(ident) || [ident isEqualToString:_centralView.icon.leafIdentifier]) {
             continue;
         }
 
@@ -353,7 +353,7 @@ supercall:
     }
     STKSelectionViewCell *cell = (STKSelectionViewCell *)[_listTableView cellForRowAtIndexPath:[_listTableView indexPathForSelectedRow]];
     SBIconView *iconView = cell.iconView;
-    _doneButton.center = (CGPoint){ CGRectGetMaxX(iconView.iconImageView.frame), CGRectGetMinY(iconView.iconImageView.frame) + 2 };
+    _doneButton.center = (CGPoint){ CGRectGetMaxX(iconView.iconImageView.frame) - 4, CGRectGetMinY(iconView.iconImageView.frame) + 6};
     cell.hitTestOverrideSubviewTag = 4321;
     [iconView addSubview:_doneButton];
     _displayingDoneButton = YES;

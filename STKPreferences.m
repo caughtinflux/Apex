@@ -109,6 +109,9 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 
     [_iconsWithStacks release];
     _iconsWithStacks = nil;
+
+    [_cachedLayouts release];
+    _cachedLayouts = nil;
 }
 
 - (BOOL)previewEnabled
@@ -259,7 +262,13 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 {
     NSDictionary *layout = _cachedLayouts[centralIcon.leafIdentifier];
     if (!layout) {
-        NSDictionary *customLayout = [NSDictionary dictionaryWithContentsOfFile:[[STKPreferences sharedPreferences] layoutPathForIcon:centralIcon]][STKStackManagerCustomLayoutKey];
+        NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:centralIcon];
+        if (![STKStackManager isValidLayoutAtPath:layoutPath]) {
+            [[STKPreferences sharedPreferences] removeLayoutForIcon:centralIcon];
+            return nil;
+        }
+        
+        NSDictionary *customLayout = [NSDictionary dictionaryWithContentsOfFile:layoutPath][STKStackManagerCustomLayoutKey];
         if (customLayout) {
             if (!_cachedLayouts) {
                 _cachedLayouts = [NSMutableDictionary new];
@@ -270,11 +279,6 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
     } 
 
     return layout;
-}
-
-- (void)refreshCachedLayoutDictForIcon:(SBIcon *)centralIcon
-{
-    [_cachedLayouts removeObjectForKey:centralIcon.leafIdentifier];
 }
 
 - (void)_refreshGroupedIcons

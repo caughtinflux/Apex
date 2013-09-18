@@ -6,7 +6,6 @@
 #import "STKRecognizerDelegate.h"
 #import "STKPreferences.h"
 #import "STKIconLayout.h"
-#import "SBIconModel+Additions.h"
 
 #import <SpringBoard/SpringBoard.h>
 
@@ -14,9 +13,6 @@
 #import <Search/SPSearchResultSection.h>
 #import <Search/SPSearchResult.h>
 
-#import <objc/message.h>
-#import <notify.h>
-#import <stdlib.h>
 
 #pragma mark - Function Declarations
 
@@ -86,6 +82,16 @@ static BOOL _switcherIsVisible;
 
 #pragma mark - SBIconView Hook
 %hook SBIconView
+
+- (void)setIcon:(SBIcon *)icon
+{
+    SBIcon *oldIcon = self.icon;
+    %orig();
+    if (icon != oldIcon && STKManagerForView(self)) {
+        STKCleanupIconView(self)
+;    }
+}
+
 - (void)setLocation:(SBIconViewLocation)loc
 {
     %orig();
@@ -362,6 +368,7 @@ static BOOL _hasVerticalIcons    = NO;
     %orig(shouldGhost, requester, icon);
 
     SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
+    NSNumber *ghostedRequesters = [self valueForKey:@"_ghostedRequesters"];
 
     [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
         if (iconView.icon == icon || iconView.icon == [STKGetActiveManager() centralIcon]) {
@@ -369,7 +376,13 @@ static BOOL _hasVerticalIcons    = NO;
         }
         
         STKStackManager *iconViewManager = STKManagerForView(iconView);
-        [iconViewManager setStackIconAlpha:((shouldGhost && [iconView isGhostly]) ? 0.0 : 1.0)];
+        if ([ghostedRequesters integerValue] > 0 || shouldGhost) {
+            // ignore  `shouldGhost` if ghostedRequesters > 0
+            [iconViewManager setStackIconAlpha:0.0];
+        }
+        else if (!shouldGhost) {
+            [iconViewManager setStackIconAlpha:1.f];
+        }
     }];
 }
 
@@ -402,25 +415,6 @@ static BOOL _hasVerticalIcons    = NO;
     }
     return isVisible;
 }
-
-%new
-- (void)stk_reloadIconVisibility
-{
-    [self stk_reloadIconVisibilityForSwitcher:NO];
-}
-
-%new
-- (void)stk_reloadIconVisibilityForSwitcher:(BOOL)forSwitcher
-{    
-    NSSet *visibleIconTags = MSHookIvar<NSSet *>(self, "_visibleIconTags");
-    NSSet *hiddenIconTags = MSHookIvar<NSSet *>(self, "_hiddenIconTags");
-
-    [self setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
-    if (!forSwitcher) {
-        [self layout];
-    }
-}
-
 %end
 /**************************************************************************************************************************/
 /**************************************************************************************************************************/
@@ -450,7 +444,10 @@ static BOOL _hasVerticalIcons    = NO;
     _switcherIsVisible = YES;
 
     SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
-    [model stk_reloadIconVisibilityForSwitcher:YES];
+    NSSet *visibleIconTags = MSHookIvar<NSSet *>(model, "_visibleIconTags");
+    NSSet *hiddenIconTags = MSHookIvar<NSSet *>(model, "_hiddenIconTags");
+
+    [model setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
     
     return %orig(animationDuration);
 }
@@ -463,8 +460,8 @@ static BOOL _hasVerticalIcons    = NO;
 
 %end
 
-/********************************************************************************************************************************************************************************************************/
-/********************************************************************************************************************************************************************************************************/
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
 #pragma mark - Search Agent Hook
 %hook SPSearchAgent
 - (id)sectionAtIndex:(NSUInteger)idx
@@ -482,13 +479,13 @@ static BOOL _hasVerticalIcons    = NO;
     return ret;
 }
 %end
-/********************************************************************************************************************************************************************************************************/
-/********************************************************************************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
 
 
 
-/********************************************************************************************************************************************************************************************************/
-/********************************************************************************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
 #pragma mark - Associated Object Keys
 // I've assigned these to selectors so I get easy access to these stuffs via cycript
 static SEL const panGRKey              = @selector(apexPanKey);
@@ -501,35 +498,34 @@ static SEL const prefsCallbackObserver = @selector(apexCallbackKey);
 #pragma mark - Static Function Definitions
 static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
 {
-    __block STKStackManager * stackManager = STKManagerForView(iconView);
+    STKStackManager *stackManager = STKManagerForView(iconView);
+    NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
 
     if (!stackManager) {
         if (ICON_HAS_STACK(iconView.icon)) {
-            NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
-            if (![STKStackManager isValidLayoutAtPath:layoutPath]) {
-                [[STKPreferences sharedPreferences] removeLayoutForIcon:iconView.icon];
+            NSDictionary *cachedLayout = [[STKPreferences sharedPreferences] cachedLayoutDictForIcon:iconView.icon];
+            if (cachedLayout) {
+                stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon withCustomLayout:cachedLayout];
+                if (stackManager.layoutDiffersFromFile) {
+                    [stackManager saveLayoutToFile:layoutPath];
+                }
             }
             else {
-                NSDictionary *cachedLayout = [[STKPreferences sharedPreferences] cachedLayoutDictForIcon:iconView.icon];
-                if (cachedLayout) {
-                    stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon withCustomLayout:cachedLayout];
+                stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
+                if (stackManager.layoutDiffersFromFile) {
+                    [stackManager saveLayoutToFile:layoutPath];
                 }
-                else {
-                    stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
-                    if (stackManager.layoutDiffersFromFile) {
+                else if (!stackManager) {
+                    // Control should not get here, since
+                    // we are already checking if the layout is invalid
+                    NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
+                    stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
+                    if (![stackManager isEmpty]) {
                         [stackManager saveLayoutToFile:layoutPath];
                     }
-                    else if (!stackManager) {
-                        // Control should not get here, since
-                        // we are already checking if the layout is invalid
-                        NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
-                        stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
-                        if (![stackManager isEmpty]) {
-                            [stackManager saveLayoutToFile:layoutPath];
-                        }
-                    }
-                }    
-            }
+                }
+            }    
+            
         }
         else {            
             stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:nil];
@@ -558,7 +554,6 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
                                 else {
                                     [otherManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:otherManager.centralIcon]];
                                 }
-                                [[STKPreferences sharedPreferences] refreshCachedLayoutDictForIcon:otherManager.centralIcon];
                             }
                         }
                         if (!manager.showsPreview) {
@@ -569,7 +564,6 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
                         [manager saveLayoutToFile:layoutPath];
                     }
 
-                    [[STKPreferences sharedPreferences] refreshCachedLayoutDictForIcon:manager.centralIcon];
                     [[STKPreferences sharedPreferences] reloadPreferences];
                     return; 
                 }
@@ -718,9 +712,12 @@ static void STKPrefsChanged(void)
         }];
     }
 }
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
 
 
-
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
 #pragma mark - Inliner Definitions
 static inline void STKSetupIconView(SBIconView *iconView)
 {
@@ -785,6 +782,9 @@ static inline void STKCloseActiveManager(void)
     [STKGetActiveManager() closeStack];
     STKSetActiveManager(nil);
 }
+/**********************************************************************************************************************/
+/**********************************************************************************************************************/
+
 
 
 #pragma mark - Constructor
