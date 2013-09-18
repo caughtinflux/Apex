@@ -179,10 +179,10 @@ static BOOL _hasVerticalIcons    = NO;
         _currentDirection = STKDirectionFromVelocity([sender velocityInView:view]);
         _previousPoint = _initialPoint; // Previous point is also initial at the start :P
 
-        _hasVerticalIcons = ([stackManager.appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stackManager.appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
-
         STKSetActiveManager(stackManager);
         [stackManager touchesBegan];
+
+        _hasVerticalIcons = ([stackManager.appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stackManager.appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
     }
 
     else if (sender.state == UIGestureRecognizerStateChanged) {
