@@ -498,35 +498,34 @@ static SEL const prefsCallbackObserver = @selector(apexCallbackKey);
 #pragma mark - Static Function Definitions
 static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
 {
-    __block STKStackManager * stackManager = STKManagerForView(iconView);
+    STKStackManager *stackManager = STKManagerForView(iconView);
+    NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
 
     if (!stackManager) {
         if (ICON_HAS_STACK(iconView.icon)) {
-            NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:iconView.icon];
-            if (![STKStackManager isValidLayoutAtPath:layoutPath]) {
-                [[STKPreferences sharedPreferences] removeLayoutForIcon:iconView.icon];
+            NSDictionary *cachedLayout = [[STKPreferences sharedPreferences] cachedLayoutDictForIcon:iconView.icon];
+            if (cachedLayout) {
+                stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon withCustomLayout:cachedLayout];
+                if (stackManager.layoutDiffersFromFile) {
+                    [stackManager saveLayoutToFile:layoutPath];
+                }
             }
             else {
-                NSDictionary *cachedLayout = [[STKPreferences sharedPreferences] cachedLayoutDictForIcon:iconView.icon];
-                if (cachedLayout) {
-                    stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon withCustomLayout:cachedLayout];
+                stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
+                if (stackManager.layoutDiffersFromFile) {
+                    [stackManager saveLayoutToFile:layoutPath];
                 }
-                else {
-                    stackManager = [[STKStackManager alloc] initWithContentsOfFile:layoutPath];
-                    if (stackManager.layoutDiffersFromFile) {
+                else if (!stackManager) {
+                    // Control should not get here, since
+                    // we are already checking if the layout is invalid
+                    NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
+                    stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
+                    if (![stackManager isEmpty]) {
                         [stackManager saveLayoutToFile:layoutPath];
                     }
-                    else if (!stackManager) {
-                        // Control should not get here, since
-                        // we are already checking if the layout is invalid
-                        NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
-                        stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
-                        if (![stackManager isEmpty]) {
-                            [stackManager saveLayoutToFile:layoutPath];
-                        }
-                    }
-                }    
-            }
+                }
+            }    
+            
         }
         else {            
             stackManager = [[STKStackManager alloc] initWithCentralIcon:iconView.icon stackIcons:nil];
