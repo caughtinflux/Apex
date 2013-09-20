@@ -167,7 +167,6 @@
     savedCoords.yPos = (customLayout[@"yPos"] ? [customLayout[@"yPos"] integerValue] : NSNotFound - 2);
 
     if (!(EQ_COORDS(savedCoords, currentCoords))) {
-        CLog(@"coords are unequal: %@", centralIcon);
         // The location of the icon has changed, hence calculate layouts accordingly
         if ((self = [self initWithCentralIcon:centralIcon stackIcons:[layout allIcons]])) {
             [self _setLayoutDiffersFromFile:YES];

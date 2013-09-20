@@ -132,7 +132,7 @@ static BOOL _switcherIsVisible;
     return ((ICON_HAS_STACK(self.icon) || ICON_HAS_STACK(iconView.icon)) ? NO : %orig());
 }
 
-#define kBandingFactor  0.15 // The factor by which the distance should be multiplied to simulate the rubber banding effect
+#define kBandingFactor  0.1 // The factor by which the distance should be multiplied to simulate the rubber banding effect
 
 static CGPoint                _previousPoint    = CGPointZero;
 static CGPoint                _initialPoint     = CGPointZero;
