@@ -8,6 +8,7 @@
 
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
+#import <QuartzCore/QuartzCore.h>
 
 #define PTOS NSStringFromCGPoint
 #define RTOS NSStringFromCGRect
@@ -136,6 +137,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
 
     _listTableView.frame = (CGRect){{self.bounds.origin.x + 3, self.bounds.origin.y}, frame.size};
     _listTableView.contentInset = UIEdgeInsetsMake(ABS(iconOrigin.y - _listTableView.frame.origin.y), 0, ABS(iconLowerEdge.y - _listTableView.frame.size.height) + 1, 0);
+    _listTableView.scrollIndicatorInsets = UIEdgeInsetsMake(_listTableView.contentInset.top, 0, 0, 0);
 
     CGPoint highlightCenter = [self convertPoint:_selectedView.iconImageView.center fromView:_selectedView];
     _highlightView.center = (CGPoint){ highlightCenter.x, highlightCenter.y - 1 };
@@ -205,17 +207,6 @@ static NSString * const CellIdentifier = @"STKIconCell";
 - (SBIcon *)highlightedIcon
 {
     return _availableAppIcons[[_listTableView indexPathForSelectedRow].row];
-}
-
-- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
-{
-    if (_cellPosition == STKSelectionCellPositionLeft) {
-
-        goto supercall;
-    }
-
-supercall:
-    return [super hitTest:point withEvent:event];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,14 +306,19 @@ supercall:
     
 
     if (indexToSelect) {
-        [UIView animateWithDuration:0.29f animations:^{
-            [_listTableView selectRowAtIndexPath:indexToSelect animated:YES scrollPosition:UITableViewScrollPositionTop];
-            [self _setHidesHighlight:NO];
-        } completion:^(BOOL done) {
-            if (done) {
-                [self _showDoneButton];
-            }
+        [CATransaction begin];
+        [CATransaction setCompletionBlock:^{
+            [self _showDoneButton]; // Damn you UITableView, just...DAMN YOU.
         }];
+
+        [_listTableView beginUpdates];
+        [_listTableView selectRowAtIndexPath:indexToSelect animated:YES scrollPosition:UITableViewScrollPositionTop];
+        [_listTableView endUpdates];
+        
+        [CATransaction commit];
+    }
+    else {
+        [self _showDoneButton];
     }
 }
 
@@ -378,6 +374,7 @@ supercall:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - Delegates, DataSources etc.
+
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
     if (!decelerate) {
@@ -398,11 +395,6 @@ supercall:
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     [self _hideDoneButton];
-}
-
-- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
-{
-    [self _showDoneButton];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
