@@ -339,7 +339,17 @@ static NSString * const CellIdentifier = @"STKIconCell";
 - (void)_iconTapped:(UITapGestureRecognizer *)gr
 {
     NSIndexPath *ip = objc_getAssociatedObject(gr, @selector(indexPath));
+
+    [CATransaction begin];
+    [CATransaction setCompletionBlock:^{
+        [self _showDoneButton];
+    }];
+
+    [_listTableView beginUpdates];
     [_listTableView selectRowAtIndexPath:ip animated:YES scrollPosition:UITableViewScrollPositionTop];
+    [_listTableView endUpdates];
+    
+    [CATransaction commit];
 }
 
 - (void)_showDoneButton;
@@ -347,11 +357,18 @@ static NSString * const CellIdentifier = @"STKIconCell";
     if (_displayingDoneButton) {
         return;
     }
+
     STKSelectionViewCell *cell = (STKSelectionViewCell *)[_listTableView cellForRowAtIndexPath:[_listTableView indexPathForSelectedRow]];
     SBIconView *iconView = cell.iconView;
+    
     _doneButton.center = (CGPoint){ CGRectGetMaxX(iconView.iconImageView.frame) - 4, CGRectGetMinY(iconView.iconImageView.frame) + 6};
+    
     cell.hitTestOverrideSubviewTag = 4321;
+    
+    _doneButton.alpha = 0.f;
     [iconView addSubview:_doneButton];
+    [UIView animateWithDuration:0.19 animations:^{ _doneButton.alpha = 1.f; }]; 
+    
     _displayingDoneButton = YES;
 }
 
