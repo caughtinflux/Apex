@@ -550,6 +550,8 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
                                 [otherManager removeIconFromAppearingIcons:addedIcon];
                                 if (otherManager.isEmpty) {
                                     [[STKPreferences sharedPreferences] removeLayoutForIcon:otherManager.centralIcon];
+                                    [otherManager cleanupView];
+                                    [[%c(SBIconViewMap) homescreenMap] iconViewForIcon:otherManager.centralIcon].transform = CGAffineTransformMakeScale(1.f, 1.f);
                                 }
                                 else {
                                     [otherManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:otherManager.centralIcon]];
