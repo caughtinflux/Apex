@@ -407,7 +407,8 @@ static BOOL _hasVerticalIcons    = NO;
     // Picked this one up from https://github.com/big-boss/Libhide/blob/master/dylib/classes/iconhide.xm#L220
     BOOL isInSpotlight = [((SBIconController *)[%c(SBIconController) sharedInstance]).searchController.searchView isKeyboardVisible];
 
-    if (_switcherIsVisible == NO && isInSpotlight == NO) {
+    if (!(_switcherIsVisible || [(SpringBoard *)[UIApplication sharedApplication] _isSwitcherShowing] || [[%c(SBUIController) sharedInstance] isSwitcherShowing])
+        && isInSpotlight == NO) {
         if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
             isVisible = NO;
         }
