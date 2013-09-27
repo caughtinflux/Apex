@@ -391,8 +391,13 @@
 }
 
 #pragma mark - Preview Handling
+static int c;
 - (void)setupPreview
 {
+    if ([self.centralIcon.leafIdentifier isEqual:@"com.apple.camera"]) {
+        c++;
+        DLog(@"c = %i", c);
+    }
     [self setupViewIfNecessary];
 
     [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx) {

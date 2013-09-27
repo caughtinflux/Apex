@@ -102,11 +102,11 @@ static BOOL _switcherIsVisible;
     
     id currentManager = STKManagerForView(self);
     SBIcon *icon = self.icon;
-    if (!icon ||
+    if (currentManager  && (!icon ||
         _wantsSafeIconViewRetrieval || 
         loc != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] || [self isInDock] ||
         ![icon isLeafIcon] || [icon isDownloadingIcon] || 
-        [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
+        [[STKPreferences sharedPreferences] iconIsInStack:icon])) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
         // Don't add recognizer to icons in the stack already
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, so cleanup.
@@ -117,11 +117,11 @@ static BOOL _switcherIsVisible;
     }
 
     // Add self to the homescreen map, since _cmd is sometimes called before the map is configured completely.
-    if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon] == nil) {
+    if (icon && [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon] == nil) {
         [[%c(SBIconViewMap) homescreenMap] _addIconView:self forIcon:icon];
     }
 
-    if (!currentManager) {
+    if (!currentManager && icon != nil) {
         STKSetupIconView(self);
     }
 }
@@ -445,8 +445,8 @@ static BOOL _hasVerticalIcons    = NO;
     _switcherIsVisible = YES;
 
     SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
-    NSSet *visibleIconTags = MSHookIvar<NSSet *>(model, "_visibleIconTags");
-    NSSet *hiddenIconTags = MSHookIvar<NSSet *>(model, "_hiddenIconTags");
+    NSSet *&visibleIconTags = MSHookIvar<NSSet *>(model, "_visibleIconTags");
+    NSSet *&hiddenIconTags = MSHookIvar<NSSet *>(model, "_hiddenIconTags");
 
     [model setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
     
@@ -488,7 +488,7 @@ static BOOL _hasVerticalIcons    = NO;
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 #pragma mark - Associated Object Keys
-// I've assigned these to selectors so I get easy access to these stuffs via cycript
+// Assigned to SELs for easy access from cycript.
 static SEL const panGRKey              = @selector(apexPanKey);
 static SEL const stackManagerKey       = @selector(apexManagerKey);
 static SEL const topGrabberViewKey     = @selector(apexTopGrabberKey);
@@ -570,21 +570,15 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
                     [[STKPreferences sharedPreferences] reloadPreferences];
                     return; 
                 }
-
                 if (manager != STKGetActiveManager()) {
                     return;
                 }
-
                 if (tappedIconView) {
-                    manager.closesOnHomescreenEdit = NO;
                     [tappedIconView.icon launch];
-                    manager.closesOnHomescreenEdit = YES;
                     [manager closeStack];
                 }
-                
                 STKSetActiveManager(nil);
             };
-
 
         objc_setAssociatedObject(iconView, stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [stackManager release];
