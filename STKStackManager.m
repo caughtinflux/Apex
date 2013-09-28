@@ -335,9 +335,13 @@
 
 - (void)setupView
 {
-    if (_hasSetup) {
-        return;
+    if (_iconViewsLayout) {
+        [[_iconViewsLayout allIcons] makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        [_iconViewsLayout removeAllIcons];
+        [_iconViewsLayout release];
+        _iconViewsLayout = nil;
     }
+
     _iconViewsLayout = [[STKIconLayout alloc] init];
     
     SBIconView *centralIconView = [[objc_getClass("SBIconViewMap") homescreenMap] safeIconViewForIcon:_centralIcon];

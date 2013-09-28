@@ -94,9 +94,9 @@ static BOOL _switcherIsVisible;
 {
     SBIcon *oldIcon = self.icon;
     %orig();
-    if (icon != oldIcon && STKManagerForView(self)) {
-        STKCleanupIconView(self)
-;    }
+    if (!icon || (icon != oldIcon && STKManagerForView(self))) {
+        STKCleanupIconView(self);
+    }
 }
 
 - (void)setLocation:(SBIconViewLocation)loc
