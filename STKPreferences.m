@@ -236,7 +236,9 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
         NSError *err = nil;
         BOOL ret = [[NSFileManager defaultManager] removeItemAtPath:[self layoutPathForIconID:iconID] error:&err];
         if (err) {
+#ifndef __x86_64__
             STKLog(@"An error occurred when trying to remove layout for %@. Error %i, %@", iconID, err.code, err);
+#endif
         }
 
         [self reloadPreferences];

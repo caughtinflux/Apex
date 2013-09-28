@@ -3,23 +3,7 @@
 #import <GraphicsServices/GraphicsServices.h>
 #import <dlfcn.h>
 #import <substrate.h>
-#import <Search/SPApplication.h>
-#import <Search/SPSearchResultSection.h>
-#import <Search/SPSearchResult.h>
 
-@interface SPApplicationDatastore : NSObject
-{
-    NSMutableDictionary *_applications; 
-}
-- (void)getApplications;
-- (void)dealloc;
-- (id)init;
-- (id)searchDomains;
-- (BOOL)wantsEveryResultInItsOwnSection;
-- (void)performQuery:(id)arg1 withResultsPipe:(id)arg2;
-- (id)displayIdentifierForDomain:(unsigned int)arg1;
-- (id)resultForIdentifier:(id)arg1 domain:(unsigned int)arg2;
-@end
 
 #define kSTKSpringBoardPortName           CFSTR("com.a3tweaks.apex.springboardport")
 #define kSTKSearchdPortName               CFSTR("com.a3tweaks.apex.searchdport")
@@ -79,10 +63,7 @@ CFPropertyListRef n_GSSystemCopyCapability(CFStringRef cap)
 
 CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef data, void *info)
 {
-    if (msgid != kSTKIdentifiersUpdateMessageID) {
-        return NULL;
-    }
-    if (data) {
+    if (msgid == kSTKIdentifiersUpdateMessageID && data) {
         [_stackedIconIdentifiers release];
         _stackedIconIdentifiers = [[NSKeyedUnarchiver unarchiveObjectWithData:(NSData *)data] copy];
     }

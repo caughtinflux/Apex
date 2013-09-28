@@ -8,6 +8,7 @@
 
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
+#import <QuartzCore/QuartzCore.h>
 
 #define PTOS NSStringFromCGPoint
 #define RTOS NSStringFromCGRect
@@ -136,6 +137,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
 
     _listTableView.frame = (CGRect){{self.bounds.origin.x + 3, self.bounds.origin.y}, frame.size};
     _listTableView.contentInset = UIEdgeInsetsMake(ABS(iconOrigin.y - _listTableView.frame.origin.y), 0, ABS(iconLowerEdge.y - _listTableView.frame.size.height) + 1, 0);
+    _listTableView.scrollIndicatorInsets = UIEdgeInsetsMake(_listTableView.contentInset.top, 0, 0, 0);
 
     CGPoint highlightCenter = [self convertPoint:_selectedView.iconImageView.center fromView:_selectedView];
     _highlightView.center = (CGPoint){ highlightCenter.x, highlightCenter.y - 1 };
@@ -207,17 +209,6 @@ static NSString * const CellIdentifier = @"STKIconCell";
     return _availableAppIcons[[_listTableView indexPathForSelectedRow].row];
 }
 
-- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
-{
-    if (_cellPosition == STKSelectionCellPositionLeft) {
-
-        goto supercall;
-    }
-
-supercall:
-    return [super hitTest:point withEvent:event];
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -233,8 +224,10 @@ supercall:
         if (ICONID_HAS_STACK(ident) || [ident isEqualToString:_centralView.icon.leafIdentifier]) {
             continue;
         }
-
-        [icons addObject:[_model expectedIconForDisplayIdentifier:ident]];
+        SBIcon *icon = [_model expectedIconForDisplayIdentifier:ident];
+        if (![icon isDownloadingIcon]) {
+            [icons addObject:[_model expectedIconForDisplayIdentifier:ident]];
+        }
     }
 
     for (NSString *hiddenIcon in [STKPreferences sharedPreferences].identifiersForIconsInStacks) {
@@ -315,14 +308,19 @@ supercall:
     
 
     if (indexToSelect) {
-        [UIView animateWithDuration:0.29f animations:^{
-            [_listTableView selectRowAtIndexPath:indexToSelect animated:YES scrollPosition:UITableViewScrollPositionTop];
-            [self _setHidesHighlight:NO];
-        } completion:^(BOOL done) {
-            if (done) {
-                [self _showDoneButton];
-            }
+        [CATransaction begin];
+        [CATransaction setCompletionBlock:^{
+            [self _showDoneButton]; // Damn you UITableView, just...DAMN YOU.
         }];
+
+        [_listTableView beginUpdates];
+        [_listTableView selectRowAtIndexPath:indexToSelect animated:YES scrollPosition:UITableViewScrollPositionTop];
+        [_listTableView endUpdates];
+        
+        [CATransaction commit];
+    }
+    else {
+        [self _showDoneButton];
     }
 }
 
@@ -343,7 +341,17 @@ supercall:
 - (void)_iconTapped:(UITapGestureRecognizer *)gr
 {
     NSIndexPath *ip = objc_getAssociatedObject(gr, @selector(indexPath));
+
+    [CATransaction begin];
+    [CATransaction setCompletionBlock:^{
+        [self _showDoneButton];
+    }];
+
+    [_listTableView beginUpdates];
     [_listTableView selectRowAtIndexPath:ip animated:YES scrollPosition:UITableViewScrollPositionTop];
+    [_listTableView endUpdates];
+    
+    [CATransaction commit];
 }
 
 - (void)_showDoneButton;
@@ -351,11 +359,18 @@ supercall:
     if (_displayingDoneButton) {
         return;
     }
+
     STKSelectionViewCell *cell = (STKSelectionViewCell *)[_listTableView cellForRowAtIndexPath:[_listTableView indexPathForSelectedRow]];
     SBIconView *iconView = cell.iconView;
+    
     _doneButton.center = (CGPoint){ CGRectGetMaxX(iconView.iconImageView.frame) - 4, CGRectGetMinY(iconView.iconImageView.frame) + 6};
+    
     cell.hitTestOverrideSubviewTag = 4321;
+    
+    _doneButton.alpha = 0.f;
     [iconView addSubview:_doneButton];
+    [UIView animateWithDuration:0.19 animations:^{ _doneButton.alpha = 1.f; }]; 
+    
     _displayingDoneButton = YES;
 }
 
@@ -378,6 +393,7 @@ supercall:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - Delegates, DataSources etc.
+
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
     if (!decelerate) {
@@ -398,11 +414,6 @@ supercall:
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     [self _hideDoneButton];
-}
-
-- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
-{
-    [self _showDoneButton];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

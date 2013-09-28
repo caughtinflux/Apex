@@ -167,7 +167,6 @@
     savedCoords.yPos = (customLayout[@"yPos"] ? [customLayout[@"yPos"] integerValue] : NSNotFound - 2);
 
     if (!(EQ_COORDS(savedCoords, currentCoords))) {
-        CLog(@"coords are unequal: %@", centralIcon);
         // The location of the icon has changed, hence calculate layouts accordingly
         if ((self = [self initWithCentralIcon:centralIcon stackIcons:[layout allIcons]])) {
             [self _setLayoutDiffersFromFile:YES];
@@ -336,6 +335,13 @@
 
 - (void)setupView
 {
+    if (_iconViewsLayout) {
+        [[_iconViewsLayout allIcons] makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        [_iconViewsLayout removeAllIcons];
+        [_iconViewsLayout release];
+        _iconViewsLayout = nil;
+    }
+
     _iconViewsLayout = [[STKIconLayout alloc] init];
     
     SBIconView *centralIconView = [[objc_getClass("SBIconViewMap") homescreenMap] safeIconViewForIcon:_centralIcon];
