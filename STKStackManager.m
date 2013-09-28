@@ -1416,6 +1416,16 @@
             }
         }];
         [_iconController dock].superview.alpha = 0.f;
+    } completion:^(BOOL done) {
+        if (done && _selectionViewIndex >= 1) {
+            NSArray *iconViews = [_iconViewsLayout iconsForPosition:_selectionViewPosition];
+            SBIconView *prevIconView = (SBIconView *)[iconViews objectAtIndex:_selectionViewIndex - 1];
+
+            if ([prevIconView.icon isPlaceholder]) {
+                [_currentSelectionView moveToIconView:prevIconView animated:YES completion:nil];
+                _selectionViewIndex = 0;
+            }
+        }
     }];
 }
 
