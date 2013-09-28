@@ -167,11 +167,16 @@ static NSString * const CellIdentifier = @"STKIconCell";
     [_selectedView release];
     _selectedView = [iconView retain];
     
-    [UIView animateWithDuration:(animated ? 0.2f : 0.0f) animations:^{
+    NSTimeInterval duration =  (animated ? (STKLayoutPositionIsVertical(_position) ? 0.29 : 0.25) : 0.0);
+    [UIView animateWithDuration:duration animations:^{
         [self layoutSubviews];
+        [self prepareForDisplay];
+        [self scrollToDefaultAnimated:NO];
     } completion:^(BOOL done) {
-        if (done && completionBlock) {
-            completionBlock();
+        if (done) {
+            [self _hideDoneButton];
+            [self _showDoneButton];
+            if (completionBlock) completionBlock();
         }
     }];
 }
@@ -224,8 +229,10 @@ static NSString * const CellIdentifier = @"STKIconCell";
         if (ICONID_HAS_STACK(ident) || [ident isEqualToString:_centralView.icon.leafIdentifier]) {
             continue;
         }
-
-        [icons addObject:[_model expectedIconForDisplayIdentifier:ident]];
+        SBIcon *icon = [_model expectedIconForDisplayIdentifier:ident];
+        if (![icon isDownloadingIcon]) {
+            [icons addObject:[_model expectedIconForDisplayIdentifier:ident]];
+        }
     }
 
     for (NSString *hiddenIcon in [STKPreferences sharedPreferences].identifiersForIconsInStacks) {
@@ -339,7 +346,17 @@ static NSString * const CellIdentifier = @"STKIconCell";
 - (void)_iconTapped:(UITapGestureRecognizer *)gr
 {
     NSIndexPath *ip = objc_getAssociatedObject(gr, @selector(indexPath));
+
+    [CATransaction begin];
+    [CATransaction setCompletionBlock:^{
+        [self _showDoneButton];
+    }];
+
+    [_listTableView beginUpdates];
     [_listTableView selectRowAtIndexPath:ip animated:YES scrollPosition:UITableViewScrollPositionTop];
+    [_listTableView endUpdates];
+    
+    [CATransaction commit];
 }
 
 - (void)_showDoneButton;
@@ -347,11 +364,18 @@ static NSString * const CellIdentifier = @"STKIconCell";
     if (_displayingDoneButton) {
         return;
     }
+
     STKSelectionViewCell *cell = (STKSelectionViewCell *)[_listTableView cellForRowAtIndexPath:[_listTableView indexPathForSelectedRow]];
     SBIconView *iconView = cell.iconView;
+    
     _doneButton.center = (CGPoint){ CGRectGetMaxX(iconView.iconImageView.frame) - 4, CGRectGetMinY(iconView.iconImageView.frame) + 6};
+    
     cell.hitTestOverrideSubviewTag = 4321;
+    
+    _doneButton.alpha = 0.f;
     [iconView addSubview:_doneButton];
+    [UIView animateWithDuration:0.19 animations:^{ _doneButton.alpha = 1.f; }]; 
+    
     _displayingDoneButton = YES;
 }
 

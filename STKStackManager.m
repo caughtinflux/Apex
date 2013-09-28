@@ -335,6 +335,13 @@
 
 - (void)setupView
 {
+    if (_iconViewsLayout) {
+        [[_iconViewsLayout allIcons] makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        [_iconViewsLayout removeAllIcons];
+        [_iconViewsLayout release];
+        _iconViewsLayout = nil;
+    }
+
     _iconViewsLayout = [[STKIconLayout alloc] init];
     
     SBIconView *centralIconView = [[objc_getClass("SBIconViewMap") homescreenMap] safeIconViewForIcon:_centralIcon];
@@ -1409,6 +1416,16 @@
             }
         }];
         [_iconController dock].superview.alpha = 0.f;
+    } completion:^(BOOL done) {
+        if (done && _selectionViewIndex >= 1) {
+            NSArray *iconViews = [_iconViewsLayout iconsForPosition:_selectionViewPosition];
+            SBIconView *prevIconView = (SBIconView *)[iconViews objectAtIndex:_selectionViewIndex - 1];
+
+            if ([prevIconView.icon isPlaceholder]) {
+                [_currentSelectionView moveToIconView:prevIconView animated:YES completion:nil];
+                _selectionViewIndex = 0;
+            }
+        }
     }];
 }
 

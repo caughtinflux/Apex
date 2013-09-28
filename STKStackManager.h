@@ -42,7 +42,6 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 @property (nonatomic, copy) STKInteractionHandler interactionHandler; // the tappedIconView is only passed if there indeed was a tapped icon view. This may be called even if a swipe/tap is detected on the content view, and the stack closes automagically.
 
 @property (nonatomic, assign) BOOL isEditing;
-@property (nonatomic, assign) BOOL closesOnHomescreenEdit; 
 @property (nonatomic, assign) BOOL showsPreview;
 
 @property (nonatomic, retain) UIView *topGrabberView;

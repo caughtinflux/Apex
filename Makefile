@@ -1,6 +1,6 @@
 DEBUG = 1
-ARCHS = armv7 armv7s
-TARGET = iphone:clang:latest:3.0
+ARCHS = armv7
+TARGET = iphone:clang:6.1:3.0
 
 include theos/makefiles/common.mk
 

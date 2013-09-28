@@ -271,7 +271,9 @@ NSString * const STKRightIconsKey = @"RightIcons";
             [array removeObjectAtIndex:idx];
         }
         else {
+#ifndef __x86_64__
             NSLog(@"[%@] %s: Index %i is out of bounds of array at position: %i. Dying silently", kSTKTweakName, __PRETTY_FUNCTION__, idx, position);
+#endif            
         }
         _hasBeenModified = YES;
     }
@@ -330,7 +332,11 @@ NSString * const STKRightIconsKey = @"RightIcons";
 
 - (NSString *)description
 {
+#if __x86_64__
+    return [super description];
+#else
     return [NSString stringWithFormat:@"%@ top.count: %i bottom.count: %i left.count: %i right.count: %i", [super description], _topIcons.count, _bottomIcons.count, _leftIcons.count, _rightIcons.count];
+#endif
 }
 
 - (NSMutableArray **)_nonNilArrayForPosition:(STKLayoutPosition)pos
