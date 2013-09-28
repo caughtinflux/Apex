@@ -29,7 +29,7 @@ static SBIconListView *_centralIconListView;
 
 + (STKIconLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(STKPositionMask)position
 {
-    NSAssert((icons != nil), (@"You must pass in a non-nil array to -[STKIconLayoutHandler layoutForIcons:]"));
+    NSAssert((icons != nil), (@"*** -[STKIconLayoutHandler layoutForIcons:] cannot have a nil argument for icons"));
 
     NSMutableArray *bottomIcons = [NSMutableArray array]; // 0 (Give bottom icons preference, since they're easier to tap with a downward swipe)
     NSMutableArray *topIcons    = [NSMutableArray array]; // 1
@@ -56,7 +56,6 @@ static SBIconListView *_centralIconListView;
             }
 
             case 1: {
-                
                 if ((position & STKPositionTouchingTop) == STKPositionTouchingTop) {
                     [bottomIcons addObject:icons[i]];
                 }
