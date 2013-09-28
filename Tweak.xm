@@ -82,7 +82,7 @@ static BOOL _switcherIsVisible;
 - (void)recycleViewForIcon:(id)icon
 {
     SBIconView *iconView = [self iconViewForIcon:icon];
-    STKCleanupIconView(icon);
+    STKCleanupIconView(iconView);
     %orig();
 }
 %end
