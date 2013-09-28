@@ -8,6 +8,7 @@
 #import "STKPlaceHolderIcon.h"
 
 #import <objc/runtime.h>
+#import <QuartzCore/QuartzCore.h>
 
 #define kSTKIconModelLayoutOpID @"STKIconModelLayoutOpID"
 
@@ -54,6 +55,12 @@
     NSMutableArray           *_iconsToShowOnClose;
 
     SBIconController         *_iconController;
+
+#ifdef DEBUG
+    CFTimeInterval           *__times;
+    NSUInteger                __idx;
+    size_t                    __prevSize;
+#endif
 }
 
 @synthesize currentIconDistance = _lastDistanceFromCenter;
@@ -443,6 +450,11 @@
 
 - (void)touchesBegan
 {
+#ifdef DEBUG
+    __times = malloc(sizeof(CFTimeInterval) * 600);
+    __idx = 0;
+    __prevSize = 500;
+#endif
     if (_needsLayout) {
         [self recalculateLayouts];
         _needsLayout = NO;
@@ -461,6 +473,10 @@
     if (_isExpanded || [[_iconController scrollView] isDragging]) {
         return;
     }
+
+#ifdef DEBUG
+    CFTimeInterval now = CACurrentMediaTime();
+#endif
 
     BOOL hasVerticalIcons = ([_appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([_appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);    
     CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter, (hasVerticalIcons ? STKGetCurrentTargetDistance() : STKGetCurrentTargetDistance() * _distanceRatio));
@@ -527,6 +543,15 @@
             _bottomGrabberView.alpha = grabberAlpha;
         }
     }
+#ifdef DEBUG
+    CFTimeInterval end = CACurrentMediaTime();
+    if (__idx == 500) {
+        __times = realloc(__times, __prevSize * 2);
+        __prevSize *= 2;
+    }
+    __times[__idx++] = end - now;
+
+#endif
 }
 
 - (void)touchesEnded
@@ -543,6 +568,18 @@
             }   
         } duration:kAnimationDuration animateCentralIcon:NO forSwitcher:NO];
     }
+
+#ifdef DEBUG
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+        CFTimeInterval avg = 0;
+        for (uint8_t i = 0; i < __idx; i++) {
+            avg += __times[i];
+        }
+        avg /= __idx;
+        CLog(@"Average time for -[STKStackManager touchesDraggedForDistance:] is %f", avg);
+        free(__times);
+    });
+#endif
 }
  
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler
