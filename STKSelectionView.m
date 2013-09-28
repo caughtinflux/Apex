@@ -172,9 +172,9 @@ static NSString * const CellIdentifier = @"STKIconCell";
         [self layoutSubviews];
         [self prepareForDisplay];
         [self scrollToDefaultAnimated:NO];
+        [self _hideDoneButton];
     } completion:^(BOOL done) {
         if (done) {
-            [self _hideDoneButton];
             [self _showDoneButton];
             if (completionBlock) completionBlock();
         }
