@@ -78,6 +78,13 @@ static BOOL _switcherIsVisible;
 
     return iconView;
 }
+
+- (void)recycleViewForIcon:(id)icon
+{
+    SBIconView *iconView = [self iconViewForIcon:icon];
+    STKCleanupIconView(icon);
+    %orig();
+}
 %end
 
 #pragma mark - SBIconView Hook
@@ -102,26 +109,24 @@ static BOOL _switcherIsVisible;
     
     id currentManager = STKManagerForView(self);
     SBIcon *icon = self.icon;
-    if (currentManager  && (!icon ||
+    if (!icon ||
         _wantsSafeIconViewRetrieval || 
         loc != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] || [self isInDock] ||
         ![icon isLeafIcon] || [icon isDownloadingIcon] || 
-        [[STKPreferences sharedPreferences] iconIsInStack:icon])) {
+        [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
         // Don't add recognizer to icons in the stack already
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, so cleanup.
-        if (currentManager) {
-            STKCleanupIconView(self);
-        }
+        STKCleanupIconView(self);
         return;
     }
 
     // Add self to the homescreen map, since _cmd is sometimes called before the map is configured completely.
-    if (icon && [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon] == nil) {
+    if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon] == nil) {
         [[%c(SBIconViewMap) homescreenMap] _addIconView:self forIcon:icon];
     }
 
-    if (!currentManager && icon != nil) {
+    if (!currentManager) {
         STKSetupIconView(self);
     }
 }

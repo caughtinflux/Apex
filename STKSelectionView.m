@@ -224,8 +224,10 @@ static NSString * const CellIdentifier = @"STKIconCell";
         if (ICONID_HAS_STACK(ident) || [ident isEqualToString:_centralView.icon.leafIdentifier]) {
             continue;
         }
-
-        [icons addObject:[_model expectedIconForDisplayIdentifier:ident]];
+        SBIcon *icon = [_model expectedIconForDisplayIdentifier:ident];
+        if (![icon isDownloadingIcon]) {
+            [icons addObject:[_model expectedIconForDisplayIdentifier:ident]];
+        }
     }
 
     for (NSString *hiddenIcon in [STKPreferences sharedPreferences].identifiersForIconsInStacks) {
