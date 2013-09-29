@@ -13,7 +13,6 @@
 #import <Search/SPSearchResultSection.h>
 #import <Search/SPSearchResult.h>
 
-
 #pragma mark - Function Declarations
 
 static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView); // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
@@ -72,17 +71,12 @@ static BOOL _switcherIsVisible;
 - (SBIconView *)safeIconViewForIcon:(SBIcon *)icon
 {
     _wantsSafeIconViewRetrieval = YES;
-
     SBIconView *iconView = [self iconViewForIcon:icon];
-    
     _wantsSafeIconViewRetrieval = NO;
-
     return iconView;
 }
-
-- (void)recycleViewForIcon:(SBIcon *)icon
+- (void)_recycleIconView:(SBIconView *)iconView
 {
-    SBIconView *iconView = [self iconViewForIcon:icon];
     STKCleanupIconView(iconView);
     %orig();
 }
@@ -91,13 +85,11 @@ static BOOL _switcherIsVisible;
 
 %hook SBIconView
 - (void)setIcon:(SBIcon *)icon
-{
-    SBIcon *oldIcon = self.icon;
+{   
     %orig();
-    if (oldIcon != nil) {
-        if (!icon || (icon != oldIcon && STKManagerForView(self))) {
-           STKCleanupIconView(self);
-        }
+    
+    if (!icon && STKManagerForView(self)) {
+       STKCleanupIconView(self);
     }
 
     self.location = self.location;
@@ -107,12 +99,9 @@ static BOOL _switcherIsVisible;
 {
     %orig();
     
-    if ([[%c(SBIconController) sharedInstance] isEditing] || !self.superview) {
-        return;
-    }
-    
     id currentManager = STKManagerForView(self);
     SBIcon *icon = self.icon;
+
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
         loc != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] || [self isInDock] ||
@@ -253,28 +242,6 @@ static BOOL _hasVerticalIcons    = NO;
         _currentDirection = STKRecognizerDirectionNone;
 
         [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = YES;
-    }
-}
-
-%new 
-- (void)stk_editingStateChanged:(NSNotification *)notification
-{   
-    BOOL isEditing = [[%c(SBIconController) sharedInstance] isEditing];
-    
-    if (isEditing) {
-        STKRemovePanRecognizerFromIconView(self);
-    }
-    else {
-        STKAddPanRecognizerToIconView(self);
-    }
-}
-
-%new 
-- (void)stk_closeStack:(NSNotification *)notification
-{
-    if (STKManagerForView(self).isExpanded) {
-        [STKManagerForView(self) closeStack];
-        STKSetActiveManager(nil);
     }
 }
 
@@ -462,6 +429,12 @@ static BOOL _hasVerticalIcons    = NO;
     return %orig(animationDuration);
 }
 
+- (void)dismissSwitcherWithoutUnhostingApp
+{
+    _switcherIsVisible = NO;
+    %orig();
+}
+
 - (void)dismissSwitcherAnimated:(BOOL)animated
 {
     _switcherIsVisible = NO;
@@ -470,6 +443,13 @@ static BOOL _hasVerticalIcons    = NO;
 
 %end
 
+%hook SBAppSwitcherController
+- (void)viewWillDisappear
+{
+    _switcherIsVisible = NO;
+    %orig();
+}
+%end
 /**********************************************************************************************************************/
 /**********************************************************************************************************************/
 #pragma mark - Search Agent Hook
@@ -617,6 +597,9 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
                     [[STKPreferences sharedPreferences] reloadPreferences];
                     return; 
                 }
+                else {
+                    STKSetActiveManager(nil);
+                }
                 if (manager != STKGetActiveManager()) {
                     return;
                 }
@@ -624,7 +607,6 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
                     [tappedIconView.icon launch];
                     [manager closeStack];
                 }
-                STKSetActiveManager(nil);
             };
 
         objc_setAssociatedObject(iconView, stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -641,6 +623,7 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
 static void STKRemoveManagerFromIconView(SBIconView *iconView)
 {
     [STKManagerForView(iconView) cleanupView];
+    [STKManagerForView(iconView) release];
     iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
     objc_setAssociatedObject(iconView, stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
@@ -769,7 +752,10 @@ static inline void STKSetupIconView(SBIconView *iconView)
         return;
     }
     
-    STKAddPanRecognizerToIconView(iconView);
+    if (![(SBIconController *)[%c(SBIconController) sharedInstance] isEditing]) {
+        // Don't add a recognizer if icons are being edited
+        STKAddPanRecognizerToIconView(iconView);
+    }
     STKStackManager *manager = STKSetupManagerForIconView(iconView);
 
     CGFloat scale = (manager.isEmpty || !manager.showsPreview ? 1.f : kCentralIconPreviewScale);
@@ -783,7 +769,7 @@ static inline void STKSetupIconView(SBIconView *iconView)
 }
 
 static inline void STKCleanupIconView(SBIconView *iconView)
-{        
+{       
     STKRemovePanRecognizerFromIconView(iconView);
     STKRemoveManagerFromIconView(iconView);
     STKRemoveGrabberImagesFromIconView(iconView);

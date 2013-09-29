@@ -20,8 +20,7 @@
     else
         self = [super init];
     
-    if (self)
-    {
+    if (self) {
         NSBundle *bundle = [NSBundle bundleWithPath:@"/Library/PreferenceBundles/ApexSettings.bundle"];
         UIImage *image = [UIImage imageNamed:@"GroupLogo.png" inBundle:bundle];
         UINavigationItem *item = self.navigationItem;
@@ -50,6 +49,14 @@
     // Always make the target self so that things will resolve properly
     NSArray *result = [super loadSpecifiersFromPlistName:plistName target:self];
 
+#ifdef DEBUG
+    NSMutableArray *newSpecs = [[result mutableCopy] autorelease];
+    PSSpecifier *spec = [PSSpecifier preferenceSpecifierNamed:@"Delete Preferences" target:self set:NULL get:NULL detail:nil cell:PSButtonCell edit:nil];
+    spec->action = @selector(__deletePreferences);
+    [newSpecs addObject:spec];
+    result = newSpecs;
+#endif
+
     for (PSSpecifier *specifier in result) {
         [specifier setName:Localize([specifier name])];
         NSString *footerText = [specifier propertyForKey:@"footerText"];
@@ -59,6 +66,25 @@
     }
     return result;
 }
+
+#ifdef DEBUG
+- (void)__deletePreferences
+{
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:@"All preferences will be deleted, but layouts will be preserved." delegate:(id<UIActionSheetDelegate>)self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Confirm" otherButtonTitles:nil];
+    [actionSheet showInView:self.view];
+}
+
+- (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)idx
+{
+    if (idx == actionSheet.destructiveButtonIndex) {
+        [[NSFileManager defaultManager] removeItemAtPath:kPrefPath error:nil];
+        [[UIApplication sharedApplication] performSelector:@selector(suspend)];
+        EXECUTE_BLOCK_AFTER_DELAY(0.5, ^{
+            system("killall -9 backboardd");
+        });
+    }
+}
+#endif
 
 - (id)navigationTitle
 {
