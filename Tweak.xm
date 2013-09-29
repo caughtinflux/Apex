@@ -27,6 +27,7 @@ static UIView * STKGetTopGrabber(SBIconView *iconView);
 static UIView * STKGetBottomGrabber(SBIconView *iconView);
 
 static void STKPrefsChanged(void);
+static void STKUserNotificationCallBack(CFUserNotificationRef userNotification, CFOptionFlags responseFlags);
 
 
 static inline void STKSetupIconView(SBIconView *iconView); // Adds recogniser and sets up stack manager for the preview
@@ -488,6 +489,44 @@ static BOOL _hasVerticalIcons    = NO;
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+#pragma mark - SpringBoard Hook
+%hook SpringBoard
+- (void)_reportAppLaunchFinished
+{
+    %orig;
+
+    if (![STKPreferences sharedPreferences].welcomeAlertShown) {
+        NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey          : @"Thanks for purchasing! ",
+                                 (id)kCFUserNotificationAlertMessageKey         : @"Welcome to Apex, swipe down on any app icon to get started.",
+                                 (id)kCFUserNotificationDefaultButtonTitleKey   : @"OK",
+                                 (id)kCFUserNotificationAlternateButtonTitleKey : @"Settings"};
+
+        SInt32 error;
+        CFUserNotificationRef notificationRef = CFUserNotificationCreate(kCFAllocatorDefault, 0, kCFUserNotificationNoteAlertLevel, &error, (CFDictionaryRef)fields);
+        // Get and add a run loop source to the current run loop to get notified when the alert is dismissed
+        CFRunLoopSourceRef runLoopSource = CFUserNotificationCreateRunLoopSource(kCFAllocatorDefault, notificationRef, STKUserNotificationCallBack, 0);
+        CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, kCFRunLoopCommonModes);
+        CFRelease(runLoopSource);
+        if (error == 0) {
+            [STKPreferences sharedPreferences].welcomeAlertShown = YES;
+        }
+    }
+}
+%end
+
+#pragma mark - User Notification Callback
+static void STKUserNotificationCallBack(CFUserNotificationRef userNotification, CFOptionFlags responseFlags)
+{
+    if ((responseFlags & 0x3) == kCFUserNotificationAlternateResponse) {
+        // Open settings to custom bundle
+        [(SpringBoard *)[UIApplication sharedApplication] applicationOpenURL:[NSURL URLWithString:@"prefs:root=Apex"] publicURLsOnly:NO];
+    }
+    CFRelease(userNotification);
+}
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
 
 
 /********************************************************************************************************************************************/

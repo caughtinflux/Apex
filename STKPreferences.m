@@ -16,6 +16,7 @@
 #define GETBOOL(_dict, _key, _default) (_dict[_key] ? [_dict[_key] boolValue] : _default);
 
 static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
+static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
 
 @interface STKPreferences ()
 {   
@@ -117,6 +118,23 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 - (BOOL)previewEnabled
 {
     return GETBOOL(_currentPrefs, STKStackPreviewEnabledKey, YES);
+}
+
+- (BOOL)welcomeAlertShown
+{
+    return GETBOOL(_currentPrefs, STKWelcomeAlertShownKey, NO);
+}
+
+- (void)setWelcomeAlertShown:(BOOL)shown
+{
+    @synchronized(self) {
+        NSMutableDictionary *dict = [_currentPrefs mutableCopy];
+        dict[STKWelcomeAlertShownKey] = [NSNumber numberWithBool:shown];
+        [_currentPrefs release];
+        _currentPrefs = [dict copy];
+
+        [_currentPrefs writeToFile:kPrefPath atomically:YES];
+    }
 }
 
 - (NSSet *)identifiersForIconsWithStack
