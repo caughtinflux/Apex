@@ -462,6 +462,12 @@ static BOOL _hasVerticalIcons    = NO;
     return %orig(animationDuration);
 }
 
+- (void)dismissSwitcherWithoutUnhostingApp
+{
+    _switcherIsVisible = NO;
+    %orig();
+}
+
 - (void)dismissSwitcherAnimated:(BOOL)animated
 {
     _switcherIsVisible = NO;
@@ -470,6 +476,13 @@ static BOOL _hasVerticalIcons    = NO;
 
 %end
 
+%hook SBAppSwitcherController
+- (void)viewWillDisappear
+{
+    _switcherIsVisible = NO;
+    %orig();
+}
+%end
 /**********************************************************************************************************************/
 /**********************************************************************************************************************/
 #pragma mark - Search Agent Hook
