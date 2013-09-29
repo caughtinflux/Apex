@@ -517,6 +517,8 @@
                     [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
                     iv.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
                 }
+
+                [iv _updateAccessoryPosition];
             }
         }
         else {
@@ -1453,6 +1455,16 @@
             }
         }];
         [_iconController dock].superview.alpha = 0.f;
+    } completion:^(BOOL done) {
+        if (done && _selectionViewIndex >= 1) {
+            NSArray *iconViews = [_iconViewsLayout iconsForPosition:_selectionViewPosition];
+            SBIconView *prevIconView = (SBIconView *)[iconViews objectAtIndex:_selectionViewIndex - 1];
+
+            if ([prevIconView.icon isPlaceholder]) {
+                [_currentSelectionView moveToIconView:prevIconView animated:YES completion:nil];
+                _selectionViewIndex = 0;
+            }
+        }
     }];
 }
 

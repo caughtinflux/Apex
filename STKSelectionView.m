@@ -167,11 +167,16 @@ static NSString * const CellIdentifier = @"STKIconCell";
     [_selectedView release];
     _selectedView = [iconView retain];
     
-    [UIView animateWithDuration:(animated ? 0.2f : 0.0f) animations:^{
+    NSTimeInterval duration =  (animated ? (STKLayoutPositionIsVertical(_position) ? 0.29 : 0.25) : 0.0);
+    [UIView animateWithDuration:duration animations:^{
         [self layoutSubviews];
+        [self prepareForDisplay];
+        [self scrollToDefaultAnimated:NO];
+        [self _hideDoneButton];
     } completion:^(BOOL done) {
-        if (done && completionBlock) {
-            completionBlock();
+        if (done) {
+            [self _showDoneButton];
+            if (completionBlock) completionBlock();
         }
     }];
 }

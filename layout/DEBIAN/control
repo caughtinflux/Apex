@@ -2,7 +2,7 @@ Package: com.a3tweaks.apex
 Name: Apex
 Depends: mobilesubstrate, com.chpwn.iconsupport, firmware (>= 6.0)
 Conflicts: gsc.ipad
-Version: 0.9-beta
+Version: 1.0
 Architecture: iphoneos-arm
 Description: Folders, what folders?
 Maintainer: A3Tweaks
