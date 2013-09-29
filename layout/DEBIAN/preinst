@@ -1,8 +1,0 @@
-#!/bin/bash
-STATE_FILE="/var/mobile/Library/SpringBoard/IconState.plist"
-TEMPSTATE_FILE="/var/tmp/IconState.bak"
-if [ -f $STATE_FILE ];
-then
-	cp  $STATE_FILE $TEMPSTATE_FILE
-fi
-exit 0
