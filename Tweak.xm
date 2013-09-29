@@ -597,9 +597,6 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
                     [[STKPreferences sharedPreferences] reloadPreferences];
                     return; 
                 }
-                else {
-                    STKSetActiveManager(nil);
-                }
                 if (manager != STKGetActiveManager()) {
                     return;
                 }
@@ -607,6 +604,7 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
                     [tappedIconView.icon launch];
                     [manager closeStack];
                 }
+                STKSetActiveManager(nil);
             };
 
         objc_setAssociatedObject(iconView, stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
