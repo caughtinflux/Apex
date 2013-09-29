@@ -501,6 +501,8 @@
                     [self _iconViewForIcon:_centralIcon].iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
                     iv.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
                 }
+
+                [iv _updateAccessoryPosition];
             }
         }
         else {

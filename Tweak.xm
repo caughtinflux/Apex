@@ -80,7 +80,7 @@ static BOOL _switcherIsVisible;
     return iconView;
 }
 
-- (void)recycleViewForIcon:(id)icon
+- (void)recycleViewForIcon:(SBIcon *)icon
 {
     SBIconView *iconView = [self iconViewForIcon:icon];
     STKCleanupIconView(iconView);
@@ -88,23 +88,26 @@ static BOOL _switcherIsVisible;
 }
 %end
 
-#pragma mark - SBIconView Hook
-%hook SBIconView
 
+%hook SBIconView
 - (void)setIcon:(SBIcon *)icon
 {
     SBIcon *oldIcon = self.icon;
     %orig();
-    if (!icon || (icon != oldIcon && STKManagerForView(self))) {
-        STKCleanupIconView(self);
+    if (oldIcon != nil) {
+        if (!icon || (icon != oldIcon && STKManagerForView(self))) {
+           STKCleanupIconView(self);
+        }
     }
+
+    self.location = self.location;
 }
 
 - (void)setLocation:(SBIconViewLocation)loc
 {
     %orig();
     
-    if ([[%c(SBIconController) sharedInstance] isEditing] || _switcherIsVisible || !self.superview) {
+    if ([[%c(SBIconController) sharedInstance] isEditing] || !self.superview) {
         return;
     }
     
