@@ -50,7 +50,6 @@ typedef enum {
 // Returns the direction - top or bottom - for a given velocity
 static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 
-
 /****************************************************************************************************************************************
                                                       STATIC VARIABLES
 ****************************************************************************************************************************************/
@@ -565,9 +564,9 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
             ^(STKStackManager *manager, SBIconView *tappedIconView, BOOL didChangeState, SBIcon *addedIcon) {
                 if (didChangeState) {
                     if (manager.isEmpty) {
-                        [[STKPreferences sharedPreferences] removeLayoutForIcon:stackManager.centralIcon];
+                        [[STKPreferences sharedPreferences] removeLayoutForIcon:manager.centralIcon];
                         if (!manager.showsPreview) {
-                            STKRemoveGrabberImagesFromIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:stackManager.centralIcon]);
+                            STKRemoveGrabberImagesFromIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:manager.centralIcon]);
                         }
                     }
                     else {
@@ -587,7 +586,7 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
                             }
                         }
                         if (!manager.showsPreview) {
-                            STKAddGrabberImagesToIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:stackManager.centralIcon]);
+                            STKAddGrabberImagesToIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:manager.centralIcon]);
                         }
 
                         NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:manager.centralIcon];
@@ -621,7 +620,6 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
 static void STKRemoveManagerFromIconView(SBIconView *iconView)
 {
     [STKManagerForView(iconView) cleanupView];
-    [STKManagerForView(iconView) release];
     iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
     objc_setAssociatedObject(iconView, stackManagerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
