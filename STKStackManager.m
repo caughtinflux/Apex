@@ -226,7 +226,7 @@
         [self _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO];
     }
 
-    [self _iconViewForIcon:_centralIcon].delegate = _previousDelegate;
+    [self _iconViewForIcon:_centralIcon].delegate = [objc_getClass("SBIconController") sharedInstance];
     
     if (_interactionHandler) {
         [_interactionHandler release];
