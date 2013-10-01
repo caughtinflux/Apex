@@ -34,6 +34,7 @@ static inline void STKCleanupIconView(SBIconView *iconView); // Removes recognis
 
 
 // Inline Functions, prevent overhead if called too much.
+static inline                   void   STKHandleInteraction(STKStackManager *manager, SBIconView *tappedIconView, BOOL didChangeState, SBIcon *addedIcon);
 static inline UIPanGestureRecognizer * STKPanRecognizerForIconView(SBIconView *iconView);
 static inline        STKStackManager * STKManagerForView(SBIconView *iconView);
 static inline                   void   STKSetActiveManager(STKStackManager *manager);
@@ -103,7 +104,7 @@ static BOOL _switcherIsVisible;
 
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
-        loc != SBIconViewLocationHomeScreen || [self.superview isKindOfClass:%c(SBFolderIconListView)] || [self isInDock] ||
+        loc != SBIconViewLocationHomeScreen || !self.superview || [self.superview isKindOfClass:%c(SBFolderIconListView)] || [self isInDock] ||
         ![icon isLeafIcon] || [icon isDownloadingIcon] || 
         [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
@@ -521,7 +522,6 @@ static SEL const topGrabberViewKey     = @selector(apexTopGrabberKey);
 static SEL const bottomGrabberViewKey  = @selector(apexBottomGrabberKey);
 static SEL const recognizerDelegateKey = @selector(apexDelegateKey);
 static SEL const prefsCallbackObserver = @selector(apexCallbackKey);
-
 #pragma mark - Static Function Definitions
 static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
 {
@@ -560,51 +560,9 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
 
         stackManager.showsPreview = [STKPreferences sharedPreferences].previewEnabled;
 
-        stackManager.interactionHandler = \
-            ^(STKStackManager *manager, SBIconView *tappedIconView, BOOL didChangeState, SBIcon *addedIcon) {
-                if (didChangeState) {
-                    if (manager.isEmpty) {
-                        [[STKPreferences sharedPreferences] removeLayoutForIcon:manager.centralIcon];
-                        if (!manager.showsPreview) {
-                            STKRemoveGrabberImagesFromIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:manager.centralIcon]);
-                        }
-                    }
-                    else {
-                        SBIcon *centralIconForManagerWithAddedIcon = [[STKPreferences sharedPreferences] centralIconForIcon:addedIcon];
-                        if (centralIconForManagerWithAddedIcon) {
-                            STKStackManager *otherManager = STKManagerForView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:centralIconForManagerWithAddedIcon]);
-                            if (otherManager != manager) {
-                                [otherManager removeIconFromAppearingIcons:addedIcon];
-                                if (otherManager.isEmpty) {
-                                    [[STKPreferences sharedPreferences] removeLayoutForIcon:otherManager.centralIcon];
-                                    [otherManager cleanupView];
-                                    [[%c(SBIconViewMap) homescreenMap] iconViewForIcon:otherManager.centralIcon].transform = CGAffineTransformMakeScale(1.f, 1.f);
-                                }
-                                else {
-                                    [otherManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:otherManager.centralIcon]];
-                                }
-                            }
-                        }
-                        if (!manager.showsPreview) {
-                            STKAddGrabberImagesToIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:manager.centralIcon]);
-                        }
-
-                        NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:manager.centralIcon];
-                        [manager saveLayoutToFile:layoutPath];
-                    }
-
-                    [[STKPreferences sharedPreferences] reloadPreferences];
-                    return; 
-                }
-                if (manager != STKGetActiveManager()) {
-                    return;
-                }
-                if (tappedIconView) {
-                    [tappedIconView.icon launch];
-                    [manager closeStack];
-                }
-                STKSetActiveManager(nil);
-            };
+        stackManager.interactionHandler = ^(STKStackManager *manager, SBIconView *tappedIconView, BOOL didChangeState, SBIcon *addedIcon) {
+            STKHandleInteraction(manager, tappedIconView, didChangeState, addedIcon);
+        };
 
         objc_setAssociatedObject(iconView, stackManagerKey, stackManager, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [stackManager release];
@@ -615,6 +573,52 @@ static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
     }
     
     return stackManager;
+}
+
+static inline void STKHandleInteraction(STKStackManager *manager, SBIconView *tappedIconView, BOOL didChangeState, SBIcon *addedIcon)
+{
+    if (didChangeState) {
+        if (manager.isEmpty) {
+            [[STKPreferences sharedPreferences] removeLayoutForIcon:manager.centralIcon];
+            if (!manager.showsPreview) {
+                STKRemoveGrabberImagesFromIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:manager.centralIcon]);
+            }
+        }
+        else {
+            SBIcon *centralIconForManagerWithAddedIcon = [[STKPreferences sharedPreferences] centralIconForIcon:addedIcon];
+            if (centralIconForManagerWithAddedIcon) {
+                STKStackManager *otherManager = STKManagerForView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:centralIconForManagerWithAddedIcon]);
+                if (otherManager != manager) {
+                    [otherManager removeIconFromAppearingIcons:addedIcon];
+                    if (otherManager.isEmpty) {
+                        [[STKPreferences sharedPreferences] removeLayoutForIcon:otherManager.centralIcon];
+                        [otherManager cleanupView];
+                        [[%c(SBIconViewMap) homescreenMap] iconViewForIcon:otherManager.centralIcon].transform = CGAffineTransformMakeScale(1.f, 1.f);
+                    }
+                    else {
+                        [otherManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:otherManager.centralIcon]];
+                    }
+                }
+            }
+            if (!manager.showsPreview) {
+                STKAddGrabberImagesToIconView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:manager.centralIcon]);
+            }
+
+            NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:manager.centralIcon];
+            [manager saveLayoutToFile:layoutPath];
+        }
+
+        [[STKPreferences sharedPreferences] reloadPreferences];
+        return; 
+    }
+    if (manager != STKGetActiveManager()) {
+        return;
+    }
+    if (tappedIconView) {
+        [tappedIconView.icon launch];
+        [manager closeStack];
+    }
+    STKSetActiveManager(nil);
 }
 
 static void STKRemoveManagerFromIconView(SBIconView *iconView)
