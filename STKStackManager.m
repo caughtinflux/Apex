@@ -10,6 +10,11 @@
 #import <objc/runtime.h>
 #import <QuartzCore/QuartzCore.h>
 
+/*
+*   Compatibility imports
+*/
+#import "IWWidgetsView.h"
+
 #define kSTKIconModelLayoutOpID @"STKIconModelLayoutOpID"
 
 @implementation STKStackManager 
@@ -57,9 +62,8 @@
     SBIconController         *_iconController;
 
 #ifdef DEBUG
-    CFTimeInterval           *__times;
-    NSUInteger                __idx;
-    size_t                    __prevSize;
+    CFTimeInterval            __sum;
+    NSUInteger                __count;
 #endif
 }
 
@@ -172,7 +176,6 @@
 
     savedCoords.xPos = (customLayout[@"xPos"] ? [customLayout[@"xPos"] integerValue] : NSNotFound);
     savedCoords.yPos = (customLayout[@"yPos"] ? [customLayout[@"yPos"] integerValue] : NSNotFound - 2);
-
     if (!(EQ_COORDS(savedCoords, currentCoords))) {
         // The location of the icon has changed, hence calculate layouts accordingly
         if ((self = [self initWithCentralIcon:centralIcon stackIcons:[layout allIcons]])) {
@@ -451,9 +454,8 @@
 - (void)touchesBegan
 {
 #ifdef DEBUG
-    __times = malloc(sizeof(CFTimeInterval) * 600);
-    __idx = 0;
-    __prevSize = 500;
+    __sum = 0;
+    __count = 0;
 #endif
     if (_needsLayout) {
         [self recalculateLayouts];
@@ -547,12 +549,8 @@
     }
 #ifdef DEBUG
     CFTimeInterval end = CACurrentMediaTime();
-    if (__idx == 500) {
-        __times = realloc(__times, __prevSize * 2);
-        __prevSize *= 2;
-    }
-    __times[__idx++] = end - now;
-
+    __sum += end - now;
+    __count++;
 #endif
 }
 
@@ -572,15 +570,8 @@
     }
 
 #ifdef DEBUG
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
-        CFTimeInterval avg = 0;
-        for (uint8_t i = 0; i < __idx; i++) {
-            avg += __times[i];
-        }
-        avg /= __idx;
-        CLog(@"Average time for -[STKStackManager touchesDraggedForDistance:] is %f", avg);
-        free(__times);
-    });
+    CFTimeInterval avg = __sum / __count;
+    CLog(@"Average time for -[STKStackManager touchesDraggedForDistance:] is %f", avg);
 #endif
 }
  
@@ -750,6 +741,13 @@
 
         _topGrabberView.alpha = 0.f;
         _bottomGrabberView.alpha = 0.f;
+
+        // iWidgets Compat
+        IWWidgetsView *widgetsView = [objc_getClass("IWWidgetsView") sharedInstance];
+        if (widgetsView) {
+            // POS SWAG.
+            widgetsView.alpha = 0.f;
+        }
         
     } completion:^(BOOL finished) {
         if (finished) {
@@ -823,6 +821,12 @@
 
         _topGrabberView.frame = _topGrabberOriginalFrame;
         _bottomGrabberView.frame = _bottomGrabberOriginalFrame;
+
+        // iWidgets Compat
+        IWWidgetsView *widgetsView = [objc_getClass("IWWidgetsView") sharedInstance];
+        if (widgetsView) {
+            widgetsView.alpha = 1.f;
+        }
 
     } completion:^(BOOL finished) {
         if (finished) {
