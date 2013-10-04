@@ -104,7 +104,8 @@ static BOOL _switcherIsVisible;
 
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
-        loc != SBIconViewLocationHomeScreen || !self.superview || [self.superview isKindOfClass:%c(SBFolderIconListView)] || [self isInDock] ||
+        loc != SBIconViewLocationHomeScreen || !self.superview || [self.superview isKindOfClass:%c(SBFolderIconListView)] ||
+        [self isInDock] || [[objc_getClass("SBIconController") sharedInstance] grabbedIcon] == self.icon ||
         ![icon isLeafIcon] || [icon isDownloadingIcon] || 
         [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
         // Safe icon retrieval is just a way to be sure setIcon: calls from inside -[SBIconViewMap iconViewForIcon:] aren't intercepted here, causing an infinite loop
@@ -112,11 +113,6 @@ static BOOL _switcherIsVisible;
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, so cleanup.
         STKCleanupIconView(self);
         return;
-    }
-
-    // Add self to the homescreen map, since _cmd is sometimes called before the map is configured completely.
-    if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon] == nil) {
-        [[%c(SBIconViewMap) homescreenMap] _addIconView:self forIcon:icon];
     }
 
     if (!currentManager) {
@@ -310,7 +306,7 @@ static BOOL _hasVerticalIcons    = NO;
                 else {
                     STKStackManager *manager = STKManagerForView(iv);
                     if (!manager && iv.icon.isLeafIcon) {
-                        STKSetupIconView(iv);
+                        iv.location = iv.location;
                         return;
                     }
 
@@ -364,8 +360,8 @@ static BOOL _hasVerticalIcons    = NO;
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-    %orig(scrollView);
     STKCloseActiveManager();
+    %orig(scrollView);
 }
 %end
 /****************************************************************************************************************************************/
