@@ -190,6 +190,8 @@ static SBIconListView *_centralIconListView;
     NSMutableArray *rightIcons = [NSMutableArray array];
 
     void(^addPlaceHoldersToArray)(NSMutableArray *array, NSInteger numPlaceHolders) = ^(NSMutableArray *array, NSInteger numPlaceHolders) {
+        numPlaceHolders = MIN(2, numPlaceHolders);
+
         if (numPlaceHolders <= 0) { 
             return;
         }
@@ -331,9 +333,10 @@ static SBIconListView *_centralIconListView;
 + (NSArray *)_iconsInColumnWithX:(NSUInteger)x 
 {
     NSMutableArray *icons = [NSMutableArray array];
-    for (NSUInteger i = 0; i <= ([_centralIconListView iconRowsForCurrentOrientation] - 1); i++) {
+    NSUInteger iconRows = [_centralIconListView iconRowsForCurrentOrientation];
+    for (NSUInteger i = 0; i < iconRows; i++) {
         NSUInteger index = [_centralIconListView indexForX:x Y:i forOrientation:[UIApplication sharedApplication].statusBarOrientation];
-        if (index < [_centralIconListView icons].count) {
+        if (index != NSNotFound && index < [_centralIconListView icons].count) {
             [icons addObject:[_centralIconListView icons][index]];
         }
     }
@@ -342,10 +345,12 @@ static SBIconListView *_centralIconListView;
 
 + (NSArray *)_iconsInRowWithY:(NSUInteger)y
 {
+    NSUInteger numIcons = [_centralIconListView icons].count;
+
     NSMutableArray *icons = [NSMutableArray array];
     for (NSUInteger i = 0; i <= ([_centralIconListView iconColumnsForCurrentOrientation] - 1); i++) {
         NSUInteger index = [_centralIconListView indexForX:i Y:y forOrientation:[UIApplication sharedApplication].statusBarOrientation];
-        if (index < [_centralIconListView icons].count) {
+        if (index != NSNotFound && index < numIcons) {
             [icons addObject:[_centralIconListView icons][index]];
         }
     }
