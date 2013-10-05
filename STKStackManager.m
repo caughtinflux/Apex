@@ -102,6 +102,20 @@
     return YES;
 }
 
++ (void)saveLayout:(STKIconLayout *)layout toFile:(NSString *)fp forIcon:(SBIcon *)centralIcon;
+{
+    NSMutableDictionary *dictionaryRepresentation = [[[layout dictionaryRepresentation] mutableCopy] autorelease];
+    STKIconCoordinates coords = [STKIconLayoutHandler coordinatesForIcon:centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
+    dictionaryRepresentation[@"xPos"] = [NSNumber numberWithInteger:coords.xPos];
+    dictionaryRepresentation[@"yPos"] = [NSNumber numberWithInteger:coords.yPos];
+
+    NSDictionary *fileDict = @{ STKStackManagerCentralIconKey  : centralIcon.leafIdentifier,
+                                STKStackManagerStackIconsKey   : [[layout allIcons] valueForKeyPath:@"leafIdentifier"],
+                                STKStackManagerCustomLayoutKey : dictionaryRepresentation};
+
+    [fileDict writeToFile:fp atomically:YES];
+}
+
 #pragma mark - Public Methods
 - (instancetype)initWithContentsOfFile:(NSString *)file
 {
@@ -111,6 +125,10 @@
     NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:file];
     NSDictionary *customLayout = attributes[STKStackManagerCustomLayoutKey];
     SBIcon *centralIcon = [model expectedIconForDisplayIdentifier:attributes[STKStackManagerCentralIconKey]];
+
+    if (!STKListViewForIcon(centralIcon)) {
+        return nil;
+    }
 
     if (customLayout) {
         return [self initWithCentralIcon:centralIcon withCustomLayout:customLayout];
@@ -147,6 +165,11 @@
         [icons retain];
 
         _centralIcon = [centralIcon retain];
+
+        if (!STKListViewForIcon(_centralIcon)) {
+            return nil;
+        }
+
         STKPositionMask mask = [self _locationMaskForIcon:_centralIcon];
 
         if (!icons || icons.count == 0) {
@@ -170,7 +193,9 @@
     if ([layout allIcons].count == 0) {
         return [self initWithCentralIcon:centralIcon stackIcons:nil];
     }
-
+    if (!STKListViewForIcon(centralIcon)) {
+        return nil;
+    }
     STKIconCoordinates currentCoords = [STKIconLayoutHandler coordinatesForIcon:centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
     STKIconCoordinates savedCoords;
 
@@ -672,6 +697,11 @@
     _bottomGrabberOriginalFrame = view.frame;
 }
 
+- (BOOL)isSelecting
+{
+    return (_currentSelectionView != nil);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////        HAXX        //////////////////////////////////////////////////////////
 
@@ -766,6 +796,12 @@
 #pragma mark - Close Animation
 - (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon forSwitcher:(BOOL)forSwitcher
 {
+    _closingForSwitcher = forSwitcher;
+
+    if (_currentSelectionView) {
+        return;
+    }
+
     UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
     CGFloat scale = (_isEmpty || !_showsPreview ? 1.f : kCentralIconPreviewScale);
 
@@ -792,7 +828,6 @@
     [self _removePlaceHolders];
 
     [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
-        _closingForSwitcher = forSwitcher;
         [self setupPreview];
 
         // Set the alphas back to original
@@ -825,6 +860,7 @@
         // iWidgets Compat
         IWWidgetsView *widgetsView = [objc_getClass("IWWidgetsView") sharedInstance];
         if (widgetsView) {
+            // POS SWAG.
             widgetsView.alpha = 1.f;
         }
 
@@ -1032,9 +1068,17 @@
     _tapRecognizer.numberOfTapsRequired = 1;
     _tapRecognizer.delegate = self;
 
-    UIView *contentView = [[objc_getClass("SBUIController") sharedInstance] contentView];
-    [contentView addGestureRecognizer:_swipeRecognizer];
-    [contentView addGestureRecognizer:_tapRecognizer];
+
+    UIView *view = nil;
+    if ([STKListViewForIcon(_centralIcon) isKindOfClass:[objc_getClass("FEIconListView") class]]) {
+        view = [self _iconViewForIcon:_centralIcon].superview.superview;
+    }
+    else {
+        view = [[objc_getClass("SBUIController") sharedInstance] contentView];
+    }
+
+    [view addGestureRecognizer:_swipeRecognizer];
+    [view addGestureRecognizer:_tapRecognizer];
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)other
@@ -1283,6 +1327,26 @@
 
 - (void)_setGhostlyAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral
 {
+    if ([STKListViewForIcon(_centralIcon) isKindOfClass:[objc_getClass("FEIconListView") class]]) {
+        // FolderFucker
+        MAP([_offScreenIconsLayout allIcons], ^(SBIcon *icon) {
+            [self _iconViewForIcon:icon].alpha = alpha;
+        });
+
+        alpha = STKScaleNumber(alpha, 1.0, 0.0, 1.0, 0.2);
+        [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iconView) {
+            if (excludeCentral && iconView.icon == _centralIcon) {
+                return;
+            }
+            iconView.alpha = alpha;
+        }];
+    }
+    else {
+        MAP(_offScreenIconsLayout.bottomIcons, ^(SBIcon *icon) {
+            [self _iconViewForIcon:icon].alpha = alpha;
+        });
+    }
+
     if (alpha >= 1.f) {
         [_iconController setCurrentPageIconsGhostly:NO forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
     }
@@ -1292,10 +1356,6 @@
     else {
         [_iconController setCurrentPageIconsPartialGhostly:alpha forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
     }
-
-    MAP(_offScreenIconsLayout.bottomIcons, ^(SBIcon *icon) {
-        [self _iconViewForIcon:icon].alpha = alpha;
-    })
 }
 
 - (void)_setAlpha:(CGFloat)alpha forLabelAndShadowOfIconView:(SBIconView *)iconView

@@ -22,7 +22,7 @@ typedef struct {
 									    ((a & STKPositionTouchingLeft) == (b & STKPositionTouchingLeft)) && ((a & STKPositionTouchingRight) == (b & STKPositionTouchingRight)) && \
 									    ((a & STKPositionDock) == (b & STKPositionDock)) )
 
-#define STKCoordinatesAreValid(_coords) (_coords.xPos != NSNotFound && _coords.yPos != NSNotFound && _coords.index != NSNotFound)
+#define STKCoordinatesAreValid(_coords) (!(_coords.xPos > 1000) && !(_coords.yPos > 1000) && !(_coords.index > 1000))
 
 @class STKIconLayout, SBIcon;
 @interface STKIconLayoutHandler : NSObject

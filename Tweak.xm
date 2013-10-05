@@ -265,6 +265,15 @@ static BOOL _hasVerticalIcons    = NO;
     return hitTestIMP(self, _cmd, point, event);
 }
 
+
+- (void)dealloc
+{
+    if (STKGetActiveManager().centralIcon == self.icon) {
+        STKSetActiveManager(nil);
+    }
+    %orig();
+}
+
 %end
 
 
@@ -401,7 +410,8 @@ static BOOL _hasVerticalIcons    = NO;
     if (activeManager) {
         BOOL manDidIntercept = [activeManager handleHomeButtonPress];
         if (!manDidIntercept) {
-            [activeManager closeStack];
+            STKCloseActiveManager();
+
         }
         return YES;
     }
@@ -412,7 +422,9 @@ static BOOL _hasVerticalIcons    = NO;
 
 - (BOOL)_activateSwitcher:(NSTimeInterval)animationDuration
 {
-    STKCloseActiveManager();
+    if (STKGetActiveManager().isSelecting == NO) {
+        STKCloseActiveManager();
+    }
 
     _switcherIsVisible = YES;
 
@@ -583,17 +595,35 @@ static inline void STKHandleInteraction(STKStackManager *manager, SBIconView *ta
         else {
             SBIcon *centralIconForManagerWithAddedIcon = [[STKPreferences sharedPreferences] centralIconForIcon:addedIcon];
             if (centralIconForManagerWithAddedIcon) {
-                STKStackManager *otherManager = STKManagerForView([[%c(SBIconViewMap) homescreenMap] iconViewForIcon:centralIconForManagerWithAddedIcon]);
+                SBIconView *otherView = [[%c(SBIconViewMap) homescreenMap] iconViewForIcon:centralIconForManagerWithAddedIcon];
+                STKStackManager *otherManager = STKManagerForView(otherView);
                 if (otherManager != manager) {
-                    [otherManager removeIconFromAppearingIcons:addedIcon];
-                    if (otherManager.isEmpty) {
-                        [[STKPreferences sharedPreferences] removeLayoutForIcon:otherManager.centralIcon];
-                        [otherManager cleanupView];
-                        [[%c(SBIconViewMap) homescreenMap] iconViewForIcon:otherManager.centralIcon].transform = CGAffineTransformMakeScale(1.f, 1.f);
+                    [[STKPreferences sharedPreferences] removeCachedLayoutForIcon:centralIconForManagerWithAddedIcon];
+
+                    if (otherManager) {
+                        [otherManager removeIconFromAppearingIcons:addedIcon];
+
+                        if (otherManager.isEmpty) {
+                            [[STKPreferences sharedPreferences] removeLayoutForIcon:otherManager.centralIcon];
+                            [otherManager cleanupView];
+                            [[%c(SBIconViewMap) homescreenMap] iconViewForIcon:otherManager.centralIcon].transform = CGAffineTransformMakeScale(1.f, 1.f);
+                        }
+                        else {
+                            [otherManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:otherManager.centralIcon]];
+                        }
                     }
                     else {
-                        [otherManager saveLayoutToFile:[[STKPreferences sharedPreferences] layoutPathForIcon:otherManager.centralIcon]];
+                        NSDictionary *cachedLayout = [[STKPreferences sharedPreferences] cachedLayoutDictForIcon:centralIconForManagerWithAddedIcon];
+                        STKIconLayout *layout = [STKIconLayout layoutWithDictionary:cachedLayout];
+                        [layout removeIcon:addedIcon];
+                        if ([layout allIcons].count > 0) {
+                            [STKStackManager saveLayout:layout 
+                                                 toFile:[[STKPreferences sharedPreferences] layoutPathForIcon:centralIconForManagerWithAddedIcon]
+                                                forIcon:centralIconForManagerWithAddedIcon];
+                        }
+                        STKSetupIconView(otherView);
                     }
+
                 }
             }
             if (!manager.showsPreview) {
@@ -795,7 +825,8 @@ static inline STKStackManager * STKManagerForView(SBIconView *iconView)
 static STKStackManager *_activeManager;
 static inline void STKSetActiveManager(STKStackManager *manager)
 {
-    _activeManager = manager;
+    [_activeManager release];
+    _activeManager = [manager retain];
 }
 
 static inline STKStackManager * STKGetActiveManager(void)
