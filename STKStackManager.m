@@ -516,10 +516,10 @@
     [self _moveAllIconsInRespectiveDirectionsByDistance:distance performingTask:^(SBIconView *iv, STKLayoutPosition pos, NSUInteger idx) {
         if (idx == 0) {
             if (hasVerticalIcons && (pos == STKLayoutPositionTop || pos == STKLayoutPositionBottom)) {
-                _lastDistanceFromCenter = fabsf(iv.frame.origin.y - [self _iconViewForIcon:_centralIcon].bounds.origin.y);
+                _lastDistanceFromCenter = floorf(fabsf(iv.frame.origin.y - [self _iconViewForIcon:_centralIcon].bounds.origin.y));
             }
             else if (!hasVerticalIcons && (pos == STKLayoutPositionLeft || pos == STKLayoutPositionRight)) {
-               _lastDistanceFromCenter = fabsf(iv.frame.origin.x - [self _iconViewForIcon:_centralIcon].bounds.origin.x);
+               _lastDistanceFromCenter = floorf(fabsf(iv.frame.origin.x - [self _iconViewForIcon:_centralIcon].bounds.origin.x));
             }
         }
 
