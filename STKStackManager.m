@@ -1071,7 +1071,7 @@
 
     UIView *view = nil;
     if (HAS_FE) {
-        view = [self _iconViewForIcon:_centralIcon].superview.superview;
+        view = [self _iconViewForIcon:_centralIcon].superview.superview.superview;
     }
     else {
         view = [[objc_getClass("SBUIController") sharedInstance] contentView];
