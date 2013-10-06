@@ -1328,7 +1328,6 @@
 - (void)_setGhostlyAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral
 {
     if (HAS_FE) {
-        // FolderFucker
         MAP([_offScreenIconsLayout allIcons], ^(SBIcon *icon) {
             [self _iconViewForIcon:icon].alpha = alpha;
         });
@@ -1339,6 +1338,12 @@
                 return;
             }
             iconView.alpha = alpha;
+            if (alpha <= 0.99) {
+                iconView.userInteractionEnabled = NO;
+            }
+            else {
+                iconView.userInteractionEnabled = YES;
+            }
         }];
     }
     else {
