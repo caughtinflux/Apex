@@ -380,12 +380,9 @@ static BOOL _hasVerticalIcons    = NO;
     %orig(scrollView);
 }
 %end
-/****************************************************************************************************************************************/
-/****************************************************************************************************************************************/
 
 
-/**************************************************************************************************************************/
-/****************************************************** Icon Hiding *******************************************************/
+
 #pragma mark - SBIconModel Hook
 %hook SBIconModel
 - (BOOL)isIconVisible:(SBIcon *)icon
@@ -405,8 +402,6 @@ static BOOL _hasVerticalIcons    = NO;
     return isVisible;
 }
 %end
-/**************************************************************************************************************************/
-/**************************************************************************************************************************/
 
 
 #pragma mark - SBUIController Hook
@@ -616,7 +611,7 @@ static inline void STKHandleInteraction(STKStackManager *manager, SBIconView *ta
             if (centralIconForManagerWithAddedIcon) {
                 SBIconView *otherView = [[%c(SBIconViewMap) homescreenMap] iconViewForIcon:centralIconForManagerWithAddedIcon];
                 STKStackManager *otherManager = STKManagerForView(otherView);
-                if (otherManager != manager) {
+                if (otherManager != manager || !otherManager) {
                     [[STKPreferences sharedPreferences] removeCachedLayoutForIcon:centralIconForManagerWithAddedIcon];
 
                     if (otherManager) {
@@ -633,12 +628,19 @@ static inline void STKHandleInteraction(STKStackManager *manager, SBIconView *ta
                     }
                     else {
                         NSDictionary *cachedLayout = [[STKPreferences sharedPreferences] cachedLayoutDictForIcon:centralIconForManagerWithAddedIcon];
+                        CLog(@"%@", cachedLayout);
                         STKIconLayout *layout = [STKIconLayout layoutWithDictionary:cachedLayout];
+                        CLog(@"%@", layout);
                         [layout removeIcon:addedIcon];
+                        CLog(@"%@", layout);
                         if ([layout allIcons].count > 0) {
+                            CLog(@"Saving");
                             [STKStackManager saveLayout:layout 
                                                  toFile:[[STKPreferences sharedPreferences] layoutPathForIcon:centralIconForManagerWithAddedIcon]
                                                 forIcon:centralIconForManagerWithAddedIcon];
+                        }
+                        else {
+                            [[STKPreferences sharedPreferences] removeLayoutForIcon:centralIconForManagerWithAddedIcon];
                         }
                         STKSetupIconView(otherView);
                     }
@@ -791,12 +793,9 @@ static void STKPrefsChanged(void)
         [folderListView makeIconViewsPerformBlock:^(SBIconView *iv) { aBlock(iv); }];
     }
 }
-/**********************************************************************************************************************/
-/**********************************************************************************************************************/
 
 
-/**********************************************************************************************************************/
-/**********************************************************************************************************************/
+
 #pragma mark - Inliner Definitions
 static inline void STKSetupIconView(SBIconView *iconView)
 {
@@ -865,9 +864,6 @@ static inline void STKCloseActiveManager(void)
     [STKGetActiveManager() closeStack];
     STKSetActiveManager(nil);
 }
-/**********************************************************************************************************************/
-/**********************************************************************************************************************/
-
 
 
 #pragma mark - Constructor
@@ -883,7 +879,7 @@ static inline void STKCloseActiveManager(void)
 
         void *feHandler = dlopen("/Library/MobileSubstrate/DynamicLibraries/FolderEnhancer.dylib", RTLD_NOW);
         if (feHandler) {
-            CLog(@"FolderEnhancer exists, initialising compatibility hooks");
+            STKLog(@"FolderEnhancer exists, initializing compatibility hooks");
             %init(FECompat);
         }
 
