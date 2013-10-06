@@ -465,8 +465,20 @@ static BOOL _hasVerticalIcons    = NO;
     %orig();
 }
 %end
-/**********************************************************************************************************************/
-/**********************************************************************************************************************/
+
+
+#pragma mark - Folder Enhancer Compatibility
+%group FECompat
+%hook FEGridFolderView
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    STKCloseActiveManager();
+    %orig();
+}
+%end
+%end
+
+
 #pragma mark - Search Agent Hook
 %hook SPSearchAgent
 - (id)sectionAtIndex:(NSUInteger)idx
@@ -742,34 +754,41 @@ static void STKPrefsChanged(void)
 {
     BOOL previewEnabled = [STKPreferences sharedPreferences].previewEnabled;
 
+    void (^aBlock)(SBIconView *iconView) = ^(SBIconView *iconView) {
+        if (!iconView) {
+            return;
+        }
+        
+        STKStackManager *manager = STKManagerForView(iconView);
+        if (!manager) {
+            return;
+        }
+
+        if (!manager.isEmpty) {
+            if (previewEnabled) {
+                iconView.iconImageView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
+                STKRemoveGrabberImagesFromIconView(iconView);
+                manager.topGrabberView = nil;
+                manager.bottomGrabberView = nil;
+            }
+            else {
+                iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+                STKAddGrabberImagesToIconView(iconView);
+                manager.topGrabberView = STKGetTopGrabber(iconView);
+                manager.bottomGrabberView = STKGetBottomGrabber(iconView);
+            }
+        }
+
+        manager.showsPreview = previewEnabled;
+    };
+
     for (SBIconListView *listView in [[%c(SBIconController) sharedInstance] valueForKey:@"_rootIconLists"]){
-        [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
-            if (!iconView) {
-                return;
-            }
-            
-            STKStackManager *manager = STKManagerForView(iconView);
-            if (!manager) {
-                return;
-            }
+        [listView makeIconViewsPerformBlock:^(SBIconView *iconView) { aBlock(iconView); }];
+    }
 
-            if (!manager.isEmpty) {
-                if (previewEnabled) {
-                    iconView.iconImageView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
-                    STKRemoveGrabberImagesFromIconView(iconView);
-                    manager.topGrabberView = nil;
-                    manager.bottomGrabberView = nil;
-                }
-                else {
-                    iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
-                    STKAddGrabberImagesToIconView(iconView);
-                    manager.topGrabberView = STKGetTopGrabber(iconView);
-                    manager.bottomGrabberView = STKGetBottomGrabber(iconView);
-                }
-            }
-
-            manager.showsPreview = previewEnabled;
-        }];
+    SBIconListView *folderListView = (SBIconListView *)[[%c(SBIconController) sharedInstance] currentFolderIconList];
+    if ([folderListView isKindOfClass:objc_getClass("FEIconListView")]) {
+        [folderListView makeIconViewsPerformBlock:^(SBIconView *iv) { aBlock(iv); }];
     }
 }
 /**********************************************************************************************************************/
@@ -861,6 +880,12 @@ static inline void STKCloseActiveManager(void)
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
     
         [[objc_getClass("ISIconSupport") sharedInstance] addExtension:kSTKTweakName];
+
+        void *feHandler = dlopen("/Library/MobileSubstrate/DynamicLibraries/FolderEnhancer.dylib", RTLD_NOW);
+        if (feHandler) {
+            CLog(@"FolderEnhancer exists, initialising compatibility hooks");
+            %init(FECompat);
+        }
 
         // Set up the singleton
         [STKPreferences sharedPreferences];
