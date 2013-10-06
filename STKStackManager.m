@@ -1070,7 +1070,7 @@
 
 
     UIView *view = nil;
-    if ([STKListViewForIcon(_centralIcon) isKindOfClass:[objc_getClass("FEIconListView") class]]) {
+    if (HAS_FE) {
         view = [self _iconViewForIcon:_centralIcon].superview.superview;
     }
     else {
@@ -1327,7 +1327,7 @@
 
 - (void)_setGhostlyAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral
 {
-    if ([STKListViewForIcon(_centralIcon) isKindOfClass:[objc_getClass("FEIconListView") class]]) {
+    if (HAS_FE) {
         // FolderFucker
         MAP([_offScreenIconsLayout allIcons], ^(SBIcon *icon) {
             [self _iconViewForIcon:icon].alpha = alpha;
@@ -1467,7 +1467,14 @@
     NSMutableArray *viewsToRemove = [NSMutableArray array];
 
     [UIView animateWithDuration:kOverlayDuration animations:^{
-        MAP([_iconsHiddenForPlaceHolders allIcons], ^(SBIcon *icon){ [self _iconViewForIcon:icon].alpha = 1.f; });
+        MAP([_iconsHiddenForPlaceHolders allIcons], ^(SBIcon *icon){ 
+            if (HAS_FE) {
+                [self _iconViewForIcon:icon].alpha = 0.2f;
+            }
+            else {
+                [self _iconViewForIcon:icon].alpha = 1.f;                 
+            }
+        });
 
         [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *ca, NSUInteger idx) {
             if ([iconView.icon.leafIdentifier isEqualToString:STKPlaceHolderIconIdentifier]) {
@@ -1542,9 +1549,11 @@
 
     [UIView animateWithDuration:kAnimationDuration animations:^{
         // Set the alphas back to normal
-        [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iv) { 
+        SBIconListView *listView = STKListViewForIcon(_centralIcon);
+        CGFloat alphaToSet = (HAS_FE ? 0.2 : 1.f);
+        [listView makeIconViewsPerformBlock:^(SBIconView *iv) { 
             if ((iv != [self _iconViewForIcon:_centralIcon]) && !([[_iconsHiddenForPlaceHolders allIcons] containsObject:iv.icon]) && !([[_offScreenIconsLayout allIcons] containsObject:iv.icon])) {
-                iv.alpha = 1.f; 
+                iv.alpha = alphaToSet;
             }
         }];
         [_iconController dock].superview.alpha = 1.f;

@@ -139,7 +139,7 @@ static BOOL _hasVerticalIcons    = NO;
 %new
 - (void)stk_panned:(UIPanGestureRecognizer *)sender
 {
-    UIView *view = [STKListViewForIcon(self.icon) superview];
+    UIScrollView *view = (UIScrollView *)[STKListViewForIcon(self.icon) superview];
     STKStackManager *stackManager = STKManagerForView(self);
     STKStackManager *activeManager = STKGetActiveManager();
 
@@ -148,7 +148,7 @@ static BOOL _hasVerticalIcons    = NO;
         return;
     }
 
-    if (stackManager.isExpanded || (activeManager != nil && activeManager != stackManager) || ([self.superview isKindOfClass:%c(SBFolderIconListView)])) {
+    if (stackManager.isExpanded || (activeManager != nil && activeManager != stackManager)) {
         return;
     }
 
@@ -161,8 +161,8 @@ static BOOL _hasVerticalIcons    = NO;
             return;
         }
             
-        // Turn off scrolling in the list view
-        [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = NO;
+        // Turn off scrolling
+        view.scrollEnabled = NO;
 
         // Update the target distance based on icons positions when the pan begins
         // This way, we can be sure that the icons are indeed in the required location 
@@ -180,7 +180,7 @@ static BOOL _hasVerticalIcons    = NO;
     }
 
     else if (sender.state == UIGestureRecognizerStateChanged) {
-        if ([[%c(SBIconController) sharedInstance] scrollView].isDragging || _cancelledRecognizer) {
+        if (view.isDragging || _cancelledRecognizer) {
             _cancelledRecognizer = YES;
             return;
         }
@@ -237,7 +237,7 @@ static BOOL _hasVerticalIcons    = NO;
         _previousDistance = 0.f;
         _currentDirection = STKRecognizerDirectionNone;
 
-        [[%c(SBIconController) sharedInstance] scrollView].scrollEnabled = YES;
+        view.scrollEnabled = YES;
     }
 }
 
@@ -307,22 +307,29 @@ static BOOL _hasVerticalIcons    = NO;
     %orig(isEditing);
     
     if (didChange) {
-        for (SBIconListView *lv in [self valueForKey:@"_rootIconLists"]) {
-            [lv makeIconViewsPerformBlock:^(SBIconView *iv) {
-                if (isEditing) {
-                    STKRemovePanRecognizerFromIconView(iv);
+        void (^aBlock)(SBIconView *iconView) = ^(SBIconView *iv) {
+            if (isEditing) {
+                STKRemovePanRecognizerFromIconView(iv);
+            }
+            else {
+                STKStackManager *manager = STKManagerForView(iv);
+                if (!manager && iv.icon.isLeafIcon) {
+                    iv.location = iv.location;
+                    return;
                 }
-                else {
-                    STKStackManager *manager = STKManagerForView(iv);
-                    if (!manager && iv.icon.isLeafIcon) {
-                        iv.location = iv.location;
-                        return;
-                    }
 
-                    STKAddPanRecognizerToIconView(iv);
-                    [manager recalculateLayouts];
-                }
-            }];
+                STKAddPanRecognizerToIconView(iv);
+                [manager recalculateLayouts];
+            }
+        };
+        for (SBIconListView *lv in [self valueForKey:@"_rootIconLists"]) {
+            [lv makeIconViewsPerformBlock:^(SBIconView *iv) { aBlock(iv); }];
+        }
+
+        SBIconListView *folderListView = (SBIconListView *)[[%c(SBIconController) sharedInstance] currentFolderIconList];
+        if ([folderListView isKindOfClass:objc_getClass("FEIconListView")]) {
+            // FolderEnhancer exists, so process the icons inside folders.
+            [folderListView makeIconViewsPerformBlock:^(SBIconView *iv) { aBlock(iv); }];
         }
     }
 }
