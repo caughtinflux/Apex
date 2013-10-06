@@ -26,6 +26,8 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 + (BOOL)isValidLayoutAtPath:(NSString *)path;
 + (BOOL)isValidLayout:(NSDictionary *)layout;
 
++ (void)saveLayout:(STKIconLayout *)layout toFile:(NSString *)fp forIcon:(SBIcon *)centralIcon;
+
 /**
 *   Properties to derive information from
 */
@@ -38,6 +40,7 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 @property (nonatomic, readonly) STKIconLayout *appearingIconsLayout;
 @property (nonatomic, readonly) STKIconLayout *disappearingIconsLayout;
 @property (nonatomic, readonly) CGFloat distanceRatio;
+@property (nonatomic, readonly) BOOL isSelecting;
 
 @property (nonatomic, copy) STKInteractionHandler interactionHandler; // the tappedIconView is only passed if there indeed was a tapped icon view. This may be called even if a swipe/tap is detected on the content view, and the stack closes automagically.
 

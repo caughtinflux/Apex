@@ -63,5 +63,7 @@
 @protocol STKSelectionViewDelegate <NSObject>
 @optional
 - (void)closeButtonTappedOnSelectionView:(STKSelectionView *)selectionView;
+- (void)userTappedHighlightedIconInSelectionView:(STKSelectionView *)selectionView;
+
 @end
 
