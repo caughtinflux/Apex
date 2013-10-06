@@ -38,6 +38,7 @@ static void __do_haxx(void);
 
 - (void)_setupSubviews;
 - (void)_scrollToNearest;
+- (void)_scrollToNearestAnimated:(BOOL)animated;
 
 /**
     @param icon: The icon for which is index path is to be found
@@ -48,6 +49,8 @@ static void __do_haxx(void);
 - (void)_showDoneButton;
 - (void)_hideDoneButton;
 - (void)_doneButtonTapped:(UIButton *)button;
+
+- (void)_sectionIndexChanged:(UITableViewIndex *)index;
 
 @end
 
@@ -246,6 +249,11 @@ static NSString * const CellIdentifier = @"STKIconCell";
 #define R_AREA(_r2 /* D2! */)  _r2.size.width * _r2.size.height
 - (void)_scrollToNearest
 {
+    [self _scrollToNearestAnimated:YES];
+}
+
+- (void)_scrollToNearestAnimated:(BOOL)animated
+{
     CGRect rect = [self convertRect:_highlightView.frame toView:_listTableView];
     NSArray *ips = [_listTableView indexPathsForRowsInRect:rect];
 
@@ -280,7 +288,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
         }];
 
         [_listTableView beginUpdates];
-        [_listTableView selectRowAtIndexPath:indexToSelect animated:YES scrollPosition:UITableViewScrollPositionTop];
+        [_listTableView selectRowAtIndexPath:indexToSelect animated:animated scrollPosition:UITableViewScrollPositionTop];
         [_listTableView endUpdates];
         
         [CATransaction commit];
@@ -297,15 +305,22 @@ static NSString * const CellIdentifier = @"STKIconCell";
 
 - (void)_iconTapped:(UITapGestureRecognizer *)gr
 {
-    NSIndexPath *ip = objc_getAssociatedObject(gr, @selector(indexPath));
+    NSIndexPath *tappedCellIndexPath = objc_getAssociatedObject(gr, @selector(indexPath));
+    NSIndexPath *selectedIndexPath = [_listTableView indexPathForSelectedRow];
 
     [CATransaction begin];
     [CATransaction setCompletionBlock:^{
         [self _showDoneButton];
+        if ([selectedIndexPath isEqual:tappedCellIndexPath]) {
+            CLog(@"-[%@ isEqual:%@]", selectedIndexPath, tappedCellIndexPath);
+            if ([self.delegate respondsToSelector:@selector(userTappedHighlightedIconInSelectionView:)]) {
+                [self.delegate userTappedHighlightedIconInSelectionView:self];
+            }
+        }
     }];
 
     [_listTableView beginUpdates];
-    [_listTableView selectRowAtIndexPath:ip animated:YES scrollPosition:UITableViewScrollPositionTop];
+    [_listTableView selectRowAtIndexPath:tappedCellIndexPath animated:YES scrollPosition:UITableViewScrollPositionTop];
     [_listTableView endUpdates];
     
     [CATransaction commit];
@@ -347,7 +362,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
 
 - (void)_sectionIndexChanged:(UITableViewIndex *)index
 {
-    [self _scrollToNearest];
+    [self _scrollToNearestAnimated:NO];
 }
 
 #pragma mark - Delegates
@@ -429,6 +444,7 @@ static void stkNewSetFrame(UIView *self, SEL _cmd, CGRect frame)
             frame.origin.x -= floorf(maxLabelSize.width * 1.7) + iconImageSize.width;
         }
     } 
+
     stkOriginalSetFrame(self, _cmd, frame);
 }
 

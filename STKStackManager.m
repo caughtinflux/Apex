@@ -1595,6 +1595,11 @@
     [self _hideActiveSelectionView];
 }
 
+- (void)userTappedHighlightedIconInSelectionView:(STKSelectionView *)selectionView;
+{
+    [self _hideActiveSelectionView];
+}
+
 - (void)_addIcon:(SBIcon *)iconToAdd atIndex:(NSUInteger)idx position:(STKLayoutPosition)addPosition
 {
     SBIcon *removedIcon = nil;
