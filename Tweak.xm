@@ -13,6 +13,8 @@
 #import <Search/SPSearchResultSection.h>
 #import <Search/SPSearchResult.h>
 
+#import <UIKit/UITableViewIndex.h>
+
 #pragma mark - Function Declarations
 
 static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView); // Creates an STKStackManager object, sets it as an associated object on `iconView`, and returns it.
@@ -196,8 +198,8 @@ static BOOL _hasVerticalIcons    = NO;
             point = _initialPoint;
         }
 
-        CGFloat change = fabsf(_previousPoint.y - point.y); // Vertical
-        CGFloat distance = fabsf(_initialPoint.y - point.y);
+        CGFloat change = floorf(fabsf(_previousPoint.y - point.y)); // Vertical
+        CGFloat distance = floorf(fabsf(_initialPoint.y - point.y));
         
         if (distance < _previousDistance) {
             // negate the change since swipe is going in the opposite direction
@@ -217,7 +219,7 @@ static BOOL _hasVerticalIcons    = NO;
         [stackManager touchesDraggedForDistance:change];
 
         _previousPoint = point;
-        _previousDistance = fabsf(distance);
+        _previousDistance = floorf(fabsf(distance));
     }
 
     else {
@@ -471,6 +473,7 @@ static BOOL _hasVerticalIcons    = NO;
 %end
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
+
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
