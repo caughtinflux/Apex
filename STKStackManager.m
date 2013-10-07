@@ -1829,7 +1829,6 @@
     return NO;
 }
 
-
 - (BOOL)iconViewDisplaysBadges:(SBIconView *)iconView
 {    
     return [_iconController iconViewDisplaysBadges:iconView];   
