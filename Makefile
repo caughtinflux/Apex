@@ -1,4 +1,4 @@
-# DEBUG = 1
+DEBUG = 1
 ARCHS = armv7
 TARGET = iphone:clang:6.1:3.0
 
