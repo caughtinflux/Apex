@@ -15,7 +15,7 @@ extern "C" {
 }
 #endif
 
-@interface STKIconLayout : NSObject
+@interface STKIconLayout : NSObject <NSFastEnumeration>
 
 typedef NS_ENUM(NSInteger, STKLayoutPosition) {
     STKLayoutPositionNone = 0,

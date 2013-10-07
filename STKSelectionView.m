@@ -73,6 +73,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
         _listView = STKListViewForIcon(_centralView.icon);
         _model = (SBIconModel *)[[objc_getClass("SBIconController") sharedInstance] model];
         _dataSource = [[STKSelectionViewDataSource alloc] init];
+        _dataSource.centralView = _centralView;
         [_dataSource prepareData];
         [self _setupSubviews];
     }
