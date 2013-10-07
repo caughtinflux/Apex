@@ -77,11 +77,34 @@ static BOOL _switcherIsVisible;
     _wantsSafeIconViewRetrieval = NO;
     return iconView;
 }
+
 - (void)_recycleIconView:(SBIconView *)iconView
 {
     STKCleanupIconView(iconView);
     %orig();
 }
+
+- (SBIconView *)iconViewForIcon:(SBIcon *)icon
+{
+    if (STKGetActiveManager() && ICON_IS_IN_STACK(icon)) {
+        SBIcon *centralIcon = [[STKPreferences sharedPreferences] centralIconForIcon:icon];
+        SBIconView *centralIconView = [self iconViewForIcon:centralIcon];
+        STKStackManager *manager = STKManagerForView(centralIconView);
+        SBIconView *viewToReturn = nil;
+        for (SBIconView *iconView in manager.iconViewsLayout) {
+            if (iconView.icon == icon) {
+                viewToReturn = iconView;
+                break;
+            }
+        }
+        if (viewToReturn) {
+            return viewToReturn;
+        }
+    }
+
+    return %orig();
+}
+
 %end
 
 

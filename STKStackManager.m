@@ -420,10 +420,10 @@
         self.isEditing = NO;
     }
 
-    MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) {
+    for (SBIconView *iconView in _iconViewsLayout) {
         iconView.delegate = nil;
         [iconView removeFromSuperview];
-    });
+    }
 
     [_iconViewsLayout removeAllIcons];
     [_iconViewsLayout release];
@@ -660,9 +660,9 @@
 
 - (void)setStackIconAlpha:(CGFloat)alpha
 {
-    MAP([_iconViewsLayout allIcons], ^(SBIconView *iv) {
+    for (SBIconView *iv in _iconViewsLayout) {
         iv.alpha = alpha;
-    });
+    }
 
     _topGrabberView.alpha = alpha;
     _bottomGrabberView.alpha = alpha;
@@ -717,7 +717,7 @@
         return [self _iconViewForIcon:_centralIcon];
     } 
 
-    for (SBIconView *iconView in [_iconViewsLayout allIcons]) {
+    for (SBIconView *iconView in _iconViewsLayout) {
         if (CGRectContainsPoint(iconView.frame, point)) {
             return iconView;
         }
@@ -867,7 +867,7 @@
     } completion:^(BOOL finished) {
         if (finished) {
             // Remove the icon view's delegates
-            for (SBIconView *iconView in [_iconViewsLayout allIcons]) {
+            for (SBIconView *iconView in _iconViewsLayout) {
                 iconView.delegate = nil;
             }
 
@@ -1095,7 +1095,7 @@
             return NO;
         }
 
-        for (SBIconView *iconView in [_iconViewsLayout allIcons]) {
+        for (SBIconView *iconView in _iconViewsLayout) {
             if ([iconView pointInside:[touch locationInView:iconView] withEvent:nil]) {
                 return NO;
             }
@@ -1328,9 +1328,9 @@
 - (void)_setGhostlyAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral
 {
     if (HAS_FE) {
-        MAP([_offScreenIconsLayout allIcons], ^(SBIcon *icon) {
+        for (SBIcon *icon in _offScreenIconsLayout) {
             [self _iconViewForIcon:icon].alpha = alpha;
-        });
+        }
 
         alpha = STKScaleNumber(alpha, 1.0, 0.0, 1.0, 0.2);
         [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iconView) {
@@ -1347,9 +1347,9 @@
         }];
     }
     else {
-        MAP(_offScreenIconsLayout.bottomIcons, ^(SBIcon *icon) {
+        for (SBIcon *icon in _offScreenIconsLayout) {
             [self _iconViewForIcon:icon].alpha = alpha;
-        });
+        }
     }
 
     if (alpha >= 1.f) {
@@ -1379,7 +1379,7 @@
 #pragma mark - Editing Handling
 - (void)_addOverlays
 {
-    for (SBIconView *iconView in [_iconViewsLayout allIcons]) {
+    for (SBIconView *iconView in _iconViewsLayout) {
         if (iconView.icon.isPlaceholder) {
             continue;
         }
@@ -1472,14 +1472,14 @@
     NSMutableArray *viewsToRemove = [NSMutableArray array];
 
     [UIView animateWithDuration:kOverlayDuration animations:^{
-        MAP([_iconsHiddenForPlaceHolders allIcons], ^(SBIcon *icon){ 
+        for (SBIcon *icon in _iconsHiddenForPlaceHolders) {
             if (HAS_FE) {
                 [self _iconViewForIcon:icon].alpha = 0.2f;
             }
             else {
                 [self _iconViewForIcon:icon].alpha = 1.f;                 
             }
-        });
+        }
 
         [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *ca, NSUInteger idx) {
             if ([iconView.icon.leafIdentifier isEqualToString:STKPlaceHolderIconIdentifier]) {
@@ -1570,10 +1570,10 @@
         [_currentSelectionView prepareForRemoval];
         _currentSelectionView.alpha = 0.f;
 
-        MAP([_offScreenIconsLayout allIcons], ^(SBIcon *icon) {
+        for (SBIcon *icon in _offScreenIconsLayout) {
             // _offScreenIconsLayout is all new at this point
             [self _iconViewForIcon:icon].alpha = 0.f;
-        });
+        }
         
     } completion:^(BOOL done) {
         if (done) {
@@ -1696,7 +1696,7 @@
                 _hasPlaceHolders = NO;
 
                 [_closingAnimationOpQueue stk_addOperationToRunOnMainThreadWithBlock:^{
-                    for (SBIcon *icon in [_iconsHiddenForPlaceHolders allIcons]) {
+                    for (SBIcon *icon in _iconsHiddenForPlaceHolders) {
                         [self _iconViewForIcon:icon].alpha = 1.f;
                     }
                     [self _iconViewForIcon:_centralIcon].transform = CGAffineTransformMakeScale(1.f, 1.f);

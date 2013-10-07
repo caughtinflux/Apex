@@ -19,6 +19,7 @@
 - (void)dealloc
 {
     [_sections release];
+    [_centralView release];
     [super dealloc];
 }
 

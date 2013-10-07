@@ -304,6 +304,11 @@ NSString * const STKRightIconsKey = @"RightIcons";
     }
 }
 
+- (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(id *)stackbuf count:(NSUInteger)len
+{
+    return [[self allIcons] countByEnumeratingWithState:state objects:stackbuf count:len];
+}
+
 - (NSDictionary *)dictionaryRepresentation
 {
     if (_dictRepr && !_hasBeenModified) {
