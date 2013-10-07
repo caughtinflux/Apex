@@ -104,9 +104,11 @@ static BOOL _switcherIsVisible;
     id currentManager = STKManagerForView(self);
     SBIcon *icon = self.icon;
 
+    BOOL isInInfinifolder = ([self.superview isKindOfClass:[UIScrollView class]] && [self.superview.superview isKindOfClass:objc_getClass("SBFolderIconListView")]);
+
     if (!icon ||
         _wantsSafeIconViewRetrieval || 
-        loc != SBIconViewLocationHomeScreen || !self.superview || [self.superview isKindOfClass:%c(SBFolderIconListView)] ||
+        loc != SBIconViewLocationHomeScreen || !self.superview || [self.superview isKindOfClass:%c(SBFolderIconListView)] || isInInfinifolder || 
         [self isInDock] || [[objc_getClass("SBIconController") sharedInstance] grabbedIcon] == self.icon ||
         ![icon isLeafIcon] || [icon isDownloadingIcon] || 
         [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
@@ -163,8 +165,10 @@ static BOOL _hasVerticalIcons    = NO;
             return;
         }
             
-        // Turn off scrolling
-        view.scrollEnabled = NO;
+        if ([view isKindOfClass:[UIScrollView class]]) {
+            // Turn off scrolling
+            view.scrollEnabled = NO;
+        }
 
         // Update the target distance based on icons positions when the pan begins
         // This way, we can be sure that the icons are indeed in the required location 
@@ -505,8 +509,8 @@ static BOOL _hasVerticalIcons    = NO;
     %orig;
 
     if (![STKPreferences sharedPreferences].welcomeAlertShown) {
-        NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey          : @"Thanks for purchasing! ",
-                                 (id)kCFUserNotificationAlertMessageKey         : @"Welcome to Apex, swipe down on any app icon to get started.",
+        NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey          : @"Apex",
+                                 (id)kCFUserNotificationAlertMessageKey         : @"Thanks for purchasing!\nSwipe down on any app icon and tap the \"+\" to get started.",
                                  (id)kCFUserNotificationDefaultButtonTitleKey   : @"OK",
                                  (id)kCFUserNotificationAlternateButtonTitleKey : @"Settings"};
 
