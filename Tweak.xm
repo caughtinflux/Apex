@@ -254,7 +254,6 @@ static BOOL _hasVerticalIcons    = NO;
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
     STKStackManager *activeManager = STKGetActiveManager();
-    
     if (activeManager && (STKManagerForView(self) == activeManager)) {
         // Only if `self`'s manager is the active manager should we bother forwarding touches.
         UIView *view = [activeManager hitTest:point withEvent:event];
@@ -270,7 +269,7 @@ static BOOL _hasVerticalIcons    = NO;
 
 - (void)dealloc
 {
-    if (STKGetActiveManager().centralIcon == self.icon) {
+    if (STKGetActiveManager() == STKManagerForView(self)) {
         STKSetActiveManager(nil);
     }
     %orig();
