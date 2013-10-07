@@ -11,7 +11,7 @@ Apex_CFLAGS = -Wall -Werror -O3
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
-SUBPROJECTS += SpotlightHelper
+SUBPROJECTS += GraphicsServicesHelper
 SUBPROJECTS += PrefBundle
 
 before-all::
