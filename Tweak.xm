@@ -509,8 +509,8 @@ static BOOL _hasVerticalIcons    = NO;
     %orig;
 
     if (![STKPreferences sharedPreferences].welcomeAlertShown) {
-        NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey          : @"Thanks for purchasing! ",
-                                 (id)kCFUserNotificationAlertMessageKey         : @"Welcome to Apex, swipe down on any app icon to get started.",
+        NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey          : @"Apex",
+                                 (id)kCFUserNotificationAlertMessageKey         : @"Thanks for purchasing!\nSwipe down on any app icon and tap the \"+\" to get started.",
                                  (id)kCFUserNotificationDefaultButtonTitleKey   : @"OK",
                                  (id)kCFUserNotificationAlternateButtonTitleKey : @"Settings"};
 
