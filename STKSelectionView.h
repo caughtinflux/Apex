@@ -1,11 +1,9 @@
 #import <UIKit/UIKit.h>
 #import "STKIconLayoutHandler.h"
 
-
-@class SBIconView, STKIconLayout;
+@class SBIconView, STKIconLayout, STKSelectionViewDataSource;
 @protocol STKSelectionViewDelegate;
-
-@interface STKSelectionView : UIView <UIScrollViewDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface STKSelectionView : UIView <UIScrollViewDelegate, UITableViewDelegate>
 {
 @private
     SBIconView *_selectedView;
@@ -41,6 +39,8 @@
 @property (nonatomic, readonly) STKIconLayout *displacedIconsLayout;
 @property (nonatomic, readonly) UITableView *listTableView;
 
+@property (nonatomic, readonly) STKSelectionViewDataSource *dataSource;
+
 /*
 *	The currently selected icon in the list.
 */
@@ -63,5 +63,7 @@
 @protocol STKSelectionViewDelegate <NSObject>
 @optional
 - (void)closeButtonTappedOnSelectionView:(STKSelectionView *)selectionView;
+- (void)userTappedHighlightedIconInSelectionView:(STKSelectionView *)selectionView;
+
 @end
 

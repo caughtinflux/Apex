@@ -26,6 +26,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 #define kPopoutDistance      9
 
 #define EQ_COORDS(_a, _b) (_a.xPos == _b.xPos && _a.yPos == _b.yPos)
+#define HAS_FE [STKListViewForIcon(_centralIcon) isKindOfClass:objc_getClass("FEIconListView")]
 
 #pragma mark - Private Method Declarations
 @interface STKStackManager ()

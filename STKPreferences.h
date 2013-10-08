@@ -34,5 +34,6 @@ typedef void(^STKPreferencesCallback)(void);
 - (void)registerCallbackForPrefsChange:(STKPreferencesCallback)callbackBlock;
 
 - (NSDictionary *)cachedLayoutDictForIcon:(SBIcon *)centralIcon;
+- (void)removeCachedLayoutForIcon:(SBIcon *)centralIcon;
 
 @end

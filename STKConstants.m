@@ -14,9 +14,6 @@ NSString * const STKPlaceHolderIconIdentifier       = @"com.a3tweaks.apex.placeh
 
 CFStringRef const STKPrefsChangedNotificationName = CFSTR("com.a3tweaks.apex.prefschanged");
 
-// SpringBoard constants
-NSString * const SBLockStateChangeNotification = @"com.apple.springboard.lockstate";
-
 inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax)
 {
     double oldRange = (prevMax - prevMin);

@@ -10,6 +10,11 @@
 #import <objc/runtime.h>
 #import <QuartzCore/QuartzCore.h>
 
+/*
+*   Compatibility imports
+*/
+#import "IWWidgetsView.h"
+
 #define kSTKIconModelLayoutOpID @"STKIconModelLayoutOpID"
 
 @implementation STKStackManager 
@@ -57,9 +62,8 @@
     SBIconController         *_iconController;
 
 #ifdef DEBUG
-    CFTimeInterval           *__times;
-    NSUInteger                __idx;
-    size_t                    __prevSize;
+    CFTimeInterval            __sum;
+    NSUInteger                __count;
 #endif
 }
 
@@ -98,6 +102,20 @@
     return YES;
 }
 
++ (void)saveLayout:(STKIconLayout *)layout toFile:(NSString *)fp forIcon:(SBIcon *)centralIcon;
+{
+    NSMutableDictionary *dictionaryRepresentation = [[[layout dictionaryRepresentation] mutableCopy] autorelease];
+    STKIconCoordinates coords = [STKIconLayoutHandler coordinatesForIcon:centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
+    dictionaryRepresentation[@"xPos"] = [NSNumber numberWithInteger:coords.xPos];
+    dictionaryRepresentation[@"yPos"] = [NSNumber numberWithInteger:coords.yPos];
+
+    NSDictionary *fileDict = @{ STKStackManagerCentralIconKey  : centralIcon.leafIdentifier,
+                                STKStackManagerStackIconsKey   : [[layout allIcons] valueForKeyPath:@"leafIdentifier"],
+                                STKStackManagerCustomLayoutKey : dictionaryRepresentation};
+
+    [fileDict writeToFile:fp atomically:YES];
+}
+
 #pragma mark - Public Methods
 - (instancetype)initWithContentsOfFile:(NSString *)file
 {
@@ -107,6 +125,10 @@
     NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:file];
     NSDictionary *customLayout = attributes[STKStackManagerCustomLayoutKey];
     SBIcon *centralIcon = [model expectedIconForDisplayIdentifier:attributes[STKStackManagerCentralIconKey]];
+
+    if (!STKListViewForIcon(centralIcon)) {
+        return nil;
+    }
 
     if (customLayout) {
         return [self initWithCentralIcon:centralIcon withCustomLayout:customLayout];
@@ -143,6 +165,11 @@
         [icons retain];
 
         _centralIcon = [centralIcon retain];
+
+        if (!STKListViewForIcon(_centralIcon)) {
+            return nil;
+        }
+
         STKPositionMask mask = [self _locationMaskForIcon:_centralIcon];
 
         if (!icons || icons.count == 0) {
@@ -166,13 +193,14 @@
     if ([layout allIcons].count == 0) {
         return [self initWithCentralIcon:centralIcon stackIcons:nil];
     }
-
+    if (!STKListViewForIcon(centralIcon)) {
+        return nil;
+    }
     STKIconCoordinates currentCoords = [STKIconLayoutHandler coordinatesForIcon:centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
     STKIconCoordinates savedCoords;
 
     savedCoords.xPos = (customLayout[@"xPos"] ? [customLayout[@"xPos"] integerValue] : NSNotFound);
     savedCoords.yPos = (customLayout[@"yPos"] ? [customLayout[@"yPos"] integerValue] : NSNotFound - 2);
-
     if (!(EQ_COORDS(savedCoords, currentCoords))) {
         // The location of the icon has changed, hence calculate layouts accordingly
         if ((self = [self initWithCentralIcon:centralIcon stackIcons:[layout allIcons]])) {
@@ -226,7 +254,7 @@
         [self _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO];
     }
 
-    [self _iconViewForIcon:_centralIcon].delegate = _previousDelegate;
+    [self _iconViewForIcon:_centralIcon].delegate = [objc_getClass("SBIconController") sharedInstance];
     
     if (_interactionHandler) {
         [_interactionHandler release];
@@ -392,10 +420,10 @@
         self.isEditing = NO;
     }
 
-    MAP([_iconViewsLayout allIcons], ^(SBIconView *iconView) {
+    for (SBIconView *iconView in _iconViewsLayout) {
         iconView.delegate = nil;
         [iconView removeFromSuperview];
-    });
+    }
 
     [_iconViewsLayout removeAllIcons];
     [_iconViewsLayout release];
@@ -451,9 +479,8 @@
 - (void)touchesBegan
 {
 #ifdef DEBUG
-    __times = malloc(sizeof(CFTimeInterval) * 600);
-    __idx = 0;
-    __prevSize = 500;
+    __sum = 0;
+    __count = 0;
 #endif
     if (_needsLayout) {
         [self recalculateLayouts];
@@ -489,10 +516,10 @@
     [self _moveAllIconsInRespectiveDirectionsByDistance:distance performingTask:^(SBIconView *iv, STKLayoutPosition pos, NSUInteger idx) {
         if (idx == 0) {
             if (hasVerticalIcons && (pos == STKLayoutPositionTop || pos == STKLayoutPositionBottom)) {
-                _lastDistanceFromCenter = fabsf(iv.frame.origin.y - [self _iconViewForIcon:_centralIcon].bounds.origin.y);
+                _lastDistanceFromCenter = floorf(fabsf(iv.frame.origin.y - [self _iconViewForIcon:_centralIcon].bounds.origin.y));
             }
             else if (!hasVerticalIcons && (pos == STKLayoutPositionLeft || pos == STKLayoutPositionRight)) {
-               _lastDistanceFromCenter = fabsf(iv.frame.origin.x - [self _iconViewForIcon:_centralIcon].bounds.origin.x);
+               _lastDistanceFromCenter = floorf(fabsf(iv.frame.origin.x - [self _iconViewForIcon:_centralIcon].bounds.origin.x));
             }
         }
 
@@ -547,12 +574,8 @@
     }
 #ifdef DEBUG
     CFTimeInterval end = CACurrentMediaTime();
-    if (__idx == 500) {
-        __times = realloc(__times, __prevSize * 2);
-        __prevSize *= 2;
-    }
-    __times[__idx++] = end - now;
-
+    __sum += end - now;
+    __count++;
 #endif
 }
 
@@ -572,15 +595,8 @@
     }
 
 #ifdef DEBUG
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
-        CFTimeInterval avg = 0;
-        for (uint8_t i = 0; i < __idx; i++) {
-            avg += __times[i];
-        }
-        avg /= __idx;
-        CLog(@"Average time for -[STKStackManager touchesDraggedForDistance:] is %f", avg);
-        free(__times);
-    });
+    CFTimeInterval avg = __sum / __count;
+    CLog(@"Average time for -[STKStackManager touchesDraggedForDistance:] is %f", avg);
 #endif
 }
  
@@ -644,9 +660,9 @@
 
 - (void)setStackIconAlpha:(CGFloat)alpha
 {
-    MAP([_iconViewsLayout allIcons], ^(SBIconView *iv) {
+    for (SBIconView *iv in _iconViewsLayout) {
         iv.alpha = alpha;
-    });
+    }
 
     _topGrabberView.alpha = alpha;
     _bottomGrabberView.alpha = alpha;
@@ -681,6 +697,11 @@
     _bottomGrabberOriginalFrame = view.frame;
 }
 
+- (BOOL)isSelecting
+{
+    return (_currentSelectionView != nil);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////        HAXX        //////////////////////////////////////////////////////////
 
@@ -696,7 +717,7 @@
         return [self _iconViewForIcon:_centralIcon];
     } 
 
-    for (SBIconView *iconView in [_iconViewsLayout allIcons]) {
+    for (SBIconView *iconView in _iconViewsLayout) {
         if (CGRectContainsPoint(iconView.frame, point)) {
             return iconView;
         }
@@ -750,6 +771,13 @@
 
         _topGrabberView.alpha = 0.f;
         _bottomGrabberView.alpha = 0.f;
+
+        // iWidgets Compat
+        IWWidgetsView *widgetsView = [objc_getClass("IWWidgetsView") sharedInstance];
+        if (widgetsView) {
+            // POS SWAG.
+            widgetsView.alpha = 0.f;
+        }
         
     } completion:^(BOOL finished) {
         if (finished) {
@@ -768,6 +796,12 @@
 #pragma mark - Close Animation
 - (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon forSwitcher:(BOOL)forSwitcher
 {
+    _closingForSwitcher = forSwitcher;
+
+    if (_currentSelectionView) {
+        return;
+    }
+
     UIView *centralView = [[self _iconViewForIcon:_centralIcon] iconImageView];
     CGFloat scale = (_isEmpty || !_showsPreview ? 1.f : kCentralIconPreviewScale);
 
@@ -794,7 +828,6 @@
     [self _removePlaceHolders];
 
     [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
-        _closingForSwitcher = forSwitcher;
         [self setupPreview];
 
         // Set the alphas back to original
@@ -824,10 +857,17 @@
         _topGrabberView.frame = _topGrabberOriginalFrame;
         _bottomGrabberView.frame = _bottomGrabberOriginalFrame;
 
+        // iWidgets Compat
+        IWWidgetsView *widgetsView = [objc_getClass("IWWidgetsView") sharedInstance];
+        if (widgetsView) {
+            // POS SWAG.
+            widgetsView.alpha = 1.f;
+        }
+
     } completion:^(BOOL finished) {
         if (finished) {
             // Remove the icon view's delegates
-            for (SBIconView *iconView in [_iconViewsLayout allIcons]) {
+            for (SBIconView *iconView in _iconViewsLayout) {
                 iconView.delegate = nil;
             }
 
@@ -1028,9 +1068,17 @@
     _tapRecognizer.numberOfTapsRequired = 1;
     _tapRecognizer.delegate = self;
 
-    UIView *contentView = [[objc_getClass("SBUIController") sharedInstance] contentView];
-    [contentView addGestureRecognizer:_swipeRecognizer];
-    [contentView addGestureRecognizer:_tapRecognizer];
+
+    UIView *view = nil;
+    if (HAS_FE) {
+        view = [self _iconViewForIcon:_centralIcon].superview.superview.superview;
+    }
+    else {
+        view = [[objc_getClass("SBUIController") sharedInstance] contentView];
+    }
+
+    [view addGestureRecognizer:_swipeRecognizer];
+    [view addGestureRecognizer:_tapRecognizer];
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)other
@@ -1047,7 +1095,7 @@
             return NO;
         }
 
-        for (SBIconView *iconView in [_iconViewsLayout allIcons]) {
+        for (SBIconView *iconView in _iconViewsLayout) {
             if ([iconView pointInside:[touch locationInView:iconView] withEvent:nil]) {
                 return NO;
             }
@@ -1279,6 +1327,31 @@
 
 - (void)_setGhostlyAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral
 {
+    if (HAS_FE) {
+        for (SBIcon *icon in _offScreenIconsLayout) {
+            [self _iconViewForIcon:icon].alpha = alpha;
+        }
+
+        alpha = STKScaleNumber(alpha, 1.0, 0.0, 1.0, 0.2);
+        [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iconView) {
+            if (excludeCentral && iconView.icon == _centralIcon) {
+                return;
+            }
+            iconView.alpha = alpha;
+            if (alpha <= 0.99) {
+                iconView.userInteractionEnabled = NO;
+            }
+            else {
+                iconView.userInteractionEnabled = YES;
+            }
+        }];
+    }
+    else {
+        for (SBIcon *icon in _offScreenIconsLayout) {
+            [self _iconViewForIcon:icon].alpha = alpha;
+        }
+    }
+
     if (alpha >= 1.f) {
         [_iconController setCurrentPageIconsGhostly:NO forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
     }
@@ -1288,10 +1361,6 @@
     else {
         [_iconController setCurrentPageIconsPartialGhostly:alpha forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
     }
-
-    MAP(_offScreenIconsLayout.bottomIcons, ^(SBIcon *icon) {
-        [self _iconViewForIcon:icon].alpha = alpha;
-    })
 }
 
 - (void)_setAlpha:(CGFloat)alpha forLabelAndShadowOfIconView:(SBIconView *)iconView
@@ -1310,7 +1379,7 @@
 #pragma mark - Editing Handling
 - (void)_addOverlays
 {
-    for (SBIconView *iconView in [_iconViewsLayout allIcons]) {
+    for (SBIconView *iconView in _iconViewsLayout) {
         if (iconView.icon.isPlaceholder) {
             continue;
         }
@@ -1403,7 +1472,14 @@
     NSMutableArray *viewsToRemove = [NSMutableArray array];
 
     [UIView animateWithDuration:kOverlayDuration animations:^{
-        MAP([_iconsHiddenForPlaceHolders allIcons], ^(SBIcon *icon){ [self _iconViewForIcon:icon].alpha = 1.f; });
+        for (SBIcon *icon in _iconsHiddenForPlaceHolders) {
+            if (HAS_FE) {
+                [self _iconViewForIcon:icon].alpha = 0.2f;
+            }
+            else {
+                [self _iconViewForIcon:icon].alpha = 1.f;                 
+            }
+        }
 
         [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *ca, NSUInteger idx) {
             if ([iconView.icon.leafIdentifier isEqualToString:STKPlaceHolderIconIdentifier]) {
@@ -1478,9 +1554,11 @@
 
     [UIView animateWithDuration:kAnimationDuration animations:^{
         // Set the alphas back to normal
-        [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iv) { 
+        SBIconListView *listView = STKListViewForIcon(_centralIcon);
+        CGFloat alphaToSet = (HAS_FE ? 0.2 : 1.f);
+        [listView makeIconViewsPerformBlock:^(SBIconView *iv) { 
             if ((iv != [self _iconViewForIcon:_centralIcon]) && !([[_iconsHiddenForPlaceHolders allIcons] containsObject:iv.icon]) && !([[_offScreenIconsLayout allIcons] containsObject:iv.icon])) {
-                iv.alpha = 1.f; 
+                iv.alpha = alphaToSet;
             }
         }];
         [_iconController dock].superview.alpha = 1.f;
@@ -1492,10 +1570,10 @@
         [_currentSelectionView prepareForRemoval];
         _currentSelectionView.alpha = 0.f;
 
-        MAP([_offScreenIconsLayout allIcons], ^(SBIcon *icon) {
+        for (SBIcon *icon in _offScreenIconsLayout) {
             // _offScreenIconsLayout is all new at this point
             [self _iconViewForIcon:icon].alpha = 0.f;
-        });
+        }
         
     } completion:^(BOOL done) {
         if (done) {
@@ -1513,6 +1591,11 @@
 }
 
 - (void)closeButtonTappedOnSelectionView:(STKSelectionView *)selectionView
+{
+    [self _hideActiveSelectionView];
+}
+
+- (void)userTappedHighlightedIconInSelectionView:(STKSelectionView *)selectionView;
 {
     [self _hideActiveSelectionView];
 }
@@ -1613,7 +1696,7 @@
                 _hasPlaceHolders = NO;
 
                 [_closingAnimationOpQueue stk_addOperationToRunOnMainThreadWithBlock:^{
-                    for (SBIcon *icon in [_iconsHiddenForPlaceHolders allIcons]) {
+                    for (SBIcon *icon in _iconsHiddenForPlaceHolders) {
                         [self _iconViewForIcon:icon].alpha = 1.f;
                     }
                     [self _iconViewForIcon:_centralIcon].transform = CGAffineTransformMakeScale(1.f, 1.f);
@@ -1745,7 +1828,6 @@
 {
     return NO;
 }
-
 
 - (BOOL)iconViewDisplaysBadges:(SBIconView *)iconView
 {    

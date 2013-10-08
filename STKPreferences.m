@@ -8,8 +8,7 @@
 #import <notify.h>
 
 #define kSTKSpringBoardPortName           CFSTR("com.a3tweaks.apex.springboardport")
-#define kSTKSearchdPortName               CFSTR("com.a3tweaks.apex.searchdport")
-#define kSTKIdentifiersRequestMessageName @"com.a3tweaks.apex.searchdwantshiddenidents"
+#define kSTKIdentifiersRequestMessageName @"com.a3tweaks.apex.GraphicsServices.wantshiddenidents"
 #define kSTKIdentifiersRequestMessageID   (SInt32)1337
 #define kSTKIdentifiersUpdateMessageID    (SInt32)1234
 
@@ -250,6 +249,9 @@ static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
 
 - (BOOL)removeLayoutForIconID:(NSString *)iconID
 {
+    if (iconID == nil) {
+        return NO;
+    }
     @synchronized(self) {
         NSError *err = nil;
         BOOL ret = [[NSFileManager defaultManager] removeItemAtPath:[self layoutPathForIconID:iconID] error:&err];
@@ -299,6 +301,13 @@ static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
     } 
 
     return layout;
+}
+
+- (void)removeCachedLayoutForIcon:(SBIcon *)centralIcon
+{
+    if (centralIcon.leafIdentifier) {
+        [_cachedLayouts removeObjectForKey:centralIcon.leafIdentifier];
+    }
 }
 
 - (void)_refreshGroupedIcons
