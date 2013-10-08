@@ -778,6 +778,8 @@
             // POS SWAG.
             widgetsView.alpha = 0.f;
         }
+
+        [self _setupGestureRecognizers];
         
     } completion:^(BOOL finished) {
         if (finished) {
@@ -785,8 +787,6 @@
             _previousDelegate = centralIconView.delegate;
             centralIconView.delegate = self;
             centralIconView.userInteractionEnabled = YES;
-
-            [self _setupGestureRecognizers];
 
             _isExpanded = YES;
         }

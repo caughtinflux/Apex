@@ -6,8 +6,10 @@
 	AUTHORS = "by Sentry and Aditya KD.";
 	AUTHORS_PURCHASED = "by Sentry and Aditya KD.\nThank you for your purchase.";
 
+	CONFIGURATION = "Configuration";
 	SHOW_PREVIEW = "Show Preview";
-	PREVIEW_DESCRIPTION = "Previews of sub-apps will be shown behind the Apex app";
+	CLOSE_ON_LAUNCH = "Close on Launch";
+	ALPHABETIC_SCROLL = "Alphabetic Scroll";
 
 	LOVE_GAMES = "I'm loving #Apex from @A3tweaks!";
 	CANNOT_SEND_TWEET = "Cannot send tweet";

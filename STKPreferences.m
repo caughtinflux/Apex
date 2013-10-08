@@ -7,25 +7,19 @@
 #import <objc/runtime.h>
 #import <notify.h>
 
-#define kSTKSpringBoardPortName           CFSTR("com.a3tweaks.apex.springboardport")
-#define kSTKIdentifiersRequestMessageName @"com.a3tweaks.apex.GraphicsServices.wantshiddenidents"
-#define kSTKIdentifiersRequestMessageID   (SInt32)1337
-#define kSTKIdentifiersUpdateMessageID    (SInt32)1234
-
 #define GETBOOL(_dict, _key, _default) (_dict[_key] ? [_dict[_key] boolValue] : _default);
 
-static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
+static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
+static NSString * const STKStackClosesOnLaunchKey = @"STKStackClosesOnLaunch";
+static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 
 @interface STKPreferences ()
 {   
-    NSDictionary        *_currentPrefs;
+    NSMutableDictionary *_currentPrefs;
     NSArray             *_layouts;
     NSArray             *_iconsInStacks;
     NSSet               *_iconsWithStacks;
-
-    CFMessagePortRef     _localPort;
-    BOOL                 _isSendingMessage;
 
     NSMutableArray      *_callbacks;
     NSMutableDictionary *_cachedLayouts;
@@ -60,27 +54,8 @@ static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
     return sharedInstance;
 }
 
-- (instancetype)init
-{
-    if ((self = [super init])) {
-        _localPort = CFMessagePortCreateLocal(kCFAllocatorDefault, 
-                                              kSTKSpringBoardPortName,
-                                              (CFMessagePortCallBack)STKLocalPortCallBack,
-                                              NULL,
-                                              NULL);
-
-        CFRunLoopSourceRef runLoopSource = CFMessagePortCreateRunLoopSource(kCFAllocatorDefault, _localPort, 0);
-        CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, kCFRunLoopCommonModes);
-        CFRelease(runLoopSource);
-    }
-    return self;
-}
-
 - (void)dealloc
 {
-    CFMessagePortInvalidate(_localPort);
-    CFRelease(_localPort);
-
     [_currentPrefs release];
     [_layouts release];
     [_iconsInStacks release];
@@ -94,10 +69,14 @@ static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
 {
     [_currentPrefs release];
 
-    _currentPrefs = [[NSDictionary alloc] initWithContentsOfFile:kPrefPath];
+    _currentPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
     if (!_currentPrefs) {
         _currentPrefs = [[NSMutableDictionary alloc] init];
-        [(NSMutableDictionary *)_currentPrefs setObject:[NSNumber numberWithBool:YES] forKey:STKStackPreviewEnabledKey];
+        // Set the default values
+        _currentPrefs[STKStackPreviewEnabledKey] = @YES;
+        _currentPrefs[STKStackClosesOnLaunchKey] = @YES;
+        _currentPrefs[STKShowSectionTitlesKey] = @YES;
+
         [_currentPrefs writeToFile:kPrefPath atomically:YES];
     }
 
@@ -114,14 +93,24 @@ static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
     _cachedLayouts = nil;
 }
 
+- (BOOL)welcomeAlertShown
+{
+    return GETBOOL(_currentPrefs, STKWelcomeAlertShownKey, NO);
+}
+
 - (BOOL)previewEnabled
 {
     return GETBOOL(_currentPrefs, STKStackPreviewEnabledKey, YES);
 }
 
-- (BOOL)welcomeAlertShown
+- (BOOL)shouldCloseOnLaunch
 {
-    return GETBOOL(_currentPrefs, STKWelcomeAlertShownKey, NO);
+    return GETBOOL(_currentPrefs, STKStackClosesOnLaunchKey, YES);
+}
+
+- (BOOL)shouldShowSectionIndexTitles
+{
+    return GETBOOL(_currentPrefs, STKShowSectionTitlesKey, YES);
 }
 
 - (void)setWelcomeAlertShown:(BOOL)shown
@@ -329,23 +318,6 @@ static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
 
         _iconsInStacks = [groupedIcons copy];
     }
-}
-
-CFDataRef STKLocalPortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef data, void *info)
-{
-    CFDataRef returnData = NULL;
-    if (data) {
-        if (msgid == kSTKIdentifiersRequestMessageID) {
-            if (![[STKPreferences sharedPreferences] valueForKey:@"_iconsInStacks"]) {
-                [[STKPreferences sharedPreferences] _refreshGroupedIcons];
-            }
-
-            returnData = (CFDataRef)[[NSKeyedArchiver archivedDataWithRootObject:[[STKPreferences sharedPreferences] valueForKey:@"_iconsInStacks"]] retain];
-            // Retain, because "The system releases the returned CFData object"
-        }
-    }
-    
-    return returnData;
 }
 
 static void STKPrefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)

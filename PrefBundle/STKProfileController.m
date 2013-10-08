@@ -106,9 +106,15 @@
             return;
     }
     UIApplication *app = [UIApplication sharedApplication];
+
+    NSURL *twitterific = [NSURL URLWithString:[@"twitterrific:///profile?screen_name=" stringByAppendingString:handleString]];
     NSURL *tweetbot = [NSURL URLWithString:[@"tweetbot:///user_profile/" stringByAppendingString:handleString]];
-    if ([app canOpenURL:tweetbot])
+    if ([app canOpenURL:twitterific]) {
+        [app openURL:twitterific];
+    }
+    else if ([app canOpenURL:tweetbot]) {
         [app openURL:tweetbot];
+    }
     else {
         NSURL *twitterapp = [NSURL URLWithString:[@"twitter:///user?screen_name=" stringByAppendingString:handleString]];
         if ([app canOpenURL:twitterapp])
