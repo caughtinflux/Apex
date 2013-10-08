@@ -580,7 +580,12 @@ static void STKUserNotificationCallBack(CFUserNotificationRef userNotification, 
 - (void)resetAfterCancelDismissGesture
 {
     _switcherIsVisible = NO;
-    %log();
+    %orig();
+}
+
+- (void)handleGestureEnded:(id)gesture withLocation:(CGFloat)location velocity:(CGPoint)velocity completionType:(int)type
+{
+    _switcherIsVisible = NO;
     %orig();
 }
 
