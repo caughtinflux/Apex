@@ -489,19 +489,6 @@ static BOOL _hasVerticalIcons    = NO;
 }
 %end
 
-
-#pragma mark - Folder Enhancer Compatibility
-%group FECompat
-%hook FEGridFolderView
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView
-{
-    STKCloseActiveManager();
-    %orig();
-}
-%end
-%end
-
-
 #pragma mark - Search Agent Hook
 %hook SPSearchAgent
 - (id)sectionAtIndex:(NSUInteger)idx
@@ -559,12 +546,52 @@ static void STKUserNotificationCallBack(CFUserNotificationRef userNotification, 
     }
     CFRelease(userNotification);
 }
-/********************************************************************************************************************************************/
-/********************************************************************************************************************************************/
 
 
-/********************************************************************************************************************************************/
-/********************************************************************************************************************************************/
+#pragma mark - Compatibility Hooks
+#pragma mark - Folder Enhancer Compatibility
+%group FECompat
+%hook FEGridFolderView
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    STKCloseActiveManager();
+    %orig();
+}
+%end
+%end
+
+#pragma mark - Zephyr
+%group ZephyrCompat
+%hook ZephyrSwitcherGesture
+
+- (void)handleGestureBegan:(id)gesture withLocation:(float)location
+{
+    _switcherIsVisible = YES;
+
+    SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
+    NSSet *&visibleIconTags = MSHookIvar<NSSet *>(model, "_visibleIconTags");
+    NSSet *&hiddenIconTags = MSHookIvar<NSSet *>(model, "_hiddenIconTags");
+
+    [model setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
+
+    %orig(gesture, location);
+}
+
+- (void)resetAfterCancelDismissGesture
+{
+    _switcherIsVisible = NO;
+    %orig();
+}
+
+- (void)handleGestureEnded:(id)gesture withLocation:(CGFloat)location velocity:(CGPoint)velocity completionType:(int)type
+{
+    _switcherIsVisible = NO;
+    %orig();
+}
+
+%end
+%end
+
 #pragma mark - Associated Object Keys
 // Assigned to SELs for easy access from cycript.
 static SEL const panGRKey              = @selector(apexPanKey);
@@ -657,13 +684,11 @@ static inline void STKHandleInteraction(STKStackManager *manager, SBIconView *ta
                     }
                     else {
                         NSDictionary *cachedLayout = [[STKPreferences sharedPreferences] cachedLayoutDictForIcon:centralIconForManagerWithAddedIcon];
-                        CLog(@"%@", cachedLayout);
+
                         STKIconLayout *layout = [STKIconLayout layoutWithDictionary:cachedLayout];
-                        CLog(@"%@", layout);
                         [layout removeIcon:addedIcon];
-                        CLog(@"%@", layout);
+
                         if ([layout allIcons].count > 0) {
-                            CLog(@"Saving");
                             [STKStackManager saveLayout:layout 
                                                  toFile:[[STKPreferences sharedPreferences] layoutPathForIcon:centralIconForManagerWithAddedIcon]
                                                 forIcon:centralIconForManagerWithAddedIcon];
@@ -906,10 +931,15 @@ static inline void STKCloseActiveManager(void)
     
         [[objc_getClass("ISIconSupport") sharedInstance] addExtension:kSTKTweakName];
 
-        void *feHandler = dlopen("/Library/MobileSubstrate/DynamicLibraries/FolderEnhancer.dylib", RTLD_NOW);
-        if (feHandler) {
+        void *feHandle = dlopen("/Library/MobileSubstrate/DynamicLibraries/FolderEnhancer.dylib", RTLD_NOW);
+        if (feHandle) {
             STKLog(@"FolderEnhancer exists, initializing compatibility hooks");
             %init(FECompat);
+        }
+
+        void *zephyrHandle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Zephyr.dylib", RTLD_NOW);
+        if (zephyrHandle) {
+            %init(ZephyrCompat);
         }
 
         // Set up the singleton
