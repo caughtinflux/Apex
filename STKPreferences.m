@@ -9,12 +9,14 @@
 
 #define GETBOOL(_dict, _key, _default) (_dict[_key] ? [_dict[_key] boolValue] : _default);
 
-static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
+static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
+static NSString * const STKStackClosesOnLaunchKey = @"STKStackClosesOnLaunch";
+static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 
 @interface STKPreferences ()
 {   
-    NSDictionary        *_currentPrefs;
+    NSMutableDictionary *_currentPrefs;
     NSArray             *_layouts;
     NSArray             *_iconsInStacks;
     NSSet               *_iconsWithStacks;
@@ -67,10 +69,14 @@ static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
 {
     [_currentPrefs release];
 
-    _currentPrefs = [[NSDictionary alloc] initWithContentsOfFile:kPrefPath];
+    _currentPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
     if (!_currentPrefs) {
         _currentPrefs = [[NSMutableDictionary alloc] init];
-        [(NSMutableDictionary *)_currentPrefs setObject:[NSNumber numberWithBool:YES] forKey:STKStackPreviewEnabledKey];
+        // Set the default values
+        _currentPrefs[STKStackPreviewEnabledKey] = @YES;
+        _currentPrefs[STKStackClosesOnLaunchKey] = @YES;
+        _currentPrefs[STKShowSectionTitlesKey] = @YES;
+
         [_currentPrefs writeToFile:kPrefPath atomically:YES];
     }
 
@@ -87,14 +93,24 @@ static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
     _cachedLayouts = nil;
 }
 
+- (BOOL)welcomeAlertShown
+{
+    return GETBOOL(_currentPrefs, STKWelcomeAlertShownKey, NO);
+}
+
 - (BOOL)previewEnabled
 {
     return GETBOOL(_currentPrefs, STKStackPreviewEnabledKey, YES);
 }
 
-- (BOOL)welcomeAlertShown
+- (BOOL)shouldCloseOnLaunch
 {
-    return GETBOOL(_currentPrefs, STKWelcomeAlertShownKey, NO);
+    return GETBOOL(_currentPrefs, STKStackClosesOnLaunchKey, YES);
+}
+
+- (BOOL)shouldShowSectionIndexTitles
+{
+    return GETBOOL(_currentPrefs, STKShowSectionTitlesKey, YES);
 }
 
 - (void)setWelcomeAlertShown:(BOOL)shown
