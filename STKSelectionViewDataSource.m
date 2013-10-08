@@ -125,7 +125,7 @@
 
 - (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
 {
-    return [[UILocalizedIndexedCollation currentCollation] sectionIndexTitles];
+    return ([[STKPreferences sharedPreferences] shouldShowSectionIndexTitles] ? [[UILocalizedIndexedCollation currentCollation] sectionIndexTitles] : nil);
 }
 
 - (NSInteger)tableView:(UITableView *)tableView sectionForSectionIndexTitle:(NSString *)title atIndex:(NSInteger)index 

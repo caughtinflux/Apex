@@ -2,9 +2,9 @@ Package: com.a3tweaks.apex
 Name: Apex
 Depends: mobilesubstrate, com.chpwn.iconsupport, firmware (>= 6.0)
 Conflicts: gsc.ipad
-Version: 1.1
+Version: 1.2
 Architecture: iphoneos-arm
-Description: Folders, what folders?
+Description: Group your icons in a fun, beautiful way.
 Maintainer: A3Tweaks
 Author: A3Tweaks
 Section: Tweaks

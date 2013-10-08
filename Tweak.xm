@@ -437,11 +437,10 @@ static BOOL _hasVerticalIcons    = NO;
 - (BOOL)clickedMenuButton
 {
     STKStackManager *activeManager = STKGetActiveManager();
-    if (activeManager) {
+    if (activeManager && ![(SpringBoard *)[UIApplication sharedApplication] _accessibilityFrontMostApplication]) {
         BOOL manDidIntercept = [activeManager handleHomeButtonPress];
         if (!manDidIntercept) {
             STKCloseActiveManager();
-
         }
         return YES;
     }
@@ -717,9 +716,13 @@ static inline void STKHandleInteraction(STKStackManager *manager, SBIconView *ta
     }
     if (tappedIconView) {
         [tappedIconView.icon launch];
-        [manager closeStack];
+        if ([[STKPreferences sharedPreferences] shouldCloseOnLaunch]) {
+            STKCloseActiveManager();
+        }
     }
-    STKSetActiveManager(nil);
+    else {
+        STKSetActiveManager(nil);
+    }
 }
 
 static void STKRemoveManagerFromIconView(SBIconView *iconView)
@@ -933,7 +936,6 @@ static inline void STKCloseActiveManager(void)
 
         void *feHandle = dlopen("/Library/MobileSubstrate/DynamicLibraries/FolderEnhancer.dylib", RTLD_NOW);
         if (feHandle) {
-            STKLog(@"FolderEnhancer exists, initializing compatibility hooks");
             %init(FECompat);
         }
 

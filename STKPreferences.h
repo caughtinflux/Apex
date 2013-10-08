@@ -12,8 +12,10 @@ typedef void(^STKPreferencesCallback)(void);
 - (void)reloadPreferences;
 
 @property (nonatomic, readonly) NSArray *identifiersForIconsInStacks;
-@property (nonatomic, assign) BOOL previewEnabled;
+@property (nonatomic, readonly) BOOL previewEnabled;
 @property (nonatomic, assign) BOOL welcomeAlertShown;
+@property (nonatomic, readonly) BOOL shouldCloseOnLaunch;
+@property (nonatomic, readonly) BOOL shouldShowSectionIndexTitles;
 
 - (NSSet *)identifiersForIconsWithStack;
 - (NSArray *)stackIconsForIcon:(SBIcon *)icon;
