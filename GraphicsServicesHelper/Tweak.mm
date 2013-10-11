@@ -39,7 +39,16 @@ CFPropertyListRef new_GSSystemCopyCapability(CFStringRef cap)
     if (cap == NULL) {
         NSMutableDictionary *capabilites = [(NSDictionary *)ret mutableCopy];
         NSMutableArray *displayIDs = [[(NSArray *)[capabilites objectForKey:(NSString *)kGSDisplayIdentifiersCapability] mutableCopy] autorelease];
-        if (displayIDs && _stackedIconIdentifiers) {
+        if (!displayIDs) {
+            return capabilites;
+        }
+
+        if (_stackedIconIdentifiers) {
+            for (NSString *ident in _stackedIconIdentifiers) {
+                if (![displayIDs containsObject:ident]) {
+                    [displayIDs addObject:ident];
+                }
+            }
             [displayIDs addObjectsFromArray:_stackedIconIdentifiers];
         }
 
