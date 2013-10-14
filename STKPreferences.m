@@ -91,6 +91,8 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 
     [_cachedLayouts release];
     _cachedLayouts = nil;
+
+    notify_post("com.a3tweaks.apex.layoutschanged");
 }
 
 - (BOOL)welcomeAlertShown

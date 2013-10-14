@@ -31,6 +31,11 @@ void STKUpdateIdentifiers(void)
     }
 }
 
+static void STKLayoutsChanged (CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+    STKUpdateIdentifiers();
+}
+
 CFPropertyListRef (*original_GSSystemCopyCapability)(CFStringRef cap);
 CFPropertyListRef new_GSSystemCopyCapability(CFStringRef cap)
 {
@@ -40,6 +45,7 @@ CFPropertyListRef new_GSSystemCopyCapability(CFStringRef cap)
         NSMutableDictionary *capabilites = [(NSDictionary *)ret mutableCopy];
         NSMutableArray *displayIDs = [[(NSArray *)[capabilites objectForKey:(NSString *)kGSDisplayIdentifiersCapability] mutableCopy] autorelease];
         if (!displayIDs) {
+            // This is sometimes nil. K then.
             return capabilites;
         }
 
@@ -76,5 +82,7 @@ static __attribute__((constructor)) void _construct(void)
         [[NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/GraphicsServices.framework"] load];
         void *func = (void *)dlsym(RTLD_DEFAULT, "GSSystemCopyCapability");
         MSHookFunction(func, (void *)new_GSSystemCopyCapability, (void **)&original_GSSystemCopyCapability);     
+
+        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, STKLayoutsChanged, CFSTR("com.a3tweaks.apex.layoutschanged"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
     }
 }
