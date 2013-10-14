@@ -313,7 +313,6 @@ static NSString * const CellIdentifier = @"STKIconCell";
     [CATransaction setCompletionBlock:^{
         [self _showDoneButton];
         if ([selectedIndexPath isEqual:tappedCellIndexPath]) {
-            CLog(@"-[%@ isEqual:%@]", selectedIndexPath, tappedCellIndexPath);
             if ([self.delegate respondsToSelector:@selector(userTappedHighlightedIconInSelectionView:)]) {
                 [self.delegate userTappedHighlightedIconInSelectionView:self];
             }
