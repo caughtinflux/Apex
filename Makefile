@@ -21,4 +21,4 @@ before-all::
 include $(THEOS_MAKE_PATH)/aggregate.mk
 
 after-install::
-	@install.exec "killall -9 SpringBoard"
+	@install.exec "killall -9 backboardd"

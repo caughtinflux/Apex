@@ -7,9 +7,14 @@
 	AUTHORS_PURCHASED = "by Sentry and Aditya KD.\nThank you for your purchase.";
 
 	CONFIGURATION = "Configuration";
+
+	/* Appearance */
+	APPEARANCE = "Appearance";
 	SHOW_PREVIEW = "Show Preview";
-	CLOSE_ON_LAUNCH = "Close on Launch";
+	HIDE_NOTCHES = "Hide Notches";
 	ALPHABETIC_SCROLL = "Alphabetic Scroll";
+
+	CLOSE_ON_LAUNCH = "Close on Launch";
 
 	LOVE_GAMES = "I'm loving #Apex from @A3tweaks!";
 	CANNOT_SEND_TWEET = "Cannot send tweet";
