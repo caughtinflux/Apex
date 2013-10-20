@@ -11,6 +11,9 @@
 #define TEXT_SHADOW_OFFSET CGSizeMake(0, 1)
 #define TEXT_SHADOW_COLOR [UIColor whiteColor]
 
+static NSString * const PreviewSpecifierID = @"SHOW_PREVIEW";
+static NSString * const NotchesSpecifierID = @"HIDE_NOTCHES";
+
 @implementation STKPrefsController
 
 - (id)initForContentSize:(CGSize)size
@@ -57,14 +60,62 @@
     result = newSpecs;
 #endif
 
+    BOOL shouldAdd = NO;
     for (PSSpecifier *specifier in result) {
         [specifier setName:Localize([specifier name])];
         NSString *footerText = [specifier propertyForKey:@"footerText"];
         if ([footerText isKindOfClass:[NSString class]]) {
             [specifier setProperty:Localize(footerText) forKey:@"footerText"];
         }
+
+        if (!shouldAdd) {
+            shouldAdd = ([[specifier identifier] isEqualToString:PreviewSpecifierID] && ([[self readPreferenceValue:specifier] boolValue] == NO));
+        }
     }
+
+    if (shouldAdd) {
+        result = [[result mutableCopy] autorelease];
+        [(NSMutableArray *)result insertObject:[self _notchSpecifier] atIndex:3];
+    }
+
     return result;
+}
+
+- (void)setPreferenceValue:(id)value specifier:(PSSpecifier *)specifier
+{
+    [super setPreferenceValue:value specifier:specifier];
+
+    if ([[specifier identifier] isEqual:PreviewSpecifierID]) {
+        
+        PSSpecifier *notchSpecifier = [self specifierForID:NotchesSpecifierID];
+
+        BOOL shouldAdd = (([[self readPreferenceValue:specifier] boolValue] == NO) && !notchSpecifier);
+        if (shouldAdd) {
+            PSSpecifier *hideGrabberSpecifier = [self _notchSpecifier];
+            [self insertSpecifier:hideGrabberSpecifier afterSpecifierID:PreviewSpecifierID animated:YES];
+        }
+        else if ([[self readPreferenceValue:specifier] boolValue] && notchSpecifier) {
+            [self removeSpecifierID:[notchSpecifier identifier] animated:YES];
+        }
+    }
+}
+
+- (PSSpecifier *)_notchSpecifier
+{
+    PSSpecifier *notchSpecifier = [PSSpecifier preferenceSpecifierNamed:LOCALIZE(HIDE_NOTCHES) 
+                                                                       target:self
+                                                                          set:@selector(setPreferenceValue:specifier:)
+                                                                          get:@selector(readPreferenceValue:)
+                                                                       detail:nil
+                                                                         cell:PSSwitchCell
+                                                                         edit:nil];
+    
+    [notchSpecifier setProperty:@"STKHideGrabbers" forKey:@"key"];
+    [notchSpecifier setProperty:NotchesSpecifierID forKey:@"id"];
+    [notchSpecifier setProperty:@"com.a3tweaks.apex.prefschanged" forKey:@"PostNotification"];
+    [notchSpecifier setProperty:@"com.a3tweaks.Apex" forKey:@"defaults"];
+
+    return notchSpecifier;
 }
 
 #ifdef DEBUG
@@ -153,14 +204,13 @@ static inline void LoadDeviceKey(NSMutableDictionary *dict, NSString *key)
     }
 }
 
-
 - (void)showMailDialog
 {
     if ([MFMailComposeViewController canSendMail])
     {
         MFMailComposeViewController *mailViewController = [[MFMailComposeViewController alloc] init];
         mailViewController.mailComposeDelegate = self;
-        [mailViewController setSubject:LOCALIZE(APEX_SUPPORT)];
+        [mailViewController setSubject:[LOCALIZE(APEX_SUPPORT) stringByAppendingString:@" v"kPackageVersion]];
         [mailViewController setToRecipients:[NSArray arrayWithObject:@"apexsupport@a3tweaks.com"]];
         NSString *filePath = kPrefPath;
 

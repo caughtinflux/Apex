@@ -16,6 +16,8 @@
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>APPEARANCE</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -39,11 +41,18 @@
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>key</key>
-			<string>STKStackClosesOnLaunch</string>
+			<string>STKShowSectionTitles</string>
 			<key>label</key>
-			<string>CLOSE_ON_LAUNCH</string>
+			<string>ALPHABETIC_SCROLL</string>
 			<key>PostNotification</key>
 			<string>com.a3tweaks.apex.prefschanged</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>BEHAVIOUR</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -53,13 +62,12 @@
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>key</key>
-			<string>STKShowSectionTitles</string>
+			<string>STKStackClosesOnLaunch</string>
 			<key>label</key>
-			<string>ALPHABETIC_SCROLL</string>
+			<string>CLOSE_ON_LAUNCH</string>
 			<key>PostNotification</key>
 			<string>com.a3tweaks.apex.prefschanged</string>
 		</dict>
-
 
 		<dict>
 			<key>cell</key>
