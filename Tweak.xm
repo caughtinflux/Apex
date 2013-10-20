@@ -1,19 +1,18 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+#import <SpringBoard/SpringBoard.h>
+
+#import <Search/SPSearchResultSection.h>
+#import <Search/SPSearchResult.h>
+
+#import <IconSupport/ISIconSupport.h>
+
 #import "STKConstants.h"
 #import "STKStackManager.h"
 #import "STKRecognizerDelegate.h"
 #import "STKPreferences.h"
 #import "STKIconLayout.h"
-
-#import <SpringBoard/SpringBoard.h>
-
-#import <IconSupport/ISIconSupport.h>
-#import <Search/SPSearchResultSection.h>
-#import <Search/SPSearchResult.h>
-
-#import <UIKit/UITableViewIndex.h>
 
 #pragma mark - Function Declarations
 
@@ -58,6 +57,7 @@ static inline STKRecognizerDirection STKDirectionFromVelocity(CGPoint point);
 ****************************************************************************************************************************************/
 static BOOL _wantsSafeIconViewRetrieval;
 static BOOL _switcherIsVisible;
+static STKRecognizerDelegate *_recognizerDelegate;
 /****************************************************************************************************************************************/
 /****************************************************************************************************************************************/
 
@@ -597,7 +597,6 @@ static SEL const panGRKey              = @selector(apexPanKey);
 static SEL const stackManagerKey       = @selector(apexManagerKey);
 static SEL const topGrabberViewKey     = @selector(apexTopGrabberKey);
 static SEL const bottomGrabberViewKey  = @selector(apexBottomGrabberKey);
-static SEL const recognizerDelegateKey = @selector(apexDelegateKey);
 static SEL const prefsCallbackObserver = @selector(apexCallbackKey);
 #pragma mark - Static Function Definitions
 static STKStackManager * STKSetupManagerForIconView(SBIconView *iconView)
@@ -744,11 +743,11 @@ static void STKAddPanRecognizerToIconView(SBIconView *iconView)
         [iconView addGestureRecognizer:panRecognizer];
         objc_setAssociatedObject(iconView, panGRKey, panRecognizer, OBJC_ASSOCIATION_ASSIGN);
 
-        // Setup a delegate, and have the recognizer retain it using associative refs, so that when the recognizer is destroyed, so is the delegate object
-        STKRecognizerDelegate *delegate = [[STKRecognizerDelegate alloc] init];
-        panRecognizer.delegate = delegate;
-        objc_setAssociatedObject(panRecognizer, recognizerDelegateKey, delegate, OBJC_ASSOCIATION_RETAIN);
-        [delegate release];
+        if (!_recognizerDelegate) {
+            // Use the same delegate everywhere
+            _recognizerDelegate = [[STKRecognizerDelegate alloc] init];
+        }
+        panRecognizer.delegate = _recognizerDelegate;
     }
 }
 
@@ -757,19 +756,14 @@ static void STKRemovePanRecognizerFromIconView(SBIconView *iconView)
     UIPanGestureRecognizer *recognizer = STKPanRecognizerForIconView(iconView);
     [iconView removeGestureRecognizer:recognizer];
 
-    // Clear out the associative references. 
-    objc_setAssociatedObject(recognizer, recognizerDelegateKey, nil, OBJC_ASSOCIATION_RETAIN); // Especially this one. The pan recogniser getting wiped out should remove this already. But still, better to be sure.
     objc_setAssociatedObject(iconView, panGRKey, nil, OBJC_ASSOCIATION_ASSIGN);
-
-    for (UIGestureRecognizer *r in iconView.gestureRecognizers) {
-        if ([r isKindOfClass:[UIPanGestureRecognizer class]]) {
-            [iconView removeGestureRecognizer:r];
-        }
-    }
 }
 
 static void STKAddGrabberImagesToIconView(SBIconView *iconView)
 {
+    if ([STKPreferences sharedPreferences].shouldHideGrabbers) {
+        return;
+    }
     UIImageView *topView = objc_getAssociatedObject(iconView, topGrabberViewKey);
     if (!topView) {
         topView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"TopGrabber")] autorelease];
@@ -824,13 +818,19 @@ static void STKPrefsChanged(void)
         }
 
         if (!manager.isEmpty) {
-            if (previewEnabled) {
-                iconView.iconImageView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
+            if (previewEnabled || [STKPreferences sharedPreferences].shouldHideGrabbers) { // Removal of grabber images will be the same in either case 
+                if (previewEnabled) {
+                    // But only if preview is enabled should be change the scale
+                    iconView.iconImageView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
+                }
+
                 STKRemoveGrabberImagesFromIconView(iconView);
+
                 manager.topGrabberView = nil;
                 manager.bottomGrabberView = nil;
             }
-            else {
+            else if (!previewEnabled && ![STKPreferences sharedPreferences].shouldHideGrabbers) {
+                // If preview is disabled and we shouldn't hide the grabbers, add 'em.
                 iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
                 STKAddGrabberImagesToIconView(iconView);
                 manager.topGrabberView = STKGetTopGrabber(iconView);

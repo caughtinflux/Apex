@@ -15,7 +15,7 @@
 	ALPHABETIC_SCROLL = "Alphabetic Scroll";
 
 	/* Behaviour */
-	BEHAVIOUR = Behavior;
+	BEHAVIOUR = Behaviour;
 	CLOSE_ON_LAUNCH = "Close on Launch";
 
 	LOVE_GAMES = "I'm loving #Apex from @A3tweaks!";

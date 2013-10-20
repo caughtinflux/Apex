@@ -60,11 +60,6 @@
     NSMutableArray           *_iconsToShowOnClose;
 
     SBIconController         *_iconController;
-
-#ifdef DEBUG
-    CFTimeInterval            __sum;
-    NSUInteger                __count;
-#endif
 }
 
 @synthesize currentIconDistance = _lastDistanceFromCenter;
@@ -478,10 +473,6 @@
 
 - (void)touchesBegan
 {
-#ifdef DEBUG
-    __sum = 0;
-    __count = 0;
-#endif
     if (_needsLayout) {
         [self recalculateLayouts];
         _needsLayout = NO;
@@ -500,10 +491,6 @@
     if (_isExpanded || [[_iconController scrollView] isDragging]) {
         return;
     }
-
-#ifdef DEBUG
-    CFTimeInterval now = CACurrentMediaTime();
-#endif
 
     BOOL hasVerticalIcons = ([_appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([_appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);    
     CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter, (hasVerticalIcons ? STKGetCurrentTargetDistance() : STKGetCurrentTargetDistance() * _distanceRatio));
@@ -572,11 +559,6 @@
             _bottomGrabberView.alpha = grabberAlpha;
         }
     }
-#ifdef DEBUG
-    CFTimeInterval end = CACurrentMediaTime();
-    __sum += end - now;
-    __count++;
-#endif
 }
 
 - (void)touchesEnded
@@ -593,11 +575,6 @@
             }   
         } duration:kAnimationDuration animateCentralIcon:NO forSwitcher:NO];
     }
-
-#ifdef DEBUG
-    CFTimeInterval avg = __sum / __count;
-    CLog(@"Average time for -[STKStackManager touchesDraggedForDistance:] is %f", avg);
-#endif
 }
  
 - (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler

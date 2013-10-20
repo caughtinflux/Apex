@@ -13,6 +13,7 @@ typedef void(^STKPreferencesCallback)(void);
 
 @property (nonatomic, readonly) NSArray *identifiersForIconsInStacks;
 @property (nonatomic, readonly) BOOL previewEnabled;
+@property (nonatomic, readonly) BOOL shouldHideGrabbers;
 @property (nonatomic, assign) BOOL welcomeAlertShown;
 @property (nonatomic, readonly) BOOL shouldCloseOnLaunch;
 @property (nonatomic, readonly) BOOL shouldShowSectionIndexTitles;

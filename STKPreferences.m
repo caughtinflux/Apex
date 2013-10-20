@@ -11,6 +11,7 @@
 
 static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
 static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
+static NSString * const STKHideGrabbersKey        = @"STKHideGrabbers";
 static NSString * const STKStackClosesOnLaunchKey = @"STKStackClosesOnLaunch";
 static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 
@@ -91,6 +92,8 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 
     [_cachedLayouts release];
     _cachedLayouts = nil;
+
+    notify_post("com.a3tweaks.apex.layoutschanged");
 }
 
 - (BOOL)welcomeAlertShown
@@ -101,6 +104,11 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 - (BOOL)previewEnabled
 {
     return GETBOOL(_currentPrefs, STKStackPreviewEnabledKey, YES);
+}
+
+- (BOOL)shouldHideGrabbers
+{
+    return GETBOOL(_currentPrefs, STKHideGrabbersKey, NO);
 }
 
 - (BOOL)shouldCloseOnLaunch
