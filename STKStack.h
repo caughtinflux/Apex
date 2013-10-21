@@ -38,8 +38,6 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 @property (nonatomic, readonly) CGFloat distanceRatio;
 @property (nonatomic, readonly) BOOL isSelecting;
 
-@property (nonatomic, copy) STKInteractionHandler interactionHandler; // the tappedIconView is only passed if there indeed was a tapped icon view. This may be called even if a swipe/tap is detected on the content view, and the stack closes automagically.
-
 @property (nonatomic, assign) BOOL isEditing;
 @property (nonatomic, assign) BOOL showsPreview;
 
@@ -117,14 +115,14 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 *   Close the stack irrespective of what's happening. -touchesEnded might call this.
 *   @param completionHandler Block that will be called once stack closing animations finish
 */
-- (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler;
+- (void)closeWithCompletionHandler:(void(^)(void))completionHandler;
 - (void)closeForSwitcherWithCompletionHandler:(void(^)(void))completionHandler;
 
 /**
 *   Convenience methods
 */
-- (void)openStack;
-- (void)closeStack;
+- (void)open;
+- (void)close;
 
 /**
 *	Self-Explanatory
@@ -132,7 +130,7 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 */
 - (BOOL)handleHomeButtonPress;
 
-- (void)setStackIconAlpha:(CGFloat)alpha;
+- (void)setIconAlpha:(CGFloat)alpha;
 
 /**
 *   HAXX: This method should be called as a proxy for -[UIView hitTest:withEvent:] inside SBIconView, so we can process if any stack icons should be receiving touches.

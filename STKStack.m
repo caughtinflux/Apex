@@ -317,7 +317,7 @@
 
     _iconViewsLayout = [[STKIconLayout alloc] init];
     
-    SBIconView *centralIconView = [[objc_getClass("SBIconViewMap") homescreenMap] safeIconViewForIcon:_centralIcon];
+    SBIconView *centralIconView = [[objc_getClass("SBIconViewMap") homescreenMap] iconViewForIcon:_centralIcon];
     centralIconView.userInteractionEnabled = YES;
 
     [_appearingIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
@@ -509,18 +509,14 @@
     if (_lastDistanceFromCenter >= kEnablingThreshold && !_isExpanded) {
         // Set this now, not waiting for the animation to complete, so anyone asking questions gets the right answer... LOL
         _isExpanded = YES;
-        [self openStack];
+        [self open];
     }
     else {
-        [self _animateToClosedPositionWithCompletionBlock:^{
-            if ([self.delegate respondsToSelector:@selector(stackDidCloseAfterPanEnded:)]) {
-                [self.delegate stackDidCloseAfterPanEnded:self];
-            }   
-        } duration:kAnimationDuration animateCentralIcon:NO forSwitcher:NO];
+        [self close];
     }
 }
  
-- (void)closeStackWithCompletionHandler:(void(^)(void))completionHandler
+- (void)closeWithCompletionHandler:(void(^)(void))completionHandler
 {
     [self _animateToClosedPositionWithCompletionBlock:^{
         if (completionHandler) {
@@ -534,14 +530,14 @@
     [self _animateToClosedPositionWithCompletionBlock:completionHandler duration:kAnimationDuration animateCentralIcon:YES forSwitcher:YES];
 }
 
-- (void)openStack
+- (void)open
 {
     [self _animateToOpenPositionWithDuration:kAnimationDuration];
 }
 
-- (void)closeStack
+- (void)close
 {
-    [self closeStackWithCompletionHandler:nil];
+    [self closeWithCompletionHandler:nil];
 }
 
 - (BOOL)handleHomeButtonPress
@@ -578,7 +574,7 @@
     _isEditing = editing;
 }
 
-- (void)setStackIconAlpha:(CGFloat)alpha
+- (void)setIconAlpha:(CGFloat)alpha
 {
     for (SBIconView *iv in _iconViewsLayout) {
         iv.alpha = alpha;
@@ -1036,7 +1032,7 @@
     }
 
     [self _cleanupGestureRecognizers];
-    [self closeStackWithCompletionHandler:^{ 
+    [self closeWithCompletionHandler:^{ 
         if ([self.delegate respondsToSelector:@selector(stackClosedByGesture:)]) {
             [self.delegate stackClosedByGesture:self];
         }

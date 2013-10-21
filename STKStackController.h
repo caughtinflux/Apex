@@ -2,14 +2,17 @@
 #import <SpringBoard/SpringBoard.h>
 
 #import "STKStackDelegate-Protocol.h"
+#import "STKStack.h"
 
 @class STKStack;
-@interface STKStackController : NSObject <STKStackDelegate>
-
-@property (nonatomic, readonly) STKStack *activeStack;
+@interface STKStackController : NSObject <STKStackDelegate, UIGestureRecognizerDelegate>
 
 + (instancetype)sharedInstance;
 
+@property (nonatomic, retain) STKStack *activeStack;
+@property (nonatomic, copy) NSString *wat;
+
+- (void)createOrRemoveStackForIconView:(SBIconView *)iconView;
 - (void)createStackForIconView:(SBIconView *)iconView;
 - (void)removeStackFromIconView:(SBIconView *)iconView;
 
@@ -20,6 +23,8 @@
 - (void)removeGrabbersFromIconView:(SBIconView *)iconView;
 - (NSArray *)grabberViewsForIconView:(SBIconView *)iconView;
 
-- (STKStack *)stackForView:(SBIconView *)iconView;
+- (STKStack *)stackForIconView:(SBIconView *)iconView;
+
+- (void)closeActiveStack;
 
 @end

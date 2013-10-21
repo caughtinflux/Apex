@@ -20,7 +20,7 @@
 
 #define STKLog(fmt, ...) NSLog((@"[" kSTKTweakName @"] " fmt), ##__VA_ARGS__)
 
-#define BOOL_TO_STRING(b) (b ? @"YES" : @"NO")
+#define BOOL_TO_STRING(b) (b ? @#b@" = YES" : @#b@" = NO")
 
 #define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks."kSTKTweakName@".plist", NSHomeDirectory()]
 

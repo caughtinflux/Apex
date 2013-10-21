@@ -8,7 +8,6 @@
 
 @optional
 - (void)stack:(STKStack *)stack didReceiveTapOnIconView:(SBIconView *)iconView;
-- (void)stackDidCloseAfterPanEnded:(STKStack *)stack;
 - (void)stackClosedByGesture:(STKStack *)stack;
 
 @required
