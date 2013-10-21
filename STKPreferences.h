@@ -45,8 +45,6 @@ extern "C" {
 - (BOOL)removeLayoutForIcon:(SBIcon *)icon;
 - (BOOL)removeLayoutForIconID:(NSString *)iconID;
 
-- (void)registerCallbackForPrefsChange:(STKPreferencesCallback)callbackBlock;
-
 - (NSDictionary *)cachedLayoutDictForIcon:(SBIcon *)centralIcon;
 - (void)removeCachedLayoutForIcon:(SBIcon *)centralIcon;
 

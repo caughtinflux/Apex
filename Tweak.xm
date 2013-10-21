@@ -26,9 +26,7 @@ static void STKRemoveGrabberImagesFromIconView(SBIconView *iconView);
 static UIView * STKGetTopGrabber(SBIconView *iconView);
 static UIView * STKGetBottomGrabber(SBIconView *iconView);
 
-static void STKPrefsChanged(void);
-static void STKUserNotificationCallBack(CFUserNotificationRef userNotification, CFOptionFlags responseFlags);
-
+static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags);
 
 static inline void STKSetupIconView(SBIconView *iconView); // Adds recogniser and sets up the stack for the preview
 static inline void STKCleanupIconView(SBIconView *iconView); // Removes recogniser and stack
@@ -525,7 +523,7 @@ static BOOL _hasVerticalIcons    = NO;
         SInt32 error;
         CFUserNotificationRef notificationRef = CFUserNotificationCreate(kCFAllocatorDefault, 0, kCFUserNotificationNoteAlertLevel, &error, (CFDictionaryRef)fields);
         // Get and add a run loop source to the current run loop to get notified when the alert is dismissed
-        CFRunLoopSourceRef runLoopSource = CFUserNotificationCreateRunLoopSource(kCFAllocatorDefault, notificationRef, STKUserNotificationCallBack, 0);
+        CFRunLoopSourceRef runLoopSource = CFUserNotificationCreateRunLoopSource(kCFAllocatorDefault, notificationRef, STKWelcomeAlertCallback, 0);
         CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, kCFRunLoopCommonModes);
         CFRelease(runLoopSource);
         if (error == 0) {
@@ -536,7 +534,7 @@ static BOOL _hasVerticalIcons    = NO;
 %end
 
 #pragma mark - User Notification Callback
-static void STKUserNotificationCallBack(CFUserNotificationRef userNotification, CFOptionFlags responseFlags)
+static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags)
 {
     if ((responseFlags & 0x3) == kCFUserNotificationAlternateResponse) {
         // Open settings to custom bundle
@@ -596,7 +594,6 @@ static SEL const panGRKey              = @selector(apexPanKey);
 static SEL const stackManagerKey       = @selector(apexManagerKey);
 static SEL const topGrabberViewKey     = @selector(apexTopGrabberKey);
 static SEL const bottomGrabberViewKey  = @selector(apexBottomGrabberKey);
-static SEL const prefsCallbackObserver = @selector(apexCallbackKey);
 #pragma mark - Static Function Definitions
 static STKStack * STKSetupStackForIconView(SBIconView *iconView)
 {
@@ -644,22 +641,6 @@ static STKStack * STKSetupStackForIconView(SBIconView *iconView)
     }
     
     return stackManager;
-}
-
-static inline void STKHandleInteraction(STKStack *stack, SBIconView *tappedIconView)
-{
-    if (stack != STKGetActiveStack()) {
-        return;
-    }
-    if (tappedIconView) {
-        [tappedIconView.icon launch];
-        if ([[STKPreferences sharedPreferences] shouldCloseOnLaunch]) {
-            STKCloseActiveStack();
-        }
-    }
-    else {
-        STKSetActiveStack(nil);
-    }
 }
 
 static void STKRemoveStackFromIconView(SBIconView *iconView)
@@ -739,57 +720,6 @@ static UIView * STKGetBottomGrabber(SBIconView *iconView)
 {
     return objc_getAssociatedObject(iconView, bottomGrabberViewKey);
 }
-
-
-static void STKPrefsChanged(void)
-{
-    BOOL previewEnabled = [STKPreferences sharedPreferences].previewEnabled;
-
-    void (^aBlock)(SBIconView *iconView) = ^(SBIconView *iconView) {
-        if (!iconView) {
-            return;
-        }
-        
-        STKStack *stack = STKStackForView(iconView);
-        if (!stack) {
-            return;
-        }
-
-        if (!stack.isEmpty) {
-            if (previewEnabled || [STKPreferences sharedPreferences].shouldHideGrabbers) { // Removal of grabber images will be the same in either case 
-                if (previewEnabled) {
-                    // But only if preview is enabled should be change the scale
-                    iconView.iconImageView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
-                }
-
-                STKRemoveGrabberImagesFromIconView(iconView);
-
-                stack.topGrabberView = nil;
-                stack.bottomGrabberView = nil;
-            }
-            else if (!previewEnabled && ![STKPreferences sharedPreferences].shouldHideGrabbers) {
-                // If preview is disabled and we shouldn't hide the grabbers, add 'em.
-                iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
-                STKAddGrabberImagesToIconView(iconView);
-                stack.topGrabberView = STKGetTopGrabber(iconView);
-                stack.bottomGrabberView = STKGetBottomGrabber(iconView);
-            }
-        }
-
-        stack.showsPreview = previewEnabled;
-    };
-
-    for (SBIconListView *listView in [[%c(SBIconController) sharedInstance] valueForKey:@"_rootIconLists"]){
-        [listView makeIconViewsPerformBlock:^(SBIconView *iconView) { aBlock(iconView); }];
-    }
-
-    SBIconListView *folderListView = (SBIconListView *)[[%c(SBIconController) sharedInstance] currentFolderIconList];
-    if ([folderListView isKindOfClass:objc_getClass("FEIconListView")]) {
-        [folderListView makeIconViewsPerformBlock:^(SBIconView *iv) { aBlock(iv); }];
-    }
-}
-
-
 
 #pragma mark - Inliner Definitions
 static inline void STKSetupIconView(SBIconView *iconView)
@@ -884,8 +814,5 @@ static inline void STKCloseActiveStack(void)
 
         // Set up the singleton
         [STKPreferences sharedPreferences];
-        [[STKPreferences sharedPreferences] registerCallbackForPrefsChange:^{
-            STKPrefsChanged();
-        }];
     }
 }

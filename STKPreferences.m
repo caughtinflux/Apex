@@ -9,6 +9,9 @@
 
 #define GETBOOL(_dict, _key, _default) (_dict[_key] ? [_dict[_key] boolValue] : _default);
 
+
+NSString * const STKPreferencesChangedNotification = @"STKPrefsChangedNotif";
+
 static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
 static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 static NSString * const STKHideGrabbersKey        = @"STKHideGrabbers";
@@ -22,7 +25,6 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
     NSArray             *_iconsInStacks;
     NSSet               *_iconsWithStacks;
 
-    NSMutableArray      *_callbacks;
     NSMutableDictionary *_cachedLayouts;
 }
 
@@ -314,19 +316,6 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
     }
 }
 
-- (void)registerCallbackForPrefsChange:(STKPreferencesCallback)callbackBlock
-{
-    if (!callbackBlock) {
-        return;
-    }
-
-    if (!_callbacks) {
-        _callbacks = [NSMutableArray new];
-    }
-
-    [_callbacks addObject:[[callbackBlock copy] autorelease]];
-}
-
 - (NSDictionary *)cachedLayoutDictForIcon:(SBIcon *)centralIcon
 {
     NSDictionary *layout = _cachedLayouts[centralIcon.leafIdentifier];
@@ -381,9 +370,7 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 static void STKPrefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
     [[STKPreferences sharedPreferences] reloadPreferences];
-    for (STKPreferencesCallback cb in [[STKPreferences sharedPreferences] valueForKey:@"_callbacks"]) {
-        cb();
-    }
+    [[NSNotificationCenter defaultCenter] postNotificationName:STKPreferencesChangedNotification object:nil userInfo:nil];
 }
 
 

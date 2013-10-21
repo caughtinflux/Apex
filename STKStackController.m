@@ -37,6 +37,7 @@
     dispatch_once_t predicate;
     dispatch_once(&predicate, ^{
         _sharedInstance = [[self alloc] init];
+        [[NSNotificationCenter defaultCenter] addObserver:_sharedInstance selector:@selector(_prefsChanged:) name:STKPreferencesChangedNotification object:nil];
     });
 
     return _sharedInstance;
@@ -52,6 +53,35 @@
 
 }
 
+- (void)addRecognizerToIconView:(SBIconView *)iconView
+{
+
+}
+
+- (void)removeRecognizerFromIconView:(SBIconView *)iconView
+{
+
+}
+
+- (void)addGrabbersToIconView:(SBIconView *)iconView
+{
+
+}
+
+- (void)removeGrabbersFromIconView:(SBIconView *)iconView
+{
+
+}
+
+- (NSArray *)grabberViewsForIconView:(SBIconView *)iconView
+{
+    return nil;
+}
+
+- (STKStack *)stackForView:(SBIconView *)iconView
+{
+    return objc_getAssociatedObject(iconView, @selector(apexStack));
+}
 
 #pragma mark - Private Methods
 - (NSMutableArray *)_iconsToShowOnClose
@@ -85,6 +115,55 @@
     _iconsToHide = nil;
 }
 
+#pragma mark - Prefs Update
+- (void)_prefsChanged:(NSNotification *)notification
+{
+    BOOL previewEnabled = [STKPreferences sharedPreferences].previewEnabled;
+
+    void (^aBlock)(SBIconView *iconView) = ^(SBIconView *iconView) {
+        if (!iconView) {
+            return;
+        }
+        
+        STKStack *stack = [self stackForView:iconView];
+        if (!stack) {
+            return;
+        }
+
+        if (!stack.isEmpty) {
+            if (previewEnabled || [STKPreferences sharedPreferences].shouldHideGrabbers) { // Removal of grabber images will be the same in either case 
+                if (previewEnabled) {
+                    // But only if preview is enabled should be change the scale
+                    iconView.iconImageView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
+                }
+
+                [self removeGrabbersFromIconView:iconView];
+
+                stack.topGrabberView = nil;
+                stack.bottomGrabberView = nil;
+            }
+            else if (!previewEnabled && ![STKPreferences sharedPreferences].shouldHideGrabbers) {
+                // If preview is disabled and we shouldn't hide the grabbers, add 'em.
+                iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
+                [self addGrabbersToIconView:iconView];
+                NSArray *grabberViews = [self grabberViewsForIconView:iconView];
+                stack.topGrabberView = grabberViews[0];
+                stack.bottomGrabberView = grabberViews[1];
+            }
+        }
+
+        stack.showsPreview = previewEnabled;
+    };
+
+    for (SBIconListView *listView in [[CLASS(SBIconController) sharedInstance] valueForKey:@"_rootIconLists"]){
+        [listView makeIconViewsPerformBlock:^(SBIconView *iconView) { aBlock(iconView); }];
+    }
+
+    SBIconListView *folderListView = (SBIconListView *)[[CLASS(SBIconController) sharedInstance] currentFolderIconList];
+    if ([folderListView isKindOfClass:objc_getClass("FEIconListView")]) {
+        [folderListView makeIconViewsPerformBlock:^(SBIconView *iv) { aBlock(iv); }];
+    }
+}
 
 #pragma mark - Stack Delegate
 - (void)stackDidUpdateState:(STKStack *)stack
