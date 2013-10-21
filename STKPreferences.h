@@ -2,13 +2,27 @@
 
 typedef void(^STKPreferencesCallback)(void);
 
-@class SBIcon;
+#ifdef __cplusplus
+extern "C" {
+#endif
+	extern NSString * const STKPreferencesChangedNotification;
+#ifdef __cplusplus
+}
+#endif
+
+@class STKIconLayout, SBIcon;
 @interface STKPreferences : NSObject
 
 + (NSString *)layoutsDirectory;
++ (NSString *)layoutPathForIconID:(NSString *)iconID;
++ (NSString *)layoutPathForIcon:(SBIcon *)icon;
+
++ (BOOL)isValidLayoutAtPath:(NSString *)path;
++ (BOOL)isValidLayout:(NSDictionary *)dict;
+
++ (void)saveLayout:(STKIconLayout *)layout forIcon:(SBIcon *)centralIcon;
 
 + (instancetype)sharedPreferences;
-
 - (void)reloadPreferences;
 
 @property (nonatomic, readonly) NSArray *identifiersForIconsInStacks;
@@ -24,9 +38,6 @@ typedef void(^STKPreferencesCallback)(void);
 // Pass in a NSString for `icon`, you get an NSString in return
 // If `icon` is a SBIcon instance, you get a SBIcon in return!
 - (id)centralIconForIcon:(id)icon;
-
-- (NSString *)layoutPathForIconID:(NSString *)iconID;
-- (NSString *)layoutPathForIcon:(SBIcon *)icon;
 
 - (BOOL)iconHasStack:(SBIcon *)icon;
 - (BOOL)iconIsInStack:(SBIcon *)icon;

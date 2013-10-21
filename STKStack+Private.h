@@ -42,7 +42,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 *   Gesture Recognizing
 */
 - (void)_setupGestureRecognizers;
-- (void)_handleCloseGesture:(UISwipeGestureRecognizer *)sender; // this is the default action for both swipes
+- (void)_handleCloseGesture:(UIGestureRecognizer *)sender; // this is the default action for both swipes
 - (void)_cleanupGestureRecognizers;
 
 - (SBIconView *)_iconViewForIcon:(SBIcon *)icon;

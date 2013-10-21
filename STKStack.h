@@ -2,6 +2,7 @@
 #import <UIKit/UIKit.h>
 #import <SpringBoard/SBIconViewDelegate-Protocol.h>
 #import "STKSelectionView.h"
+#import "STKStackDelegate-Protocol.h"
 
 #ifdef __cplusplus 
 extern "C" {
@@ -22,12 +23,6 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 @class SBIcon, STKIconLayout;
 
 @interface STKStack : NSObject <SBIconViewDelegate, UIGestureRecognizerDelegate, STKSelectionViewDelegate>
-
-+ (BOOL)isValidLayoutAtPath:(NSString *)path;
-+ (BOOL)isValidLayout:(NSDictionary *)layout;
-
-+ (void)saveLayout:(STKIconLayout *)layout toFile:(NSString *)fp forIcon:(SBIcon *)centralIcon;
-
 /**
 *   Properties to derive information from
 */
@@ -50,6 +45,8 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 
 @property (nonatomic, retain) UIView *topGrabberView;
 @property (nonatomic, retain) UIView *bottomGrabberView;
+
+@property (nonatomic, assign) id<STKStackDelegate> delegate;
 
 /**
 *   @return An instance of STKStackManager, nil if `file` is corrupt or could not be read
