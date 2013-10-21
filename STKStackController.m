@@ -134,11 +134,13 @@ static SEL __bottomGrabberKey;
     iconView.iconImageView.transform = CGAffineTransformMakeScale(scale, scale);
 
     // Add grabber images if necessary
-    if (stack && !stack.showsPreview && !stack.isEmpty) {
+    if (stack && !stack.showsPreview && !stack.isEmpty && ![[STKPreferences sharedPreferences] shouldHideGrabbers]) {
         [self addGrabbersToIconView:iconView];
         NSArray *grabbers = [self grabberViewsForIconView:iconView];
-        stack.topGrabberView = grabbers[0];
-        stack.bottomGrabberView = grabbers[1];
+        if (grabbers.count == 2) {
+            stack.topGrabberView = grabbers[0];
+            stack.bottomGrabberView = grabbers[1];
+        }
     }
 
     stack.delegate = self;
@@ -340,7 +342,8 @@ static SEL __bottomGrabberKey;
 - (void)_panned:(UIPanGestureRecognizer *)sender
 {
     static BOOL _cancelledPanRecognizer = NO;
-    static BOOL _hasVerticalIcons    = NO;
+    static BOOL _hasVerticalIcons = NO;
+    static BOOL _isUpwardSwipe = NO;
 
     SBIconView *iconView = (SBIconView *)sender.view;
     UIScrollView *view = (UIScrollView *)[STKListViewForIcon(iconView.icon) superview];
@@ -379,6 +382,7 @@ static SEL __bottomGrabberKey;
         [stack touchesBegan];
 
         _hasVerticalIcons = ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
+        _isUpwardSwipe = [sender velocityInView:view].y < 0;
     }
 
     else if (sender.state == UIGestureRecognizerStateChanged) {
@@ -388,6 +392,9 @@ static SEL __bottomGrabberKey;
         }
 
         CGFloat change = [sender translationInView:view].y;
+        if (_isUpwardSwipe) {
+            change = -change;
+        }
 
         CGFloat targetDistance = STKGetCurrentTargetDistance();
         if (!_hasVerticalIcons) {
@@ -400,7 +407,6 @@ static SEL __bottomGrabberKey;
         }
 
         [stack touchesDraggedForDistance:change];
-
         [sender setTranslation:CGPointZero inView:view];
     }
 
@@ -436,9 +442,28 @@ static SEL __bottomGrabberKey;
 
 
 #pragma mark - Stack Delegate
+- (void)stack:(STKStack *)stack didReceiveTapOnIconView:(SBIconView *)iconView
+{
+    [iconView.icon launch];
+    if ([[STKPreferences sharedPreferences] shouldCloseOnLaunch]) {
+        [stack close];
+        self.activeStack = nil;
+    }
+}
+
+- (void)stackClosedByGesture:(STKStack *)stack
+{
+    [self _processIconsPostStackClose];
+    
+    if (stack.isEmpty || !stack.showsPreview) {
+        [stack cleanupView];
+    }
+    self.activeStack = nil;
+}
+
 - (void)stackDidUpdateState:(STKStack *)stack
 {
-
+    [self stack:stack didAddIcon:nil removingIcon:nil atPosition:0 index:0];
 }
 
 - (void)stack:(STKStack *)stack didAddIcon:(SBIcon *)addedIcon removingIcon:(SBIcon *)removedIcon atPosition:(STKLayoutPosition)position index:(NSUInteger)idx
@@ -504,16 +529,6 @@ static SEL __bottomGrabberKey;
     if (removedIcon && !ICON_IS_IN_STACK(removedIcon)) {
         [[self _iconsToShowOnClose] addObject:removedIcon];
     }
-}
-
-- (void)stackClosedByGesture:(STKStack *)stack
-{
-    [self _processIconsPostStackClose];
-    
-    if (stack.isEmpty || !stack.showsPreview) {
-        [stack cleanupView];
-    }
-    self.activeStack = nil;
 }
 
 @end
