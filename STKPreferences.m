@@ -1,6 +1,6 @@
 #import "STKPreferences.h"
 #import "STKConstants.h"
-#import "STKStackManager.h"
+#import "STKStack.h"
 
 #import <CoreFoundation/CoreFoundation.h>
 #import <SpringBoard/SpringBoard.h>
@@ -282,7 +282,7 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
     NSDictionary *layout = _cachedLayouts[centralIcon.leafIdentifier];
     if (!layout) {
         NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:centralIcon];
-        if (![STKStackManager isValidLayoutAtPath:layoutPath]) {
+        if (![STKStack isValidLayoutAtPath:layoutPath]) {
             [[STKPreferences sharedPreferences] removeLayoutForIcon:centralIcon];
             return nil;
         }

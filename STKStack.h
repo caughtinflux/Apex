@@ -21,7 +21,7 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 
 @class SBIcon, STKIconLayout;
 
-@interface STKStackManager : NSObject <SBIconViewDelegate, UIGestureRecognizerDelegate, STKSelectionViewDelegate>
+@interface STKStack : NSObject <SBIconViewDelegate, UIGestureRecognizerDelegate, STKSelectionViewDelegate>
 
 + (BOOL)isValidLayoutAtPath:(NSString *)path;
 + (BOOL)isValidLayout:(NSDictionary *)layout;

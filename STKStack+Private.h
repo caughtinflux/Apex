@@ -1,4 +1,4 @@
-#import "STKStackManager.h"
+#import "STKStack.h"
 #import "STKConstants.h"
 #import "STKIconLayout.h"
 
@@ -29,7 +29,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 #define HAS_FE [STKListViewForIcon(_centralIcon) isKindOfClass:objc_getClass("FEIconListView")]
 
 #pragma mark - Private Method Declarations
-@interface STKStackManager ()
+@interface STKStack ()
 /*
 *   Icon moving
 */

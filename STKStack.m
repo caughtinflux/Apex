@@ -1,4 +1,4 @@
-#import "STKStackManager-Private.h"
+#import "STKStack+Private.h"
 #import "STKIconLayoutHandler.h"
 #import "STKSelectionView.h"    
 
@@ -17,7 +17,7 @@
 
 #define kSTKIconModelLayoutOpID @"STKIconModelLayoutOpID"
 
-@implementation STKStackManager 
+@implementation STKStack
 {
     SBIcon                   *_centralIcon;
     STKIconLayout            *_appearingIconsLayout;
