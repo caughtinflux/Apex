@@ -34,10 +34,10 @@ static inline void STKCleanupIconView(SBIconView *iconView); // Removes recognis
 
 // Inline Functions, prevent overhead if called too much.
 static inline UIPanGestureRecognizer * STKPanRecognizerForIconView(SBIconView *iconView);
-static inline        STKStack * STKStackForView(SBIconView *iconView);
-static inline                   void   STKSetActiveStack(STKStack *stack);
-static inline        STKStack * STKGetActiveStack(void);
-static inline                   void   STKCloseActiveStack(void);
+static inline STKStack * STKStackForView(SBIconView *iconView);
+static inline void STKSetActiveStack(STKStack *stack);
+static inline STKStack * STKGetActiveStack(void);
+static inline void STKCloseActiveStack(void);
 
 #pragma mark - Direction !
 typedef enum {
