@@ -2,13 +2,33 @@
 
 typedef void(^STKPreferencesCallback)(void);
 
-@class SBIcon;
+#ifdef __cplusplus
+extern "C" {
+#endif
+	extern NSString * const STKPreferencesChangedNotification;
+#ifdef __cplusplus
+}
+#endif
+
+@class STKIconLayout, SBIcon;
 @interface STKPreferences : NSObject
 
+typedef NS_ENUM(NSInteger, STKActivationMode) {
+	STKActivationModeSwipeUpAndDown = 0,
+	STKActivationModeSwipeUp,
+	STKActivationModeSwipeDown
+};
+
 + (NSString *)layoutsDirectory;
++ (NSString *)layoutPathForIconID:(NSString *)iconID;
++ (NSString *)layoutPathForIcon:(SBIcon *)icon;
+
++ (BOOL)isValidLayoutAtPath:(NSString *)path;
++ (BOOL)isValidLayout:(NSDictionary *)dict;
+
++ (void)saveLayout:(STKIconLayout *)layout forIcon:(SBIcon *)centralIcon;
 
 + (instancetype)sharedPreferences;
-
 - (void)reloadPreferences;
 
 @property (nonatomic, readonly) NSArray *identifiersForIconsInStacks;
@@ -17,6 +37,7 @@ typedef void(^STKPreferencesCallback)(void);
 @property (nonatomic, assign) BOOL welcomeAlertShown;
 @property (nonatomic, readonly) BOOL shouldCloseOnLaunch;
 @property (nonatomic, readonly) BOOL shouldShowSectionIndexTitles;
+@property (nonatomic, readonly) STKActivationMode activationMode;
 
 - (NSSet *)identifiersForIconsWithStack;
 - (NSArray *)stackIconsForIcon:(SBIcon *)icon;
@@ -25,16 +46,11 @@ typedef void(^STKPreferencesCallback)(void);
 // If `icon` is a SBIcon instance, you get a SBIcon in return!
 - (id)centralIconForIcon:(id)icon;
 
-- (NSString *)layoutPathForIconID:(NSString *)iconID;
-- (NSString *)layoutPathForIcon:(SBIcon *)icon;
-
 - (BOOL)iconHasStack:(SBIcon *)icon;
 - (BOOL)iconIsInStack:(SBIcon *)icon;
 
 - (BOOL)removeLayoutForIcon:(SBIcon *)icon;
 - (BOOL)removeLayoutForIconID:(NSString *)iconID;
-
-- (void)registerCallbackForPrefsChange:(STKPreferencesCallback)callbackBlock;
 
 - (NSDictionary *)cachedLayoutDictForIcon:(SBIcon *)centralIcon;
 - (void)removeCachedLayoutForIcon:(SBIcon *)centralIcon;

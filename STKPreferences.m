@@ -1,6 +1,6 @@
 #import "STKPreferences.h"
 #import "STKConstants.h"
-#import "STKStackManager.h"
+#import "STKStack.h"
 
 #import <CoreFoundation/CoreFoundation.h>
 #import <SpringBoard/SpringBoard.h>
@@ -9,11 +9,14 @@
 
 #define GETBOOL(_dict, _key, _default) (_dict[_key] ? [_dict[_key] boolValue] : _default);
 
+NSString * const STKPreferencesChangedNotification = @"STKPrefsChangedNotif";
+
 static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
 static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 static NSString * const STKHideGrabbersKey        = @"STKHideGrabbers";
-static NSString * const STKStackClosesOnLaunchKey = @"STKStackClosesOnLaunch";
 static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
+static NSString * const STKStackClosesOnLaunchKey = @"STKStackClosesOnLaunch";
+static NSString * const STKActivationModeKey      = @"STKActivationMode";
 
 @interface STKPreferences ()
 {   
@@ -22,7 +25,6 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
     NSArray             *_iconsInStacks;
     NSSet               *_iconsWithStacks;
 
-    NSMutableArray      *_callbacks;
     NSMutableDictionary *_cachedLayouts;
 }
 
@@ -31,9 +33,69 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 
 @implementation STKPreferences
 
+#pragma mark - Layout Paths
 + (NSString *)layoutsDirectory
 {
     return [NSHomeDirectory() stringByAppendingString:@"/Library/Preferences/"kSTKTweakName@"/Layouts"];
+}
+
++ (NSString *)layoutPathForIconID:(NSString *)iconID
+{
+    return [NSString stringWithFormat:@"%@/%@.layout", [self layoutsDirectory], iconID];
+}
+
++ (NSString *)layoutPathForIcon:(SBIcon *)icon
+{
+    return [self layoutPathForIconID:icon.leafIdentifier];
+}
+
+#pragma mark - Layout Validation
++ (BOOL)isValidLayoutAtPath:(NSString *)path
+{
+    NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:path];
+    if (!dict) {
+        return NO;
+    }
+
+    return [self isValidLayout:dict];
+}
+
++ (BOOL)isValidLayout:(NSDictionary *)dict
+{
+    SBIconModel *model = (SBIconModel *)[[objc_getClass("SBIconController") sharedInstance] model];
+    NSArray *stackIconIDs = dict[STKStackManagerStackIconsKey];
+
+    if (![model expectedIconForDisplayIdentifier:dict[STKStackManagerCentralIconKey]] || !stackIconIDs) {
+        return NO;
+    }
+
+    NSUInteger count = 0;
+    for (NSString *ident in stackIconIDs) {
+        if ([model expectedIconForDisplayIdentifier:ident]) {
+            count++;
+        }
+    }
+
+    if (count == 0) {
+        return NO;
+    }
+
+    return YES;
+}
+
+#pragma mark - Layout Persistence
++ (void)saveLayout:(STKIconLayout *)layout forIcon:(SBIcon *)centralIcon
+{
+    NSMutableDictionary *dictionaryRepresentation = [[[layout dictionaryRepresentation] mutableCopy] autorelease];
+    STKIconCoordinates coords = [STKIconLayoutHandler coordinatesForIcon:centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
+    dictionaryRepresentation[@"xPos"] = [NSNumber numberWithInteger:coords.xPos];
+    dictionaryRepresentation[@"yPos"] = [NSNumber numberWithInteger:coords.yPos];
+
+    NSDictionary *fileDict = @{ STKStackManagerCentralIconKey  : centralIcon.leafIdentifier,
+                                STKStackManagerStackIconsKey   : [[layout allIcons] valueForKeyPath:@"leafIdentifier"],
+                                STKStackManagerCustomLayoutKey : dictionaryRepresentation};
+
+    [fileDict writeToFile:[self layoutPathForIcon:centralIcon] atomically:YES];
 }
 
 + (instancetype)sharedPreferences
@@ -121,6 +183,15 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
     return GETBOOL(_currentPrefs, STKShowSectionTitlesKey, YES);
 }
 
+- (STKActivationMode)activationMode
+{
+    if (_currentPrefs[STKActivationModeKey]) {
+        return (STKActivationMode)[_currentPrefs[STKActivationModeKey] integerValue];
+    }
+    
+    return STKActivationModeSwipeUpAndDown;
+}
+
 - (void)setWelcomeAlertShown:(BOOL)shown
 {
     @synchronized(self) {
@@ -139,7 +210,7 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
     if (!_iconsWithStacks) {
         @synchronized(self) {
             if (!_layouts) {
-                _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[[self class] layoutsDirectory] error:nil] retain];
+                _layouts = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:[STKPreferences layoutsDirectory] error:nil] retain];
             }
 
             NSMutableSet *identifiersSet = [[[NSMutableSet alloc] initWithCapacity:_layouts.count] autorelease];
@@ -160,7 +231,7 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 {
     SBIconModel *model = [(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model];
 
-    NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:[self layoutPathForIcon:icon]];
+    NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:[STKPreferences layoutPathForIcon:icon]];
     
     if (!attributes) {
         return nil;
@@ -215,16 +286,6 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
     return _iconsInStacks;
 }
 
-- (NSString *)layoutPathForIconID:(NSString *)iconID
-{
-    return [NSString stringWithFormat:@"%@/%@.layout", [[self class] layoutsDirectory], iconID];
-}
-
-- (NSString *)layoutPathForIcon:(SBIcon *)icon
-{
-    return [self layoutPathForIconID:icon.leafIdentifier];
-}
-
 - (BOOL)iconHasStack:(SBIcon *)icon
 {
     return (icon == nil ? NO : [[self identifiersForIconsWithStack] containsObject:icon.leafIdentifier]);
@@ -251,7 +312,7 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
     }
     @synchronized(self) {
         NSError *err = nil;
-        BOOL ret = [[NSFileManager defaultManager] removeItemAtPath:[self layoutPathForIconID:iconID] error:&err];
+        BOOL ret = [[NSFileManager defaultManager] removeItemAtPath:[STKPreferences layoutPathForIconID:iconID] error:&err];
         if (err) {
 #ifndef __x86_64__
             STKLog(@"An error occurred when trying to remove layout for %@. Error %i, %@", iconID, err.code, err);
@@ -264,25 +325,12 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
     }
 }
 
-- (void)registerCallbackForPrefsChange:(STKPreferencesCallback)callbackBlock
-{
-    if (!callbackBlock) {
-        return;
-    }
-
-    if (!_callbacks) {
-        _callbacks = [NSMutableArray new];
-    }
-
-    [_callbacks addObject:[[callbackBlock copy] autorelease]];
-}
-
 - (NSDictionary *)cachedLayoutDictForIcon:(SBIcon *)centralIcon
 {
     NSDictionary *layout = _cachedLayouts[centralIcon.leafIdentifier];
     if (!layout) {
-        NSString *layoutPath = [[STKPreferences sharedPreferences] layoutPathForIcon:centralIcon];
-        if (![STKStackManager isValidLayoutAtPath:layoutPath]) {
+        NSString *layoutPath = [STKPreferences layoutPathForIcon:centralIcon];
+        if (![STKPreferences isValidLayoutAtPath:layoutPath]) {
             [[STKPreferences sharedPreferences] removeLayoutForIcon:centralIcon];
             return nil;
         }
@@ -331,9 +379,7 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 static void STKPrefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
     [[STKPreferences sharedPreferences] reloadPreferences];
-    for (STKPreferencesCallback cb in [[STKPreferences sharedPreferences] valueForKey:@"_callbacks"]) {
-        cb();
-    }
+    [[NSNotificationCenter defaultCenter] postNotificationName:STKPreferencesChangedNotification object:nil userInfo:nil];
 }
 
 

@@ -17,6 +17,10 @@
 	/* Behaviour */
 	BEHAVIOUR = Behavior;
 	CLOSE_ON_LAUNCH = "Close on Launch";
+	ACTIVATION_MODE = "Activation Mode";
+	SWIPE_UP_AND_DOWN = "Swipe up and down";
+	SWIPE_UP = "Swipe up";
+	SWIPE_DOWN = "Swipe down";
 
 	LOVE_GAMES = "I'm loving #Apex from @A3tweaks!";
 	CANNOT_SEND_TWEET = "Cannot send tweet";

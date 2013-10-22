@@ -1,4 +1,4 @@
-#import "STKStackManager.h"
+#import "STKStack.h"
 #import "STKConstants.h"
 #import "STKIconLayout.h"
 
@@ -29,7 +29,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 #define HAS_FE [STKListViewForIcon(_centralIcon) isKindOfClass:objc_getClass("FEIconListView")]
 
 #pragma mark - Private Method Declarations
-@interface STKStackManager ()
+@interface STKStack ()
 /*
 *   Icon moving
 */
@@ -42,7 +42,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 *   Gesture Recognizing
 */
 - (void)_setupGestureRecognizers;
-- (void)_handleCloseGesture:(UISwipeGestureRecognizer *)sender; // this is the default action for both swipes
+- (void)_handleCloseGesture:(UIGestureRecognizer *)sender; // this is the default action for both swipes
 - (void)_cleanupGestureRecognizers;
 
 - (SBIconView *)_iconViewForIcon:(SBIcon *)icon;
