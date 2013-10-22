@@ -414,7 +414,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
     
-        [[objc_getClass("ISIconSupport") sharedInstance] addExtension:kSTKTweakName];
+        [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName];
 
         void *feHandle = dlopen("/Library/MobileSubstrate/DynamicLibraries/FolderEnhancer.dylib", RTLD_NOW);
         if (feHandle) {

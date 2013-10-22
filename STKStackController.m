@@ -17,18 +17,10 @@
     NSMutableArray *_iconsToShow;
     NSMutableArray *_iconsToHide;
 }
-
 - (NSMutableArray *)_iconsToShowOnClose;
 - (NSMutableArray *)_iconsToHideOnClose;
 - (void)_processIconsPostStackClose;
 - (void)_panned:(UIPanGestureRecognizer *)recognizer;
-
-typedef enum {
-    STKRecognizerDirectionUp   = 0xf007ba11,
-    STKRecognizerDirectionDown = 0x50f7ba11,
-    STKRecognizerDirectionNone = 0x0ddba11
-} STKRecognizerDirection;
-
 @end
 
 static SEL __stackKey;
