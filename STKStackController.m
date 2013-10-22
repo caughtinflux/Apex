@@ -331,9 +331,9 @@ static SEL __bottomGrabberKey;
 #define kBandingFactor  0.1 // The factor by which the distance should be multiplied to simulate the rubber banding effect
 - (void)_panned:(UIPanGestureRecognizer *)sender
 {
-    static BOOL _cancelledPanRecognizer = NO;
-    static BOOL _hasVerticalIcons = NO;
-    static BOOL _isUpwardSwipe = NO;
+    static BOOL cancelledPanRecognizer = NO;
+    static BOOL hasVerticalIcons = NO;
+    static BOOL isUpwardSwipe = NO;
 
     SBIconView *iconView = (SBIconView *)sender.view;
     UIScrollView *view = (UIScrollView *)[STKListViewForIcon(iconView.icon) superview];
@@ -341,25 +341,25 @@ static SEL __bottomGrabberKey;
     STKStack *activeStack = [STKStackController sharedInstance].activeStack;
 
     if (iconView.location != SBIconViewLocationHomeScreen) {
-        _cancelledPanRecognizer = YES;
+        cancelledPanRecognizer = YES;
         [self removeStackFromIconView:iconView];
         return;
     }
     if (stack.isExpanded || (activeStack != nil && activeStack != stack)) {
-        _cancelledPanRecognizer = YES;
+        cancelledPanRecognizer = YES;
         return;
     }
     if (sender.state == UIGestureRecognizerStateBegan) {        
         CGPoint translation = [sender translationInView:view];
-        _isUpwardSwipe = ([sender velocityInView:view].y < 0);
+        isUpwardSwipe = ([sender velocityInView:view].y < 0);
         
         BOOL isHorizontalSwipe = !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0);
 
-        BOOL isUpwardSwipeInSwipeDownMode = (([STKPreferences sharedPreferences].activationMode == STKActivationModeSwipeDown) && _isUpwardSwipe);
-        BOOL isDownwardSwipeInSwipeUpMode = (([STKPreferences sharedPreferences].activationMode == STKActivationModeSwipeUp) && !_isUpwardSwipe);
+        BOOL isUpwardSwipeInSwipeDownMode = (([STKPreferences sharedPreferences].activationMode == STKActivationModeSwipeDown) && isUpwardSwipe);
+        BOOL isDownwardSwipeInSwipeUpMode = (([STKPreferences sharedPreferences].activationMode == STKActivationModeSwipeUp) && !isUpwardSwipe);
         
         if (isHorizontalSwipe || isUpwardSwipeInSwipeDownMode || isDownwardSwipeInSwipeUpMode) {
-            _cancelledPanRecognizer = YES;
+            cancelledPanRecognizer = YES;
             return;
         }   
         if ([view isKindOfClass:[UIScrollView class]]) {
@@ -374,19 +374,19 @@ static SEL __bottomGrabberKey;
         self.activeStack = stack;
         [stack touchesBegan];
 
-        _hasVerticalIcons = ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
+        hasVerticalIcons = ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
     }
     else if (sender.state == UIGestureRecognizerStateChanged) {        
-        if (view.isDragging || _cancelledPanRecognizer) {
-            _cancelledPanRecognizer = YES;
+        if (view.isDragging || cancelledPanRecognizer) {
+            cancelledPanRecognizer = YES;
             return;
         }
         CGFloat change = [sender translationInView:view].y;
-        if (_isUpwardSwipe) {
+        if (isUpwardSwipe) {
             change = -change;
         }
         CGFloat targetDistance = STKGetCurrentTargetDistance();
-        if (!_hasVerticalIcons) {
+        if (!hasVerticalIcons) {
             targetDistance *= stack.distanceRatio;
         }
         if ((change > 0) && (stack.currentIconDistance >= targetDistance)) {
@@ -398,12 +398,14 @@ static SEL __bottomGrabberKey;
         [sender setTranslation:CGPointZero inView:view];
     }
     else {
-        if (_cancelledPanRecognizer == NO && ![[CLASS(SBIconController) sharedInstance] hasOpenFolder]) {
+        if (cancelledPanRecognizer == NO && ![[CLASS(SBIconController) sharedInstance] hasOpenFolder]) {
             [stack touchesEnded];
             self.activeStack = stack.isExpanded ? stack : nil;
         }
-        _cancelledPanRecognizer = NO;
-        _isUpwardSwipe = NO;
+        cancelledPanRecognizer = NO;
+        isUpwardSwipe = NO;
+        hasVerticalIcons = NO;
+
         view.scrollEnabled = YES;
     }
 }
