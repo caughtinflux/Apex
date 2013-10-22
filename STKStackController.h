@@ -10,7 +10,6 @@
 + (instancetype)sharedInstance;
 
 @property (nonatomic, retain) STKStack *activeStack;
-@property (nonatomic, copy) NSString *wat;
 
 - (void)createOrRemoveStackForIconView:(SBIconView *)iconView;
 - (void)createStackForIconView:(SBIconView *)iconView;

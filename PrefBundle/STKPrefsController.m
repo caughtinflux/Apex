@@ -172,6 +172,16 @@ static NSString * const NotchesSpecifierID = @"HIDE_NOTCHES";
     }
 }
 
+- (NSArray *)activationModeTitles
+{
+    return @[LOCALIZE(SWIPE_UP_AND_DOWN), LOCALIZE(SWIPE_UP), LOCALIZE(SWIPE_DOWN)];
+}
+
+- (NSArray *)activationModeValues
+{
+    return @[@0, @1, @2];
+}
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 - (void)showHeartDialog

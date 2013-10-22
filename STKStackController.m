@@ -17,18 +17,10 @@
     NSMutableArray *_iconsToShow;
     NSMutableArray *_iconsToHide;
 }
-
 - (NSMutableArray *)_iconsToShowOnClose;
 - (NSMutableArray *)_iconsToHideOnClose;
 - (void)_processIconsPostStackClose;
 - (void)_panned:(UIPanGestureRecognizer *)recognizer;
-
-typedef enum {
-    STKRecognizerDirectionUp   = 0xf007ba11,
-    STKRecognizerDirectionDown = 0x50f7ba11,
-    STKRecognizerDirectionNone = 0x0ddba11
-} STKRecognizerDirection;
-
 @end
 
 static SEL __stackKey;
@@ -60,7 +52,7 @@ static SEL __bottomGrabberKey;
 {
     SBIcon *icon = iconView.icon;
     UIView *superview = iconView.superview;
-    BOOL isInInfinifolder = ([superview isKindOfClass:[UIScrollView class]] && [superview.superview isKindOfClass:objc_getClass("SBFolderIconListView")]);
+    BOOL isInInfinifolder = ([superview isKindOfClass:[UIScrollView class]] && [superview.superview isKindOfClass:CLASS(SBFolderIconListView)]);
 
     if (!icon ||
         iconView.location != SBIconViewLocationHomeScreen || !superview || [superview isKindOfClass:CLASS(SBFolderIconListView)] || isInInfinifolder || 
@@ -329,13 +321,13 @@ static SEL __bottomGrabberKey;
     }
 
     SBIconListView *folderListView = (SBIconListView *)[[CLASS(SBIconController) sharedInstance] currentFolderIconList];
-    if ([folderListView isKindOfClass:objc_getClass("FEIconListView")]) {
+    if ([folderListView isKindOfClass:CLASS(FEIconListView)]) {
         [folderListView makeIconViewsPerformBlock:^(SBIconView *iv) { aBlock(iv); }];
     }
 }
 
-#pragma mark - Pan Recognizer Handling
 
+#pragma mark - Pan Recognizer Handling
 #define kBandingFactor  0.1 // The factor by which the distance should be multiplied to simulate the rubber banding effect
 - (void)_panned:(UIPanGestureRecognizer *)sender
 {
@@ -349,16 +341,24 @@ static SEL __bottomGrabberKey;
     STKStack *activeStack = [STKStackController sharedInstance].activeStack;
 
     if (iconView.location != SBIconViewLocationHomeScreen) {
+        _cancelledPanRecognizer = YES;
         [self removeStackFromIconView:iconView];
         return;
     }
     if (stack.isExpanded || (activeStack != nil && activeStack != stack)) {
+        _cancelledPanRecognizer = YES;
         return;
     }
-    if (sender.state == UIGestureRecognizerStateBegan) {
+    if (sender.state == UIGestureRecognizerStateBegan) {        
         CGPoint translation = [sender translationInView:view];
-        if (!((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0)) {
-            // horizontal swipe
+        _isUpwardSwipe = ([sender velocityInView:view].y < 0);
+        
+        BOOL isHorizontalSwipe = !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0);
+
+        BOOL isUpwardSwipeInSwipeDownMode = (([STKPreferences sharedPreferences].activationMode == STKActivationModeSwipeDown) && _isUpwardSwipe);
+        BOOL isDownwardSwipeInSwipeUpMode = (([STKPreferences sharedPreferences].activationMode == STKActivationModeSwipeUp) && !_isUpwardSwipe);
+        
+        if (isHorizontalSwipe || isUpwardSwipeInSwipeDownMode || isDownwardSwipeInSwipeUpMode) {
             _cancelledPanRecognizer = YES;
             return;
         }   
@@ -375,9 +375,8 @@ static SEL __bottomGrabberKey;
         [stack touchesBegan];
 
         _hasVerticalIcons = ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
-        _isUpwardSwipe = [sender velocityInView:view].y < 0;
     }
-    else if (sender.state == UIGestureRecognizerStateChanged) {
+    else if (sender.state == UIGestureRecognizerStateChanged) {        
         if (view.isDragging || _cancelledPanRecognizer) {
             _cancelledPanRecognizer = YES;
             return;
@@ -399,26 +398,29 @@ static SEL __bottomGrabberKey;
         [sender setTranslation:CGPointZero inView:view];
     }
     else {
-        if (_cancelledPanRecognizer == NO) {
+        if (_cancelledPanRecognizer == NO && ![[CLASS(SBIconController) sharedInstance] hasOpenFolder]) {
             [stack touchesEnded];
             self.activeStack = stack.isExpanded ? stack : nil;
         }
         _cancelledPanRecognizer = NO;
+        _isUpwardSwipe = NO;
         view.scrollEnabled = YES;
     }
 }
 
+#pragma mark - Gesture Recognizer Delegate
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
-    return ((otherGestureRecognizer == [[objc_getClass("SBIconController") sharedInstance] scrollView].panGestureRecognizer) ||
-            ([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]] && [otherGestureRecognizer.view.superview isKindOfClass:objc_getClass("FEGridFolderView")]));
+    return ((otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer) ||
+            ([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]] && [otherGestureRecognizer.view.superview isKindOfClass:CLASS(FEGridFolderView)]) || 
+            ([otherGestureRecognizer isKindOfClass:[UISwipeGestureRecognizer class]]));
 
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
     Class superviewClass = [recognizer.view.superview class];
-    if ([superviewClass isKindOfClass:[objc_getClass("SBDockIconListView") class]]) {
+    if ([superviewClass isKindOfClass:[CLASS(SBDockIconListView) class]]) {
         return NO;
     }
 

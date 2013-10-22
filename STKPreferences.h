@@ -13,6 +13,12 @@ extern "C" {
 @class STKIconLayout, SBIcon;
 @interface STKPreferences : NSObject
 
+typedef NS_ENUM(NSInteger, STKActivationMode) {
+	STKActivationModeSwipeUpAndDown = 0,
+	STKActivationModeSwipeUp,
+	STKActivationModeSwipeDown
+};
+
 + (NSString *)layoutsDirectory;
 + (NSString *)layoutPathForIconID:(NSString *)iconID;
 + (NSString *)layoutPathForIcon:(SBIcon *)icon;
@@ -31,6 +37,7 @@ extern "C" {
 @property (nonatomic, assign) BOOL welcomeAlertShown;
 @property (nonatomic, readonly) BOOL shouldCloseOnLaunch;
 @property (nonatomic, readonly) BOOL shouldShowSectionIndexTitles;
+@property (nonatomic, readonly) STKActivationMode activationMode;
 
 - (NSSet *)identifiersForIconsWithStack;
 - (NSArray *)stackIconsForIcon:(SBIcon *)icon;

@@ -230,7 +230,6 @@ static BOOL _wantsSafeIconViewRetrieval;
 %end
 
 
-
 #pragma mark - SBIconModel Hook
 %hook SBIconModel
 - (BOOL)isIconVisible:(SBIcon *)icon
@@ -395,7 +394,6 @@ static BOOL _wantsSafeIconViewRetrieval;
 }
 %end
 
-#pragma mark - User Notification Callback
 static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags)
 {
     if ((responseFlags & 0x3) == kCFUserNotificationAlternateResponse) {
@@ -414,7 +412,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
     
-        [[objc_getClass("ISIconSupport") sharedInstance] addExtension:kSTKTweakName];
+        [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName];
 
         void *feHandle = dlopen("/Library/MobileSubstrate/DynamicLibraries/FolderEnhancer.dylib", RTLD_NOW);
         if (feHandle) {
