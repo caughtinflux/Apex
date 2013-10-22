@@ -623,22 +623,15 @@
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
-    if (_currentSelectionView && CGRectContainsPoint(_currentSelectionView.frame, point)) {
-        return _currentSelectionView;
-    }
-
     CGRect centralIconViewFrame = [self _iconViewForIcon:_centralIcon].bounds;
-    
     if (CGRectContainsPoint(centralIconViewFrame, point)) {
         return [self _iconViewForIcon:_centralIcon];
     } 
-
     for (SBIconView *iconView in _iconViewsLayout) {
         if (CGRectContainsPoint(iconView.frame, point)) {
             return iconView;
         }
     }
-
     return nil;
 }
 
@@ -927,7 +920,7 @@
         CGFloat *targetCoord, *currentCoord, *newCoord, *centralCoord;
         CGFloat moveDistance = distance * negator;
 
-        if (position == STKLayoutPositionTop || position == STKLayoutPositionBottom) {
+        if (STKLayoutPositionIsVertical(position)) {
             targetCoord = &(targetOrigin.y);
             currentCoord = &(iconFrame.origin.y);
             newCoord = &(newFrame.origin.y);
@@ -941,13 +934,9 @@
             distanceRatio = _distanceRatio;
         }
 
-        moveDistance *= distanceRatio;
-
         CGFloat multFactor = (IS_LESSER((*currentCoord + moveDistance), *targetCoord, position) ? (idx + 1) : 1);
         CGFloat popComp = (((idx == currentArray.count - 1) && !(_isEmpty || !_showsPreview)) ? ((*targetCoord - kPopoutDistance * negator) / *targetCoord) : 1.f);
-
-        moveDistance *= (multFactor * popComp);
-
+        moveDistance *= (distanceRatio * multFactor * popComp);
 
         if (IS_GREATER((*currentCoord + (moveDistance / popComp)), *targetCoord, position)) {
             // Don't compensate for anything if the icon is moving past the target
@@ -1483,9 +1472,8 @@
         }];
         [_iconController dock].superview.alpha = 1.f;
 
-        SBIcon *selectedIcon = [[_currentSelectionView highlightedIcon] retain];
+        SBIcon *selectedIcon = [_currentSelectionView highlightedIcon];
         [self _addIcon:selectedIcon atIndex:(_isEmpty ? 0 : _selectionViewIndex) position:_selectionViewPosition];
-        [selectedIcon release];
 
         [_currentSelectionView prepareForRemoval];
         _currentSelectionView.alpha = 0.f;
