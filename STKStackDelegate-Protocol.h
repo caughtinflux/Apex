@@ -14,7 +14,7 @@
 /**
 *	Called when the layout of the stack changes
 */
-- (void)stackDidUpdateState:(STKStack *)stack;
+- (void)stackDidChangeLayout:(STKStack *)stack;
 
 /**
 *	@param stack The stack to which `icon is added

@@ -275,12 +275,12 @@
             _appearingIconsLayout = [suggestedLayout retain];
         }
         
-        [self.delegate stackDidUpdateState:self];
+        [self.delegate stackDidChangeLayout:self];
     }
     else if (EQ_COORDS(current, _iconCoordinates) == NO) {
         // The coords have changed, but a re-layout isn't necessary
         _iconCoordinates = current;
-        [self.delegate stackDidUpdateState:self];
+        [self.delegate stackDidChangeLayout:self];
     }
 
     _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];

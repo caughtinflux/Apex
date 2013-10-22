@@ -446,7 +446,7 @@ static SEL __bottomGrabberKey;
     self.activeStack = nil;
 }
 
-- (void)stackDidUpdateState:(STKStack *)stack
+- (void)stackDidChangeLayout:(STKStack *)stack
 {
     [self stack:stack didAddIcon:nil removingIcon:nil atPosition:0 index:0];
 }
