@@ -245,9 +245,7 @@ static SEL __bottomGrabberKey;
 
 - (void)closeActiveStack
 {
-    [self.activeStack closeWithCompletionHandler:^{
-        self.activeStack = nil;
-    }];
+    [self.activeStack closeWithCompletionHandler:^{ [self stackClosedByGesture:self.activeStack]; }];
 }
 
 #pragma mark - Private Methods
@@ -354,25 +352,20 @@ static SEL __bottomGrabberKey;
         [self removeStackFromIconView:iconView];
         return;
     }
-
     if (stack.isExpanded || (activeStack != nil && activeStack != stack)) {
         return;
     }
-
     if (sender.state == UIGestureRecognizerStateBegan) {
         CGPoint translation = [sender translationInView:view];
-
         if (!((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0)) {
             // horizontal swipe
             _cancelledPanRecognizer = YES;
             return;
-        }
-            
+        }   
         if ([view isKindOfClass:[UIScrollView class]]) {
             // Turn off scrolling
             view.scrollEnabled = NO;
         }
-
         // Update the target distance based on icons positions when the pan begins
         // This way, we can be sure that the icons are indeed in the required location 
         STKUpdateTargetDistanceInListView(STKListViewForIcon(iconView.icon));
@@ -384,18 +377,15 @@ static SEL __bottomGrabberKey;
         _hasVerticalIcons = ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
         _isUpwardSwipe = [sender velocityInView:view].y < 0;
     }
-
     else if (sender.state == UIGestureRecognizerStateChanged) {
         if (view.isDragging || _cancelledPanRecognizer) {
             _cancelledPanRecognizer = YES;
             return;
         }
-
         CGFloat change = [sender translationInView:view].y;
         if (_isUpwardSwipe) {
             change = -change;
         }
-
         CGFloat targetDistance = STKGetCurrentTargetDistance();
         if (!_hasVerticalIcons) {
             targetDistance *= stack.distanceRatio;
@@ -405,20 +395,15 @@ static SEL __bottomGrabberKey;
             // The stack allows the icons to go beyond their targets for a little distance
             change *= kBandingFactor;
         }
-
         [stack touchesDraggedForDistance:change];
         [sender setTranslation:CGPointZero inView:view];
     }
-
     else {
         if (_cancelledPanRecognizer == NO) {
             [stack touchesEnded];
-
             self.activeStack = stack.isExpanded ? stack : nil;
         }
-
         _cancelledPanRecognizer = NO;
-
         view.scrollEnabled = YES;
     }
 }
