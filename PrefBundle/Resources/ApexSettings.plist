@@ -24,12 +24,12 @@
 			<string>PSSwitchCell</string>
 			<key>default</key>
 			<true/>
-			<key>defaults</key>
-			<string>com.a3tweaks.Apex</string>
 			<key>key</key>
 			<string>STKStackPreviewEnabled</string>
 			<key>label</key>
 			<string>SHOW_PREVIEW</string>
+			<key>defaults</key>
+			<string>com.a3tweaks.Apex</string>
 			<key>PostNotification</key>
 			<string>com.a3tweaks.apex.prefschanged</string>
 		</dict>
@@ -38,12 +38,12 @@
 			<string>PSSwitchCell</string>
 			<key>default</key>
 			<true/>
-			<key>defaults</key>
-			<string>com.a3tweaks.Apex</string>
 			<key>key</key>
 			<string>STKShowSectionTitles</string>
 			<key>label</key>
 			<string>ALPHABETIC_SCROLL</string>
+			<key>defaults</key>
+			<string>com.a3tweaks.Apex</string>
 			<key>PostNotification</key>
 			<string>com.a3tweaks.apex.prefschanged</string>
 		</dict>
@@ -65,9 +65,33 @@
 			<string>STKStackClosesOnLaunch</string>
 			<key>label</key>
 			<string>CLOSE_ON_LAUNCH</string>
+			<key>defaults</key>
+			<string>com.a3tweaks.Apex</string>
 			<key>PostNotification</key>
 			<string>com.a3tweaks.apex.prefschanged</string>
 		</dict>
+		<dict>
+            <key>cell</key>
+            <string>PSLinkListCell</string>
+            <key>label</key>
+            <string>ACTIVATION_MODE</string>
+            <key>detail</key>
+            <string>PSListItemsController</string>
+            <key>titlesDataSource</key>
+            <string>activationModeTitles</string>
+            <key>valuesDataSource</key>
+            <string>activationModeValues</string>
+            <key>key</key>
+            <string>STKActivationMode</string>
+            <key>staticTextMessage</key>
+            <string></string>
+            <key>default</key>
+            <integer>0</integer>
+            <key>defaults</key>
+            <string>com.a3tweaks.Apex</string>
+            <key>PostNotification</key>
+            <string>com.a3tweaks.apex.prefschanged</string>
+        </dict>
 
 		<dict>
 			<key>cell</key>

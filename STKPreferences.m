@@ -9,14 +9,14 @@
 
 #define GETBOOL(_dict, _key, _default) (_dict[_key] ? [_dict[_key] boolValue] : _default);
 
-
 NSString * const STKPreferencesChangedNotification = @"STKPrefsChangedNotif";
 
 static NSString * const STKWelcomeAlertShownKey   = @"STKWelcomeAlertShown";
 static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 static NSString * const STKHideGrabbersKey        = @"STKHideGrabbers";
-static NSString * const STKStackClosesOnLaunchKey = @"STKStackClosesOnLaunch";
 static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
+static NSString * const STKStackClosesOnLaunchKey = @"STKStackClosesOnLaunch";
+static NSString * const STKActivationModeKey      = @"STKActivationMode";
 
 @interface STKPreferences ()
 {   
@@ -181,6 +181,15 @@ static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 - (BOOL)shouldShowSectionIndexTitles
 {
     return GETBOOL(_currentPrefs, STKShowSectionTitlesKey, YES);
+}
+
+- (STKActivationMode)activationMode
+{
+    if (_currentPrefs[STKActivationModeKey]) {
+        return (STKActivationMode)[_currentPrefs[STKActivationModeKey] integerValue];
+    }
+    
+    return STKActivationModeSwipeUpAndDown;
 }
 
 - (void)setWelcomeAlertShown:(BOOL)shown

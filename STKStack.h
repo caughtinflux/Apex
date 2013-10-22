@@ -34,7 +34,7 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 @property (nonatomic, readonly) SBIcon *centralIcon;
 @property (nonatomic, readonly) STKIconLayout *appearingIconsLayout;
 @property (nonatomic, readonly) STKIconLayout *iconViewsLayout;
-@property (nonatomic, readonly) STKIconLayout *disappearingIconsLayout;
+@property (nonatomic, readonly) STKIconLayout *displacedIconsLayout;
 @property (nonatomic, readonly) CGFloat distanceRatio;
 @property (nonatomic, readonly) BOOL isSelecting;
 

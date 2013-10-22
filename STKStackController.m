@@ -6,8 +6,6 @@
 #import "STKStack.h"
 #import "STKPreferences.h"
 
-#import "Velox.h"
-
 #if !defined CLASS
 #define CLASS(_cls) objc_getClass(#_cls)
 #endif
@@ -328,8 +326,8 @@ static SEL __bottomGrabberKey;
     }
 }
 
-#pragma mark - Pan Recognizer Handling
 
+#pragma mark - Pan Recognizer Handling
 #define kBandingFactor  0.1 // The factor by which the distance should be multiplied to simulate the rubber banding effect
 - (void)_panned:(UIPanGestureRecognizer *)sender
 {
@@ -343,24 +341,24 @@ static SEL __bottomGrabberKey;
     STKStack *activeStack = [STKStackController sharedInstance].activeStack;
 
     if (iconView.location != SBIconViewLocationHomeScreen) {
+        _cancelledPanRecognizer = YES;
         [self removeStackFromIconView:iconView];
         return;
     }
     if (stack.isExpanded || (activeStack != nil && activeStack != stack)) {
+        _cancelledPanRecognizer = YES;
         return;
     }
-    if (sender.state == UIGestureRecognizerStateBegan) {
-        int veloxSwipeDirection = [[CLASS(Velox) sharedManager] intForPreferenceKey:@"SwipeDirection"];
-        _isUpwardSwipe = [sender velocityInView:view].y < 0;
-        
+    if (sender.state == UIGestureRecognizerStateBegan) {        
         CGPoint translation = [sender translationInView:view];
+        _isUpwardSwipe = ([sender velocityInView:view].y < 0);
+        
+        BOOL isHorizontalSwipe = !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0);
 
-        BOOL cancelForVelox = (veloxSwipeDirection && ((_isUpwardSwipe && veloxSwipeDirection == 2) || (!_isUpwardSwipe && veloxSwipeDirection == 3)));
-        DLog(@"%@", BOOL_TO_STRING(cancelForVelox));
-        DLog(@"%@", BOOL_TO_STRING(fabsf(translation.x / translation.y) < 5.0));
-
-        if (cancelForVelox || !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0)) {
-            // horizontal swipe
+        BOOL isUpwardSwipeInSwipeDownMode = (([STKPreferences sharedPreferences].activationMode == STKActivationModeSwipeDown) && _isUpwardSwipe);
+        BOOL isDownwardSwipeInSwipeUpMode = (([STKPreferences sharedPreferences].activationMode == STKActivationModeSwipeUp) && !_isUpwardSwipe);
+        
+        if (isHorizontalSwipe || isUpwardSwipeInSwipeDownMode || isDownwardSwipeInSwipeUpMode) {
             _cancelledPanRecognizer = YES;
             return;
         }   
@@ -400,7 +398,7 @@ static SEL __bottomGrabberKey;
         [sender setTranslation:CGPointZero inView:view];
     }
     else {
-        if (_cancelledPanRecognizer == NO) {
+        if (_cancelledPanRecognizer == NO && ![[CLASS(SBIconController) sharedInstance] hasOpenFolder]) {
             [stack touchesEnded];
             self.activeStack = stack.isExpanded ? stack : nil;
         }
