@@ -6,6 +6,8 @@
 #import "STKStack.h"
 #import "STKPreferences.h"
 
+#import "Velox.h"
+
 #if !defined CLASS
 #define CLASS(_cls) objc_getClass(#_cls)
 #endif
@@ -52,7 +54,7 @@ static SEL __bottomGrabberKey;
 {
     SBIcon *icon = iconView.icon;
     UIView *superview = iconView.superview;
-    BOOL isInInfinifolder = ([superview isKindOfClass:[UIScrollView class]] && [superview.superview isKindOfClass:objc_getClass("SBFolderIconListView")]);
+    BOOL isInInfinifolder = ([superview isKindOfClass:[UIScrollView class]] && [superview.superview isKindOfClass:CLASS(SBFolderIconListView)]);
 
     if (!icon ||
         iconView.location != SBIconViewLocationHomeScreen || !superview || [superview isKindOfClass:CLASS(SBFolderIconListView)] || isInInfinifolder || 
@@ -321,7 +323,7 @@ static SEL __bottomGrabberKey;
     }
 
     SBIconListView *folderListView = (SBIconListView *)[[CLASS(SBIconController) sharedInstance] currentFolderIconList];
-    if ([folderListView isKindOfClass:objc_getClass("FEIconListView")]) {
+    if ([folderListView isKindOfClass:CLASS(FEIconListView)]) {
         [folderListView makeIconViewsPerformBlock:^(SBIconView *iv) { aBlock(iv); }];
     }
 }
@@ -348,8 +350,16 @@ static SEL __bottomGrabberKey;
         return;
     }
     if (sender.state == UIGestureRecognizerStateBegan) {
+        int veloxSwipeDirection = [[CLASS(Velox) sharedManager] intForPreferenceKey:@"SwipeDirection"];
+        _isUpwardSwipe = [sender velocityInView:view].y < 0;
+        
         CGPoint translation = [sender translationInView:view];
-        if (!((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0)) {
+
+        BOOL cancelForVelox = (veloxSwipeDirection && ((_isUpwardSwipe && veloxSwipeDirection == 2) || (!_isUpwardSwipe && veloxSwipeDirection == 3)));
+        DLog(@"%@", BOOL_TO_STRING(cancelForVelox));
+        DLog(@"%@", BOOL_TO_STRING(fabsf(translation.x / translation.y) < 5.0));
+
+        if (cancelForVelox || !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0)) {
             // horizontal swipe
             _cancelledPanRecognizer = YES;
             return;
@@ -367,9 +377,8 @@ static SEL __bottomGrabberKey;
         [stack touchesBegan];
 
         _hasVerticalIcons = ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
-        _isUpwardSwipe = [sender velocityInView:view].y < 0;
     }
-    else if (sender.state == UIGestureRecognizerStateChanged) {
+    else if (sender.state == UIGestureRecognizerStateChanged) {        
         if (view.isDragging || _cancelledPanRecognizer) {
             _cancelledPanRecognizer = YES;
             return;
@@ -396,21 +405,24 @@ static SEL __bottomGrabberKey;
             self.activeStack = stack.isExpanded ? stack : nil;
         }
         _cancelledPanRecognizer = NO;
+        _isUpwardSwipe = NO;
         view.scrollEnabled = YES;
     }
 }
 
+#pragma mark - Gesture Recognizer Delegate
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
-    return ((otherGestureRecognizer == [[objc_getClass("SBIconController") sharedInstance] scrollView].panGestureRecognizer) ||
-            ([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]] && [otherGestureRecognizer.view.superview isKindOfClass:objc_getClass("FEGridFolderView")]));
+    return ((otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer) ||
+            ([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]] && [otherGestureRecognizer.view.superview isKindOfClass:CLASS(FEGridFolderView)]) || 
+            ([otherGestureRecognizer isKindOfClass:[UISwipeGestureRecognizer class]]));
 
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
     Class superviewClass = [recognizer.view.superview class];
-    if ([superviewClass isKindOfClass:[objc_getClass("SBDockIconListView") class]]) {
+    if ([superviewClass isKindOfClass:[CLASS(SBDockIconListView) class]]) {
         return NO;
     }
 
