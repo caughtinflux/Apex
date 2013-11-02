@@ -8,8 +8,6 @@
 #import <sys/sysctl.h>
 
 NSString * const STKTweakName                       = @"Apex";
-NSString * const STKEditingStateChangedNotification = @"STKEditingStateChanged";
-NSString * const STKStackClosingEventNotification   = @"STKStackClosingEvent";
 NSString * const STKPlaceHolderIconIdentifier       = @"com.a3tweaks.apex.placeholderid";
 
 CFStringRef const STKPrefsChangedNotificationName = CFSTR("com.a3tweaks.apex.prefschanged");
