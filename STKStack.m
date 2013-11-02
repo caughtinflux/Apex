@@ -378,19 +378,15 @@
     [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx) {
         CGRect frame = [self _iconViewForIcon:_centralIcon].bounds;
         CGPoint newOrigin = frame.origin;
-
-        // Check if it's the last object
+        // Check if it's the last object, only if not empty
         if (!_isEmpty && _showsPreview && idx == currentArray.count - 1) {
             if (!_closingForSwitcher && ![[self _iconViewForIcon:_centralIcon] isGhostly]) {
                 iconView.alpha = 1.f;
             }
-
             // This is probably how the rest of the code should've been written
-            CGFloat *memberToModify = ((position == STKLayoutPositionTop || position == STKLayoutPositionBottom) ? &newOrigin.y : &newOrigin.x);
-
+            CGFloat *memberToModify = (STKLayoutPositionIsVertical(position) ? &newOrigin.y : &newOrigin.x);
             // the member to modify needs to be subtracted from in case of t/l.
             CGFloat negator = (position == STKLayoutPositionTop || position == STKLayoutPositionLeft ? -1 : 1);
-
             *memberToModify += kPopoutDistance * negator;
         }
         else {
@@ -402,10 +398,9 @@
         iconView.frame = frame;
 
         if (!_isEmpty && _showsPreview) {
-            // Scale the icon back down to the smaller size, only if there indeed _are_ any icons
+            // Scale the icon back down to the smaller size
             iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
         }
-
         // Hide the labels and shadows
         [self _setAlpha:0.f forLabelAndShadowOfIconView:iconView];
         iconView.userInteractionEnabled = NO;
@@ -445,10 +440,10 @@
 
     [self _moveAllIconsInRespectiveDirectionsByDistance:distance performingTask:^(SBIconView *iv, STKLayoutPosition pos, NSUInteger idx) {
         if (idx == 0) {
-            if (hasVerticalIcons && (pos == STKLayoutPositionTop || pos == STKLayoutPositionBottom)) {
+            if (hasVerticalIcons && STKLayoutPositionIsVertical(pos)) {
                 _lastDistanceFromCenter = floorf(fabsf(iv.frame.origin.y - [self _iconViewForIcon:_centralIcon].bounds.origin.y));
             }
-            else if (!hasVerticalIcons && (pos == STKLayoutPositionLeft || pos == STKLayoutPositionRight)) {
+            else if (!hasVerticalIcons && STKLayoutPositionIsHorizontal(pos)) {
                _lastDistanceFromCenter = floorf(fabsf(iv.frame.origin.x - [self _iconViewForIcon:_centralIcon].bounds.origin.x));
             }
         }
@@ -863,7 +858,7 @@
         CGFloat *targetCoord, *currentCoord, *newCoord, *originalCoord;
         CGFloat moveDistance;
 
-        if (position == STKLayoutPositionTop || position == STKLayoutPositionBottom) {
+        if (STKLayoutPositionIsVertical(position)) {
             targetCoord = &(targetOrigin.y); 
             currentCoord = &(iconFrame.origin.y);
             newCoord = &(newFrame.origin.y);
@@ -976,6 +971,7 @@
 
     UIView *view = nil;
     if (HAS_FE) {
+        CLog(@"Has FE");
         view = [self _iconViewForIcon:_centralIcon].superview.superview.superview;
     }
     else {

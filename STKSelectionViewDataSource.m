@@ -34,7 +34,7 @@
 
     for (id ident in [model visibleIconIdentifiers]) {
         // Icons in a stack are removed from -[SBIconmodel visibleIconIdentifiers], we need to add those 
-        // Now we need to nemove the central and other icons with stacks
+        // Now we need to remove the central and other icons with stacks
         if (ICONID_HAS_STACK(ident) || [ident isEqualToString:_centralView.icon.leafIdentifier]) {
             continue;
         }
@@ -55,7 +55,7 @@
     STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
     [availableIcons addObject:ph];
 
-    SEL selector = @selector(displayName);
+    const SEL collationSelector = @selector(displayName);
     UILocalizedIndexedCollation *collation = [UILocalizedIndexedCollation currentCollation];
     NSInteger idx, sectionTitlesCount = [[collation sectionTitles] count];
 
@@ -64,7 +64,7 @@
     }
 
     for (SBIcon *icon in availableIcons) {
-        NSInteger sectionNumber = [collation sectionForObject:icon collationStringSelector:selector];
+        NSInteger sectionNumber = [collation sectionForObject:icon collationStringSelector:collationSelector];
         if (icon.isPlaceholder) {
             [[_sections objectAtIndex:0] insertObject:icon atIndex:0];
         }
@@ -75,7 +75,7 @@
 
     for (idx = 0; idx < sectionTitlesCount; idx++) {
         NSArray *objectsForSection = [_sections objectAtIndex:idx];
-        [_sections replaceObjectAtIndex:idx withObject:[collation sortedArrayFromArray:objectsForSection collationStringSelector:selector]];
+        [_sections replaceObjectAtIndex:idx withObject:[collation sortedArrayFromArray:objectsForSection collationStringSelector:collationSelector]];
     }
 }
 

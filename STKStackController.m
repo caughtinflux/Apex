@@ -160,9 +160,13 @@ static SEL __bottomGrabberKey;
     // Don't add a recognizer if it already exists
     if (!panRecognizer) {
         panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_panned:)] autorelease];
+        for (UIGestureRecognizer *recognizer in iconView.gestureRecognizers) {
+            if ([[recognizer class] isKindOfClass:[UISwipeGestureRecognizer class]]) {
+                [panRecognizer requireGestureRecognizerToFail:recognizer];
+            }
+        }
         [iconView addGestureRecognizer:panRecognizer];
         objc_setAssociatedObject(iconView, __recognizerKey, panRecognizer, OBJC_ASSOCIATION_ASSIGN);
-
         panRecognizer.delegate = self;
     }
 }
@@ -331,9 +335,9 @@ static SEL __bottomGrabberKey;
 #define kBandingFactor  0.1 // The factor by which the distance should be multiplied to simulate the rubber banding effect
 - (void)_panned:(UIPanGestureRecognizer *)sender
 {
-    static BOOL cancelledPanRecognizer = NO;
-    static BOOL hasVerticalIcons = NO;
-    static BOOL isUpwardSwipe = NO;
+    static BOOL cancelledPanRecognizer;
+    static BOOL hasVerticalIcons;
+    static BOOL isUpwardSwipe;
 
     SBIconView *iconView = (SBIconView *)sender.view;
     UIScrollView *view = (UIScrollView *)[STKListViewForIcon(iconView.icon) superview];
@@ -361,7 +365,7 @@ static SEL __bottomGrabberKey;
         if (isHorizontalSwipe || isUpwardSwipeInSwipeDownMode || isDownwardSwipeInSwipeUpMode) {
             cancelledPanRecognizer = YES;
             return;
-        }   
+        }
         if ([view isKindOfClass:[UIScrollView class]]) {
             // Turn off scrolling
             view.scrollEnabled = NO;
@@ -397,11 +401,12 @@ static SEL __bottomGrabberKey;
         [stack touchesDraggedForDistance:change];
         [sender setTranslation:CGPointZero inView:view];
     }
-    else {
-        if (cancelledPanRecognizer == NO && ![[CLASS(SBIconController) sharedInstance] hasOpenFolder]) {
+    else if (sender.state == UIGestureRecognizerStateEnded) {
+        if (cancelledPanRecognizer == NO) {
             [stack touchesEnded];
             self.activeStack = stack.isExpanded ? stack : nil;
         }
+
         cancelledPanRecognizer = NO;
         isUpwardSwipe = NO;
         hasVerticalIcons = NO;
@@ -415,7 +420,7 @@ static SEL __bottomGrabberKey;
 {
     return ((otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer) ||
             ([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]] && [otherGestureRecognizer.view.superview isKindOfClass:CLASS(FEGridFolderView)]) || 
-            ([otherGestureRecognizer isKindOfClass:[UISwipeGestureRecognizer class]]));
+            ([otherGestureRecognizer isKindOfClass:[UISwipeGestureRecognizer class]] && ![otherGestureRecognizer isKindOfClass:CLASS(FESwipeGestureRecognizer)]));
 
 }
 
