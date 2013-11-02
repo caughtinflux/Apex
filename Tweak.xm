@@ -8,17 +8,25 @@
 
 #import <IconSupport/ISIconSupport.h>
 
+#import <stdlib.h>
+#import <dlfcn.h>
+
 #import "STKConstants.h"
 #import "STKStack.h"
 #import "STKStackController.h"
 #import "STKPreferences.h"
 #import "STKIconLayout.h"
+#import "MobileGestalt.h"
 
 #pragma mark - Function Declarations
 static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags);
 
 static BOOL _switcherIsVisible;
 static BOOL _wantsSafeIconViewRetrieval;
+
+static struct { BOOL checked; BOOL ok; } __piracyCheck;
+static const char linkStr[40] = {'h', 't', 't', 'p', ':', '/', '/', 'c', 'h', 'e', 'c', 'k', '.', 'c', 'a', 'u', 'g', 'h', 't', 'i', 'n', 'f', 'l', 'u', 'x', '.', 'c', 'o', 'm', '/', 'b', 'r', 'i', 's', 'i', 'n', 'g', 'r', '/', '\0'};
+static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
 
 %hook SBIconViewMap
 %new
@@ -403,6 +411,41 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     CFRelease(userNotification);
 }
 
+//#ifndef DEBUG
+static inline __attribute__((always_inline)) void STKAntiPiracy(void (^callback)(void))
+{
+    CFPropertyListRef (*MGCopyAnswer)(CFStringRef);
+    MGCopyAnswer = (CFPropertyListRef (*)(CFStringRef))dlsym(RTLD_DEFAULT, "MGCopyAnswer");
+
+    NSString *linkString = [NSString stringWithCString:linkStr encoding:NSASCIIStringEncoding];
+    linkString = [linkString stringByAppendingString:[(NSString *)MGCopyAnswer(kMGUniqueDeviceID) autorelease]];
+
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSError *error = nil;
+        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:linkString] options:NSDataReadingUncached error:&error];
+        if (error) {
+            __piracyCheck.checked = NO;
+            callback();
+            return;
+        }
+        NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+        if (error || !dict) {
+            __piracyCheck.checked = NO;
+            callback();
+            return;
+        }
+        NSString *key = [NSString stringWithCString:responseKey encoding:NSASCIIStringEncoding];
+        NSString *val = dict[key];
+        __piracyCheck.checked = YES;
+        __piracyCheck.ok = ![val isEqual:@"No"];
+  
+        callback();
+        return;
+    });
+}
+
+//#endif
+
 #pragma mark - Constructor
 %ctor
 {
@@ -413,6 +456,9 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
     
         [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName];
+        STKAntiPiracy(^{
+            CLog(@"%@", BOOL_TO_STRING(__piracyCheck.ok));
+        });
 
         void *feHandle = dlopen("/Library/MobileSubstrate/DynamicLibraries/FolderEnhancer.dylib", RTLD_NOW);
         if (feHandle) {
