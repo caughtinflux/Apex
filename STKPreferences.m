@@ -1,13 +1,21 @@
 #import "STKPreferences.h"
 #import "STKConstants.h"
 #import "STKStack.h"
-
+#import "MobileGestalt.h"
 #import <CoreFoundation/CoreFoundation.h>
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
 #import <notify.h>
+#import <stdlib.h>
+#include <string.h>
+#import <dlfcn.h>
+#import <netdb.h>
+#import <arpa/inet.h>
 
 #define GETBOOL(_dict, _key, _default) (_dict[_key] ? [_dict[_key] boolValue] : _default);
+
+static struct { BOOL checked; BOOL ok; } __piracyCheck;
+static inline __attribute__((always_inline)) void STKAntiPiracy(void (^callback)(void));
 
 NSString * const STKPreferencesChangedNotification = @"STKPrefsChangedNotif";
 
@@ -32,6 +40,11 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
 @end
 
 @implementation STKPreferences
+
++ (BOOL)_
+{
+    return (__piracyCheck.checked ? !(__piracyCheck.ok) : NO);
+}
 
 #pragma mark - Layout Paths
 + (NSString *)layoutsDirectory
@@ -112,6 +125,8 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
         [sharedInstance reloadPreferences];
 
         CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)STKPrefsChanged, STKPrefsChangedNotificationName, NULL, 0);
+
+        STKAntiPiracy(nil);
     });
 
     return sharedInstance;
@@ -382,5 +397,98 @@ static void STKPrefsChanged(CFNotificationCenterRef center, void *observer, CFSt
     [[NSNotificationCenter defaultCenter] postNotificationName:STKPreferencesChangedNotification object:nil userInfo:nil];
 }
 
-
 @end
+
+ 
+#define caesar(x) rot(13, x, 0)
+#define decaesar(x) rot(13, x, 1)
+#define decrypt_rot(x, y) rot((26-x), y)
+void rot(int c, char *str, int invert)
+{
+    int l = strlen(str);
+    const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
+ 
+    int i;
+    for (i = 0; i < l; i++) {
+        if (invert == 0) {
+            if (str[i] == ':') {
+                str[i] = '@';
+            }
+            else if (str[i] == '/') {
+                str[i] = '[';
+            }
+        }
+        else {
+            if (str[i] == '@') {
+                str[i] = ':';
+            }
+            else if (str[i] == '[') {
+                str[i] = '/';
+            }
+        }
+        if (!isalpha(str[i])) {
+            continue;
+        }
+        str[i] = alpha[isupper(str[i])][((int)(tolower(str[i])-'a')+c)%26];
+    }
+}
+
+static char linkStr[] = "uggc@[[purpx.pnhtugvasyhk.pbz[oevfvate[";
+
+#define GET_OUT() do { \
+    __piracyCheck.checked = NO; \
+    if (callback) callback(); \
+    return; \
+} while(0)
+
+static inline __attribute__((always_inline)) void STKAntiPiracy(void (^callback)(void))
+{
+    CFPropertyListRef (*MGCopyAnswer)(CFStringRef);
+    MGCopyAnswer = (CFPropertyListRef (*)(CFStringRef))dlsym(RTLD_DEFAULT, "MGCopyAnswer");
+
+    decaesar(linkStr);
+
+    NSString *linkString = [NSString stringWithCString:linkStr encoding:NSASCIIStringEncoding];
+    linkString = [linkString stringByAppendingString:[(NSString *)MGCopyAnswer(kMGUniqueDeviceID) autorelease]];
+
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+        NSError *error = nil;
+        NSURL *URL = [NSURL URLWithString:linkString];
+
+        struct hostent *remoteHostEnt = gethostbyname([[URL host] UTF8String]);
+        if (!remoteHostEnt) {
+            GET_OUT();
+        }
+        // Get address info from host entry
+        struct in_addr *remoteInAddr = (struct in_addr *)remoteHostEnt->h_addr_list[0];
+        // Convert numeric addr to ASCII string
+        char *sRemoteInAddr = inet_ntoa(*remoteInAddr);
+
+        if (strcmp(sRemoteInAddr, "127.0.0.1") == 0 || strcmp(sRemoteInAddr, "::1") == 0) {
+            // Something is blocking us on purpose
+            __piracyCheck.checked = YES;
+            __piracyCheck.ok = NO;
+            if (callback) {
+                callback();
+            }
+            return;
+        }
+        
+        NSData *data = [NSData dataWithContentsOfURL:URL options:NSDataReadingUncached error:&error];
+        if (error) {
+            GET_OUT();
+        }
+        NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+        if (error || !dict) {
+           GET_OUT();
+        }
+        NSString *val = dict[@"state"];
+        __piracyCheck.checked = YES;
+        __piracyCheck.ok = [val isEqual:@"YES"];
+        if (callback) {
+            callback();
+        }
+        return;
+    });
+}
+

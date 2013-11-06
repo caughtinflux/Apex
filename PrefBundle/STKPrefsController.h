@@ -7,7 +7,7 @@
 #import "PrefsHelper.h"
 #import "STKProfileController.h"
 
-@interface STKPrefsController : PSListController <MFMailComposeViewControllerDelegate>
+@interface STKPrefsController : PSListController <MFMailComposeViewControllerDelegate, UIAlertViewDelegate>
 - (id)initForContentSize:(CGSize)size;
 - (id)navigationTitle;
 

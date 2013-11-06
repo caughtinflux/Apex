@@ -79,8 +79,6 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 - (void)_insertPlaceHolders;
 - (void)_removePlaceHolders;
 
-- (void)_showSelectionViewOnIconView:(SBIconView *)iconView;
-- (void)_hideActiveSelectionView;
 
 - (void)_addIcon:(SBIcon *)icon atIndex:(NSUInteger)idx position:(STKLayoutPosition)position;
 - (SBIcon *)_displacedIconAtPosition:(STKLayoutPosition)position intersectingAppearingIconView:(SBIconView *)iconView;

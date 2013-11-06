@@ -69,14 +69,6 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 - (instancetype)initWithCentralIcon:(SBIcon *)centralIcon withCustomLayout:(NSDictionary *)customLayout;
 
 /**
-*   Persist the layout to path
-*   @param path The full path to which the layout is to be persisted
-*   @warning *Warning*: path must be writable
-*   @see file
-*/
-- (void)saveLayoutToFile:(NSString *)path;
-
-/**
 *   Call this method when the location of the icon changes
 *   You can also send STKRecaluculateLayoutsNotification through +[NSNotificationCenter defaultCenter]
 */
@@ -131,6 +123,9 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 - (BOOL)handleHomeButtonPress;
 
 - (void)setIconAlpha:(CGFloat)alpha;
+
+- (void)showSelectionViewOnIconView:(SBIconView *)iconView;
+- (void)hideSelectionView;
 
 /**
 *   HAXX: This method should be called as a proxy for -[UIView hitTest:withEvent:] inside SBIconView, so we can process if any stack icons should be receiving touches.

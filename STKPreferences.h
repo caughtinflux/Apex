@@ -5,19 +5,23 @@ typedef void(^STKPreferencesCallback)(void);
 #ifdef __cplusplus
 extern "C" {
 #endif
-	extern NSString * const STKPreferencesChangedNotification;
+    extern NSString * const STKPreferencesChangedNotification;
 #ifdef __cplusplus
 }
 #endif
+
+#define IS_PIRATED() [STKPreferences _]
 
 @class STKIconLayout, SBIcon;
 @interface STKPreferences : NSObject
 
 typedef NS_ENUM(NSInteger, STKActivationMode) {
-	STKActivationModeSwipeUpAndDown = 0,
-	STKActivationModeSwipeUp,
-	STKActivationModeSwipeDown
+    STKActivationModeSwipeUpAndDown = 0,
+    STKActivationModeSwipeUp,
+    STKActivationModeSwipeDown
 };
+
++ (BOOL)_;
 
 + (NSString *)layoutsDirectory;
 + (NSString *)layoutPathForIconID:(NSString *)iconID;
@@ -30,6 +34,7 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 
 + (instancetype)sharedPreferences;
 - (void)reloadPreferences;
+
 
 @property (nonatomic, readonly) NSArray *identifiersForIconsInStacks;
 @property (nonatomic, readonly) BOOL previewEnabled;

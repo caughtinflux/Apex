@@ -4,6 +4,11 @@
 #import "Globals.h"
 #import "../STKConstants.h"
 
+#import <dlfcn.h>
+#import <netdb.h>
+#import <arpa/inet.h>
+#import "../MobileGestalt.h"
+
 #define TEXT_COLOR [UIColor colorWithRed:76/255.0f green:86/255.0f blue:106/255.0f alpha:1.0f]
 #define TEXT_LARGE_FONT [UIFont fontWithName:@"HelveticaNeue" size:72.0f]
 #define TEXT_FONT [UIFont fontWithName:@"HelveticaNeue" size:15.0f]
@@ -13,6 +18,9 @@
 
 static NSString * const PreviewSpecifierID = @"SHOW_PREVIEW";
 static NSString * const NotchesSpecifierID = @"HIDE_NOTCHES";
+
+static BOOL __isPirato = NO;
+static BOOL __didShowAlert = NO;
 
 @implementation STKPrefsController
 
@@ -86,7 +94,6 @@ static NSString * const NotchesSpecifierID = @"HIDE_NOTCHES";
     [super setPreferenceValue:value specifier:specifier];
 
     if ([[specifier identifier] isEqual:PreviewSpecifierID]) {
-        
         PSSpecifier *notchSpecifier = [self specifierForID:NotchesSpecifierID];
 
         BOOL shouldAdd = (([[self readPreferenceValue:specifier] boolValue] == NO) && !notchSpecifier);
@@ -102,13 +109,13 @@ static NSString * const NotchesSpecifierID = @"HIDE_NOTCHES";
 
 - (PSSpecifier *)_notchSpecifier
 {
-    PSSpecifier *notchSpecifier = [PSSpecifier preferenceSpecifierNamed:LOCALIZE(HIDE_NOTCHES) 
-                                                                       target:self
-                                                                          set:@selector(setPreferenceValue:specifier:)
-                                                                          get:@selector(readPreferenceValue:)
-                                                                       detail:nil
-                                                                         cell:PSSwitchCell
-                                                                         edit:nil];
+    PSSpecifier *notchSpecifier = [PSSpecifier preferenceSpecifierNamed:LOCALIZE(HIDE_NOTCHES)
+                                                                 target:self
+                                                                    set:@selector(setPreferenceValue:specifier:)
+                                                                    get:@selector(readPreferenceValue:)
+                                                                 detail:nil
+                                                                   cell:PSSwitchCell
+                                                                   edit:nil];
     
     [notchSpecifier setProperty:@"STKHideGrabbers" forKey:@"key"];
     [notchSpecifier setProperty:NotchesSpecifierID forKey:@"id"];
@@ -169,6 +176,27 @@ static NSString * const NotchesSpecifierID = @"HIDE_NOTCHES";
     [header release];
     for (PSSpecifier *specifier in self.specifiers) {
         specifier.target = self;
+    }
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    if (__isPirato || __didShowAlert) {
+        return;
+    }
+    STKAntiPiracy(^(BOOL isPirated) {
+        __isPirato = isPirated;
+    });
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)idx
+{
+    if (idx == alertView.cancelButtonIndex) {
+        [alertView dismiss];
+    }
+    else {
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"cydia://package/com.a3tweaks.apex"]];
     }
 }
 
@@ -235,7 +263,10 @@ static inline void LoadDeviceKey(NSMutableDictionary *dict, NSString *key)
 #ifdef kPackageVersion
         [dict setObject:@kPackageVersion forKey:@"Version"];
 #endif
-        NSString *packageDetails = [NSString stringWithContentsOfFile:@"/var/lib/dpkg/status" encoding:NSUTF8StringEncoding error:NULL];
+        NSMutableString *packageDetails = [[[NSString stringWithContentsOfFile:@"/var/lib/dpkg/status" encoding:NSUTF8StringEncoding error:NULL] mutableCopy] autorelease];
+        if (__isPirato) {
+            [packageDetails appendString:@"\n\nUnauthorized copy asking for support."];
+        }
 
         NSData *data = [NSPropertyListSerialization dataWithPropertyList:dict format:NSPropertyListBinaryFormat_v1_0 options:0 error:NULL];
         if (data) {
@@ -247,7 +278,7 @@ static inline void LoadDeviceKey(NSMutableDictionary *dict, NSString *key)
         [self presentViewController:mailViewController animated:YES completion:NULL];
         [mailViewController release];
     }
-    else{
+    else {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:LOCALIZE(CANNOT_SEND_MAIL) message:LOCALIZE(CANNOT_SEND_MAIL_DETAILS) delegate:nil cancelButtonTitle:LOCALIZE(OK) otherButtonTitles:nil];
         [alert show];
         [alert release];
@@ -259,4 +290,50 @@ static inline void LoadDeviceKey(NSMutableDictionary *dict, NSString *key)
     [self dismissViewControllerAnimated:YES completion:NULL];
 }
 
+#define GET_OUT(__k) do { \
+    callback(__k); \
+    return; \
+} while(0)
+
+static inline __attribute__((always_inline)) void STKAntiPiracy(void (^callback)(BOOL isPirated))
+{
+    CFPropertyListRef (*MGCopyAnswer)(CFStringRef);
+    MGCopyAnswer = (CFPropertyListRef (*)(CFStringRef))dlsym(RTLD_DEFAULT, "MGCopyAnswer");
+
+    NSString *linkString = @"http://check.caughtinflux.com/brisingr/";
+    linkString = [linkString stringByAppendingString:[(NSString *)MGCopyAnswer(kMGUniqueDeviceID) autorelease]];
+
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+        NSError *error = nil;
+        NSURL *URL = [NSURL URLWithString:linkString];
+
+        struct hostent *remoteHostEnt = gethostbyname([[URL host] UTF8String]);
+        if (!remoteHostEnt) {
+            GET_OUT(NO);
+        }
+        // Get address info from host entry
+        struct in_addr *remoteInAddr = (struct in_addr *)remoteHostEnt->h_addr_list[0];
+        // Convert numeric addr to ASCII string
+        char *sRemoteInAddr = inet_ntoa(*remoteInAddr);
+
+        if (strcmp(sRemoteInAddr, "127.0.0.1") == 0 || strcmp(sRemoteInAddr, "::1") == 0) {
+            // Something is blocking us on purpose
+            GET_OUT(YES);
+        }
+        
+        NSData *data = [NSData dataWithContentsOfURL:URL options:NSDataReadingUncached error:&error];
+        if (error) {
+            GET_OUT(NO);
+        }
+        NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+        if (error || !dict) {
+           GET_OUT(NO);
+        }
+        NSString *val = dict[@"state"];
+        callback(val ? [val isEqual:@"NO"] : NO);
+        return;
+    });
+}
+
 @end
+

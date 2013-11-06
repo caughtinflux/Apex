@@ -2,14 +2,10 @@
 #import <UIKit/UIKit.h>
 
 #import <SpringBoard/SpringBoard.h>
-
 #import <Search/SPSearchResultSection.h>
 #import <Search/SPSearchResult.h>
 
 #import <IconSupport/ISIconSupport.h>
-
-#import <stdlib.h>
-#import <dlfcn.h>
 
 #import "STKConstants.h"
 #import "STKStack.h"
@@ -23,10 +19,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 static BOOL _switcherIsVisible;
 static BOOL _wantsSafeIconViewRetrieval;
-
-static struct { BOOL checked; BOOL ok; } __piracyCheck;
-static const char linkStr[40] = {'h', 't', 't', 'p', ':', '/', '/', 'c', 'h', 'e', 'c', 'k', '.', 'c', 'a', 'u', 'g', 'h', 't', 'i', 'n', 'f', 'l', 'u', 'x', '.', 'c', 'o', 'm', '/', 'b', 'r', 'i', 's', 'i', 'n', 'g', 'r', '/', '\0'};
-static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
 
 %hook SBIconViewMap
 %new
@@ -72,7 +64,6 @@ static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
 - (void)setIcon:(SBIcon *)icon
 {   
     %orig();
-    
     if (!icon && [[STKStackController sharedInstance] stackForIconView:self]) {
        [[STKStackController sharedInstance] removeStackFromIconView:self];
     }
@@ -82,7 +73,6 @@ static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
 - (void)setLocation:(SBIconViewLocation)loc
 {
     %orig();
-
     if (!_wantsSafeIconViewRetrieval) {
         [[STKStackController sharedInstance] createOrRemoveStackForIconView:self];
     }
@@ -136,7 +126,6 @@ static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
 { 
     [[STKStackController sharedInstance] removeStackFromIconView:[[%c(SBIconViewMap) homescreenMap] iconViewForIcon:recipient]];
     [[STKStackController sharedInstance] removeStackFromIconView:[[%c(SBIconViewMap) homescreenMap] iconViewForIcon:grabbed]];
-    
     return %orig();
 }
 
@@ -158,11 +147,9 @@ static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
 {
     BOOL didChange = !(self.isEditing == isEditing);
     %orig(isEditing);
-    
     if (!didChange) {
         return;
     }
-
     void (^editHandler)(SBIconView *iconView) = ^(SBIconView *iv) {
         if (isEditing) {
             [[STKStackController sharedInstance] removeRecognizerFromIconView:iv];
@@ -173,7 +160,6 @@ static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
                 iv.location = iv.location;
                 return;
             }
-
             [[STKStackController sharedInstance] addRecognizerToIconView:iv];
             [stack recalculateLayouts];
         }
@@ -181,27 +167,22 @@ static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
     for (SBIconListView *lv in [self valueForKey:@"_rootIconLists"]) {
         [lv makeIconViewsPerformBlock:^(SBIconView *iv) { editHandler(iv); }];
     }
-
     SBIconListView *folderListView = (SBIconListView *)[[%c(SBIconController) sharedInstance] currentFolderIconList];
     if ([folderListView isKindOfClass:objc_getClass("FEIconListView")]) {
         // FolderEnhancer exists, so process the icons inside folders.
         [folderListView makeIconViewsPerformBlock:^(SBIconView *iv) { editHandler(iv); }];
     }
-    
 }
 
 // Ghost all the other stacks' sub-apps when the list view is being ghosted
 - (void)setCurrentPageIconsPartialGhostly:(CGFloat)value forRequester:(NSInteger)requester skipIcon:(SBIcon *)icon
 {
     %orig(value, requester, icon);
-
     SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
-
     [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
         if (iconView.icon == icon || iconView.icon == [[STKStackController sharedInstance].activeStack centralIcon]) {
             return;
         }
-
         STKStack *stack = [[STKStackController sharedInstance] stackForIconView:iconView];
         [stack setIconAlpha:value];
     }];
@@ -213,12 +194,10 @@ static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
 
     SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
     NSNumber *ghostedRequesters = [self valueForKey:@"_ghostedRequesters"];
-
     [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
         if (iconView.icon == icon || iconView.icon == [[STKStackController sharedInstance].activeStack centralIcon]) {
             return;
         }
-        
         STKStack *iconViewStack = [[STKStackController sharedInstance] stackForIconView:iconView];
         if ([ghostedRequesters integerValue] > 0 || shouldGhost) {
             // ignore  `shouldGhost` if ghostedRequesters > 0
@@ -247,17 +226,14 @@ static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
     // Picked this one up from https://github.com/big-boss/Libhide/blob/master/dylib/classes/iconhide.xm#L220
     BOOL isInSpotlight = [((SBIconController *)[%c(SBIconController) sharedInstance]).searchController.searchView isKeyboardVisible];
     BOOL switcherIsHidden = !(_switcherIsVisible || [[%c(SBUIController) sharedInstance] isSwitcherShowing]);
-    
     if (switcherIsHidden && !isInSpotlight) {
         if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
             isVisible = NO;
         }
-    
     }
     return isVisible;
 }
 %end
-
 
 #pragma mark - SBUIController Hook
 %hook SBUIController
@@ -283,13 +259,12 @@ static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
     }
 
     _switcherIsVisible = YES;
-
     SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
+    
     NSSet *&visibleIconTags = MSHookIvar<NSSet *>(model, "_visibleIconTags");
     NSSet *&hiddenIconTags = MSHookIvar<NSSet *>(model, "_hiddenIconTags");
-
     [model setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
-    
+
     return %orig(animationDuration);
 }
 
@@ -304,7 +279,6 @@ static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
     _switcherIsVisible = NO;
     %orig();
 }
-
 %end
 
 %hook SBAppSwitcherController
@@ -373,7 +347,6 @@ static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
     _switcherIsVisible = NO;
     %orig();
 }
-
 %end
 %end
 
@@ -384,9 +357,9 @@ static const char responseKey[6] = {'s', 't', 'a', 't', 'e', '\0'};
     %orig;
 
     if (![STKPreferences sharedPreferences].welcomeAlertShown) {
-        NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey: @"Apex",
-                                 (id)kCFUserNotificationAlertMessageKey: @"Thanks for purchasing!\nSwipe down on any app icon and tap the \"+\" to get started.",
-                                 (id)kCFUserNotificationDefaultButtonTitleKey: @"OK",
+        NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey         : @"Apex",
+                                 (id)kCFUserNotificationAlertMessageKey        : @"Thanks for purchasing!\nSwipe down on any app icon and tap the \"+\" to get started.",
+                                 (id)kCFUserNotificationDefaultButtonTitleKey  : @"OK",
                                  (id)kCFUserNotificationAlternateButtonTitleKey: @"Settings"};
 
         SInt32 error = 0;
@@ -411,60 +384,21 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     CFRelease(userNotification);
 }
 
-//#ifndef DEBUG
-static inline __attribute__((always_inline)) void STKAntiPiracy(void (^callback)(void))
-{
-    CFPropertyListRef (*MGCopyAnswer)(CFStringRef);
-    MGCopyAnswer = (CFPropertyListRef (*)(CFStringRef))dlsym(RTLD_DEFAULT, "MGCopyAnswer");
-
-    NSString *linkString = [NSString stringWithCString:linkStr encoding:NSASCIIStringEncoding];
-    linkString = [linkString stringByAppendingString:[(NSString *)MGCopyAnswer(kMGUniqueDeviceID) autorelease]];
-
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSError *error = nil;
-        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:linkString] options:NSDataReadingUncached error:&error];
-        if (error) {
-            __piracyCheck.checked = NO;
-            callback();
-            return;
-        }
-        NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-        if (error || !dict) {
-            __piracyCheck.checked = NO;
-            callback();
-            return;
-        }
-        NSString *key = [NSString stringWithCString:responseKey encoding:NSASCIIStringEncoding];
-        NSString *val = dict[key];
-        __piracyCheck.checked = YES;
-        __piracyCheck.ok = ![val isEqual:@"No"];
-  
-        callback();
-        return;
-    });
-}
-
-//#endif
-
 #pragma mark - Constructor
 %ctor
 {
     @autoreleasepool {
         STKLog(@"Initializing");
+
         %init();
-        
+
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
-    
         [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName];
-        STKAntiPiracy(^{
-            CLog(@"%@", BOOL_TO_STRING(__piracyCheck.ok));
-        });
 
         void *feHandle = dlopen("/Library/MobileSubstrate/DynamicLibraries/FolderEnhancer.dylib", RTLD_NOW);
         if (feHandle) {
             %init(FECompat);
         }
-
         void *zephyrHandle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Zephyr.dylib", RTLD_NOW);
         if (zephyrHandle) {
             %init(ZephyrCompat);

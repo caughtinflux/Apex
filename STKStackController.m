@@ -12,21 +12,24 @@
 
 #define ICONVIEW(_icon) [[CLASS(SBIconViewMap) homescreenMap] mappedIconViewForIcon:_icon]
 
+static SEL __stackKey;
+static SEL __recognizerKey;
+static SEL __topGrabberKey;
+static SEL __bottomGrabberKey;
+
+static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags);
+
 @interface STKStackController ()
 {
     NSMutableArray *_iconsToShow;
     NSMutableArray *_iconsToHide;
 }
+- (void)_removeStackIconsFromStackBecauseImALazyAssWhoNeverAddedDockSupport:(STKStack *)stack;
 - (NSMutableArray *)_iconsToShowOnClose;
 - (NSMutableArray *)_iconsToHideOnClose;
 - (void)_processIconsPostStackClose;
 - (void)_panned:(UIPanGestureRecognizer *)recognizer;
 @end
-
-static SEL __stackKey;
-static SEL __recognizerKey;
-static SEL __topGrabberKey;
-static SEL __bottomGrabberKey;
 
 @implementation STKStackController
 
@@ -54,6 +57,10 @@ static SEL __bottomGrabberKey;
     UIView *superview = iconView.superview;
     BOOL isInInfinifolder = ([superview isKindOfClass:[UIScrollView class]] && [superview.superview isKindOfClass:CLASS(SBFolderIconListView)]);
 
+    if ([self stackForIconView:iconView]) {
+        return;
+    }
+
     if (!icon ||
         iconView.location != SBIconViewLocationHomeScreen || !superview || [superview isKindOfClass:CLASS(SBFolderIconListView)] || isInInfinifolder || 
         [iconView isInDock] || [[CLASS(SBIconController) sharedInstance] grabbedIcon] == icon ||
@@ -74,7 +81,6 @@ static SEL __bottomGrabberKey;
     if (iconView.icon == self.activeStack.centralIcon) {
         return;
     }
-
     // Don't add a recognizer if icons are being edited
     if (![[CLASS(SBIconController) sharedInstance] isEditing]) {
         [self addRecognizerToIconView:iconView];
@@ -89,13 +95,13 @@ static SEL __bottomGrabberKey;
             if (cachedLayout) {
                 stack = [[STKStack alloc] initWithCentralIcon:iconView.icon withCustomLayout:cachedLayout];
                 if (stack.layoutDiffersFromFile) {
-                    [stack saveLayoutToFile:layoutPath];
+                    [STKPreferences saveLayout:stack.appearingIconsLayout forIcon:stack.centralIcon];
                 }
             }
             else {
                 stack = [[STKStack alloc] initWithContentsOfFile:layoutPath];
                 if (stack.layoutDiffersFromFile) {
-                    [stack saveLayoutToFile:layoutPath];
+                    [STKPreferences saveLayout:stack.appearingIconsLayout forIcon:stack.centralIcon];
                 }
                 else if (!stack) {
                     // Control should not get here, since
@@ -103,7 +109,7 @@ static SEL __bottomGrabberKey;
                     NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
                     stack = [[STKStack alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
                     if (![stack isEmpty]) {
-                        [stack saveLayoutToFile:layoutPath];
+                        [STKPreferences saveLayout:stack.appearingIconsLayout forIcon:stack.centralIcon];
                     }
                 }
             }              
@@ -280,6 +286,16 @@ static SEL __bottomGrabberKey;
     _iconsToHide = nil;
 }
 
+- (void)_removeStackIconsFromStackBecauseImALazyAssWhoNeverAddedDockSupport:(STKStack *)stack
+{
+    NSArray *iconsThatWereInStack = [[stack appearingIconsLayout] allIcons];
+    [[STKPreferences sharedPreferences] removeLayoutForIcon:stack.centralIcon];
+    [self removeStackFromIconView:[[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:stack.centralIcon]];
+    [[self _iconsToShowOnClose] addObjectsFromArray:iconsThatWereInStack];
+    [self _processIconsPostStackClose];
+
+}
+
 #pragma mark - Prefs Update
 - (void)_prefsChanged:(NSNotification *)notification
 {
@@ -289,12 +305,10 @@ static SEL __bottomGrabberKey;
         if (!iconView) {
             return;
         }
-        
         STKStack *stack = [self stackForIconView:iconView];
         if (!stack) {
             return;
         }
-
         if (!stack.isEmpty) {
             if (previewEnabled || [STKPreferences sharedPreferences].shouldHideGrabbers) { // Removal of grabber images will be the same in either case 
                 if (previewEnabled) {
@@ -316,14 +330,11 @@ static SEL __bottomGrabberKey;
                 stack.bottomGrabberView = grabberViews[1];
             }
         }
-
         stack.showsPreview = previewEnabled;
     };
-
     for (SBIconListView *listView in [[CLASS(SBIconController) sharedInstance] valueForKey:@"_rootIconLists"]){
         [listView makeIconViewsPerformBlock:^(SBIconView *iconView) { aBlock(iconView); }];
     }
-
     SBIconListView *folderListView = (SBIconListView *)[[CLASS(SBIconController) sharedInstance] currentFolderIconList];
     if ([folderListView isKindOfClass:CLASS(FEIconListView)]) {
         [folderListView makeIconViewsPerformBlock:^(SBIconView *iv) { aBlock(iv); }];
@@ -349,69 +360,75 @@ static SEL __bottomGrabberKey;
         [self removeStackFromIconView:iconView];
         return;
     }
+
     if (stack.isExpanded || (activeStack != nil && activeStack != stack)) {
         cancelledPanRecognizer = YES;
         return;
     }
-    if (sender.state == UIGestureRecognizerStateBegan) {        
-        CGPoint translation = [sender translationInView:view];
-        isUpwardSwipe = ([sender velocityInView:view].y < 0);
-        
-        BOOL isHorizontalSwipe = !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0);
+    switch (sender.state) {
+        case UIGestureRecognizerStateBegan: {
+            CGPoint translation = [sender translationInView:view];
+            isUpwardSwipe = ([sender velocityInView:view].y < 0);
+            BOOL isHorizontalSwipe = !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0);
 
-        BOOL isUpwardSwipeInSwipeDownMode = (([STKPreferences sharedPreferences].activationMode == STKActivationModeSwipeDown) && isUpwardSwipe);
-        BOOL isDownwardSwipeInSwipeUpMode = (([STKPreferences sharedPreferences].activationMode == STKActivationModeSwipeUp) && !isUpwardSwipe);
-        
-        if (isHorizontalSwipe || isUpwardSwipeInSwipeDownMode || isDownwardSwipeInSwipeUpMode) {
-            cancelledPanRecognizer = YES;
-            return;
-        }
-        if ([view isKindOfClass:[UIScrollView class]]) {
-            // Turn off scrolling
-            view.scrollEnabled = NO;
-        }
-        // Update the target distance based on icons positions when the pan begins
-        // This way, we can be sure that the icons are indeed in the required location 
-        STKUpdateTargetDistanceInListView(STKListViewForIcon(iconView.icon));
-        [stack setupViewIfNecessary];
+            BOOL isUpwardSwipeInSwipeDownMode = (([STKPreferences sharedPreferences].activationMode == STKActivationModeSwipeDown) && isUpwardSwipe);
+            BOOL isDownwardSwipeInSwipeUpMode = (([STKPreferences sharedPreferences].activationMode == STKActivationModeSwipeUp) && !isUpwardSwipe);
+            
+            if (isHorizontalSwipe || isUpwardSwipeInSwipeDownMode || isDownwardSwipeInSwipeUpMode) {
+                cancelledPanRecognizer = YES;
+                return;
+            }
+            if ([view isKindOfClass:[UIScrollView class]]) {
+                // Turn off scrolling
+                view.scrollEnabled = NO;
+            }
+            // Update the target distance based on icons positions when the pan begins
+            // This way, we can be sure that the icons are indeed in the required location 
+            STKUpdateTargetDistanceInListView(STKListViewForIcon(iconView.icon));
+            [stack setupViewIfNecessary];
 
-        self.activeStack = stack;
-        [stack touchesBegan];
+            self.activeStack = stack;
+            [stack touchesBegan];
 
-        hasVerticalIcons = ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
-    }
-    else if (sender.state == UIGestureRecognizerStateChanged) {        
-        if (view.isDragging || cancelledPanRecognizer) {
-            cancelledPanRecognizer = YES;
-            return;
+            hasVerticalIcons = ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
+            break;
         }
-        CGFloat change = [sender translationInView:view].y;
-        if (isUpwardSwipe) {
-            change = -change;
+        case UIGestureRecognizerStateChanged: {
+            if (view.isDragging || cancelledPanRecognizer) {
+                cancelledPanRecognizer = YES;
+                return;
+            }
+            CGFloat change = [sender translationInView:view].y;
+            if (isUpwardSwipe) {
+                change = -change;
+            }
+            CGFloat targetDistance = STKGetCurrentTargetDistance();
+            if (!hasVerticalIcons) {
+                targetDistance *= stack.distanceRatio;
+            }
+            if ((change > 0) && (stack.currentIconDistance >= targetDistance)) {
+                // Factor this down to simulate elasticity when the icons have reached their target locations
+                // The stack allows the icons to go beyond their targets for a little distance
+                change *= kBandingFactor;
+            }
+            [stack touchesDraggedForDistance:change];
+            [sender setTranslation:CGPointZero inView:view];
+            break;
         }
-        CGFloat targetDistance = STKGetCurrentTargetDistance();
-        if (!hasVerticalIcons) {
-            targetDistance *= stack.distanceRatio;
+        case UIGestureRecognizerStateEnded: {
+            if (cancelledPanRecognizer == NO) {
+                [stack touchesEnded];
+                self.activeStack = stack.isExpanded ? stack : nil;
+            }
+            // NOTE THE LACK OF A break;
         }
-        if ((change > 0) && (stack.currentIconDistance >= targetDistance)) {
-            // Factor this down to simulate elasticity when the icons have reached their target locations
-            // The stack allows the icons to go beyond their targets for a little distance
-            change *= kBandingFactor;
+        default: {
+            cancelledPanRecognizer = NO; 
+            isUpwardSwipe = NO; 
+            hasVerticalIcons = NO; 
+            view.scrollEnabled = YES; 
+            break;
         }
-        [stack touchesDraggedForDistance:change];
-        [sender setTranslation:CGPointZero inView:view];
-    }
-    else if (sender.state == UIGestureRecognizerStateEnded) {
-        if (cancelledPanRecognizer == NO) {
-            [stack touchesEnded];
-            self.activeStack = stack.isExpanded ? stack : nil;
-        }
-
-        cancelledPanRecognizer = NO;
-        isUpwardSwipe = NO;
-        hasVerticalIcons = NO;
-
-        view.scrollEnabled = YES;
     }
 }
 
@@ -430,10 +447,8 @@ static SEL __bottomGrabberKey;
     if ([superviewClass isKindOfClass:[CLASS(SBDockIconListView) class]]) {
         return NO;
     }
-
     return YES;
 }
-
 
 #pragma mark - Stack Delegate
 - (void)stack:(STKStack *)stack didReceiveTapOnIconView:(SBIconView *)iconView
@@ -442,6 +457,28 @@ static SEL __bottomGrabberKey;
     if ([[STKPreferences sharedPreferences] shouldCloseOnLaunch]) {
         [stack close];
         self.activeStack = nil;
+    }
+}
+
+- (void)stack:(STKStack *)stack didReceiveTapOnPlaceholderIconView:(SBIconView *)iconView
+{
+    if (IS_PIRATED() && [[STKPreferences sharedPreferences] identifiersForIconsWithStack].count > 3 && stack.isEmpty) {
+        NSUInteger count = [[STKPreferences sharedPreferences] identifiersForIconsWithStack].count;
+        if (count > 3) {
+            NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey         : @"Apex",
+                                     (id)kCFUserNotificationAlertMessageKey        : @"You seem to be using an unofficial copy of Apex (╯°□°）╯︵ ┻━┻.\nPlease purchase it from Cydia to use more than three stacks, and to receive support.",
+                                     (id)kCFUserNotificationDefaultButtonTitleKey  : @"Open Cydia",
+                                     (id)kCFUserNotificationAlternateButtonTitleKey: @"Dismiss"};
+
+            SInt32 error = 0;
+            CFUserNotificationRef notificationRef = CFUserNotificationCreate(kCFAllocatorDefault, 0, kCFUserNotificationNoteAlertLevel, &error, (CFDictionaryRef)fields);
+            CFRunLoopSourceRef runLoopSource = CFUserNotificationCreateRunLoopSource(kCFAllocatorDefault, notificationRef, STKPiratedAlertCallback, 0);
+            CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, kCFRunLoopCommonModes);
+            CFRelease(runLoopSource);
+        }
+    }
+    else {
+        [stack showSelectionViewOnIconView:iconView];
     }
 }
 
@@ -486,7 +523,7 @@ static SEL __bottomGrabberKey;
                         ICONVIEW(otherStack.centralIcon).transform = CGAffineTransformMakeScale(1.f, 1.f);
                     }
                     else {
-                        [otherStack saveLayoutToFile:[STKPreferences layoutPathForIcon:otherStack.centralIcon]];
+                        [STKPreferences saveLayout:otherStack.appearingIconsLayout forIcon:otherStack.centralIcon];
                     }
                 }
                 else {
@@ -510,9 +547,7 @@ static SEL __bottomGrabberKey;
         if (!stack.showsPreview) {
             [self addGrabbersToIconView:ICONVIEW(stack.centralIcon)];
         }
-
-        NSString *layoutPath = [STKPreferences layoutPathForIcon:stack.centralIcon];
-        [stack saveLayoutToFile:layoutPath];
+        [STKPreferences saveLayout:stack.appearingIconsLayout forIcon:stack.centralIcon];
     }
 
     [[STKPreferences sharedPreferences] reloadPreferences];
@@ -523,6 +558,15 @@ static SEL __bottomGrabberKey;
     if (removedIcon && !ICON_IS_IN_STACK(removedIcon)) {
         [[self _iconsToShowOnClose] addObject:removedIcon];
     }
+}
+
+static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags)
+{
+    if ((responseFlags & 0x3) == kCFUserNotificationDefaultResponse) {
+        // Open settings to custom bundle
+        [(SpringBoard *)[UIApplication sharedApplication] applicationOpenURL:[NSURL URLWithString:@"cydia://package/com.a3tweaks.apex"] publicURLsOnly:NO];
+    }
+    CFRelease(userNotification);
 }
 
 @end

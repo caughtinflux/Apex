@@ -152,7 +152,7 @@ NSString * const STKRightIconsKey = @"RightIcons";
 - (NSArray *)allIcons
 {
     if (!_hasBeenModified && _allIcons) {
-        return _allIcons;
+        goto ret;
     }
 
     [_allIcons release];
@@ -163,8 +163,9 @@ NSString * const STKRightIconsKey = @"RightIcons";
     for (STKLayoutPosition i = 1; i <= 4; i++) {
         [(NSMutableArray *)_allIcons addObjectsFromArray:[self iconsForPosition:i]];
     }
-
-    return _allIcons;
+    
+ret:
+    return [[_allIcons copy] autorelease];
 }
 
 - (NSUInteger)totalIconCount

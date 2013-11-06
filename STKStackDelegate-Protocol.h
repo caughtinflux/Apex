@@ -9,6 +9,7 @@
 @optional
 - (void)stack:(STKStack *)stack didReceiveTapOnIconView:(SBIconView *)iconView;
 - (void)stackClosedByGesture:(STKStack *)stack;
+- (void)stack:(STKStack *)stack didReceiveTapOnPlaceholderIconView:(SBIconView *)iconView;
 
 @required
 /**

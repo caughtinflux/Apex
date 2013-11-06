@@ -229,27 +229,6 @@
     return nil;
 }
 
-- (void)saveLayoutToFile:(NSString *)file
-{
-    if (_isEmpty || !file) {
-        return;
-    }
-
-    @synchronized(self) {
-        NSMutableDictionary *dictionaryRepresentation = [[[_appearingIconsLayout dictionaryRepresentation] mutableCopy] autorelease];
-        dictionaryRepresentation[@"xPos"] = [NSNumber numberWithInteger:_iconCoordinates.xPos];
-        dictionaryRepresentation[@"yPos"] = [NSNumber numberWithInteger:_iconCoordinates.yPos];
-
-        NSDictionary *fileDict = @{ STKStackManagerCentralIconKey  : _centralIcon.leafIdentifier,
-                                    STKStackManagerStackIconsKey   : [[_appearingIconsLayout allIcons] valueForKeyPath:@"leafIdentifier"],
-                                    STKStackManagerCustomLayoutKey : dictionaryRepresentation};
-
-        [fileDict writeToFile:file atomically:YES];
-
-        _layoutDiffersFromFile = NO;
-    }
-}
-
 - (void)recalculateLayouts
 {
     NSArray *stackIcons = [_appearingIconsLayout allIcons];
@@ -539,7 +518,7 @@
 {
     BOOL didIntercept = NO;
     if (_currentSelectionView) {
-        [self _hideActiveSelectionView];
+        [self hideSelectionView];
         didIntercept = YES;
     }
     else if (_isEditing) {
@@ -561,7 +540,7 @@
         [self _insertPlaceHolders];
     }
     else {
-        [self _hideActiveSelectionView];
+        [self hideSelectionView];
         [self _removeOverlays];
         [self _removePlaceHolders];
     }
@@ -1403,7 +1382,7 @@
     }]; 
 }
 
-- (void)_showSelectionViewOnIconView:(SBIconView *)iconView
+- (void)showSelectionViewOnIconView:(SBIconView *)iconView
 {
     if (_currentSelectionView) {
         return;
@@ -1449,7 +1428,7 @@
     }];
 }
 
-- (void)_hideActiveSelectionView
+- (void)hideSelectionView
 {
     if (!_currentSelectionView || _isClosingSelectionView) {
         return;
@@ -1496,12 +1475,12 @@
 
 - (void)closeButtonTappedOnSelectionView:(STKSelectionView *)selectionView
 {
-    [self _hideActiveSelectionView];
+    [self hideSelectionView];
 }
 
 - (void)userTappedHighlightedIconInSelectionView:(STKSelectionView *)selectionView;
 {
-    [self _hideActiveSelectionView];
+    [self hideSelectionView];
 }
 
 - (void)_addIcon:(SBIcon *)iconToAdd atIndex:(NSUInteger)idx position:(STKLayoutPosition)addPosition
@@ -1645,22 +1624,20 @@
     if (!iconView.userInteractionEnabled || [iconView isGhostly]) {
         return;
     }
-
     if (_longPressed) {
         _longPressed = NO;
         return;
     }
-
     if (![iconView.icon.leafIdentifier isEqual:_centralIcon.leafIdentifier] && (_isEditing || [iconView.icon.leafIdentifier isEqualToString:STKPlaceHolderIconIdentifier])) {
-        [self _showSelectionViewOnIconView:iconView];
+        if ([self.delegate respondsToSelector:@selector(stack:didReceiveTapOnPlaceholderIconView:)]) {
+            [self.delegate stack:self didReceiveTapOnPlaceholderIconView:iconView];
+        }
         return;
     }
-
     if (_isEditing) {
         self.isEditing = NO;
         return;
     }
-
     [iconView setHighlighted:YES delayUnhighlight:YES];
     if ([self.delegate respondsToSelector:@selector(stack:didReceiveTapOnIconView:)]) {
         [self.delegate stack:self didReceiveTapOnIconView:iconView];

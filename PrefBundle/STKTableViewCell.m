@@ -76,7 +76,7 @@ static inline CGRect CGRectRound(CGFloat x, CGFloat y, CGFloat width, CGFloat he
     
     profileView.frame = CGRectRound(PADDING, SELF_HEIGHT / 2.0f - (PROFILE_SIZE / 2.0f), PROFILE_SIZE, PROFILE_SIZE);
     birdView.frame = CGRectRound(SELF_WIDTH - TWITTER_WIDTH - PADDING, SELF_HEIGHT / 2.0f - (TWITTER_HEIGHT / 2.0f), TWITTER_WIDTH, TWITTER_HEIGHT);
-    
+
     nameLabel.frame = CGRectRound(profileView.frame.origin.x + PROFILE_SIZE + PADDING + 1, profileView.frame.origin.y, NAME_LABEL_WIDTH, NAME_LABEL_HEIGHT);
     handleLabel.frame = CGRectRound(nameLabel.frame.origin.x + NAME_LABEL_WIDTH + PADDING - 4, nameLabel.frame.origin.y, HANDLE_LABEL_WIDTH, HANDLE_LABEL_HEIGHT);
     
