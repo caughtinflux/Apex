@@ -11,6 +11,7 @@
 #endif
 
 #define ICONVIEW(_icon) [[CLASS(SBIconViewMap) homescreenMap] mappedIconViewForIcon:_icon]
+#define IS_VALID_LOCATION(_loc) (_loc == SBIconViewLocationHomeScreen || _loc == SBIconViewLocationDock)
 
 static SEL __stackKey;
 static SEL __recognizerKey;
@@ -24,7 +25,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     NSMutableArray *_iconsToShow;
     NSMutableArray *_iconsToHide;
 }
-- (void)_removeStackIconsFromStackBecauseImALazyAssWhoNeverAddedDockSupport:(STKStack *)stack;
 - (NSMutableArray *)_iconsToShowOnClose;
 - (NSMutableArray *)_iconsToHideOnClose;
 - (void)_processIconsPostStackClose;
@@ -60,10 +60,9 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     if ([self stackForIconView:iconView]) {
         return;
     }
-
     if (!icon ||
-        iconView.location != SBIconViewLocationHomeScreen || !superview || [superview isKindOfClass:CLASS(SBFolderIconListView)] || isInInfinifolder || 
-        [iconView isInDock] || [[CLASS(SBIconController) sharedInstance] grabbedIcon] == icon ||
+        !IS_VALID_LOCATION(iconView.location) || (!superview && ![iconView isInDock]) || [superview isKindOfClass:CLASS(SBFolderIconListView)] || isInInfinifolder || 
+        [[CLASS(SBIconController) sharedInstance] grabbedIcon] == icon ||
         ![icon isLeafIcon] || [icon isDownloadingIcon] || 
         [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
         // Don't add recognizer to icons in the stack already
@@ -81,16 +80,14 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     if (iconView.icon == self.activeStack.centralIcon) {
         return;
     }
-    // Don't add a recognizer if icons are being edited
-    if (![[CLASS(SBIconController) sharedInstance] isEditing]) {
-        [self addRecognizerToIconView:iconView];
-    }
 
+    [self addRecognizerToIconView:iconView];
     STKStack *stack = [self stackForIconView:iconView];
-    NSString *layoutPath = [STKPreferences layoutPathForIcon:iconView.icon];
 
     if (!stack) {
+        NSString *layoutPath = [STKPreferences layoutPathForIcon:iconView.icon];
         if (ICON_HAS_STACK(iconView.icon)) {
+
             NSDictionary *cachedLayout = [[STKPreferences sharedPreferences] cachedLayoutDictForIcon:iconView.icon];
             if (cachedLayout) {
                 stack = [[STKStack alloc] initWithCentralIcon:iconView.icon withCustomLayout:cachedLayout];
@@ -126,6 +123,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 
     if (stack.isEmpty == NO && stack.showsPreview) {
         [stack setupPreview];
+        [stack recalculateLayouts];
     }
 
     CGFloat scale = (stack.isEmpty || !stack.showsPreview ? 1.f : kCentralIconPreviewScale);
@@ -158,30 +156,27 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 #pragma mark - Pan Recognizer Handling
 - (void)addRecognizerToIconView:(SBIconView *)iconView
 {
-    if (!iconView) {
+    UIPanGestureRecognizer *panRecognizer = objc_getAssociatedObject(iconView, __recognizerKey);
+    if (!iconView || panRecognizer) {
         return;
     }
-
-    UIPanGestureRecognizer *panRecognizer = objc_getAssociatedObject(iconView, __recognizerKey);
+    
     // Don't add a recognizer if it already exists
-    if (!panRecognizer) {
-        panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_panned:)] autorelease];
-        for (UIGestureRecognizer *recognizer in iconView.gestureRecognizers) {
-            if ([[recognizer class] isKindOfClass:[UISwipeGestureRecognizer class]]) {
-                [panRecognizer requireGestureRecognizerToFail:recognizer];
-            }
+    panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_panned:)] autorelease];
+    for (UIGestureRecognizer *recognizer in iconView.gestureRecognizers) {
+        if ([[recognizer class] isKindOfClass:[UISwipeGestureRecognizer class]]) {
+            [panRecognizer requireGestureRecognizerToFail:recognizer];
         }
-        [iconView addGestureRecognizer:panRecognizer];
-        objc_setAssociatedObject(iconView, __recognizerKey, panRecognizer, OBJC_ASSOCIATION_ASSIGN);
-        panRecognizer.delegate = self;
     }
+    [iconView addGestureRecognizer:panRecognizer];
+    objc_setAssociatedObject(iconView, __recognizerKey, panRecognizer, OBJC_ASSOCIATION_ASSIGN);
+    panRecognizer.delegate = self;
 }
 
 - (void)removeRecognizerFromIconView:(SBIconView *)iconView
 {
     UIPanGestureRecognizer *recognizer = [self panRecognizerForIconView:iconView];
     [iconView removeGestureRecognizer:recognizer];
-
     objc_setAssociatedObject(iconView, __recognizerKey, nil, OBJC_ASSOCIATION_ASSIGN);
 }
 
@@ -286,16 +281,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     _iconsToHide = nil;
 }
 
-- (void)_removeStackIconsFromStackBecauseImALazyAssWhoNeverAddedDockSupport:(STKStack *)stack
-{
-    NSArray *iconsThatWereInStack = [[stack appearingIconsLayout] allIcons];
-    [[STKPreferences sharedPreferences] removeLayoutForIcon:stack.centralIcon];
-    [self removeStackFromIconView:[[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:stack.centralIcon]];
-    [[self _iconsToShowOnClose] addObjectsFromArray:iconsThatWereInStack];
-    [self _processIconsPostStackClose];
-
-}
-
 #pragma mark - Prefs Update
 - (void)_prefsChanged:(NSNotification *)notification
 {
@@ -355,7 +340,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     STKStack *stack = [self stackForIconView:iconView];
     STKStack *activeStack = [STKStackController sharedInstance].activeStack;
 
-    if (iconView.location != SBIconViewLocationHomeScreen) {
+    if (!IS_VALID_LOCATION(iconView.location)) {
         cancelledPanRecognizer = YES;
         [self removeStackFromIconView:iconView];
         return;
@@ -384,7 +369,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
             }
             // Update the target distance based on icons positions when the pan begins
             // This way, we can be sure that the icons are indeed in the required location 
-            STKUpdateTargetDistanceInListView(STKListViewForIcon(iconView.icon));
+            STKUpdateTargetDistanceInListView([[CLASS(SBIconController) sharedInstance] currentRootIconList]);
             [stack setupViewIfNecessary];
 
             self.activeStack = stack;
@@ -394,7 +379,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
             break;
         }
         case UIGestureRecognizerStateChanged: {
-            if (view.isDragging || cancelledPanRecognizer) {
+            if (([view isKindOfClass:[UIScrollView class]] && view.isDragging) || cancelledPanRecognizer) {
                 cancelledPanRecognizer = YES;
                 return;
             }
@@ -426,7 +411,9 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
             cancelledPanRecognizer = NO; 
             isUpwardSwipe = NO; 
             hasVerticalIcons = NO; 
-            view.scrollEnabled = YES; 
+            if ([view isKindOfClass:[UIScrollView class]]) {
+                view.scrollEnabled = YES;
+            }
             break;
         }
     }
@@ -435,6 +422,9 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 #pragma mark - Gesture Recognizer Delegate
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
+    if (self.activeStack) {
+        return (otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer);
+    }
     return ((otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer) ||
             ([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]] && [otherGestureRecognizer.view.superview isKindOfClass:CLASS(FEGridFolderView)]) || 
             ([otherGestureRecognizer isKindOfClass:[UISwipeGestureRecognizer class]] && ![otherGestureRecognizer isKindOfClass:CLASS(FESwipeGestureRecognizer)]));
@@ -443,11 +433,12 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
-    Class superviewClass = [recognizer.view.superview class];
-    if ([superviewClass isKindOfClass:[CLASS(SBDockIconListView) class]]) {
-        return NO;
-    }
     return YES;
+}
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer
+{
+    return ![[CLASS(SBIconController) sharedInstance] isEditing];
 }
 
 #pragma mark - Stack Delegate
@@ -462,20 +453,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 - (void)stack:(STKStack *)stack didReceiveTapOnPlaceholderIconView:(SBIconView *)iconView
 {
-    if (IS_PIRATED() && [[STKPreferences sharedPreferences] identifiersForIconsWithStack].count > 3 && stack.isEmpty) {
-        NSUInteger count = [[STKPreferences sharedPreferences] identifiersForIconsWithStack].count;
-        if (count > 3) {
-            NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey         : @"Apex",
-                                     (id)kCFUserNotificationAlertMessageKey        : @"You seem to be using an unofficial copy of Apex (╯°□°）╯︵ ┻━┻.\nPlease purchase it from Cydia to use more than three stacks, and to receive support.",
-                                     (id)kCFUserNotificationDefaultButtonTitleKey  : @"Open Cydia",
-                                     (id)kCFUserNotificationAlternateButtonTitleKey: @"Dismiss"};
-
-            SInt32 error = 0;
-            CFUserNotificationRef notificationRef = CFUserNotificationCreate(kCFAllocatorDefault, 0, kCFUserNotificationNoteAlertLevel, &error, (CFDictionaryRef)fields);
-            CFRunLoopSourceRef runLoopSource = CFUserNotificationCreateRunLoopSource(kCFAllocatorDefault, notificationRef, STKPiratedAlertCallback, 0);
-            CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, kCFRunLoopCommonModes);
-            CFRelease(runLoopSource);
-        }
     if (IS_PIRATED() && [[STKPreferences sharedPreferences] identifiersForIconsWithStack].count >= 3 && stack.isEmpty) {
         NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey: @"Apex",
                                  (id)kCFUserNotificationAlertMessageKey: @"You seem to be using an unofficial copy of Apex (╯°□°）╯︵ ┻━┻\nPlease purchase it from Cydia to use more than three stacks, and to receive support.",

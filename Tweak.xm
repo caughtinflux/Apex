@@ -53,8 +53,12 @@ static BOOL _wantsSafeIconViewRetrieval;
             return viewToReturn;
         }
     }
+    SBIconView *ret = %orig();
+    if (ret && ![self mappedIconViewForIcon:icon]) {
+        [self _addIconView:ret forIcon:icon];
+    }
 
-    return %orig();
+    return ret;
 }
 
 %end
@@ -101,7 +105,7 @@ static BOOL _wantsSafeIconViewRetrieval;
         UIView *view = [activeStack hitTest:point withEvent:event];
         if (view) {
             return view;
-        }    
+        }
     }
 
     IMP hitTestIMP = class_getMethodImplementation([UIView class], _cmd);
@@ -147,23 +151,17 @@ static BOOL _wantsSafeIconViewRetrieval;
 {
     BOOL didChange = !(self.isEditing == isEditing);
     %orig(isEditing);
-    if (!didChange) {
+    if (!didChange || isEditing) {
         return;
     }
     void (^editHandler)(SBIconView *iconView) = ^(SBIconView *iv) {
-        if (isEditing) {
-            [[STKStackController sharedInstance] removeRecognizerFromIconView:iv];
+        STKStack *stack = [[STKStackController sharedInstance] stackForIconView:iv];
+        if (!stack && iv.icon.isLeafIcon) {
+            iv.location = iv.location;
+            return;
         }
-        else {
-            STKStack *stack = [[STKStackController sharedInstance] stackForIconView:iv];
-            if (!stack && iv.icon.isLeafIcon) {
-                iv.location = iv.location;
-                return;
-            }
-            [[STKStackController sharedInstance] addRecognizerToIconView:iv];
-            [stack recalculateLayouts];
-        }
-    };
+        [stack recalculateLayouts];
+    }; 
     for (SBIconListView *lv in [self valueForKey:@"_rootIconLists"]) {
         [lv makeIconViewsPerformBlock:^(SBIconView *iv) { editHandler(iv); }];
     }
@@ -172,29 +170,31 @@ static BOOL _wantsSafeIconViewRetrieval;
         // FolderEnhancer exists, so process the icons inside folders.
         [folderListView makeIconViewsPerformBlock:^(SBIconView *iv) { editHandler(iv); }];
     }
+    [[self dock] makeIconViewsPerformBlock:^(SBIconView *iv) { editHandler(iv); }];
 }
 
 // Ghost all the other stacks' sub-apps when the list view is being ghosted
 - (void)setCurrentPageIconsPartialGhostly:(CGFloat)value forRequester:(NSInteger)requester skipIcon:(SBIcon *)icon
 {
     %orig(value, requester, icon);
-    SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
-    [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
+
+    void (^processor)(SBIconView *) = ^(SBIconView *iconView) {
         if (iconView.icon == icon || iconView.icon == [[STKStackController sharedInstance].activeStack centralIcon]) {
             return;
         }
         STKStack *stack = [[STKStackController sharedInstance] stackForIconView:iconView];
         [stack setIconAlpha:value];
-    }];
+    };
+    [[self currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *iconView) { processor(iconView); }];
+    [[self dock] makeIconViewsPerformBlock:^(SBIconView *iconView) { processor(iconView); }];
 }
 
 - (void)setCurrentPageIconsGhostly:(BOOL)shouldGhost forRequester:(NSInteger)requester skipIcon:(SBIcon *)icon
 {
     %orig(shouldGhost, requester, icon);
-
-    SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
+ 
     NSNumber *ghostedRequesters = [self valueForKey:@"_ghostedRequesters"];
-    [listView makeIconViewsPerformBlock:^(SBIconView *iconView) {
+    void (^processor)(SBIconView *) = ^(SBIconView *iconView) {
         if (iconView.icon == icon || iconView.icon == [[STKStackController sharedInstance].activeStack centralIcon]) {
             return;
         }
@@ -206,7 +206,9 @@ static BOOL _wantsSafeIconViewRetrieval;
         else if (!shouldGhost) {
             [iconViewStack setIconAlpha:1.f];
         }
-    }];
+    };
+    [[self currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *iconView) { processor(iconView); }];
+    [[self dock] makeIconViewsPerformBlock:^(SBIconView *iconView) { processor(iconView); }];
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
@@ -214,6 +216,18 @@ static BOOL _wantsSafeIconViewRetrieval;
     [[STKStackController sharedInstance] closeActiveStack];
     %orig(scrollView);
 }
+
+- (BOOL)relayout
+{
+    BOOL k = %orig();
+    // When this method is called, the root icon lists are re-created, but the dock isn't, so the dock ends up with a weird stack.
+    // So, let's do it manually
+    [[self dock] makeIconViewsPerformBlock:^(SBIconView *iconView) {
+        [[[STKStackController sharedInstance] stackForIconView:iconView] recalculateLayouts];
+    }];
+    return k;
+}
+
 %end
 
 
@@ -389,7 +403,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     @autoreleasepool {
         STKLog(@"Initializing");
-
         %init();
 
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);

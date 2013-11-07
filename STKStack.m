@@ -107,17 +107,12 @@
         if (!_iconController) {
             _iconController = [objc_getClass("SBIconController") sharedInstance];
         }
-
         [icons retain];
-
         _centralIcon = [centralIcon retain];
-
         if (!STKListViewForIcon(_centralIcon)) {
             return nil;
         }
-
         STKPositionMask mask = [self _locationMaskForIcon:_centralIcon];
-
         if (!icons || icons.count == 0) {
             _needsLayout = YES;
             _isEmpty = YES;
@@ -125,7 +120,6 @@
         else {
             _appearingIconsLayout = [[STKIconLayoutHandler layoutForIcons:icons aroundIconAtPosition:mask] retain];
         }
-
         [icons release];
         [self _setup];
     }
@@ -153,7 +147,6 @@
             [self _setLayoutDiffersFromFile:YES];
         };
     }
-
     else if ((self = [super init])) {
         _centralIcon = [centralIcon retain];
         _appearingIconsLayout = [layout retain];
@@ -229,6 +222,11 @@
     return nil;
 }
 
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"<%@ %p; centralIcon = %@; stackIcons = %zd>", [self class], self, _centralIcon, [_appearingIconsLayout allIcons].count];
+}
+
 - (void)recalculateLayouts
 {
     NSArray *stackIcons = [_appearingIconsLayout allIcons];
@@ -262,7 +260,7 @@
         [self.delegate stackDidChangeLayout:self];
     }
 
-    _displacedIconsLayout = [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
+    _displacedIconsLayout = [[self _iconViewForIcon:_centralIcon] isInDock] ? nil : [[STKIconLayoutHandler layoutForIconsToDisplaceAroundIcon:_centralIcon usingLayout:_appearingIconsLayout] retain];
     _iconCoordinates = [STKIconLayoutHandler coordinatesForIcon:_centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
 
     if (_hasSetup) {
@@ -296,31 +294,27 @@
 
     _iconViewsLayout = [[STKIconLayout alloc] init];
     
-    SBIconView *centralIconView = [[objc_getClass("SBIconViewMap") homescreenMap] iconViewForIcon:_centralIcon];
+    SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
     centralIconView.userInteractionEnabled = YES;
 
     [_appearingIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
         SBIconView *iconView = [[[objc_getClass("SBIconView") alloc] initWithDefaultSize] autorelease];
         iconView.location = (SBIconViewLocation)1337;
-        
         [iconView setIcon:icon];
         [iconView setDelegate:self];
-
+        
         iconView.frame = centralIconView.bounds;
+
         [self _setAlpha:0.f forLabelAndShadowOfIconView:iconView];
         if (!_isEmpty && _showsPreview) {
             iconView.iconImageView.transform = CGAffineTransformMakeScale(kStackPreviewIconScale, kStackPreviewIconScale);
         }
-
         [_iconViewsLayout addIcon:iconView toIconsAtPosition:position];
-
         if ([centralIconView isGhostly]) {
             iconView.alpha = 0.f;
         }
-
         [centralIconView insertSubview:iconView atIndex:0];
         iconView.userInteractionEnabled = NO;
-
         for (UIGestureRecognizer *recognizer in iconView.gestureRecognizers) {
             [iconView removeGestureRecognizer:recognizer];
         }
@@ -336,12 +330,10 @@
     if (!_isEditing) {
         self.isEditing = NO;
     }
-
     for (SBIconView *iconView in _iconViewsLayout) {
         iconView.delegate = nil;
         [iconView removeFromSuperview];
     }
-
     [_iconViewsLayout removeAllIcons];
     [_iconViewsLayout release];
     _iconViewsLayout = nil;
@@ -394,11 +386,9 @@
         [self recalculateLayouts];
         _needsLayout = NO;
     }
-
     if (!_hasSetup) {
         [self setupPreview];
     }
-    
     [_iconController prepareToGhostCurrentPageIconsForRequester:kGhostlyRequesterID skipIcon:_centralIcon];
     [self _findIconsWithOffScreenTargets];
 }
@@ -408,10 +398,8 @@
     if (_isExpanded || [[_iconController scrollView] isDragging]) {
         return;
     }
-
     BOOL hasVerticalIcons = ([_appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([_appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);    
     CGFloat alpha = STKAlphaFromDistance(_lastDistanceFromCenter, (hasVerticalIcons ? STKGetCurrentTargetDistance() : STKGetCurrentTargetDistance() * _distanceRatio));
-
     [self _setGhostlyAlphaForAllIcons:alpha excludingCentralIcon:YES];
     [self _setPageControlAlpha:alpha];
 
@@ -879,18 +867,16 @@
      
     // Move stack icons
     [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx) {
-        CGRect iconFrame = iconView.frame;
-        CGRect newFrame = iconView.frame;
-        CGPoint targetOrigin = [self _targetOriginForIconAtPosition:position distanceFromCentre:idx + 1];
-        CGRect centralFrame = [self _iconViewForIcon:_centralIcon].bounds;
-
         if (task) {
             task(iconView, position, idx);
         }
 
+        CGRect iconFrame = iconView.frame;
+        CGRect newFrame = iconView.frame;
+        CGPoint targetOrigin = [self _targetOriginForIconAtPosition:position distanceFromCentre:idx + 1];
+        CGRect centralFrame = [self _iconViewForIcon:_centralIcon].bounds;
         CGFloat negator = ((position == STKLayoutPositionTop || position == STKLayoutPositionLeft) ? -1.f : 1.f);
         CGFloat distanceRatio = 1.f;
-
         CGFloat *targetCoord, *currentCoord, *newCoord, *centralCoord;
         CGFloat moveDistance = distance * negator;
 
@@ -946,7 +932,6 @@
     _tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_handleCloseGesture:)];
     _tapRecognizer.numberOfTapsRequired = 1;
     _tapRecognizer.delegate = self;
-
 
     UIView *view = nil;
     if (HAS_FE) {
@@ -1020,7 +1005,7 @@
 #pragma mark - Helper Methods
 - (SBIconView *)_iconViewForIcon:(SBIcon *)icon
 {
-    return [[objc_getClass("SBIconViewMap") homescreenMap] mappedIconViewForIcon:icon];
+    return [[objc_getClass("SBIconViewMap") homescreenMap] safeIconViewForIcon:icon];
 }
 
 - (STKPositionMask)_locationMaskForIcon:(SBIcon *)icon
@@ -1030,11 +1015,12 @@
     if (!icon) {
         return mask;
     }
+    if ([[self _iconViewForIcon:icon] isInDock]) {
+        return (mask | STKPositionDock);
+    }
 
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
-        
     STKIconCoordinates coordinates = [STKIconLayoutHandler coordinatesForIcon:icon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
-
     if (coordinates.xPos == 0) {
         mask |= STKPositionTouchingLeft;
     }
@@ -1047,7 +1033,6 @@
     if (coordinates.yPos == ([listView iconRowsForCurrentOrientation] - 1)) {
         mask |= STKPositionTouchingBottom;
     }
-
     return mask;
 }
 
@@ -1064,41 +1049,36 @@
 
 - (CGPoint)_targetOriginForIconAtPosition:(STKLayoutPosition)position distanceFromCentre:(NSInteger)distance
 {
-    STKIconCoordinates centralCoords = [STKIconLayoutHandler coordinatesForIcon:_centralIcon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
-    SBIconListView *listView = STKListViewForIcon(_centralIcon);
+    // Calculate the positions manually, as -[SBIconListView originForIconAtX:Y:] only gives coordinates that will be on screen, but allow for off-screen icons too.
+    SBIconListView *listView = [_iconController currentRootIconList];
 
-    CGPoint ret = CGPointZero;
-
+    CGRect originalFrame = (CGRect){{0, 0}, [objc_getClass("SBIconView") defaultIconSize]};    
+    CGPoint returnPoint = originalFrame.origin;
+    NSInteger multiplicationFactor = distance;
+    
     switch (position) {
         case STKLayoutPositionTop: {
-            NSUInteger newY = (centralCoords.yPos - distance); // New Y will be `distance` units above original y
-            ret =  [listView originForIconAtX:centralCoords.xPos Y:newY];
+            returnPoint.y = originalFrame.origin.y - ((originalFrame.size.height + [listView verticalIconPadding]) * multiplicationFactor);
             break;
         }
         case STKLayoutPositionBottom: {
-            NSUInteger newY = (centralCoords.yPos + distance); // New Y will be below
-            ret = [listView originForIconAtX:centralCoords.xPos Y:newY]; 
+            returnPoint.y = originalFrame.origin.y + ((originalFrame.size.height + [listView verticalIconPadding]) * multiplicationFactor);    
             break;
         }
         case STKLayoutPositionLeft: {
-            NSUInteger newX = (centralCoords.xPos - distance); // New X has to be `distance` points to left, so subtract
-            ret = [listView originForIconAtX:newX Y:centralCoords.yPos];
+            returnPoint.x = originalFrame.origin.x - ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
             break;
         }
         case STKLayoutPositionRight: {
-            NSUInteger newX = (centralCoords.xPos + distance); // Inverse of previous, hence add to original coordinate
-            ret = [listView originForIconAtX:newX Y:centralCoords.yPos];
+            returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
             break;
         }
-
         default: {
             break;
         }
     }
-
-    ret = [[self _iconViewForIcon:_centralIcon] convertPoint:ret fromView:listView];
-
-    return ret;
+    
+    return returnPoint;
 }
 
 - (CGPoint)_displacedOriginForIcon:(SBIcon *)icon withPosition:(STKLayoutPosition)position usingLayout:(STKIconLayout *)layout
@@ -1108,34 +1088,30 @@
     SBIconView *iconView = [self _iconViewForIcon:icon];
     
     CGPoint originalOrigin = [listView originForIcon:icon]; // Use the original location as a reference, as the iconview might have been displaced.
-    CGRect originalFrame = (CGRect){{originalOrigin.x, originalOrigin.y}, {iconView.frame.size.width, iconView.frame.size.height}};
-    
-    CGPoint returnPoint;
+    CGRect originalFrame = (CGRect){originalOrigin, {iconView.frame.size.width, iconView.frame.size.height}};
+    CGPoint returnPoint = originalOrigin;
     NSInteger multiplicationFactor = [layout iconsForPosition:position].count;
     
     switch (position) {
         case STKLayoutPositionTop: {
-            returnPoint.x = originalFrame.origin.x;
             returnPoint.y = originalFrame.origin.y - ((originalFrame.size.height + [listView verticalIconPadding]) * multiplicationFactor);
             break;
         }
         case STKLayoutPositionBottom: {
-            returnPoint.x = originalFrame.origin.x;
             returnPoint.y = originalFrame.origin.y + ((originalFrame.size.height + [listView verticalIconPadding]) * multiplicationFactor);    
             break;
         }
         case STKLayoutPositionLeft: {
-            returnPoint.y = originalFrame.origin.y;
             returnPoint.x = originalFrame.origin.x - ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
             break;
         }
         case STKLayoutPositionRight: {
-            returnPoint.y = originalFrame.origin.y;
             returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
             break;
         }
         default: {
-            ;
+            returnPoint = CGPointZero;
+            break;
         }
     }
     
@@ -1178,30 +1154,26 @@
                 }
                 break;
             }
-
             case STKLayoutPositionBottom: {
                 if (target.y + 10 > listViewBounds.size.height) {
                     [_offScreenIconsLayout addIcon:icon toIconsAtPosition:position];
                 }
                 break;
             }
-
             case STKLayoutPositionLeft: {
                 if (CGRectGetMaxX(targetRect) <= listViewBounds.origin.y) {
                     [_offScreenIconsLayout addIcon:icon toIconsAtPosition:position];
                 }
                 break;
             }
-
             case STKLayoutPositionRight: {
                 if (CGRectGetMinX(targetRect) >= CGRectGetWidth(listViewBounds)) {
                     [_offScreenIconsLayout addIcon:icon toIconsAtPosition:position];
                 }
                 break;
             }
-
             default: {
-                ;
+                break;
             }
         }
     }];

@@ -31,6 +31,10 @@ static SBIconListView *_centralIconListView;
 {
     NSAssert((icons != nil), (@"*** -[STKIconLayoutHandler layoutForIcons:] cannot have a nil argument for icons"));
 
+    if ((position & STKPositionDock) == STKPositionDock) {
+        return [STKIconLayout layoutWithIconsAtTop:icons bottom:nil left:nil right:nil];
+    }
+
     NSMutableArray *bottomIcons = [NSMutableArray array]; // 0 (Give bottom icons preference, since they're easier to tap with a downward swipe)
     NSMutableArray *topIcons    = [NSMutableArray array]; // 1
     NSMutableArray *leftIcons   = [NSMutableArray array]; // 2
@@ -43,7 +47,6 @@ static SBIconListView *_centralIconListView;
 
     for (NSUInteger i = 0; i < icons.count; i++) {
         NSInteger layoutLocation = ((NSInteger)i % 4); // ALL THE MAGIC IS HERE. MATH IS AWESOME
-
         switch (layoutLocation) {
             case 0: {
                 if (((position & STKPositionTouchingBottom) == STKPositionTouchingBottom)) {
@@ -96,6 +99,14 @@ static SBIconListView *_centralIconListView;
 
 + (BOOL)layout:(STKIconLayout *)layout requiresRelayoutForPosition:(STKPositionMask)position suggestedLayout:(__autoreleasing STKIconLayout **)outLayout
 {
+    if ((position & STKPositionDock) == STKPositionDock) {
+        if (layout.leftIcons.count > 0 || layout.rightIcons.count > 0 || layout.bottomIcons.count > 0) {
+            if (outLayout) {
+                *outLayout = [self layoutForIcons:[layout allIcons] aroundIconAtPosition:position];
+            }
+            return YES;
+        }
+    }
     if ((position & STKPositionTouchingTop) == STKPositionTouchingTop) {
         if (layout.topIcons.count > 0) {
             return YES;
@@ -116,14 +127,12 @@ static SBIconListView *_centralIconListView;
             return YES;
         }
     }
-
     if (layout.topIcons.count > 1 || layout.bottomIcons.count > 1 || layout.leftIcons.count > 1 || layout.rightIcons.count > 1) {
         if (outLayout) {
             *outLayout = [self _processLayoutForSymmetry:layout withPosition:position];
         }
         return YES;
     }
-
 
     return NO;
 }
@@ -322,7 +331,6 @@ static SBIconListView *_centralIconListView;
         return nil;
     }
     NSArray *iconsInRow = [self _iconsInRowWithY:coordinates.yPos];
-    
     NSRange range;
     range.location = coordinates.xPos + 1;
     range.length = iconsInRow.count - (coordinates.xPos + 1);
@@ -335,7 +343,7 @@ static SBIconListView *_centralIconListView;
     NSMutableArray *icons = [NSMutableArray array];
     NSUInteger iconRows = [_centralIconListView iconRowsForCurrentOrientation];
     for (NSUInteger i = 0; i < iconRows; i++) {
-        NSUInteger index = [_centralIconListView indexForX:x Y:i forOrientation:[UIApplication sharedApplication].statusBarOrientation];
+        NSUInteger index = [_centralIconListView indexForX:x Y:i forOrientation:[UIApplication sharedApplication].statusBarOrientation];        
         if (index != NSNotFound && index < [_centralIconListView icons].count) {
             [icons addObject:[_centralIconListView icons][index]];
         }

@@ -62,28 +62,24 @@ NSString * const STKRightIconsKey = @"RightIcons";
             [topIcons addObject:icon];
         }
     });
-
     MAP(dict[STKBottomIconsKey], ^(NSString *ID) { 
         id icon = [model expectedIconForDisplayIdentifier:ID];
         if (icon) {
             [bottomIcons addObject:icon];
         }
     });
-
     MAP(dict[STKLeftIconsKey], ^(NSString *ID) { 
         id icon = [model expectedIconForDisplayIdentifier:ID];
         if (icon) {
             [leftIcons addObject:icon];
         }
     });
-
     MAP(dict[STKRightIconsKey], ^(NSString *ID) { 
         id icon = [model expectedIconForDisplayIdentifier:ID];
         if (icon) {
             [rightIcons addObject:icon];
         }
     });
-
     return [self initWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons];
 }
 
