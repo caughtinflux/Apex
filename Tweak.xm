@@ -20,6 +20,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 static BOOL _switcherIsVisible;
 static BOOL _wantsSafeIconViewRetrieval;
 
+#pragma mark - SBIconViewMap Hook
 %hook SBIconViewMap
 %new
 - (SBIconView *)safeIconViewForIcon:(SBIcon *)icon
@@ -53,17 +54,12 @@ static BOOL _wantsSafeIconViewRetrieval;
             return viewToReturn;
         }
     }
-    SBIconView *ret = %orig();
-    if (ret && ![self mappedIconViewForIcon:icon]) {
-        [self _addIconView:ret forIcon:icon];
-    }
-
-    return ret;
+    return %orig(icon);
 }
 
 %end
 
-
+#pragma mark - SBIconView Hook
 %hook SBIconView
 - (void)setIcon:(SBIcon *)icon
 {   
@@ -96,22 +92,6 @@ static BOOL _wantsSafeIconViewRetrieval;
     /_/ /_/_/  |_/_/|_/_/|_|  
 */
 
-%new
-- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
-{
-    STKStack *activeStack = [STKStackController sharedInstance].activeStack;
-    if (activeStack && ([[STKStackController sharedInstance] stackForIconView:self] == activeStack)) {
-        // Only if `self`'s stack is active should we bother forwarding touches.
-        UIView *view = [activeStack hitTest:point withEvent:event];
-        if (view) {
-            return view;
-        }
-    }
-
-    IMP hitTestIMP = class_getMethodImplementation([UIView class], _cmd);
-    return hitTestIMP(self, _cmd, point, event);
-}
-
 
 - (void)dealloc
 {
@@ -121,6 +101,28 @@ static BOOL _wantsSafeIconViewRetrieval;
     %orig();
 }
 
+%end
+
+%hook SBIconListView
+%new
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+    STKStack *activeStack = [STKStackController sharedInstance].activeStack;
+    if (activeStack) {
+        // Only if `self`'s stack is active should we bother forwarding touches.
+        SBIconView *centralIconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:activeStack.centralIcon];
+        if ([centralIconView isInDock]) {
+            point = [centralIconView convertPoint:point fromView:self];
+        }
+        UIView *view = [activeStack hitTest:point withEvent:event];
+        if (view) {
+            return view;
+        }
+    }
+
+    IMP hitTestIMP = class_getMethodImplementation([UIView class], _cmd);
+    return hitTestIMP(self, _cmd, point, event);
+}
 %end
 
 
@@ -163,14 +165,14 @@ static BOOL _wantsSafeIconViewRetrieval;
         [stack recalculateLayouts];
     }; 
     for (SBIconListView *lv in [self valueForKey:@"_rootIconLists"]) {
-        [lv makeIconViewsPerformBlock:^(SBIconView *iv) { editHandler(iv); }];
+        [lv makeIconViewsPerformBlock:editHandler];
     }
     SBIconListView *folderListView = (SBIconListView *)[[%c(SBIconController) sharedInstance] currentFolderIconList];
     if ([folderListView isKindOfClass:objc_getClass("FEIconListView")]) {
         // FolderEnhancer exists, so process the icons inside folders.
-        [folderListView makeIconViewsPerformBlock:^(SBIconView *iv) { editHandler(iv); }];
+        [folderListView makeIconViewsPerformBlock:editHandler];
     }
-    [[self dock] makeIconViewsPerformBlock:^(SBIconView *iv) { editHandler(iv); }];
+    [[self dock] makeIconViewsPerformBlock:editHandler];
 }
 
 // Ghost all the other stacks' sub-apps when the list view is being ghosted
@@ -185,8 +187,8 @@ static BOOL _wantsSafeIconViewRetrieval;
         STKStack *stack = [[STKStackController sharedInstance] stackForIconView:iconView];
         [stack setIconAlpha:value];
     };
-    [[self currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *iconView) { processor(iconView); }];
-    [[self dock] makeIconViewsPerformBlock:^(SBIconView *iconView) { processor(iconView); }];
+    [[self currentRootIconList] makeIconViewsPerformBlock:processor];
+    [[self dock] makeIconViewsPerformBlock:processor];
 }
 
 - (void)setCurrentPageIconsGhostly:(BOOL)shouldGhost forRequester:(NSInteger)requester skipIcon:(SBIcon *)icon
@@ -207,8 +209,8 @@ static BOOL _wantsSafeIconViewRetrieval;
             [iconViewStack setIconAlpha:1.f];
         }
     };
-    [[self currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *iconView) { processor(iconView); }];
-    [[self dock] makeIconViewsPerformBlock:^(SBIconView *iconView) { processor(iconView); }];
+    [[self currentRootIconList] makeIconViewsPerformBlock:processor];
+    [[self dock] makeIconViewsPerformBlock:processor];
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
