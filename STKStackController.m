@@ -476,6 +476,17 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
             CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, kCFRunLoopCommonModes);
             CFRelease(runLoopSource);
         }
+    if (IS_PIRATED() && [[STKPreferences sharedPreferences] identifiersForIconsWithStack].count >= 3 && stack.isEmpty) {
+        NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey: @"Apex",
+                                 (id)kCFUserNotificationAlertMessageKey: @"You seem to be using an unofficial copy of Apex (╯°□°）╯︵ ┻━┻\nPlease purchase it from Cydia to use more than three stacks, and to receive support.",
+                                 (id)kCFUserNotificationDefaultButtonTitleKey: @"Open Cydia",
+                                 (id)kCFUserNotificationAlternateButtonTitleKey: @"Dismiss"};
+
+        SInt32 error = 0;
+        CFUserNotificationRef notificationRef = CFUserNotificationCreate(kCFAllocatorDefault, 0, kCFUserNotificationNoteAlertLevel, &error, (CFDictionaryRef)fields);
+        CFRunLoopSourceRef runLoopSource = CFUserNotificationCreateRunLoopSource(kCFAllocatorDefault, notificationRef, STKPiratedAlertCallback, 0);
+        CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, kCFRunLoopCommonModes);
+        CFRelease(runLoopSource);
     }
     else {
         [stack showSelectionViewOnIconView:iconView];
