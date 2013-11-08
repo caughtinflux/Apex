@@ -109,11 +109,8 @@ static BOOL _wantsSafeIconViewRetrieval;
 {
     STKStack *activeStack = [STKStackController sharedInstance].activeStack;
     if (activeStack) {
-        // Only if `self`'s stack is active should we bother forwarding touches.
         SBIconView *centralIconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:activeStack.centralIcon];
-        if ([centralIconView isInDock]) {
-            point = [centralIconView convertPoint:point fromView:self];
-        }
+        point = [centralIconView convertPoint:point fromView:self];
         UIView *view = [activeStack hitTest:point withEvent:event];
         if (view) {
             return view;
