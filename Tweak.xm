@@ -88,15 +88,6 @@ static BOOL _wantsSafeIconViewRetrieval;
     return ((ICON_HAS_STACK(self.icon) || ICON_HAS_STACK(iconView.icon)) ? NO : %orig());
 }
 
-
-/*      __  _____   _  ___  __
-       / / / /   | | |/ / |/ /
-      / /_/ / /| | |   /|   / 
-     / __  / ___ |/   |/   |  
-    /_/ /_/_/  |_/_/|_/_/|_|  
-*/
-
-
 - (void)dealloc
 {
     if ([STKStackController sharedInstance].activeStack == [[STKStackController sharedInstance] stackForIconView:self]) {
@@ -107,6 +98,7 @@ static BOOL _wantsSafeIconViewRetrieval;
 
 %end
 
+#pragma mark - SBIconListView Hook
 %hook SBIconListView
 %new
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
