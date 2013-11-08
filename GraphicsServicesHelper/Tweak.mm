@@ -63,7 +63,7 @@ CFPropertyListRef new_GSSystemCopyCapability(CFStringRef cap)
     }
 
     if (CFStringCompare(cap, kGSDisplayIdentifiersCapability, 0) == kCFCompareEqualTo) {
-        NSMutableArray *identifiers = [[NSMutableArray arrayWithArray:(NSArray *)ret] copy];
+        NSMutableArray *identifiers = [[NSMutableArray arrayWithArray:(NSArray *)ret] mutableCopy];
         if (_stackedIconIdentifiers) {
             [identifiers addObjectsFromArray:_stackedIconIdentifiers];
         }
