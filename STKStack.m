@@ -1390,10 +1390,10 @@
     } completion:^(BOOL done) {
         if (done && _selectionViewIndex >= 1) {
             NSArray *iconViews = [_iconViewsLayout iconsForPosition:_selectionViewPosition];
-            SBIconView *prevIconView = (SBIconView *)[iconViews objectAtIndex:_selectionViewIndex - 1];
+            SBIconView *firstIconView = (SBIconView *)[iconViews objectAtIndex:0];
 
-            if ([prevIconView.icon isPlaceholder]) {
-                [_currentSelectionView moveToIconView:prevIconView animated:YES completion:nil];
+            if ([firstIconView.icon isPlaceholder]) {
+                [_currentSelectionView moveToIconView:firstIconView animated:YES completion:nil];
                 _selectionViewIndex = 0;
             }
         }
