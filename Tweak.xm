@@ -54,7 +54,11 @@ static BOOL _wantsSafeIconViewRetrieval;
             return viewToReturn;
         }
     }
-    return %orig(icon);
+    _wantsSafeIconViewRetrieval = YES;
+    id ret = %orig(icon);
+    _wantsSafeIconViewRetrieval = NO;
+
+    return ret;
 }
 
 %end
