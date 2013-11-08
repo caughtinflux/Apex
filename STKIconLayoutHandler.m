@@ -4,6 +4,7 @@
 
 #import <objc/runtime.h>
 #import <SpringBoard/SpringBoard.h>
+#import "SBIconListView+ApexAdditions.h"
 
 #define kCurrentOrientation [UIApplication sharedApplication].statusBarOrientation
 
@@ -234,10 +235,10 @@ static SBIconListView *_centralIconListView;
 
 + (STKIconLayout *)_processLayoutForSymmetry:(STKIconLayout *)layout withPosition:(STKPositionMask)position
 {
-    NSMutableArray *topArray    = layout.topIcons    ? [layout.topIcons.mutableCopy autorelease]    : [NSMutableArray array];
-    NSMutableArray *bottomArray = layout.bottomIcons ? [layout.bottomIcons.mutableCopy autorelease] : [NSMutableArray array];
-    NSMutableArray *leftArray   = layout.leftIcons   ? [layout.leftIcons.mutableCopy autorelease]   : [NSMutableArray array];
-    NSMutableArray *rightArray  = layout.rightIcons  ? [layout.rightIcons.mutableCopy autorelease]  : [NSMutableArray array];
+    NSMutableArray *topArray    = [layout.topIcons.mutableCopy autorelease] ?: [NSMutableArray array];
+    NSMutableArray *bottomArray = [layout.bottomIcons.mutableCopy autorelease] ?: [NSMutableArray array];
+    NSMutableArray *leftArray   = [layout.leftIcons.mutableCopy autorelease] ?: [NSMutableArray array];
+    NSMutableArray *rightArray  = [layout.rightIcons.mutableCopy autorelease] ?: [NSMutableArray array];
     
     void (^processArray)(NSMutableArray *array) = ^(NSMutableArray *array) {
         if ((leftArray.count == 0) && !(position & STKPositionTouchingLeft)) {  
@@ -341,7 +342,7 @@ static SBIconListView *_centralIconListView;
 + (NSArray *)_iconsInColumnWithX:(NSUInteger)x 
 {
     NSMutableArray *icons = [NSMutableArray array];
-    NSUInteger iconRows = [_centralIconListView iconRowsForCurrentOrientation];
+    NSUInteger iconRows = [_centralIconListView stk_visibleIconRowsForCurrentOrientation];
     for (NSUInteger i = 0; i < iconRows; i++) {
         NSUInteger index = [_centralIconListView indexForX:x Y:i forOrientation:[UIApplication sharedApplication].statusBarOrientation];        
         if (index != NSNotFound && index < [_centralIconListView icons].count) {
@@ -353,12 +354,10 @@ static SBIconListView *_centralIconListView;
 
 + (NSArray *)_iconsInRowWithY:(NSUInteger)y
 {
-    NSUInteger numIcons = [_centralIconListView icons].count;
-
     NSMutableArray *icons = [NSMutableArray array];
-    for (NSUInteger i = 0; i <= ([_centralIconListView iconColumnsForCurrentOrientation] - 1); i++) {
+    for (NSUInteger i = 0; i <= ([_centralIconListView stk_visibleIconColumnsForCurrentOrientation] - 1); i++) {
         NSUInteger index = [_centralIconListView indexForX:i Y:y forOrientation:[UIApplication sharedApplication].statusBarOrientation];
-        if (index != NSNotFound && index < numIcons) {
+        if (index != NSNotFound && index < [_centralIconListView icons].count) {
             [icons addObject:[_centralIconListView icons][index]];
         }
     }
