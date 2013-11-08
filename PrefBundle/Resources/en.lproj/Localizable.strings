@@ -17,6 +17,9 @@
 	/* Behaviour */
 	BEHAVIOUR = Behavior;
 	CLOSE_ON_LAUNCH = "Close on Launch";
+	LOCK_LAYOUTS = "Lock Layouts";
+	LOCK_LAYOUTS_DESCRIPTION = "You will not be able to create new stacks if layouts are locked.";
+
 	ACTIVATION_MODE = "Activation Mode";
 	SWIPE_UP_AND_DOWN = "Swipe up and down";
 	SWIPE_UP = "Swipe up";

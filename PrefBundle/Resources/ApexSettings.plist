@@ -53,6 +53,8 @@
 			<string>PSGroupCell</string>
 			<key>label</key>
 			<string>BEHAVIOUR</string>
+			<key>footerText</key>
+			<string>LOCK_LAYOUTS_DESCRIPTION</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -65,6 +67,22 @@
 			<string>STKStackClosesOnLaunch</string>
 			<key>label</key>
 			<string>CLOSE_ON_LAUNCH</string>
+			<key>defaults</key>
+			<string>com.a3tweaks.Apex</string>
+			<key>PostNotification</key>
+			<string>com.a3tweaks.apex.prefschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.a3tweaks.Apex</string>
+			<key>key</key>
+			<string>STKLockLayouts</string>
+			<key>label</key>
+			<string>LOCK_LAYOUTS</string>
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>PostNotification</key>

@@ -35,13 +35,13 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 + (instancetype)sharedPreferences;
 - (void)reloadPreferences;
 
-
 @property (nonatomic, readonly) NSArray *identifiersForIconsInStacks;
 @property (nonatomic, readonly) BOOL previewEnabled;
 @property (nonatomic, readonly) BOOL shouldHideGrabbers;
 @property (nonatomic, assign) BOOL welcomeAlertShown;
 @property (nonatomic, readonly) BOOL shouldCloseOnLaunch;
 @property (nonatomic, readonly) BOOL shouldShowSectionIndexTitles;
+@property (nonatomic, readonly) BOOL layoutsAreLocked;
 @property (nonatomic, readonly) STKActivationMode activationMode;
 
 - (NSSet *)identifiersForIconsWithStack;

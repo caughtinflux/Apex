@@ -39,8 +39,6 @@
     [super layoutSubviews];
 
     _iconView.frame = (CGRect){{_iconView.frame.origin.x, _iconView.frame.origin.y}, {_iconView.frame.size.width, [[_iconView class] defaultIconImageSize].height}};
-
-
     SBIconLabelImageView *labelView = [_iconView valueForKey:@"_labelView"];
 
     CGFloat referencePoint = (_position == STKSelectionCellPositionRight ? CGRectGetMaxX(_iconView.bounds) : _iconView.bounds.origin.x - labelView.frame.size.width - 12);

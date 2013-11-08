@@ -107,6 +107,7 @@ static SBIconListView *_centralIconListView;
             }
             return YES;
         }
+        return NO;
     }
     if ((position & STKPositionTouchingTop) == STKPositionTouchingTop) {
         if (layout.topIcons.count > 0) {
@@ -169,11 +170,11 @@ static SBIconListView *_centralIconListView;
 + (STKIconCoordinates)coordinatesForIcon:(SBIcon *)icon withOrientation:(UIInterfaceOrientation)orientation
 {
     _centralIconListView = STKListViewForIcon(icon);
-
-    NSUInteger iconIndex, iconX, iconY;
-    [_centralIconListView iconAtPoint:[_centralIconListView originForIcon:icon] index:&iconIndex];
-    [_centralIconListView getX:&iconX Y:&iconY forIndex:iconIndex forOrientation:orientation];
-
+    NSUInteger iconX = NSNotFound, iconY = NSNotFound;
+    NSUInteger iconIndex = [[_centralIconListView icons] indexOfObject:icon]; 
+    if (iconIndex != NSNotFound) {
+        [_centralIconListView getX:&iconX Y:&iconY forIndex:iconIndex forOrientation:orientation];
+    }
     return (STKIconCoordinates){iconX, iconY, iconIndex};
 }
 

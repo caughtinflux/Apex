@@ -6,6 +6,7 @@
 #import "STKPlaceHolderIcon.h"
 #import "STKPreferences.h"
 #import "STKSelectionViewDataSource.h"
+#import "SBIconListView+ApexAdditions.h"
 
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
@@ -412,7 +413,7 @@ static NSString * const CellIdentifier = @"STKIconCell";
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    return [objc_getClass("SBIconView") defaultIconImageSize].height + [_listView verticalIconPadding] - 3;
+    return [objc_getClass("SBIconView") defaultIconImageSize].height + [_listView stk_realVerticalIconPadding] - 3;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section

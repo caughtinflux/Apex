@@ -33,8 +33,7 @@
     SBIconModel *model = [(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model];
 
     for (id ident in [model visibleIconIdentifiers]) {
-        // Icons in a stack are removed from -[SBIconmodel visibleIconIdentifiers], we need to add those 
-        // Now we need to remove the central and other icons with stacks
+        // Icons in a stack are removed from -[SBIconmodel visibleIconIdentifiers], so add those, and remove the central icon, and other icons with stacks
         if (ICONID_HAS_STACK(ident) || [ident isEqualToString:_centralView.icon.leafIdentifier]) {
             continue;
         }

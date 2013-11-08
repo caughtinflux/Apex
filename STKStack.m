@@ -2,6 +2,7 @@
 #import "STKIconLayoutHandler.h"
 #import "STKSelectionView.h"    
 
+#import "SBIconListView+ApexAdditions.h"
 #import "SBIconViewMap+STKSafety.h"
 #import "NSOperationQueue+STKMainQueueDispatch.h"
 #import "STKPlaceHolderIcon.h"
@@ -1052,32 +1053,31 @@
     // Calculate the positions manually, as -[SBIconListView originForIconAtX:Y:] only gives coordinates that will be on screen, but allow for off-screen icons too.
     SBIconListView *listView = [_iconController currentRootIconList];
 
-    CGRect originalFrame = (CGRect){{0, 0}, [objc_getClass("SBIconView") defaultIconSize]};    
+    CGRect originalFrame = (CGRect){CGPointZero, [objc_getClass("SBIconView") defaultIconSize]};    
     CGPoint returnPoint = originalFrame.origin;
     NSInteger multiplicationFactor = distance;
-    
+
     switch (position) {
         case STKLayoutPositionTop: {
-            returnPoint.y = originalFrame.origin.y - ((originalFrame.size.height + [listView verticalIconPadding]) * multiplicationFactor);
+            returnPoint.y = originalFrame.origin.y - ((originalFrame.size.height + [listView stk_realVerticalIconPadding]) * multiplicationFactor);
             break;
         }
         case STKLayoutPositionBottom: {
-            returnPoint.y = originalFrame.origin.y + ((originalFrame.size.height + [listView verticalIconPadding]) * multiplicationFactor);    
+            returnPoint.y = originalFrame.origin.y + ((originalFrame.size.height + [listView stk_realVerticalIconPadding]) * multiplicationFactor);    
             break;
         }
         case STKLayoutPositionLeft: {
-            returnPoint.x = originalFrame.origin.x - ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
+            returnPoint.x = originalFrame.origin.x - ((originalFrame.size.width + [listView stk_realVerticalIconPadding]) * multiplicationFactor);
             break;
         }
         case STKLayoutPositionRight: {
-            returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
+            returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView stk_realVerticalIconPadding]) * multiplicationFactor);
             break;
         }
         default: {
             break;
         }
     }
-    
     return returnPoint;
 }
 
@@ -1094,11 +1094,11 @@
     
     switch (position) {
         case STKLayoutPositionTop: {
-            returnPoint.y = originalFrame.origin.y - ((originalFrame.size.height + [listView verticalIconPadding]) * multiplicationFactor);
+            returnPoint.y = originalFrame.origin.y - ((originalFrame.size.height + [listView stk_realVerticalIconPadding]) * multiplicationFactor);
             break;
         }
         case STKLayoutPositionBottom: {
-            returnPoint.y = originalFrame.origin.y + ((originalFrame.size.height + [listView verticalIconPadding]) * multiplicationFactor);    
+            returnPoint.y = originalFrame.origin.y + ((originalFrame.size.height + [listView stk_realVerticalIconPadding]) * multiplicationFactor);    
             break;
         }
         case STKLayoutPositionLeft: {
@@ -1392,7 +1392,7 @@
             NSArray *iconViews = [_iconViewsLayout iconsForPosition:_selectionViewPosition];
             SBIconView *firstIconView = (SBIconView *)[iconViews objectAtIndex:0];
 
-            if ([firstIconView.icon isPlaceholder]) {
+            if ([firstIconView.icon isPlaceholder] && iconView.icon.isPlaceholder) {
                 [_currentSelectionView moveToIconView:firstIconView animated:YES completion:nil];
                 _selectionViewIndex = 0;
             }

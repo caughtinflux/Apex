@@ -438,7 +438,9 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer
 {
-    return ![[CLASS(SBIconController) sharedInstance] isEditing];
+    STKStack *stack = [self stackForIconView:(SBIconView *)recognizer.view];
+    BOOL lockLayoutsForStack = (stack.isEmpty && [STKPreferences sharedPreferences].layoutsAreLocked);
+    return ([[CLASS(SBIconController) sharedInstance] isEditing] ? NO : !lockLayoutsForStack);
 }
 
 #pragma mark - Stack Delegate

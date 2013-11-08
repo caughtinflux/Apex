@@ -15,6 +15,7 @@ static NSString * const STKStackPreviewEnabledKey = @"STKStackPreviewEnabled";
 static NSString * const STKHideGrabbersKey        = @"STKHideGrabbers";
 static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 static NSString * const STKStackClosesOnLaunchKey = @"STKStackClosesOnLaunch";
+static NSString * const STKLockLayoutsKey         = @"STKLockLayouts";
 static NSString * const STKActivationModeKey      = @"STKActivationMode";
 
 @interface STKPreferences ()
@@ -186,6 +187,11 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
 - (BOOL)shouldShowSectionIndexTitles
 {
     return GETBOOL(_currentPrefs, STKShowSectionTitlesKey, YES);
+}
+
+- (BOOL)layoutsAreLocked
+{
+    return GETBOOL(_currentPrefs, STKLockLayoutsKey, NO);
 }
 
 - (STKActivationMode)activationMode
