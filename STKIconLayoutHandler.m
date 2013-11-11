@@ -201,12 +201,10 @@ static SBIconListView *_centralIconListView;
     NSMutableArray *rightIcons = [NSMutableArray array];
 
     void(^addPlaceHoldersToArray)(NSMutableArray *array, NSInteger numPlaceHolders) = ^(NSMutableArray *array, NSInteger numPlaceHolders) {
-        numPlaceHolders = MIN(2, numPlaceHolders);
-
+        numPlaceHolders = MIN((position & STKPositionDock ? 4 : 2), numPlaceHolders); // A LA HAXX
         if (numPlaceHolders <= 0) { 
             return;
         }
-
         do {
             [array addObject:[[iconClass new] autorelease]];
         } while (--numPlaceHolders > 0);
