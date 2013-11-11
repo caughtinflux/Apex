@@ -33,7 +33,11 @@ static BOOL _wantsSafeIconViewRetrieval;
 
 - (void)_recycleIconView:(SBIconView *)iconView
 {
-    [[STKStackController sharedInstance] removeStackFromIconView:iconView];
+    if (![iconView isInDock]) {
+        // XXX: Docked icons aren't used again?
+        // wut.
+        [[STKStackController sharedInstance] removeStackFromIconView:iconView];
+    }
     %orig();
 }
 
@@ -95,6 +99,7 @@ static BOOL _wantsSafeIconViewRetrieval;
     }
     %orig();
 }
+%end
 
 %end
 
