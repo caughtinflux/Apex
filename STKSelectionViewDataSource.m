@@ -28,7 +28,6 @@
     if (!_sections) {
         _sections = [NSMutableArray new];
     }
-    
     NSMutableArray *availableIcons = [NSMutableArray array];
     SBIconModel *model = [(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model];
 
@@ -42,14 +41,12 @@
             [availableIcons addObject:[model expectedIconForDisplayIdentifier:ident]];
         }
     }
-
     for (NSString *hiddenIcon in [STKPreferences sharedPreferences].identifiersForIconsInStacks) {
         id icon = [model expectedIconForDisplayIdentifier:hiddenIcon];
         if (icon && ![availableIcons containsObject:icon]) {
             [availableIcons addObject:icon];
         }
     }
-
     // Add a placeholder to available icons so the user can have a "None"-like option
     STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
     [availableIcons addObject:ph];
@@ -61,7 +58,6 @@
     for (idx = 0; idx < sectionTitlesCount; idx++) {
         [_sections addObject:[NSMutableArray array]];
     }
-
     for (SBIcon *icon in availableIcons) {
         NSInteger sectionNumber = [collation sectionForObject:icon collationStringSelector:collationSelector];
         if (icon.isPlaceholder) {
