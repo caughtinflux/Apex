@@ -101,6 +101,16 @@ static BOOL _wantsSafeIconViewRetrieval;
 }
 %end
 
+%hook SBIconImageView
+- (void)setTransform:(CGAffineTransform)transform
+{
+    %orig(transform);
+    SBIconView *iconView = (SBIconView *)self.superview.superview;
+    if (iconView && [iconView isKindOfClass:objc_getClass("SBIconView")]) {
+        UIImageView *shadowView = [iconView valueForKey:@"_shadow"];
+        shadowView.transform = transform;
+    }
+}
 %end
 
 #pragma mark - SBIconListView Hook
