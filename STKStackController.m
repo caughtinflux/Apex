@@ -116,7 +116,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
         }
 
         stack.showsPreview = [STKPreferences sharedPreferences].previewEnabled;
-
         objc_setAssociatedObject(iconView, __stackKey, stack, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [stack release];
     }
@@ -503,7 +502,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
             STKStack *otherStack = [self stackForIconView:otherView];
             if (otherStack != stack || !otherStack) {
                 [[STKPreferences sharedPreferences] removeCachedLayoutForIcon:centralIconForOtherStack];
-
                 if (otherStack) {
                     [otherStack removeIconFromAppearingIcons:addedIcon];
 
@@ -531,7 +529,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
                     }
                     [self createStackForIconView:otherView];
                 }
-
             }
         }
         if (!stack.showsPreview) {
@@ -539,9 +536,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
         }
         [STKPreferences saveLayout:stack.appearingIconsLayout forIcon:stack.centralIcon];
     }
-
     [[STKPreferences sharedPreferences] reloadPreferences];
-
     if (ICON_IS_IN_STACK(addedIcon)) {
         [[self _iconsToHideOnClose] addObject:addedIcon];
     }

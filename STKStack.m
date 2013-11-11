@@ -690,15 +690,11 @@
             }
         }];
     }
-
     if (_isEmpty || (!animateCentralIcon && !_showsPreview)) {
         centralView.transform = CGAffineTransformMakeScale(scale, scale);
     }
-    
-
     self.isEditing = NO;
     [self _removePlaceHolders];
-
     [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
         [self setupPreview];
 
@@ -735,18 +731,15 @@
             // POS SWAG.
             widgetsView.alpha = 1.f;
         }
-
     } completion:^(BOOL finished) {
         if (finished) {
             // Remove the icon view's delegates
             for (SBIconView *iconView in _iconViewsLayout) {
                 iconView.delegate = nil;
             }
-
             // XXX: BUGFIX for SBIconListView BS
             [self _setGhostlyAlphaForAllIcons:.9999999f excludingCentralIcon:NO]; // .999f is necessary, unfortunately. A weird 1.0->0.0->1.0 alpha flash happens otherwise
             [self _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO]; // Set it back to 1.f, fix a pain in the ass bug
-            
             [_iconController cleanUpGhostlyIconsForRequester:kGhostlyRequesterID];
 
             [_offScreenIconsLayout release];
@@ -772,9 +765,7 @@
 
                 _needsLayout = YES;
             }
-            
             _isExpanded = NO;
-
             [_postCloseOpQueue setSuspended:NO];
             [_postCloseOpQueue waitUntilAllOperationsAreFinished];
             [_postCloseOpQueue setSuspended:YES];
@@ -789,15 +780,11 @@
         [self _iconViewForIcon:_centralIcon].delegate = _previousDelegate;
         _previousDelegate = nil;
     }
-    
     // Move all icons to their respective locations
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
-
     [listView setIconsNeedLayout];
     [listView layoutIconsIfNeeded:duration domino:NO];
-    
     _lastDistanceFromCenter = 0.f;
-
     // Remove recognizers if they're still around
     [self _cleanupGestureRecognizers];
 }
@@ -815,14 +802,11 @@
         SBIconView *iconView = [self _iconViewForIcon:icon]; // Get the on-screen icon view from the list view.
         CGRect iconFrame = iconView.frame;
         CGRect newFrame = iconView.frame;
-        
         CGPoint originalOrigin = [listView originForIcon:icon];
         CGPoint targetOrigin = [self _displacedOriginForIcon:icon withPosition:position]; 
-
         NSUInteger appearingIconsCount = [_appearingIconsLayout iconsForPosition:position].count;
         CGFloat factoredDistance = (distance * appearingIconsCount);  // Factor the distance up by the number of icons that are coming in at that position
         CGFloat horizontalFactoredDistance = factoredDistance * _distanceRatio; // The distance to be moved horizontally is slightly different than vertical, multiply it by the ratio to have them work perfectly. :)
-        
         CGFloat *targetCoord, *currentCoord, *newCoord, *originalCoord;
         CGFloat moveDistance;
 
@@ -843,12 +827,10 @@
 
         CGFloat negator = ((position == STKLayoutPositionTop || position == STKLayoutPositionLeft) ? -1.f : 1.f);
         moveDistance *= negator;
-
         if (IS_GREATER((*currentCoord + (moveDistance / appearingIconsCount)), *targetCoord, position)) {
             // If, after moving, the icon would pass its target, factor the distance back to it's original, for now it has to move only as much as all the other icons
             moveDistance /= appearingIconsCount;
         }
-
         *targetCoord += kBandingAllowance * negator;
         if (IS_GREATER(*currentCoord + moveDistance, *targetCoord, position)) {
             // Do not go beyong target
@@ -862,7 +844,6 @@
             // Move that shit
             *newCoord += moveDistance;
         }
-
         iconView.frame = newFrame;
     }];
      
@@ -871,7 +852,6 @@
         if (task) {
             task(iconView, position, idx);
         }
-
         CGRect iconFrame = iconView.frame;
         CGRect newFrame = iconView.frame;
         CGPoint targetOrigin = [self _targetOriginForIconAtPosition:position distanceFromCentre:idx + 1];
@@ -880,7 +860,6 @@
         CGFloat distanceRatio = 1.f;
         CGFloat *targetCoord, *currentCoord, *newCoord, *centralCoord;
         CGFloat moveDistance = distance * negator;
-
         if (STKLayoutPositionIsVertical(position)) {
             targetCoord = &(targetOrigin.y);
             currentCoord = &(iconFrame.origin.y);
@@ -894,7 +873,6 @@
             centralCoord = &(centralFrame.origin.x);
             distanceRatio = _distanceRatio;
         }
-
         CGFloat multFactor = (IS_LESSER((*currentCoord + moveDistance), *targetCoord, position) ? (idx + 1) : 1);
         CGFloat popComp = (((idx == currentArray.count - 1) && !(_isEmpty || !_showsPreview)) ? ((*targetCoord - kPopoutDistance * negator) / *targetCoord) : 1.f);
         moveDistance *= (distanceRatio * multFactor * popComp);
@@ -903,7 +881,6 @@
             // Don't compensate for anything if the icon is moving past the target
             moveDistance /= popComp;
         }
-
         // Modify the target to allow for a `kBandingAllowance` distance extra for the rubber banding effect
         *targetCoord += (kBandingAllowance * negator);
 
@@ -916,11 +893,9 @@
         else if (IS_GREATER((*currentCoord + moveDistance), *targetCoord, position)) {
             *newCoord = *targetCoord;
         }
-
         iconView.frame = newFrame;
     }];
 }
-
 
 #pragma mark - Gesture Recogniser Handling
 - (void)_setupGestureRecognizers
@@ -929,7 +904,6 @@
     // Store references to them in ivars, so as to get rid of them when a gesture is recognized
     _swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(_handleCloseGesture:)];
     _swipeRecognizer.direction = (UISwipeGestureRecognizerDirectionUp | UISwipeGestureRecognizerDirectionDown);
-
     _tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_handleCloseGesture:)];
     _tapRecognizer.numberOfTapsRequired = 1;
     _tapRecognizer.delegate = self;
@@ -942,7 +916,6 @@
     else {
         view = [[objc_getClass("SBUIController") sharedInstance] contentView];
     }
-
     [view addGestureRecognizer:_swipeRecognizer];
     [view addGestureRecognizer:_tapRecognizer];
 }
@@ -960,7 +933,6 @@
         if ([centralIconView pointInside:[touch locationInView:centralIconView] withEvent:nil]) {
             return NO;
         }
-
         for (SBIconView *iconView in _iconViewsLayout) {
             if ([iconView pointInside:[touch locationInView:iconView] withEvent:nil]) {
                 return NO;
@@ -975,12 +947,10 @@
     if (_currentSelectionView) {
         return;
     }
-
     if (self.isEditing && [sender isKindOfClass:[UITapGestureRecognizer class]]) {
         self.isEditing = NO;
         return;
     }
-
     [self _cleanupGestureRecognizers];
     [self closeWithCompletionHandler:^{ 
         if ([self.delegate respondsToSelector:@selector(stackClosedByGesture:)]) {
@@ -994,11 +964,9 @@
     [_swipeRecognizer.view removeGestureRecognizer:_swipeRecognizer];
     _swipeRecognizer.delegate = nil;
     [_swipeRecognizer release];
-
     [_tapRecognizer.view removeGestureRecognizer:_tapRecognizer];
     _tapRecognizer.delegate = nil;
     [_tapRecognizer release];
-
     _swipeRecognizer = nil;
     _tapRecognizer = nil;
 }
@@ -1012,14 +980,12 @@
 - (STKPositionMask)_locationMaskForIcon:(SBIcon *)icon
 {
     STKPositionMask mask = 0x0;
-    
     if (!icon) {
         return mask;
     }
     if ([[self _iconViewForIcon:icon] isInDock]) {
         return (mask | STKPositionDock);
     }
-
     SBIconListView *listView = STKListViewForIcon(_centralIcon);
     STKIconCoordinates coordinates = [STKIconLayoutHandler coordinatesForIcon:icon withOrientation:[UIApplication sharedApplication].statusBarOrientation];
     if (coordinates.xPos == 0) {
@@ -1052,11 +1018,9 @@
 {
     // Calculate the positions manually, as -[SBIconListView originForIconAtX:Y:] only gives coordinates that will be on screen, but allow for off-screen icons too.
     SBIconListView *listView = [_iconController currentRootIconList];
-
     CGRect originalFrame = (CGRect){CGPointZero, [objc_getClass("SBIconView") defaultIconSize]};    
     CGPoint returnPoint = originalFrame.origin;
     NSInteger multiplicationFactor = distance;
-
     switch (position) {
         case STKLayoutPositionTop: {
             returnPoint.y = originalFrame.origin.y - ((originalFrame.size.height + [listView stk_realVerticalIconPadding]) * multiplicationFactor);
@@ -1091,7 +1055,6 @@
     CGRect originalFrame = (CGRect){originalOrigin, {iconView.frame.size.width, iconView.frame.size.height}};
     CGPoint returnPoint = originalOrigin;
     NSInteger multiplicationFactor = [layout iconsForPosition:position].count;
-    
     switch (position) {
         case STKLayoutPositionTop: {
             returnPoint.y = originalFrame.origin.y - ((originalFrame.size.height + [listView stk_realVerticalIconPadding]) * multiplicationFactor);
@@ -1207,7 +1170,6 @@
             [self _iconViewForIcon:icon].alpha = alpha;
         }
     }
-
     if (alpha >= 1.f) {
         [_iconController setCurrentPageIconsGhostly:NO forRequester:kGhostlyRequesterID skipIcon:(excludeCentral ? _centralIcon : nil)];
     }
@@ -1292,17 +1254,14 @@
         iconView.frame = (CGRect){newOrigin, iconView.frame.size};
 
         [self _setAlpha:0.f forLabelAndShadowOfIconView:iconView];
-
         // Add the icon view to the main icon view layout
         [_iconViewsLayout addIcon:iconView toIconsAtPosition:position];
 
         if (!_iconsHiddenForPlaceHolders) {
             _iconsHiddenForPlaceHolders = [[STKIconLayout alloc] init];
         }
-
         iconView.alpha = 0.f;
         [centralIconView insertSubview:iconView belowSubview:centralIconView.iconImageView];
-
         for (SBIcon *ic in [listView icons]) {
             SBIconView *displacedView = [self _iconViewForIcon:ic];
             if (CGRectIntersectsRect(displacedView.frame, [centralIconView convertRect:iconView.frame toView:displacedView.superview])) {
@@ -1405,9 +1364,7 @@
     if (!_currentSelectionView || _isClosingSelectionView) {
         return;
     }
-
     _isClosingSelectionView = YES;
-
     [UIView animateWithDuration:kAnimationDuration animations:^{
         // Set the alphas back to normal
         SBIconListView *listView = STKListViewForIcon(_centralIcon);

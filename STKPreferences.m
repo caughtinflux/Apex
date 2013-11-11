@@ -137,7 +137,6 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
 - (void)reloadPreferences
 {
     [_currentPrefs release];
-
     _currentPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
     if (!_currentPrefs) {
         _currentPrefs = [[NSMutableDictionary alloc] init];

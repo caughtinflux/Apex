@@ -1,11 +1,7 @@
 #import "STKConstants.h"
-
 #import <UIKit/UIKit.h>
-
 #import <SpringBoard/SpringBoard.h>
-
 #import <objc/runtime.h>
-#import <sys/sysctl.h>
 
 NSString * const STKTweakName                       = @"Apex";
 NSString * const STKPlaceHolderIconIdentifier       = @"com.a3tweaks.apex.placeholderid";
