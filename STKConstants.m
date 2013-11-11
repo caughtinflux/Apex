@@ -1,4 +1,5 @@
 #import "STKConstants.h"
+#import "SBIconListView+ApexAdditions.h"
 #import <UIKit/UIKit.h>
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
@@ -45,10 +46,7 @@ inline CGFloat STKGetCurrentTargetDistance(void)
 
 inline void STKUpdateTargetDistanceInListView(SBIconListView *listView)
 {
-    CGPoint referencePoint = [listView originForIconAtX:2 Y:2];
-    CGPoint verticalOrigin = [listView originForIconAtX:2 Y:1];
-    
-    CGFloat verticalDistance = referencePoint.y - verticalOrigin.y;
-
-    _currentTargetDistance = verticalDistance;
+    CGFloat defaultHeight = [objc_getClass("SBIconView") defaultIconSize].height;
+    CGFloat verticalPadding = [listView stk_realVerticalIconPadding];
+    _currentTargetDistance = (defaultHeight + verticalPadding);
 }
