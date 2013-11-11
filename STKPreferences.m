@@ -138,25 +138,16 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
 {
     [_currentPrefs release];
     _currentPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
-    if (!_currentPrefs) {
-        _currentPrefs = [[NSMutableDictionary alloc] init];
-        // Set the default values
-        _currentPrefs[STKStackPreviewEnabledKey] = @YES;
-        _currentPrefs[STKStackClosesOnLaunchKey] = @YES;
-        _currentPrefs[STKShowSectionTitlesKey] = @YES;
-
-        [_currentPrefs writeToFile:kPrefPath atomically:YES];
-    }
 
     [_layouts release];
     _layouts = nil;
-    
+
     [_iconsInStacks release];
     _iconsInStacks = nil;
 
     [_iconsWithStacks release];
     _iconsWithStacks = nil;
-
+    
     [_cachedLayouts release];
     _cachedLayouts = nil;
 
