@@ -58,7 +58,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 - (CGPoint)_displacedOriginForIcon:(SBIcon *)icon withPosition:(STKLayoutPosition)position;
 
 - (void)_calculateDistanceRatio;
-- (void)_findIconsWithOffScreenTargets;
+- (void)_findIconsToHide;
 
 /*
 *   Alpha

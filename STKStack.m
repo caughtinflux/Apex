@@ -22,7 +22,7 @@
     SBIcon                   *_centralIcon;
     STKIconLayout            *_appearingIconsLayout;
     STKIconLayout            *_displacedIconsLayout;
-    STKIconLayout            *_offScreenIconsLayout;
+    NSMutableSet             *_hiddenIcons;
     STKIconLayout            *_iconViewsLayout;
 
     CGRect                   _topGrabberOriginalFrame;
@@ -199,7 +199,7 @@
     [_centralIcon release];
     [_appearingIconsLayout release];
     [_displacedIconsLayout release];
-    [_offScreenIconsLayout release];
+    [_hiddenIcons release];
 
     [_postCloseOpQueue cancelAllOperations];
     [_postCloseOpQueue release];
@@ -391,7 +391,7 @@
         [self setupPreview];
     }
     [_iconController prepareToGhostCurrentPageIconsForRequester:kGhostlyRequesterID skipIcon:_centralIcon];
-    [self _findIconsWithOffScreenTargets];
+    [self _findIconsToHide];
 }
 
 - (void)touchesDraggedForDistance:(CGFloat)distance
@@ -542,7 +542,6 @@
     for (SBIconView *iv in _iconViewsLayout) {
         iv.alpha = alpha;
     }
-
     _topGrabberView.alpha = alpha;
     _bottomGrabberView.alpha = alpha;
 }
@@ -552,7 +551,6 @@
     if (showsPrev == _showsPreview) {
         return;
     }
-    
     _showsPreview = showsPrev;
     if (_showsPreview && !_isEmpty) {
         [self setupPreview];
@@ -639,7 +637,7 @@
 
         [self _setPageControlAlpha:0];
         [self _setGhostlyAlphaForAllIcons:0.f excludingCentralIcon:YES];
-        [_offScreenIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition pos) { [self _iconViewForIcon:icon].alpha = 0.f; }];
+        for (SBIcon *icon in _hiddenIcons) { [self _iconViewForIcon:icon].alpha = 0.f; }
 
         _topGrabberView.alpha = 0.f;
         _bottomGrabberView.alpha = 0.f;
@@ -703,9 +701,9 @@
         [self _setPageControlAlpha:1];
 
         // Bring the off screen icons back to life! :D
-        [_offScreenIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition pos) {
+        for (SBIcon *icon in _hiddenIcons) {
             [self _iconViewForIcon:icon].alpha = 1.f;
-        }];
+        }
 
         [_closingAnimationOpQueue setSuspended:NO];
         [_closingAnimationOpQueue waitUntilAllOperationsAreFinished];
@@ -742,16 +740,15 @@
             [self _setGhostlyAlphaForAllIcons:1.f excludingCentralIcon:NO]; // Set it back to 1.f, fix a pain in the ass bug
             [_iconController cleanUpGhostlyIconsForRequester:kGhostlyRequesterID];
 
-            [_offScreenIconsLayout release];
-            _offScreenIconsLayout = nil;
+            [_hiddenIcons release];
+            _hiddenIcons = nil;
 
             if (_isEmpty || !_showsPreview) {
                 // We can remove the place holder icon views if the stack is empty. No need to have 4 icon views hidden behind every damn icon.
                 [self cleanupView];
                 
-                [_offScreenIconsLayout removeAllIcons];
-                [_offScreenIconsLayout release];
-                _offScreenIconsLayout = nil;
+                [_hiddenIcons release];
+                _hiddenIcons = nil;
                 
                 if (_isEmpty) {
                     [_appearingIconsLayout removeAllIcons];
@@ -1031,11 +1028,11 @@
             break;
         }
         case STKLayoutPositionLeft: {
-            returnPoint.x = originalFrame.origin.x - ((originalFrame.size.width + [listView stk_realVerticalIconPadding]) * multiplicationFactor);
+            returnPoint.x = originalFrame.origin.x - ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
             break;
         }
         case STKLayoutPositionRight: {
-            returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView stk_realVerticalIconPadding]) * multiplicationFactor);
+            returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
             break;
         }
         default: {
@@ -1099,47 +1096,61 @@
     _distanceRatio = (horizontalDistance / verticalDistance);
 }
 
-- (void)_findIconsWithOffScreenTargets
+- (void)_findIconsToHide
 {
-    [_offScreenIconsLayout release];
-    _offScreenIconsLayout = [[STKIconLayout alloc] init]; 
-
-    CGRect listViewBounds = STKListViewForIcon(_centralIcon).bounds;
-    [_displacedIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
-        CGPoint target = [self _displacedOriginForIcon:icon withPosition:position];
-        CGRect targetRect = (CGRect){{target.x, target.y}, [self _iconViewForIcon:icon].frame.size};
-
-        switch (position) {
-            case STKLayoutPositionTop: {
-                if (CGRectGetMaxY(targetRect) <= (listViewBounds.origin.y + 20)) {
-                    // Add 20 to account for status bar frame
-                    [_offScreenIconsLayout addIcon:icon toIconsAtPosition:position];
+    [_hiddenIcons release];
+    _hiddenIcons = nil;
+    _hiddenIcons = [NSMutableSet new];
+    SBIconView *centralIconView = [self _iconViewForIcon:_centralIcon];
+    if (![centralIconView isInDock]) {
+        CGRect listViewBounds = STKListViewForIcon(_centralIcon).bounds;
+        [_displacedIconsLayout enumerateIconsUsingBlock:^(SBIcon *icon, STKLayoutPosition position) {
+            CGPoint target = [self _displacedOriginForIcon:icon withPosition:position];
+            CGRect targetRect = (CGRect){{target.x, target.y}, [self _iconViewForIcon:icon].frame.size};
+            switch (position) {
+                case STKLayoutPositionTop: {
+                    if (CGRectGetMaxY(targetRect) <= (listViewBounds.origin.y + 20)) {
+                        // Add 20 to account for status bar frame
+                        [_hiddenIcons addObject:icon];
+                    }
+                    break;
                 }
-                break;
-            }
-            case STKLayoutPositionBottom: {
-                if (target.y + 10 > listViewBounds.size.height) {
-                    [_offScreenIconsLayout addIcon:icon toIconsAtPosition:position];
+                case STKLayoutPositionBottom: {
+                    if (target.y + 10 > listViewBounds.size.height) {
+                        [_hiddenIcons addObject:icon];
+                    }
+                    break;
                 }
-                break;
-            }
-            case STKLayoutPositionLeft: {
-                if (CGRectGetMaxX(targetRect) <= listViewBounds.origin.y) {
-                    [_offScreenIconsLayout addIcon:icon toIconsAtPosition:position];
+                case STKLayoutPositionLeft: {
+                    if (CGRectGetMaxX(targetRect) <= listViewBounds.origin.y) {
+                        [_hiddenIcons addObject:icon];
+                    }
+                    break;
                 }
-                break;
-            }
-            case STKLayoutPositionRight: {
-                if (CGRectGetMinX(targetRect) >= CGRectGetWidth(listViewBounds)) {
-                    [_offScreenIconsLayout addIcon:icon toIconsAtPosition:position];
+                case STKLayoutPositionRight: {
+                    if (CGRectGetMinX(targetRect) >= CGRectGetWidth(listViewBounds)) {
+                        [_hiddenIcons addObject:icon];
+                    }
+                    break;
                 }
-                break;
+                default: {
+                    break;
+                }
             }
-            default: {
-                break;
-            }
-        }
-    }];
+        }];
+    }
+    else {
+        [_iconViewsLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx) {
+            CGPoint targetOrigin = [self _targetOriginForIconAtPosition:position distanceFromCentre:idx + 1];
+            CGRect targetFrame = (CGRect){targetOrigin, iconView.frame.size};
+            targetFrame = [iconView.superview convertRect:targetFrame toView:[_iconController currentRootIconList]];
+            [[_iconController currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *mainListViewIconView) {
+                if (CGRectIntersectsRect(targetFrame, mainListViewIconView.frame)) {
+                    [_hiddenIcons addObject:mainListViewIconView.icon];
+                }
+            }];
+        }];
+    }
 }
 
 #pragma mark - Alpha Shit
@@ -1147,7 +1158,7 @@
 - (void)_setGhostlyAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral
 {
     if (HAS_FE) {
-        for (SBIcon *icon in _offScreenIconsLayout) {
+        for (SBIcon *icon in _hiddenIcons) {
             [self _iconViewForIcon:icon].alpha = alpha;
         }
 
@@ -1166,7 +1177,7 @@
         }];
     }
     else {
-        for (SBIcon *icon in _offScreenIconsLayout) {
+        for (SBIcon *icon in _hiddenIcons) {
             [self _iconViewForIcon:icon].alpha = alpha;
         }
     }
@@ -1339,21 +1350,27 @@
     [UIView animateWithDuration:kAnimationDuration animations:^{
         [_currentSelectionView prepareForDisplay];
         _currentSelectionView.alpha = 1.f;
-
-        [STKListViewForIcon(_centralIcon) makeIconViewsPerformBlock:^(SBIconView *iv) { 
+        SBIconListView *listView = STKListViewForIcon(_centralIcon);
+        [listView makeIconViewsPerformBlock:^(SBIconView *iv) { 
             if (iv != [self _iconViewForIcon:_centralIcon]) {
                 iv.alpha = 0.f; 
             }
         }];
-        [_iconController dock].superview.alpha = 0.f;
+        // If we're in the dock, hide current list view, else hide the dock. Capiche?
+        ((listView == [_iconController dock]) ? [_iconController currentRootIconList] : [_iconController dock].superview).alpha = 0.f;
     } completion:^(BOOL done) {
         if (done && _selectionViewIndex >= 1) {
             NSArray *iconViews = [_iconViewsLayout iconsForPosition:_selectionViewPosition];
-            SBIconView *firstIconView = (SBIconView *)[iconViews objectAtIndex:0];
-
-            if ([firstIconView.icon isPlaceholder] && iconView.icon.isPlaceholder) {
-                [_currentSelectionView moveToIconView:firstIconView animated:YES completion:nil];
-                _selectionViewIndex = 0;
+            SBIconView *firstPlaceholder = nil;
+            for (SBIconView *iconView in iconViews) {
+                if ([iconView.icon isPlaceholder]) {
+                    firstPlaceholder = iconView;
+                    break;
+                }
+            }
+            if (firstPlaceholder && iconView.icon.isPlaceholder) {
+                [_currentSelectionView moveToIconView:firstPlaceholder animated:YES completion:nil];
+                _selectionViewIndex = [iconViews indexOfObject:firstPlaceholder];
             }
         }
     }];
@@ -1370,20 +1387,19 @@
         SBIconListView *listView = STKListViewForIcon(_centralIcon);
         CGFloat alphaToSet = (HAS_FE ? 0.2 : 1.f);
         [listView makeIconViewsPerformBlock:^(SBIconView *iv) { 
-            if ((iv != [self _iconViewForIcon:_centralIcon]) && !([[_iconsHiddenForPlaceHolders allIcons] containsObject:iv.icon]) && !([[_offScreenIconsLayout allIcons] containsObject:iv.icon])) {
+            if ((iv != [self _iconViewForIcon:_centralIcon]) && !([[_iconsHiddenForPlaceHolders allIcons] containsObject:iv.icon]) && !([_hiddenIcons containsObject:iv.icon])) {
                 iv.alpha = alphaToSet;
             }
         }];
-        [_iconController dock].superview.alpha = 1.f;
-
+        ((listView == [_iconController dock]) ? [_iconController currentRootIconList] : [_iconController dock].superview).alpha = 1.f;
         SBIcon *selectedIcon = [_currentSelectionView highlightedIcon];
         [self _addIcon:selectedIcon atIndex:(_isEmpty ? 0 : _selectionViewIndex) position:_selectionViewPosition];
 
         [_currentSelectionView prepareForRemoval];
         _currentSelectionView.alpha = 0.f;
 
-        for (SBIcon *icon in _offScreenIconsLayout) {
-            // _offScreenIconsLayout is all new at this point
+        for (SBIcon *icon in _hiddenIcons) {
+            // _hiddenIconsLayout is all new at this point
             [self _iconViewForIcon:icon].alpha = 0.f;
         }
         
@@ -1418,8 +1434,7 @@
     if (_isEmpty) {
         if (iconToAdd.isPlaceholder || !(idx < [_iconViewsLayout iconsForPosition:addPosition].count)) {
             return;
-        }    
-
+        }
         SBIconView *iconView = [_iconViewsLayout iconsForPosition:addPosition][idx];
         [iconView setIcon:iconToAdd]; // Convert the placeholder icon into a regular app icon. SBIconView <3
         
@@ -1444,11 +1459,9 @@
                 // It is better to simply check a BOOL instead of comparing strings, which is why the placeholder check is first
                 return;
             }
-
             if (!iconToChangeWasPlaceholder) {
                 removedIcon = [iconViewToChange.icon retain];
             }
-
             // If `iconToAdd` is a sub-app, change it's icon view to a place holder
             NSUInteger currentSubappIndex;
             STKLayoutPosition currentSubappPosition;
@@ -1486,8 +1499,7 @@
                 [_appearingIconsLayout setIcon:iconToAdd atIndex:idx position:addPosition];
                 [self _setAlpha:1.f forLabelAndShadowOfIconView:iconViewToChange];
                 [self _addOverlays];
-            }
-            
+            } 
             if (iconToChangeWasPlaceholder) {
                 [_closingAnimationOpQueue stk_addOperationToRunOnMainThreadWithBlock:^{
                     // Since we're converting a placholder icon, find the icon hidden underneath it, and un-hide it. Capiche?
@@ -1498,7 +1510,6 @@
                     }
                 }];
             }
-
             // If _appearingIconsLayout has count 0, we've removed all non-placeholders from it in the if (iconToAdd.isPlaceholder) check
             _isEmpty = ([_appearingIconsLayout totalIconCount] == 0);            
             if (_isEmpty) {
