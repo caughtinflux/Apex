@@ -334,11 +334,7 @@ ret:
 
 - (NSString *)description
 {
-#if __x86_64__
-    return [super description];
-#else
-    return [NSString stringWithFormat:@"%@ top.count: %i bottom.count: %i left.count: %i right.count: %i", [super description], _topIcons.count, _bottomIcons.count, _leftIcons.count, _rightIcons.count];
-#endif
+    return [NSString stringWithFormat:@"%@ top.count: %zd bottom.count: %zd left.count: %zd right.count: %zd", [super description], _topIcons.count, _bottomIcons.count, _leftIcons.count, _rightIcons.count];
 }
 
 - (NSMutableArray **)_nonNilArrayForPosition:(STKLayoutPosition)pos
