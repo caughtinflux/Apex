@@ -3,7 +3,7 @@
 #import "STKIconLayout.h"
 #import "STKIconLayoutHandler.h"
 #import "STKSelectionViewCell.h"
-#import "STKPlaceHolderIcon.h"
+#import "STKPlaceholderIcon.h"
 #import "STKPreferences.h"
 #import "STKSelectionViewDataSource.h"
 #import "SBIconListView+ApexAdditions.h"

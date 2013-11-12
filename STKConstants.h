@@ -55,7 +55,7 @@
 #ifdef __cplusplus 
 extern "C" {
 #endif
-    extern NSString * const STKPlaceHolderIconIdentifier;
+    extern NSString * const STKPlaceholderIconIdentifier;
     extern CFStringRef const STKPrefsChangedNotificationName;
 
     // Function to translate a number from one range to another
@@ -65,8 +65,8 @@ extern "C" {
     
     extern SBIconListView * STKListViewForIcon(SBIcon *icon);
 
-    extern inline CGFloat STKGetCurrentTargetDistance(void);
-    extern inline void    STKUpdateTargetDistanceInListView(SBIconListView *listView);
+    extern CGFloat STKGetCurrentTargetDistance(void);
+    extern void    STKUpdateTargetDistanceInListView(SBIconListView *listView, BOOL forDock);
 
 #ifdef __cplusplus 
 }

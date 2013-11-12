@@ -268,9 +268,7 @@ ret:
             [array removeObjectAtIndex:idx];
         }
         else {
-#ifndef __x86_64__
-            NSLog(@"[%@] %s: Index %i is out of bounds of array at position: %i. Dying silently", kSTKTweakName, __PRETTY_FUNCTION__, idx, position);
-#endif            
+            STKLog(@"%s: Index %i is out of bounds of array at position: %i. Dying silently", __PRETTY_FUNCTION__, idx, position);
         }
         _hasBeenModified = YES;
     }

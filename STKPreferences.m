@@ -70,7 +70,6 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
 {
     SBIconModel *model = (SBIconModel *)[[objc_getClass("SBIconController") sharedInstance] model];
     NSArray *stackIconIDs = dict[STKStackManagerStackIconsKey];
-
     if (![model expectedIconForDisplayIdentifier:dict[STKStackManagerCentralIconKey]] || !stackIconIDs) {
         return NO;
     }
@@ -83,7 +82,6 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
     if (count == 0) {
         return NO;
     }
-
     return YES;
 }
 
@@ -109,14 +107,10 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
     
     dispatch_once(&predicate, ^{
         sharedInstance = [[self alloc] init];
-
         [[NSFileManager defaultManager] createDirectoryAtPath:[self layoutsDirectory] withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions : @511} error:NULL];
         [[NSFileManager defaultManager] setAttributes:@{NSFilePosixPermissions : @511} ofItemAtPath:[self layoutsDirectory] error:NULL]; // Set the persimissions to 755? Idk, it works.
-
         [sharedInstance reloadPreferences];
-
         CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)STKPrefsChanged, STKPrefsChangedNotificationName, NULL, 0);
-
         p_checker(nil);
     });
 
@@ -137,7 +131,7 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
 - (void)reloadPreferences
 {
     [_currentPrefs release];
-    _currentPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
+    _currentPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath] ?: [NSMutableDictionary new];
 
     [_layouts release];
     _layouts = nil;

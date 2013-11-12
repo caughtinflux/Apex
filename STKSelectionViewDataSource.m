@@ -1,7 +1,7 @@
 #import "STKConstants.h"
 #import "STKSelectionViewDataSource.h"
 #import "STKSelectionViewCell.h"
-#import "STKPlaceHolderIcon.h"
+#import "STKPlaceholderIcon.h"
 #import "STKPreferences.h"
 
 #import <objc/runtime.h>
@@ -48,9 +48,9 @@
         }
     }
     // Add a placeholder to available icons so the user can have a "None"-like option
-    STKPlaceHolderIcon *ph = [[[objc_getClass("STKPlaceHolderIcon") alloc] init] autorelease];
+    STKPlaceholderIcon *ph = [[[objc_getClass("STKPlaceholderIcon") alloc] init] autorelease];
     [availableIcons addObject:ph];
-
+    
     const SEL collationSelector = @selector(displayName);
     UILocalizedIndexedCollation *collation = [UILocalizedIndexedCollation currentCollation];
     NSInteger idx, sectionTitlesCount = [[collation sectionTitles] count];

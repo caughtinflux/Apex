@@ -4,8 +4,8 @@
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
 
-NSString * const STKTweakName                       = @"Apex";
-NSString * const STKPlaceHolderIconIdentifier       = @"com.a3tweaks.apex.placeholderid";
+NSString * const STKTweakName                  = @"Apex";
+NSString * const STKPlaceholderIconIdentifier  = @"com.a3tweaks.apex.placeholderid";
 
 CFStringRef const STKPrefsChangedNotificationName = CFSTR("com.a3tweaks.apex.prefschanged");
 
@@ -28,10 +28,8 @@ inline double STKAlphaFromDistance(double distance, CGFloat targetDistance)
 SBIconListView * STKListViewForIcon(SBIcon *icon)
 {
     SBIconController *controller = [objc_getClass("SBIconController") sharedInstance];
-    
     SBRootFolder *rootFolder = [controller valueForKeyPath:@"rootFolder"];
-    NSIndexPath *indexPath = [rootFolder indexPathForIcon:icon];
-    
+    NSIndexPath *indexPath = [rootFolder indexPathForIcon:icon];    
     SBIconListView *listView = nil;
     [controller getListView:&listView folder:NULL relativePath:NULL forIndexPath:indexPath createIfNecessary:YES];
 
@@ -39,14 +37,17 @@ SBIconListView * STKListViewForIcon(SBIcon *icon)
 }
 
 static CGFloat _currentTargetDistance;
-inline CGFloat STKGetCurrentTargetDistance(void)
+CGFloat STKGetCurrentTargetDistance(void)
 {
     return _currentTargetDistance;
 }
 
-inline void STKUpdateTargetDistanceInListView(SBIconListView *listView)
+void STKUpdateTargetDistanceInListView(SBIconListView *listView, BOOL forDock)
 {
     CGFloat defaultHeight = [objc_getClass("SBIconView") defaultIconSize].height;
     CGFloat verticalPadding = [listView stk_realVerticalIconPadding];
     _currentTargetDistance = (defaultHeight + verticalPadding);
+    if (forDock) {
+        _currentTargetDistance += ([[objc_getClass("SBIconController") sharedInstance] dock].frame.origin.y * 0.5); 
+    }
 }
