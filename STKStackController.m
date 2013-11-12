@@ -67,9 +67,13 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
         [[STKPreferences sharedPreferences] iconIsInStack:icon]) {
         // Don't add recognizer to icons in the stack already
         // In the switcher, -setIcon: is called to change the icon, but doesn't change the icon view, so cleanup.
-        [self removeStackFromIconView:iconView];
+        if ([self stackForIconView:iconView]) {
+            [self removeStackFromIconView:iconView];
+        }
     }
     else if (!self.activeStack) {
+        // This method is called sometimes for creating a stack on the active icon view
+        // wtpl
         [self createStackForIconView:iconView];
     }
 }
@@ -159,8 +163,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     if (!iconView || panRecognizer) {
         return;
     }
-    
-    // Don't add a recognizer if it already exists
     panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_panned:)] autorelease];
     for (UIGestureRecognizer *recognizer in iconView.gestureRecognizers) {
         if ([[recognizer class] isKindOfClass:[UISwipeGestureRecognizer class]]) {
@@ -250,7 +252,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     if (!_iconsToShow) {
         _iconsToShow = [NSMutableArray new];
     }
-
     return _iconsToShow;
 }
 
@@ -259,7 +260,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     if (!_iconsToHide) {
         _iconsToHide = [NSMutableArray new];
     }
-
     return _iconsToHide;
 }
 
@@ -268,7 +268,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     if (!_iconsToHide && !_iconsToShow) {
         return;
     }
-
     SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
     [model _postIconVisibilityChangedNotificationShowing:_iconsToShow hiding:_iconsToHide];
     
@@ -284,7 +283,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 - (void)_prefsChanged:(NSNotification *)notification
 {
     BOOL previewEnabled = [STKPreferences sharedPreferences].previewEnabled;
-
+    BOOL shouldHideGrabbers = [STKPreferences sharedPreferences].shouldHideGrabbers;
     void (^aBlock)(SBIconView *iconView) = ^(SBIconView *iconView) {
         if (!iconView) {
             return;
@@ -294,18 +293,16 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
             return;
         }
         if (!stack.isEmpty) {
-            if (previewEnabled || [STKPreferences sharedPreferences].shouldHideGrabbers) { // Removal of grabber images will be the same in either case 
+            if (previewEnabled || shouldHideGrabbers) { // Removal of grabber images will be the same in either case 
                 if (previewEnabled) {
                     // But only if preview is enabled should be change the scale
                     iconView.iconImageView.transform = CGAffineTransformMakeScale(kCentralIconPreviewScale, kCentralIconPreviewScale);
                 }
-
                 [self removeGrabbersFromIconView:iconView];
-
                 stack.topGrabberView = nil;
                 stack.bottomGrabberView = nil;
             }
-            else if (!previewEnabled && ![STKPreferences sharedPreferences].shouldHideGrabbers) {
+            else if (!previewEnabled && !shouldHideGrabbers) {
                 // If preview is disabled and we shouldn't hide the grabbers, add 'em.
                 iconView.iconImageView.transform = CGAffineTransformMakeScale(1.f, 1.f);
                 [self addGrabbersToIconView:iconView];
@@ -317,12 +314,13 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
         stack.showsPreview = previewEnabled;
     };
     for (SBIconListView *listView in [[CLASS(SBIconController) sharedInstance] valueForKey:@"_rootIconLists"]){
-        [listView makeIconViewsPerformBlock:^(SBIconView *iconView) { aBlock(iconView); }];
+        [listView makeIconViewsPerformBlock:aBlock];
     }
     SBIconListView *folderListView = (SBIconListView *)[[CLASS(SBIconController) sharedInstance] currentFolderIconList];
     if ([folderListView isKindOfClass:CLASS(FEIconListView)]) {
-        [folderListView makeIconViewsPerformBlock:^(SBIconView *iv) { aBlock(iv); }];
+        [folderListView makeIconViewsPerformBlock:aBlock];
     }
+    [[[CLASS(SBIconController) sharedInstance] dock] makeIconViewsPerformBlock:aBlock];
 }
 
 
@@ -344,7 +342,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
         [self removeStackFromIconView:iconView];
         return;
     }
-
     if (stack.isExpanded || (activeStack != nil && activeStack != stack)) {
         cancelledPanRecognizer = YES;
         return;
@@ -368,7 +365,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
             }
             // Update the target distance based on icons positions when the pan begins
             // This way, we can be sure that the icons are indeed in the required location 
-            STKUpdateTargetDistanceInListView([[CLASS(SBIconController) sharedInstance] currentRootIconList]);
+            STKUpdateTargetDistanceInListView([[CLASS(SBIconController) sharedInstance] currentRootIconList], [iconView isInDock]);
             [stack setupViewIfNecessary];
 
             self.activeStack = stack;
@@ -404,7 +401,9 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
                 [stack touchesEnded];
                 self.activeStack = stack.isExpanded ? stack : nil;
             }
-            // NOTE THE LACK OF A break;
+            /*********************************************************************************************
+            ***************************    NOTE THE LACK OF A break;   ***********************************
+            *********************************************************************************************/
         }
         default: {
             cancelledPanRecognizer = NO; 
@@ -504,7 +503,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
                 [[STKPreferences sharedPreferences] removeCachedLayoutForIcon:centralIconForOtherStack];
                 if (otherStack) {
                     [otherStack removeIconFromAppearingIcons:addedIcon];
-
                     if (otherStack.isEmpty) {
                         [[STKPreferences sharedPreferences] removeLayoutForIcon:otherStack.centralIcon];
                         [otherStack cleanupView];
@@ -514,13 +512,11 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
                         [STKPreferences saveLayout:otherStack.appearingIconsLayout forIcon:otherStack.centralIcon];
                     }
                 }
-                else {
+                else { // otherStack == nil
                     // Other stack is nil, so manually do the work
                     NSDictionary *cachedLayout = [[STKPreferences sharedPreferences] cachedLayoutDictForIcon:centralIconForOtherStack];
-
                     STKIconLayout *layout = [STKIconLayout layoutWithDictionary:cachedLayout];
                     [layout removeIcon:addedIcon];
-
                     if ([layout allIcons].count > 0) {
                         [STKPreferences saveLayout:layout forIcon:centralIconForOtherStack];
                     }

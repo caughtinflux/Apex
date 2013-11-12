@@ -31,13 +31,18 @@ static BOOL _wantsSafeIconViewRetrieval;
     return iconView;
 }
 
+- (void)_addIconView:(SBIconView *)iconView forIcon:(SBIcon *)icon
+{
+    %orig(iconView, icon);
+    if (iconView.icon != icon) {
+        iconView.icon = icon;
+    }
+    [[STKStackController sharedInstance] createOrRemoveStackForIconView:iconView];
+}
+
 - (void)_recycleIconView:(SBIconView *)iconView
 {
-    if (![iconView isInDock]) {
-        // XXX: Docked icons aren't used again?
-        // wut.
-        [[STKStackController sharedInstance] removeStackFromIconView:iconView];
-    }
+    [[STKStackController sharedInstance] removeStackFromIconView:iconView];
     %orig();
 }
 
@@ -69,6 +74,7 @@ static BOOL _wantsSafeIconViewRetrieval;
 
 #pragma mark - SBIconView Hook
 %hook SBIconView
+
 - (void)setIcon:(SBIcon *)icon
 {   
     %orig();
@@ -85,7 +91,6 @@ static BOOL _wantsSafeIconViewRetrieval;
         [[STKStackController sharedInstance] createOrRemoveStackForIconView:self];
     }
 }
-
 
 - (BOOL)canReceiveGrabbedIcon:(SBIconView *)iconView
 {
