@@ -1,10 +1,10 @@
-#import "STKPlaceHolderIcon.h"
+#import "STKPlaceholderIcon.h"
 #import "STKConstants.h"
 
 #import <UIKit/UIKit.h>
 #import <SpringBoard/SpringBoard.h>
 
-%subclass STKPlaceHolderIcon : SBIcon
+%subclass STKPlaceholderIcon : SBIcon
 
 - (NSString *)displayName
 {
@@ -13,7 +13,7 @@
 
 - (NSString *)leafIdentifier
 {
-	return STKPlaceHolderIconIdentifier;
+	return STKPlaceholderIconIdentifier;
 }
 
 - (BOOL)allowsUninstall

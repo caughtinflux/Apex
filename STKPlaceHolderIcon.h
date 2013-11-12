@@ -1,4 +1,4 @@
 #import <SpringBoard/SBIcon.h>
 
-@interface STKPlaceHolderIcon : SBIcon
+@interface STKPlaceholderIcon : SBIcon
 @end
