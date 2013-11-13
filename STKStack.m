@@ -1256,12 +1256,14 @@
         }
         iconView.alpha = 0.f;
         [centralIconView insertSubview:iconView belowSubview:centralIconView.iconImageView];
-        for (SBIcon *ic in [listView icons]) {
-            SBIconView *displacedView = [self _iconViewForIcon:ic];
-            if (CGRectIntersectsRect(displacedView.frame, [centralIconView convertRect:iconView.frame toView:displacedView.superview])) {
-                [_iconsHiddenForPlaceholders addIcon:displacedView.icon toIconsAtPosition:position];        
-                displacedView.alpha = 0.f;
-                break;
+        if (![centralIconView isInDock]) {
+            for (SBIcon *ic in [listView icons]) {
+                SBIconView *displacedView = [self _iconViewForIcon:ic];
+                if (CGRectIntersectsRect(displacedView.frame, [centralIconView convertRect:iconView.frame toView:displacedView.superview])) {
+                    [_iconsHiddenForPlaceholders addIcon:displacedView.icon toIconsAtPosition:position];        
+                    displacedView.alpha = 0.f;
+                    break;
+                }
             }
         }
 
@@ -1270,6 +1272,22 @@
         }];
     }];
 
+    if ([centralIconView isInDock]) {
+        [_iconViewLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx) {
+            if (!iconView.icon.isPlaceholder) {
+                return;
+            }
+            CGPoint targetOrigin = [self _targetOriginForIconAtPosition:position distanceFromCentre:idx + 1];
+            CGRect targetFrame = (CGRect){targetOrigin, iconView.frame.size};
+            targetFrame = [iconView.superview convertRect:targetFrame toView:[_iconController currentRootIconList]];
+            [[_iconController currentRootIconList] makeIconViewsPerformBlock:^(SBIconView *mainListViewIconView) {
+                if (CGRectIntersectsRect(targetFrame, mainListViewIconView.frame)) {
+                    mainListViewIconView.alpha = 0.f;
+                    [_iconsHiddenForPlaceholders addIcon:mainListViewIconView.icon toIconsAtPosition:STKLayoutPositionTop];
+                }
+            }];
+        }];
+    }
     _hasPlaceholders = YES;
 }
 
@@ -1364,6 +1382,8 @@
         return;
     }
     _isClosingSelectionView = YES;
+    SBIcon *selectedIcon = [_currentSelectionView highlightedIcon];
+    [self _addIcon:selectedIcon atIndex:_selectionViewIndex position:_selectionViewPosition];
     [UIView animateWithDuration:kAnimationDuration animations:^{
         // Set the alphas back to normal
         SBIconListView *listView = STKListViewForIcon(_centralIcon);
@@ -1374,8 +1394,6 @@
             }
         }];
         ((listView == [_iconController dock]) ? [_iconController currentRootIconList] : [_iconController dock].superview).alpha = 1.f;
-        SBIcon *selectedIcon = [_currentSelectionView highlightedIcon];
-        [self _addIcon:selectedIcon atIndex:_selectionViewIndex position:_selectionViewPosition];
 
         [_currentSelectionView prepareForRemoval];
         _currentSelectionView.alpha = 0.f;
@@ -1384,7 +1402,6 @@
             // _hiddenIconsLayout is all new at this point
             [self _iconViewForIcon:icon].alpha = 0.f;
         }
-        
     } completion:^(BOOL done) {
         if (done) {
             [_currentSelectionView removeFromSuperview];
