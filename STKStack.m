@@ -5,7 +5,6 @@
 #import "SBIconListView+ApexAdditions.h"
 #import "SBIconViewMap+STKSafety.h"
 #import "NSOperationQueue+STKMainQueueDispatch.h"
-#import "STKPlaceHolderIcon.h"
 #import "STKPlaceholderIcon.h"
 
 #import <objc/runtime.h>
