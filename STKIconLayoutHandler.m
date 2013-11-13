@@ -191,10 +191,45 @@ static SBIconListView *_centralIconListView;
     // Create an array with four objects to represent a full stack
     Class iconClass = objc_getClass("STKPlaceholderIcon");
     NSArray *fullSizeStackArray = @[[[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease]];
+
     // Get a layout object that represents how the icon would look with a full stack
-    STKIconLayout *placeholderLayout = [self layoutForIcons:fullSizeStackArray aroundIconAtPosition:position];
-    placeholderLayout.containsPlaceholders = YES;
-    return placeholderLayout;
+    STKIconLayout *fullLayout = [self layoutForIcons:fullSizeStackArray aroundIconAtPosition:position];
+
+    NSMutableArray *topIcons = [NSMutableArray array];
+    NSMutableArray *bottomIcons = [NSMutableArray array];
+    NSMutableArray *leftIcons = [NSMutableArray array];
+    NSMutableArray *rightIcons = [NSMutableArray array];
+
+    void(^addPlaceHoldersToArray)(NSMutableArray *array, NSInteger numPlaceHolders) = ^(NSMutableArray *array, NSInteger numPlaceHolders) {
+        numPlaceHolders = MIN((position & STKPositionDock ? 4 : 2), numPlaceHolders); // A LA HAXX
+        if (numPlaceHolders <= 0) { 
+            return;
+        }
+        do {
+            [array addObject:[[iconClass new] autorelease]];
+        } while (--numPlaceHolders > 0);
+    };
+
+    if ((layout.topIcons == nil || layout.topIcons.count == 0 || layout.topIcons.count < fullLayout.topIcons.count) && !(position & STKPositionTouchingTop)) {
+        addPlaceHoldersToArray(topIcons, (fullLayout.topIcons.count - layout.topIcons.count));
+    }
+
+    if ((layout.bottomIcons == nil || layout.bottomIcons.count == 0 || layout.bottomIcons.count < fullLayout.bottomIcons.count) && !(position & STKPositionTouchingBottom)) {
+        addPlaceHoldersToArray(bottomIcons, (fullLayout.bottomIcons.count - layout.bottomIcons.count));
+    }
+
+    if ((layout.leftIcons == nil || layout.leftIcons.count == 0 || layout.leftIcons.count < fullLayout.leftIcons.count) && !(position & STKPositionTouchingLeft)) {
+        addPlaceHoldersToArray(leftIcons, (fullLayout.leftIcons.count - layout.leftIcons.count));
+    }
+
+    if ((layout.rightIcons == nil || layout.rightIcons.count == 0 || layout.rightIcons.count < fullLayout.rightIcons.count) && !(position & STKPositionTouchingRight)) {
+        addPlaceHoldersToArray(rightIcons, (fullLayout.rightIcons.count - layout.rightIcons.count));
+    }
+
+    STKIconLayout *placeHolderLayout = [STKIconLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons];
+    placeHolderLayout.containsPlaceholders = YES;
+
+    return placeHolderLayout;
 }
 
 + (STKIconLayout *)_processLayoutForSymmetry:(STKIconLayout *)layout withPosition:(STKPositionMask)position

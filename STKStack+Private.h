@@ -34,7 +34,7 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 *   Icon moving
 */
 - (void)_animateToOpenPositionWithDuration:(NSTimeInterval)duration;
-- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon forSwitcher:(BOOL)forSwitcher;
+- (void)_animateToClosedPositionWithCompletionBlock:(void(^)(void))completionBlock duration:(NSTimeInterval)duration animateCentralIcon:(BOOL)animateCentralIcon;
 
 - (void)_moveAllIconsInRespectiveDirectionsByDistance:(CGFloat)distance performingTask:(void(^)(SBIconView *iv, STKLayoutPosition pos, NSUInteger idx))task;
 
@@ -73,8 +73,8 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 */
 - (void)_addOverlays;
 - (void)_removeOverlays;
-- (void)_insertPlaceHolders;
-- (void)_removePlaceHolders;
+- (void)_insertPlaceholders;
+- (void)_removePlaceholders;
 
 
 - (void)_addIcon:(SBIcon *)icon atIndex:(NSUInteger)idx position:(STKLayoutPosition)position;
