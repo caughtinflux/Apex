@@ -53,7 +53,7 @@ static BOOL _wantsSafeIconViewRetrieval;
         SBIconView *centralIconView = [self iconViewForIcon:centralIcon];
         STKStack *stack = [[STKStackController sharedInstance] stackForIconView:centralIconView];
         SBIconView *viewToReturn = nil;
-        for (SBIconView *iconView in stack.iconViewsLayout) {
+        for (SBIconView *iconView in stack.iconViewLayout) {
             if (iconView.icon == icon) {
                 viewToReturn = iconView;
                 break;

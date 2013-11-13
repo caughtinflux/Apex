@@ -1,7 +1,5 @@
 #import <Foundation/Foundation.h>
 
-@class SBIcon;
-
 #ifdef __cplusplus 
 extern "C" {
 #endif
@@ -44,6 +42,8 @@ typedef NS_ENUM(NSInteger, STKLayoutPosition) {
 @property (nonatomic, readonly) NSArray *leftIcons;
 @property (nonatomic, readonly) NSArray *rightIcons;
 @property (nonatomic, assign) BOOL containsPlaceholders;
+// Set this SEL to decide which key of the contained objects is to be used when using -dictionaryRepresentation
+@property (nonatomic, assign) NSString *dictionaryRepresentationKey;
 
 - (void)enumerateIconsUsingBlock:(void(^)(id, STKLayoutPosition))block;
 - (void)enumerateIconsUsingBlockWithIndexes:(void(^)(id icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index))block;
@@ -54,6 +54,7 @@ typedef NS_ENUM(NSInteger, STKLayoutPosition) {
 
 
 - (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position;
+- (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position atIndex:(NSUInteger)idx;
 
 /**
 *   @param icon The icon to set at idx

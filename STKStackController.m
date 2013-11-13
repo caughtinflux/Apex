@@ -96,13 +96,13 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
             if (cachedLayout) {
                 stack = [[STKStack alloc] initWithCentralIcon:iconView.icon withCustomLayout:cachedLayout];
                 if (stack.layoutDiffersFromFile) {
-                    [STKPreferences saveLayout:stack.appearingIconsLayout forIcon:stack.centralIcon];
+                    [STKPreferences saveLayout:stack.appearingIconLayout forIcon:stack.centralIcon];
                 }
             }
             else {
                 stack = [[STKStack alloc] initWithContentsOfFile:layoutPath];
                 if (stack.layoutDiffersFromFile) {
-                    [STKPreferences saveLayout:stack.appearingIconsLayout forIcon:stack.centralIcon];
+                    [STKPreferences saveLayout:stack.appearingIconLayout forIcon:stack.centralIcon];
                 }
                 else if (!stack) {
                     // Control should not get here, since
@@ -110,7 +110,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
                     NSArray *stackIcons = [[STKPreferences sharedPreferences] stackIconsForIcon:iconView.icon];
                     stack = [[STKStack alloc] initWithCentralIcon:iconView.icon stackIcons:stackIcons];
                     if (![stack isEmpty]) {
-                        [STKPreferences saveLayout:stack.appearingIconsLayout forIcon:stack.centralIcon];
+                        [STKPreferences saveLayout:stack.appearingIconLayout forIcon:stack.centralIcon];
                     }
                 }
             }              
@@ -371,7 +371,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
             self.activeStack = stack;
             [stack touchesBegan];
 
-            hasVerticalIcons = ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stack.appearingIconsLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
+            hasVerticalIcons = ([stack.appearingIconLayout iconsForPosition:STKLayoutPositionTop].count > 0) || ([stack.appearingIconLayout iconsForPosition:STKLayoutPositionBottom].count > 0);
             break;
         }
         case UIGestureRecognizerStateChanged: {
@@ -509,7 +509,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
                         ICONVIEW(otherStack.centralIcon).transform = CGAffineTransformMakeScale(1.f, 1.f);
                     }
                     else {
-                        [STKPreferences saveLayout:otherStack.appearingIconsLayout forIcon:otherStack.centralIcon];
+                        [STKPreferences saveLayout:otherStack.appearingIconLayout forIcon:otherStack.centralIcon];
                     }
                 }
                 else { // otherStack == nil
@@ -530,7 +530,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
         if (!stack.showsPreview) {
             [self addGrabbersToIconView:ICONVIEW(stack.centralIcon)];
         }
-        [STKPreferences saveLayout:stack.appearingIconsLayout forIcon:stack.centralIcon];
+        [STKPreferences saveLayout:stack.appearingIconLayout forIcon:stack.centralIcon];
     }
     [[STKPreferences sharedPreferences] reloadPreferences];
     if (ICON_IS_IN_STACK(addedIcon)) {

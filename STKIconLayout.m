@@ -97,10 +97,10 @@ NSString * const STKRightIconsKey = @"RightIcons";
 - (instancetype)initWithLayout:(STKIconLayout *)layout
 {
     if ((self = [super init])) {
-        _topIcons = [layout.topIcons copy];
-        _bottomIcons = [layout.bottomIcons copy];
-        _leftIcons = [layout.leftIcons copy];
-        _rightIcons = [layout.rightIcons copy];
+        _topIcons = [layout.topIcons mutableCopy];
+        _bottomIcons = [layout.bottomIcons mutableCopy];
+        _leftIcons = [layout.leftIcons mutableCopy];
+        _rightIcons = [layout.rightIcons mutableCopy];
     }
     return self;
 }
@@ -171,11 +171,16 @@ ret:
 
 - (void)addIcon:(SBIcon *)icon toIconsAtPosition:(STKLayoutPosition)position
 {
+    [self addIcon:icon toIconsAtPosition:position atIndex:[self iconsForPosition:position].count];
+}
+
+- (void)addIcon:(SBIcon *)icon toIconsAtPosition:(STKLayoutPosition)position atIndex:(NSUInteger)idx
+{
     if (!icon || position < STKLayoutPositionTop || position > STKLayoutPositionRight) {
         return;
     }
     @synchronized(self) {
-        [*[self _nonNilArrayForPosition:position] addObject:icon];
+        [*[self _nonNilArrayForPosition:position] insertObject:icon atIndex:idx];
         _hasBeenModified = YES;
     }
 }

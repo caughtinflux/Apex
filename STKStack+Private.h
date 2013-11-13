@@ -65,11 +65,8 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 */
 // This sexy method disables/enables icon interaction as required.
 - (void)_setGhostlyAlphaForAllIcons:(CGFloat)alpha excludingCentralIcon:(BOOL)excludeCentral; 
-
 // Applies `alpha` to the shadow and label of `iconView`
 - (void)_setAlpha:(CGFloat)alpha forLabelAndShadowOfIconView:(SBIconView *)iconView;
-
-- (void)_setPageControlAlpha:(CGFloat)alpha;
 
 /*
 *   Editing Handling
@@ -81,6 +78,5 @@ NSString * const STKRecalculateLayoutsNotification = @"STKRecalculate";
 
 
 - (void)_addIcon:(SBIcon *)icon atIndex:(NSUInteger)idx position:(STKLayoutPosition)position;
-- (SBIcon *)_displacedIconAtPosition:(STKLayoutPosition)position intersectingAppearingIconView:(SBIconView *)iconView;
 
 @end
