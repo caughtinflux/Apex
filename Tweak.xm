@@ -235,7 +235,7 @@ static BOOL _wantsSafeIconViewRetrieval;
 - (BOOL)relayout
 {
     BOOL k = %orig();
-    // When this method is called, the root icon lists are re-created, but the dock isn't, so the dock ends up with a weird stack.
+    // When this method is called, the root icon lists are re-created, but the dock isn't(?), so the dock ends up with a weird stack.
     // So, let's do it manually
     [[self dock] makeIconViewsPerformBlock:^(SBIconView *iconView) {
         [[[STKStackController sharedInstance] stackForIconView:iconView] recalculateLayouts];

@@ -71,9 +71,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
             [self removeStackFromIconView:iconView];
         }
     }
-    else if (!self.activeStack) {
-        // This method is called sometimes for creating a stack on the active icon view
-        // wtpl
+    else {
         [self createStackForIconView:iconView];
     }
 }
@@ -81,10 +79,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 #pragma mark - Stack Creation
 - (void)createStackForIconView:(SBIconView *)iconView
 {
-    if (iconView.icon == self.activeStack.centralIcon) {
-        return;
-    }
-
     [self addRecognizerToIconView:iconView];
     STKStack *stack = [self stackForIconView:iconView];
 
