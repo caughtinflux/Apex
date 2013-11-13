@@ -18,7 +18,8 @@ extern "C" {
 typedef NS_ENUM(NSInteger, STKActivationMode) {
     STKActivationModeSwipeUpAndDown = 0,
     STKActivationModeSwipeUp,
-    STKActivationModeSwipeDown
+    STKActivationModeSwipeDown,
+    STKActivationModeDoubleTap
 };
 
 + (BOOL)_;

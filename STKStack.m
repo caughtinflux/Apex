@@ -1266,7 +1266,6 @@
                 }
             }
         }
-
         [UIView animateWithDuration:kOverlayDuration animations:^{ 
             iconView.alpha = 1.f;
         }];

@@ -24,7 +24,8 @@
 	SWIPE_UP_AND_DOWN = "Swipe up and down";
 	SWIPE_UP = "Swipe up";
 	SWIPE_DOWN = "Swipe down";
-
+	DOUBLE_TAP = "Double Tap";
+	
 	LOVE_GAMES = "I'm loving #Apex from @A3tweaks!";
 	CANNOT_SEND_TWEET = "Cannot send tweet";
 	CANNOT_SEND_TWEET_DETAILS = "As you don't have any Twitter accounts setup, you can't send a love tweet";

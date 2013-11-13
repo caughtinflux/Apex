@@ -29,6 +29,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 - (NSMutableArray *)_iconsToHideOnClose;
 - (void)_processIconsPostStackClose;
 - (void)_panned:(UIPanGestureRecognizer *)recognizer;
+- (void)_doubleTapped:(UITapGestureRecognizer *)recognizer;
 @end
 
 @implementation STKStackController
@@ -153,24 +154,32 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 #pragma mark - Pan Recognizer Handling
 - (void)addRecognizerToIconView:(SBIconView *)iconView
 {
-    UIPanGestureRecognizer *panRecognizer = objc_getAssociatedObject(iconView, __recognizerKey);
-    if (!iconView || panRecognizer) {
+    Class recognizerClass = (([STKPreferences sharedPreferences].activationMode == STKActivationModeDoubleTap) ? [UITapGestureRecognizer class] : [UIPanGestureRecognizer class]);
+    UIGestureRecognizer *recognizer = objc_getAssociatedObject(iconView, __recognizerKey);
+    if (!iconView || recognizer) {
         return;
     }
-    panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_panned:)] autorelease];
-    for (UIGestureRecognizer *recognizer in iconView.gestureRecognizers) {
-        if ([[recognizer class] isKindOfClass:[UISwipeGestureRecognizer class]]) {
-            [panRecognizer requireGestureRecognizerToFail:recognizer];
+    recognizer = [[[recognizerClass alloc] init] autorelease];
+    if ([recognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
+        [recognizer addTarget:self action:@selector(_panned:)];
+        for (UIGestureRecognizer *or in iconView.gestureRecognizers) {
+            if ([[or class] isKindOfClass:[UISwipeGestureRecognizer class]]) {
+                [recognizer requireGestureRecognizerToFail:or];
+            }
         }
     }
-    [iconView addGestureRecognizer:panRecognizer];
-    objc_setAssociatedObject(iconView, __recognizerKey, panRecognizer, OBJC_ASSOCIATION_ASSIGN);
-    panRecognizer.delegate = self;
+    else {
+        [recognizer addTarget:self action:@selector(_doubleTapped:)];
+        ((UITapGestureRecognizer *)recognizer).numberOfTapsRequired = 2;
+    }
+    [iconView addGestureRecognizer:recognizer];
+    objc_setAssociatedObject(iconView, __recognizerKey, recognizer, OBJC_ASSOCIATION_ASSIGN);
+    recognizer.delegate = self;
 }
 
 - (void)removeRecognizerFromIconView:(SBIconView *)iconView
 {
-    UIPanGestureRecognizer *recognizer = [self panRecognizerForIconView:iconView];
+    UIGestureRecognizer *recognizer = objc_getAssociatedObject(iconView, __recognizerKey);
     [iconView removeGestureRecognizer:recognizer];
     objc_setAssociatedObject(iconView, __recognizerKey, nil, OBJC_ASSOCIATION_ASSIGN);
 }
@@ -185,11 +194,10 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     if (!topView) {
         topView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"TopGrabber")] autorelease];
         topView.center = (CGPoint){iconView.iconImageView.center.x, (iconView.iconImageView.frame.origin.y)};
-        [iconView insertSubview:topView belowSubview:iconView.iconImageView];
+        [iconView insertSubview:topView atIndex:0];
 
         objc_setAssociatedObject(iconView, __topGrabberKey, topView, OBJC_ASSOCIATION_ASSIGN);
     }
-
     UIImageView *bottomView = objc_getAssociatedObject(iconView, __bottomGrabberKey);
     if (!bottomView) {
         bottomView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"BottomGrabber")] autorelease];
@@ -203,7 +211,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     [(UIView *)objc_getAssociatedObject(iconView, __topGrabberKey) removeFromSuperview];
     [(UIView *)objc_getAssociatedObject(iconView, __bottomGrabberKey) removeFromSuperview];  
-
     objc_setAssociatedObject(iconView, __topGrabberKey, nil, OBJC_ASSOCIATION_ASSIGN);
     objc_setAssociatedObject(iconView, __bottomGrabberKey, nil, OBJC_ASSOCIATION_ASSIGN);
 }
@@ -212,11 +219,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 - (STKStack *)stackForIconView:(SBIconView *)iconView
 {
     return objc_getAssociatedObject(iconView, __stackKey);
-}
-
-- (UIPanGestureRecognizer *)panRecognizerForIconView:(SBIconView *)iconView
-{
-    return objc_getAssociatedObject(iconView, __recognizerKey);
 }
 
 - (NSArray *)grabberViewsForIconView:(SBIconView *)iconView
@@ -279,13 +281,14 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     BOOL previewEnabled = [STKPreferences sharedPreferences].previewEnabled;
     BOOL shouldHideGrabbers = [STKPreferences sharedPreferences].shouldHideGrabbers;
     void (^aBlock)(SBIconView *iconView) = ^(SBIconView *iconView) {
-        if (!iconView) {
-            return;
-        }
         STKStack *stack = [self stackForIconView:iconView];
-        if (!stack) {
+        if (!iconView || !stack) {
             return;
         }
+        // Re-add the recognizers, so if the activation mode has changed, it would've been updated
+        [self removeRecognizerFromIconView:iconView];
+        [self addRecognizerToIconView:iconView];
+
         if (!stack.isEmpty) {
             if (previewEnabled || shouldHideGrabbers) { // Removal of grabber images will be the same in either case 
                 if (previewEnabled) {
@@ -318,7 +321,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 
 
-#pragma mark - Pan Recognizer Handling
+#pragma mark - Activation Recognizer Handling
 #define kBandingFactor  0.1 // The factor by which the distance should be multiplied to simulate the rubber banding effect
 - (void)_panned:(UIPanGestureRecognizer *)sender
 {
@@ -411,21 +414,37 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
 }
 
+- (void)_doubleTapped:(UITapGestureRecognizer *)recognizer
+{
+    SBIconView *iconView = (SBIconView *)recognizer.view;
+    STKStack *stack = [self stackForIconView:iconView];
+    STKStack *activeStack = self.activeStack;
+    if (activeStack) {
+        return;
+    }
+    self.activeStack = stack;
+    [stack touchesBegan];
+    [stack open];
+}
+
 #pragma mark - Gesture Recognizer Delegate
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
-    if (self.activeStack) {
-        return (otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer);
+    BOOL ret = YES;
+    if ([gestureRecognizer isKindOfClass:[UISwipeGestureRecognizer class]]) {
+        if (self.activeStack) {
+            ret = (otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer);
+        }
+        else {
+            ret = ((otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer) ||
+                  ([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]] && [otherGestureRecognizer.view.superview isKindOfClass:CLASS(FEGridFolderView)]) || 
+                    ([otherGestureRecognizer isKindOfClass:[UISwipeGestureRecognizer class]] && ![otherGestureRecognizer isKindOfClass:CLASS(FESwipeGestureRecognizer)]));
+        }
     }
-    return ((otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer) ||
-            ([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]] && [otherGestureRecognizer.view.superview isKindOfClass:CLASS(FEGridFolderView)]) || 
-            ([otherGestureRecognizer isKindOfClass:[UISwipeGestureRecognizer class]] && ![otherGestureRecognizer isKindOfClass:CLASS(FESwipeGestureRecognizer)]));
-
-}
-
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
-{
-    return YES;
+    else {
+        ret = YES;
+    }
+    return NO;
 }
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer

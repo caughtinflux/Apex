@@ -202,12 +202,12 @@ static BOOL __didShowAlert = NO;
 
 - (NSArray *)activationModeTitles
 {
-    return @[LOCALIZE(SWIPE_UP_AND_DOWN), LOCALIZE(SWIPE_UP), LOCALIZE(SWIPE_DOWN)];
+    return @[LOCALIZE(SWIPE_UP_AND_DOWN), LOCALIZE(SWIPE_UP), LOCALIZE(SWIPE_DOWN), LOCALIZE(DOUBLE_TAP)];
 }
 
 - (NSArray *)activationModeValues
 {
-    return @[@0, @1, @2];
+    return @[@0, @1, @2, @3];
 }
 
 #pragma clang diagnostic push

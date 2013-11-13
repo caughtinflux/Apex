@@ -183,7 +183,6 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
     if (_currentPrefs[STKActivationModeKey]) {
         return (STKActivationMode)[_currentPrefs[STKActivationModeKey] integerValue];
     }
-    
     return STKActivationModeSwipeUpAndDown;
 }
 
