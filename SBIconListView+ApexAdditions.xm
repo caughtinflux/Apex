@@ -34,8 +34,16 @@ static CGFloat _horizontalPadding = -1337.f;
 {
     if (_horizontalPadding == -1337.f) {
         CGFloat defaultIconWidth = [%c(SBIconView) defaultIconSize].width;
-        CGFloat position1 = [self originForIconAtX:0 Y:0].x;
-        CGFloat position2 = [self originForIconAtX:1 Y:0].x;
+        CGFloat position1 = 0.f;
+        CGFloat position2 = 0.f;
+        if ([self visibleIcons].count >= 2) {
+            position1 = [[self viewMap] mappedIconViewForIcon:[self visibleIcons][0]].frame.origin.x;
+            position2 = [[self viewMap] mappedIconViewForIcon:[self visibleIcons][1]].frame.origin.x;
+        }
+        else {
+            position1 = [self originForIconAtX:0 Y:0].x;
+            position2 = [self originForIconAtX:1 Y:0].x;
+        }
         _horizontalPadding = (position2 - position1 - defaultIconWidth);
     }
     return _horizontalPadding;
