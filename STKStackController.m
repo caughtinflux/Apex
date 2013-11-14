@@ -486,16 +486,17 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 - (void)stackClosedByGesture:(STKStack *)stack
 {
     [self _processIconsPostStackClose];
-    
     if (stack.isEmpty || !stack.showsPreview) {
         [stack cleanupView];
     }
     self.activeStack = nil;
+    [stack.centralIcon noteBadgeDidChange];
 }
 
 - (void)stackDidChangeLayout:(STKStack *)stack
 {
     [self stack:stack didAddIcon:nil removingIcon:nil atPosition:0 index:0];
+    [stack.centralIcon noteBadgeDidChange];
 }
 
 - (void)stack:(STKStack *)stack didAddIcon:(SBIcon *)addedIcon removingIcon:(SBIcon *)removedIcon atPosition:(STKLayoutPosition)position index:(NSUInteger)idx
@@ -539,6 +540,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
                     [self createStackForIconView:otherView];
                 }
             }
+            [centralIconForOtherStack noteBadgeDidChange];
         }
         if (!stack.showsPreview) {
             [self addGrabbersToIconView:ICONVIEW(stack.centralIcon)];
@@ -552,6 +554,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     if (removedIcon && !ICON_IS_IN_STACK(removedIcon)) {
         [[self _iconsToShowOnClose] addObject:removedIcon];
     }
+    [stack.centralIcon noteBadgeDidChange];
 }
 
 static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags)

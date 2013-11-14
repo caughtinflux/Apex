@@ -72,9 +72,54 @@ static BOOL _wantsSafeIconViewRetrieval;
 
 %end
 
+%hook SBIcon
+- (NSString *)badgeTextForLocation:(SBIconViewLocation)location
+{
+    if ([[STKStackController sharedInstance] activeStack].centralIcon == self) {
+        return %orig();
+    }
+
+    NSNumber *badgeNumber = [self badgeNumberOrString];
+    NSString *badgeText = nil;
+    if ([badgeNumber isKindOfClass:[NSNumber class]]) {
+        if ([badgeNumber integerValue] == 0) {
+            badgeNumber = nil;
+        }
+        else {
+            badgeText = [badgeNumber stringValue];
+        }
+    }
+    else {
+        badgeText = %orig();
+    }
+    return badgeText;
+}
+
+- (id)badgeNumberOrString
+{
+    NSNumber *ret = %orig() ?: @(0);
+    if ([ret isKindOfClass:[NSNumber class]] && ICON_HAS_STACK(self)) {
+        NSInteger subAppTotal = 0;
+        for (SBIcon *icon in [[STKPreferences sharedPreferences] stackIconsForIcon:self]) {
+            subAppTotal += [icon badgeValue];
+        }
+        ret = @([ret integerValue] + subAppTotal);
+    }
+    return ret;
+}
+
+- (void)noteBadgeDidChange
+{
+    %orig();
+    if (ICON_IS_IN_STACK(self)) {
+        [[[STKPreferences sharedPreferences] centralIconForIcon:self] noteBadgeDidChange];
+    }
+}
+
+%end 
+
 #pragma mark - SBIconView Hook
 %hook SBIconView
-
 - (void)setIcon:(SBIcon *)icon
 {   
     %orig();
@@ -256,9 +301,11 @@ static BOOL _wantsSafeIconViewRetrieval;
     BOOL isInSpotlight = [((SBIconController *)[%c(SBIconController) sharedInstance]).searchController.searchView isKeyboardVisible];
     BOOL switcherIsHidden = !(_switcherIsVisible || [[%c(SBUIController) sharedInstance] isSwitcherShowing]);
     if (switcherIsHidden && !isInSpotlight) {
+        CLog(@"Checking visibility for %@", icon.displayName);
         if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
             isVisible = NO;
         }
+        PARAMLOGC(@"%@", BOOL_TO_STRING(isVisible));
     }
     return isVisible;
 }
@@ -286,7 +333,6 @@ static BOOL _wantsSafeIconViewRetrieval;
     if ([STKStackController sharedInstance].activeStack.isSelecting == NO) {
         [[STKStackController sharedInstance] closeActiveStack];
     }
-
     _switcherIsVisible = YES;
     SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
     
@@ -310,6 +356,7 @@ static BOOL _wantsSafeIconViewRetrieval;
 }
 %end
 
+#pragma mark - SBAppSwitcherController Hook
 %hook SBAppSwitcherController
 - (void)viewWillDisappear
 {
