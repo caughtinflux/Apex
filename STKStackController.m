@@ -162,11 +162,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
     recognizer = [[[recognizerClass alloc] init] autorelease];
     if ([recognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
         [recognizer addTarget:self action:@selector(_panned:)];
-        for (UIGestureRecognizer *or in iconView.gestureRecognizers) {
-            if ([[or class] isKindOfClass:[UISwipeGestureRecognizer class]]) {
-                [recognizer requireGestureRecognizerToFail:or];
-            }
-        }
     }
     else {
         [recognizer addTarget:self action:@selector(_doubleTapped:)];
@@ -195,7 +190,6 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
         topView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"TopGrabber")] autorelease];
         topView.center = (CGPoint){iconView.iconImageView.center.x, (iconView.iconImageView.frame.origin.y)};
         [iconView insertSubview:topView atIndex:0];
-
         objc_setAssociatedObject(iconView, __topGrabberKey, topView, OBJC_ASSOCIATION_ASSIGN);
     }
     UIImageView *bottomView = objc_getAssociatedObject(iconView, __bottomGrabberKey);
@@ -396,7 +390,13 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
         case UIGestureRecognizerStateEnded: {
             if (cancelledPanRecognizer == NO) {
                 [stack touchesEnded];
-                self.activeStack = stack.isExpanded ? stack : nil;
+                if (stack.isExpanded) {
+                    self.activeStack = stack;   
+                }
+                else {
+                    self.activeStack = nil;
+                    [stack.centralIcon noteBadgeDidChange];
+                }
             }
             /*********************************************************************************************
             ***************************    NOTE THE LACK OF A break;   ***********************************
@@ -431,20 +431,17 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
     BOOL ret = YES;
-    if ([gestureRecognizer isKindOfClass:[UISwipeGestureRecognizer class]]) {
+    if ([gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
         if (self.activeStack) {
             ret = (otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer);
         }
         else {
-            ret = ((otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer) ||
-                  ([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]] && [otherGestureRecognizer.view.superview isKindOfClass:CLASS(FEGridFolderView)]) || 
-                    ([otherGestureRecognizer isKindOfClass:[UISwipeGestureRecognizer class]] && ![otherGestureRecognizer isKindOfClass:CLASS(FESwipeGestureRecognizer)]));
+            ret = ([otherGestureRecognizer isMemberOfClass:[UISwipeGestureRecognizer class]] ||
+                  (otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer) ||
+                  ([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]] && [otherGestureRecognizer.view.superview isKindOfClass:CLASS(FEGridFolderView)]));
         }
     }
-    else {
-        ret = YES;
-    }
-    return NO;
+    return ret;
 }
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer
