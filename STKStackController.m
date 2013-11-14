@@ -438,7 +438,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
         }
         else {
             ret = ([otherGestureRecognizer isMemberOfClass:[UISwipeGestureRecognizer class]] ||
-                  (otherGestureRecognizer == [[CLASS(SBIconController) sharedInstance] scrollView].panGestureRecognizer) ||
+                  ([otherGestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]]) ||
                   ([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]] && [otherGestureRecognizer.view.superview isKindOfClass:CLASS(FEGridFolderView)]));
         }
     }
