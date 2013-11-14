@@ -4,4 +4,5 @@
 - (NSUInteger)stk_visibleIconRowsForCurrentOrientation;
 - (NSUInteger)stk_visibleIconColumnsForCurrentOrientation;
 - (CGFloat)stk_realVerticalIconPadding;
+- (CGFloat)stk_realHorizontalIconPadding;
 @end

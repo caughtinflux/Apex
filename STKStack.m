@@ -1013,11 +1013,11 @@
             break;
         }
         case STKLayoutPositionLeft: {
-            returnPoint.x = originalFrame.origin.x - ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
+            returnPoint.x = originalFrame.origin.x - ((originalFrame.size.width + [listView stk_realHorizontalIconPadding]) * multiplicationFactor);
             break;
         }
         case STKLayoutPositionRight: {
-            returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
+            returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView stk_realHorizontalIconPadding]) * multiplicationFactor);
             break;
         }
         default: {
@@ -1047,11 +1047,11 @@
             break;
         }
         case STKLayoutPositionLeft: {
-            returnPoint.x = originalFrame.origin.x - ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
+            returnPoint.x = originalFrame.origin.x - ((originalFrame.size.width + [listView stk_realHorizontalIconPadding]) * multiplicationFactor);
             break;
         }
         case STKLayoutPositionRight: {
-            returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView horizontalIconPadding]) * multiplicationFactor);
+            returnPoint.x = originalFrame.origin.x + ((originalFrame.size.width + [listView stk_realHorizontalIconPadding]) * multiplicationFactor);
             break;
         }
         default: {
@@ -1259,6 +1259,9 @@
         if (![centralIconView isInDock]) {
             for (SBIcon *ic in [listView icons]) {
                 SBIconView *displacedView = [self _iconViewForIcon:ic];
+                if (displacedView == [self _iconViewForIcon:_centralIcon]) {
+                    continue;
+                }
                 if (CGRectIntersectsRect(displacedView.frame, [centralIconView convertRect:iconView.frame toView:displacedView.superview])) {
                     [_iconsHiddenForPlaceholders addIcon:displacedView.icon toIconsAtPosition:position];        
                     displacedView.alpha = 0.f;
