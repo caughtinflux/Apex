@@ -100,8 +100,9 @@ typedef void(^STKInteractionHandler)(id manager, SBIconView *tappedIconView, BOO
 /**
 *   Call this method when the swipe ends, so as to decide whether to keep the stack open, or to close it.
 *   If the stack opens up, the receiver automatically sets up swipe and tap recognisers on the icon content view, which, when fired, will call the interactionHandler with a nil argument.
+*	@param closeAnimationCompletion Is called if touchesEnded triggers a stack close
 */
-- (void)touchesEnded;
+- (void)touchesEnded:(void(^)(void))closeAnimationCompletion;
 
 /**
 *   Close the stack irrespective of what's happening. -touchesEnded might call this.

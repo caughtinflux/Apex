@@ -456,7 +456,7 @@
     }
 }
 
-- (void)touchesEnded
+- (void)touchesEnded:(void(^)(void))animationCompletion
 {
     if (_lastDistanceFromCenter >= kEnablingThreshold && !_isExpanded) {
         // Set this now, not waiting for the animation to complete, so anyone asking questions gets the right answer... LOL
@@ -464,7 +464,7 @@
         [self open];
     }
     else {
-        [self close];
+        [self closeWithCompletionHandler:animationCompletion];
     }
 }
  
@@ -1367,9 +1367,10 @@
                     break;
                 }
             }
-            if (firstPlaceholder && iconView.icon.isPlaceholder) {
+            NSUInteger idxOfPlaceholder = [iconViews indexOfObject:firstPlaceholder];
+            if (firstPlaceholder && iconView.icon.isPlaceholder && idxOfPlaceholder != _selectionViewIndex) {
                 [_currentSelectionView moveToIconView:firstPlaceholder animated:YES completion:nil];
-                _selectionViewIndex = [iconViews indexOfObject:firstPlaceholder];
+                _selectionViewIndex = idxOfPlaceholder;
             }
         }
     }];

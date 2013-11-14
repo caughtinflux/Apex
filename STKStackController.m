@@ -389,14 +389,15 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
         }
         case UIGestureRecognizerStateEnded: {
             if (cancelledPanRecognizer == NO) {
-                [stack touchesEnded];
-                if (stack.isExpanded) {
-                    self.activeStack = stack;   
-                }
-                else {
-                    self.activeStack = nil;
-                    [stack.centralIcon noteBadgeDidChange];
-                }
+                [stack touchesEnded:^{
+                    if (stack.isExpanded) {
+                        self.activeStack = stack;   
+                    }
+                    else {
+                        self.activeStack = nil;
+                        [stack.centralIcon noteBadgeDidChange];
+                    }
+                }];
             }
             /*********************************************************************************************
             ***************************    NOTE THE LACK OF A break;   ***********************************
