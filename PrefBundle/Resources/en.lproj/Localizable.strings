@@ -21,9 +21,9 @@
 	LOCK_LAYOUTS_DESCRIPTION = "You will not be able to create new stacks if layouts are locked.";
 
 	ACTIVATION_MODE = "Activation Mode";
-	SWIPE_UP_AND_DOWN = "Swipe up and down";
-	SWIPE_UP = "Swipe up";
-	SWIPE_DOWN = "Swipe down";
+	SWIPE_UP_AND_DOWN = "Swipe Up and Down";
+	SWIPE_UP = "Swipe Up";
+	SWIPE_DOWN = "Swipe Down";
 	DOUBLE_TAP = "Double Tap";
 	
 	LOVE_GAMES = "I'm loving #Apex from @A3tweaks!";
