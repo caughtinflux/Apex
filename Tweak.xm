@@ -297,15 +297,12 @@ static BOOL _wantsSafeIconViewRetrieval;
 {
     BOOL isVisible = %orig();
 
-    // Picked this one up from https://github.com/big-boss/Libhide/blob/master/dylib/classes/iconhide.xm#L220
-    BOOL isInSpotlight = [((SBIconController *)[%c(SBIconController) sharedInstance]).searchController.searchView isKeyboardVisible];
+    BOOL inSpotlight = [((SBIconController *)[%c(SBIconController) sharedInstance]).searchController.searchView isKeyboardVisible];
     BOOL switcherIsHidden = !(_switcherIsVisible || [[%c(SBUIController) sharedInstance] isSwitcherShowing]);
-    if (switcherIsHidden && !isInSpotlight) {
-        CLog(@"Checking visibility for %@", icon.displayName);
+    if (switcherIsHidden && !inSpotlight) {
         if ([[STKPreferences sharedPreferences] iconIsInStack:icon]) {
             isVisible = NO;
         }
-        PARAMLOGC(@"%@", BOOL_TO_STRING(isVisible));
     }
     return isVisible;
 }
@@ -466,6 +463,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     @autoreleasepool {
         STKLog(@"Initializing");
         %init();
+        [[STKPreferences sharedPreferences] reloadPreferences];
 
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
         [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName];

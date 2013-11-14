@@ -224,13 +224,10 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
 - (NSArray *)stackIconsForIcon:(SBIcon *)icon
 {
     SBIconModel *model = [(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model];
-
     NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:[STKPreferences layoutPathForIcon:icon]];
-    
     if (!attributes) {
         return nil;
     }
-
     NSMutableArray *stackIcons = [NSMutableArray arrayWithCapacity:(((NSArray *)attributes[STKStackManagerStackIconsKey]).count)];
     for (NSString *identifier in attributes[STKStackManagerStackIconsKey]) {
         // Get the SBIcon instances for the identifiers
@@ -242,6 +239,18 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
     return stackIcons;
 }
 
+- (NSArray *)stackIconIdentifiersForIconID:(NSString *)iconID
+{
+    if (!iconID) {
+        return nil;
+    }
+    NSDictionary *attributes = [NSDictionary dictionaryWithContentsOfFile:[STKPreferences layoutPathForIconID:iconID]];
+    if (!attributes) {
+        return nil;
+    }
+    return attributes[STKStackManagerStackIconsKey];
+}
+
 - (id)centralIconForIcon:(id)icon
 {
     id ret = nil;
@@ -249,7 +258,6 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
     if (_iconsWithStacks) {
         [self _refreshGroupedIcons];
     }
-
     BOOL wantsIcon = [icon isKindOfClass:[objc_getClass("SBIcon") class]];
     if (!wantsIcon && ![icon isKindOfClass:[NSString class]]) {
         return nil;
@@ -352,16 +360,12 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
 
         NSMutableArray *groupedIcons = [NSMutableArray array];
         NSSet *identifiers = [self identifiersForIconsWithStack];
-
-        for (NSString *identifier in identifiers) {
-            SBIcon *centralIcon = [[(SBIconController *)[objc_getClass("SBIconController") sharedInstance] model] expectedIconForDisplayIdentifier:identifier];
-            
-            for (NSString *groupedIconIdentifier in [(NSArray *)[self stackIconsForIcon:centralIcon] valueForKeyPath:@"leafIdentifier"]) {
-                objc_setAssociatedObject(groupedIconIdentifier, @selector(centralIconID), identifier, OBJC_ASSOCIATION_COPY);
-                [groupedIcons addObject:groupedIconIdentifier];
+        for (NSString *centralIconID in identifiers) {
+            for (NSString *subAppID in [self stackIconIdentifiersForIconID:centralIconID]) {
+                objc_setAssociatedObject(subAppID, @selector(centralIconID), centralIconID, OBJC_ASSOCIATION_COPY);
+                [groupedIcons addObject:subAppID];
             }
         }
-
         _iconsInStacks = [groupedIcons copy];
     }
 }
