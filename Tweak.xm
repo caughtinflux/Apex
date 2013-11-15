@@ -78,7 +78,6 @@ static BOOL _wantsSafeIconViewRetrieval;
     if ([[STKStackController sharedInstance] activeStack].centralIcon == self) {
         return %orig();
     }
-
     NSNumber *badgeNumber = [self badgeNumberOrString];
     NSString *badgeText = nil;
     if ([badgeNumber isKindOfClass:[NSNumber class]]) {
@@ -97,13 +96,16 @@ static BOOL _wantsSafeIconViewRetrieval;
 
 - (id)badgeNumberOrString
 {
-    NSNumber *ret = %orig() ?: @(0);
+    NSNumber *ret = %orig();
     if ([ret isKindOfClass:[NSNumber class]] && ICON_HAS_STACK(self)) {
         NSInteger subAppTotal = 0;
         for (SBIcon *icon in [[STKPreferences sharedPreferences] stackIconsForIcon:self]) {
             subAppTotal += [icon badgeValue];
         }
         ret = @([ret integerValue] + subAppTotal);
+        if ([ret integerValue] == 0) {
+            ret = nil;
+        }
     }
     return ret;
 }
