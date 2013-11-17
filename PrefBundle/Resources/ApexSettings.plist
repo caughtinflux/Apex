@@ -92,7 +92,7 @@
 			<key>cell</key>
 			<string>PSSwitchCell</string>
 			<key>default</key>
-			<false/>
+			<true/>
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>key</key>

@@ -43,6 +43,7 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 @property (nonatomic, readonly) BOOL shouldCloseOnLaunch;
 @property (nonatomic, readonly) BOOL shouldShowSectionIndexTitles;
 @property (nonatomic, readonly) BOOL layoutsAreLocked;
+@property (nonatomic, readonly) BOOL shouldShowSummedBadges;
 @property (nonatomic, readonly) STKActivationMode activationMode;
 
 - (NSSet *)identifiersForIconsWithStack;

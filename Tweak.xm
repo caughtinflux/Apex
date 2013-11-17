@@ -75,7 +75,8 @@ static BOOL _wantsSafeIconViewRetrieval;
 %hook SBIcon
 - (NSString *)badgeTextForLocation:(SBIconViewLocation)location
 {
-    if ([[STKStackController sharedInstance] activeStack].centralIcon == self) {
+    if (([[STKStackController sharedInstance] activeStack].centralIcon == self) ||
+        ![STKPreferences sharedPreferences].shouldShowSummedBadges) {
         return %orig();
     }
     NSNumber *badgeNumber = [self badgeNumberOrString];
@@ -97,6 +98,9 @@ static BOOL _wantsSafeIconViewRetrieval;
 - (id)badgeNumberOrString
 {
     NSNumber *ret = %orig();
+    if (![STKPreferences sharedPreferences].shouldShowSummedBadges) {
+        return ret;
+    }
     if ([ret isKindOfClass:[NSNumber class]] && ICON_HAS_STACK(self)) {
         NSInteger subAppTotal = 0;
         for (SBIcon *icon in [[STKPreferences sharedPreferences] stackIconsForIcon:self]) {

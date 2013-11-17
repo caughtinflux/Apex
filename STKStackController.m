@@ -303,6 +303,7 @@ static void STKPiratedAlertCallback(CFUserNotificationRef userNotification, CFOp
             }
         }
         stack.showsPreview = previewEnabled;
+        [iconView.icon noteBadgeDidChange];
     };
     for (SBIconListView *listView in [[CLASS(SBIconController) sharedInstance] valueForKey:@"_rootIconLists"]){
         [listView makeIconViewsPerformBlock:aBlock];
