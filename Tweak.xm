@@ -103,7 +103,7 @@ static BOOL _wantsSafeIconViewRetrieval;
             subAppTotal += [icon badgeValue];
         }
         ret = @([ret integerValue] + subAppTotal);
-        if ([ret integerValue] == 0) {
+        if ([ret integerValue] <= 0) {
             ret = nil;
         }
     }

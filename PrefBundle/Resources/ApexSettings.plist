@@ -89,6 +89,22 @@
 			<string>com.a3tweaks.apex.prefschanged</string>
 		</dict>
 		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.a3tweaks.Apex</string>
+			<key>key</key>
+			<string>STKShowSummedBadges</string>
+			<key>label</key>
+			<string>SHOW_SUMMED_BADGES</string>
+			<key>defaults</key>
+			<string>com.a3tweaks.Apex</string>
+			<key>PostNotification</key>
+			<string>com.a3tweaks.apex.prefschanged</string>
+		</dict>
+		<dict>
             <key>cell</key>
             <string>PSLinkListCell</string>
             <key>label</key>
