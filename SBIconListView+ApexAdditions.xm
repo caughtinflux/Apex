@@ -1,9 +1,11 @@
 #import <SpringBoard/SpringBoard.h>
+#import <dlfcn.h>
 #import "SBIconListView+ApexAdditions.h"
 
 %hook SBIconListView
 static CGFloat _verticalPadding = -1337.f;
 static CGFloat _horizontalPadding = -1337.f;
+static BOOL _hasGridlock;
 
 %new
 - (NSUInteger)stk_visibleIconRowsForCurrentOrientation
@@ -36,7 +38,7 @@ static CGFloat _horizontalPadding = -1337.f;
         CGFloat defaultIconWidth = [%c(SBIconView) defaultIconSize].width;
         CGFloat position1 = 0.f;
         CGFloat position2 = 0.f;
-        if ([self visibleIcons].count >= 2) {
+        if (([self visibleIcons].count >= 2) && _hasGridlock == NO) {
             position1 = [[self viewMap] mappedIconViewForIcon:[self visibleIcons][0]].frame.origin.x;
             position2 = [[self viewMap] mappedIconViewForIcon:[self visibleIcons][1]].frame.origin.x;
         }
@@ -62,5 +64,7 @@ static CGFloat _horizontalPadding = -1337.f;
 {
     @autoreleasepool {
         %init();
+        void *handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Gridlock.dylib", RTLD_NOW);
+        _hasGridlock = !!handle;
     }   
 }
