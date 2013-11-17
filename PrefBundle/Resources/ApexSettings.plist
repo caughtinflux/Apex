@@ -98,7 +98,7 @@
 			<key>key</key>
 			<string>STKShowSummedBadges</string>
 			<key>label</key>
-			<string>SHOW_SUMMED_BADGES</string>
+			<string>SUMMED_BADGES</string>
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>PostNotification</key>
