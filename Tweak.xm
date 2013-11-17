@@ -75,35 +75,30 @@ static BOOL _wantsSafeIconViewRetrieval;
 %hook SBIcon
 - (NSString *)badgeTextForLocation:(SBIconViewLocation)location
 {
-    if ([[STKStackController sharedInstance] activeStack].centralIcon == self) {
+    if (([[STKStackController sharedInstance] activeStack].centralIcon == self) ||
+        ![STKPreferences sharedPreferences].shouldShowSummedBadges) {
         return %orig();
     }
-
     NSNumber *badgeNumber = [self badgeNumberOrString];
-    NSString *badgeText = nil;
-    if ([badgeNumber isKindOfClass:[NSNumber class]]) {
-        if ([badgeNumber integerValue] == 0) {
-            badgeNumber = nil;
-        }
-        else {
-            badgeText = [badgeNumber stringValue];
-        }
-    }
-    else {
-        badgeText = %orig();
-    }
+    NSString *badgeText = ([badgeNumber isKindOfClass:[NSNumber class]] && ([badgeNumber integerValue] != 0)) ? [badgeNumber stringValue] : %orig();
     return badgeText;
 }
 
 - (id)badgeNumberOrString
 {
     NSNumber *ret = %orig() ?: @(0);
+    if (![STKPreferences sharedPreferences].shouldShowSummedBadges) {
+        return ret;
+    }
     if ([ret isKindOfClass:[NSNumber class]] && ICON_HAS_STACK(self)) {
         NSInteger subAppTotal = 0;
         for (SBIcon *icon in [[STKPreferences sharedPreferences] stackIconsForIcon:self]) {
             subAppTotal += [icon badgeValue];
         }
         ret = @([ret integerValue] + subAppTotal);
+        if ([ret integerValue] <= 0) {
+            ret = nil;
+        }
     }
     return ret;
 }

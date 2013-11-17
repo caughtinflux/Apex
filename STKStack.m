@@ -891,7 +891,6 @@
 
     UIView *view = nil;
     if (HAS_FE) {
-        CLog(@"Has FE");
         view = [self _iconViewForIcon:_centralIcon].superview.superview.superview;
     }
     else {

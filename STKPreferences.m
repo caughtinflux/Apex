@@ -16,6 +16,7 @@ static NSString * const STKHideGrabbersKey        = @"STKHideGrabbers";
 static NSString * const STKShowSectionTitlesKey   = @"STKShowSectionTitles";
 static NSString * const STKStackClosesOnLaunchKey = @"STKStackClosesOnLaunch";
 static NSString * const STKLockLayoutsKey         = @"STKLockLayouts";
+static NSString * const STKShowSummedBadgesKey    = @"STKShowSummedBadges";
 static NSString * const STKActivationModeKey      = @"STKActivationMode";
 
 @interface STKPreferences ()
@@ -176,6 +177,11 @@ static NSString * const STKActivationModeKey      = @"STKActivationMode";
 - (BOOL)layoutsAreLocked
 {
     return GETBOOL(_currentPrefs, STKLockLayoutsKey, NO);
+}
+
+- (BOOL)shouldShowSummedBadges
+{
+    return GETBOOL(_currentPrefs, STKShowSummedBadgesKey, YES);
 }
 
 - (STKActivationMode)activationMode

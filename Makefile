@@ -21,4 +21,4 @@ before-all::
 include $(THEOS_MAKE_PATH)/aggregate.mk
 
 after-install::
-	@install.exec "killall -9 backboardd"
+	@install.exec "cycript -p SpringBoard /var/root/NoLockRespring.cy"
