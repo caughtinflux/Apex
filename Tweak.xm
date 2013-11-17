@@ -80,24 +80,13 @@ static BOOL _wantsSafeIconViewRetrieval;
         return %orig();
     }
     NSNumber *badgeNumber = [self badgeNumberOrString];
-    NSString *badgeText = nil;
-    if ([badgeNumber isKindOfClass:[NSNumber class]]) {
-        if ([badgeNumber integerValue] == 0) {
-            badgeNumber = nil;
-        }
-        else {
-            badgeText = [badgeNumber stringValue];
-        }
-    }
-    else {
-        badgeText = %orig();
-    }
+    NSString *badgeText = ([badgeNumber isKindOfClass:[NSNumber class]] && ([badgeNumber integerValue] != 0)) ? [badgeNumber stringValue] : %orig();
     return badgeText;
 }
 
 - (id)badgeNumberOrString
 {
-    NSNumber *ret = %orig();
+    NSNumber *ret = %orig() ?: @(0);
     if (![STKPreferences sharedPreferences].shouldShowSummedBadges) {
         return ret;
     }
