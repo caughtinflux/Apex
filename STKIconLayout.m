@@ -47,40 +47,30 @@ NSString * const STKRightIconsKey = @"RightIcons";
     return [[[self alloc] initWithLayout:layout] autorelease];
 }
 
++ (id<NSCopying>)_keyForPosition:(STKLayoutPosition)position
+{
+    if (position < STKLayoutPositionTop || position > STKLayoutPositionRight) {
+        return nil;
+    }
+    const NSString *keys[4] = {STKTopIconsKey, STKBottomIconsKey, STKLeftIconsKey, STKRightIconsKey};
+    return keys[--position];
+}
+
 - (instancetype)initWithDictionary:(NSDictionary *)dict
 {
-    NSMutableArray *topIcons = [NSMutableArray array];
-    NSMutableArray *bottomIcons = [NSMutableArray array];
-    NSMutableArray *leftIcons = [NSMutableArray array];
-    NSMutableArray *rightIcons = [NSMutableArray array];
-
-    SBIconModel *model = (SBIconModel *)[[objc_getClass("SBIconController") sharedInstance] model];
-    
-    MAP(dict[STKTopIconsKey], ^(NSString *ID) { 
-        id icon = [model expectedIconForDisplayIdentifier:ID];
-        if (icon) {
-            [topIcons addObject:icon];
+    if ((self = [super init])) {
+        SBIconModel *model = (SBIconModel *)[[objc_getClass("SBIconController") sharedInstance] model];
+        for (STKLayoutPosition pos = STKLayoutPositionTop; pos <= STKLayoutPositionRight; pos++) {
+            id key = [[self class] _keyForPosition:pos];
+            for (NSString *identifier in dict[key]) {
+                id icon = [model expectedIconForDisplayIdentifier:identifier];
+                if (icon) {
+                    [self addIcon:icon toIconsAtPosition:pos];
+                }
+            }
         }
-    });
-    MAP(dict[STKBottomIconsKey], ^(NSString *ID) { 
-        id icon = [model expectedIconForDisplayIdentifier:ID];
-        if (icon) {
-            [bottomIcons addObject:icon];
-        }
-    });
-    MAP(dict[STKLeftIconsKey], ^(NSString *ID) { 
-        id icon = [model expectedIconForDisplayIdentifier:ID];
-        if (icon) {
-            [leftIcons addObject:icon];
-        }
-    });
-    MAP(dict[STKRightIconsKey], ^(NSString *ID) { 
-        id icon = [model expectedIconForDisplayIdentifier:ID];
-        if (icon) {
-            [rightIcons addObject:icon];
-        }
-    });
-    return [self initWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons];
+    }
+    return self;
 }
 
 - (instancetype)initWithIconsAtTop:(NSArray *)topIcons bottom:(NSArray *)bottomIcons left:(NSArray *)leftIcons right:(NSArray *)rightIcons
@@ -96,13 +86,7 @@ NSString * const STKRightIconsKey = @"RightIcons";
 
 - (instancetype)initWithLayout:(STKIconLayout *)layout
 {
-    if ((self = [super init])) {
-        _topIcons = [layout.topIcons mutableCopy];
-        _bottomIcons = [layout.bottomIcons mutableCopy];
-        _leftIcons = [layout.leftIcons mutableCopy];
-        _rightIcons = [layout.rightIcons mutableCopy];
-    }
-    return self;
+    return [self initWithIconsAtTop:layout.topIcons bottom:layout.bottomIcons left:layout.leftIcons right:layout.rightIcons];
 }
 
 - (void)dealloc
@@ -111,12 +95,6 @@ NSString * const STKRightIconsKey = @"RightIcons";
     [_bottomIcons release];
     [_leftIcons release];
     [_rightIcons release];
-
-    _topIcons    = nil;
-    _bottomIcons = nil;
-    _leftIcons   = nil;
-    _rightIcons  = nil;
-
     [super dealloc];
 }
 
@@ -147,20 +125,14 @@ NSString * const STKRightIconsKey = @"RightIcons";
 
 - (NSArray *)allIcons
 {
-    if (!_hasBeenModified && _allIcons) {
-        goto ret;
+    if (_hasBeenModified || _allIcons == nil) {
+        [_allIcons release];
+        _allIcons = nil;
+        _allIcons = [[NSMutableArray alloc] initWithCapacity:self.totalIconCount];
+        for (STKLayoutPosition i = 1; i <= 4; i++) {
+            [(NSMutableArray *)_allIcons addObjectsFromArray:[self iconsForPosition:i]];
+        }
     }
-
-    [_allIcons release];
-    _allIcons = nil;
-
-    _allIcons = [[NSMutableArray alloc] initWithCapacity:self.totalIconCount];
-
-    for (STKLayoutPosition i = 1; i <= 4; i++) {
-        [(NSMutableArray *)_allIcons addObjectsFromArray:[self iconsForPosition:i]];
-    }
-    
-ret:
     return [[_allIcons copy] autorelease];
 }
 
