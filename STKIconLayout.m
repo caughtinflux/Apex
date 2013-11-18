@@ -19,8 +19,8 @@ NSString * const STKRightIconsKey = @"RightIcons";
     NSMutableDictionary *_dictRepr;
     BOOL                 _hasBeenModified;
 } 
-// Returns a pointer to a non-nil array ivar for pos
-- (NSMutableArray **)_nonNilArrayForPosition:(STKLayoutPosition)pos;
+
+- (NSMutableArray *)_nonNilArrayForPosition:(STKLayoutPosition)pos;
 @end
 
 @implementation STKIconLayout
@@ -180,7 +180,7 @@ ret:
         return;
     }
     @synchronized(self) {
-        [*[self _nonNilArrayForPosition:position] insertObject:icon atIndex:idx];
+        [[self _nonNilArrayForPosition:position] insertObject:icon atIndex:idx];
         _hasBeenModified = YES;
     }
 }
@@ -191,7 +191,7 @@ ret:
         return;
     }
     @synchronized(self) {
-        NSMutableArray *icons = *[self _nonNilArrayForPosition:position];
+        NSMutableArray *icons = [self _nonNilArrayForPosition:position];
         if (icons == NULL) {
             // The position is invalid
             return;
@@ -340,19 +340,18 @@ ret:
     return [NSString stringWithFormat:@"%@ top.count: %zd bottom.count: %zd left.count: %zd right.count: %zd", [super description], _topIcons.count, _bottomIcons.count, _leftIcons.count, _rightIcons.count];
 }
 
-- (NSMutableArray **)_nonNilArrayForPosition:(STKLayoutPosition)pos
+- (NSMutableArray *)_nonNilArrayForPosition:(STKLayoutPosition)pos
 {
     if (pos < STKLayoutPositionTop || pos > STKLayoutPositionRight) {
         return NULL;
     }
-    
     NSMutableArray **array[4] = {&_topIcons, &_bottomIcons, &_leftIcons, &_rightIcons};
     pos -= 1;
     
     if (*(array[pos]) == nil) {
         *(array[pos]) = [NSMutableArray new];
     }
-    return array[pos];
+    return *(array[pos]);
 }
 
 NSString * STKNSStringFromPosition(STKLayoutPosition pos)
