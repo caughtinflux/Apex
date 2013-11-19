@@ -76,7 +76,8 @@ static BOOL _wantsSafeIconViewRetrieval;
 - (NSString *)badgeTextForLocation:(SBIconViewLocation)location
 {
     if (([[STKStackController sharedInstance] activeStack].centralIcon == self) ||
-        ![STKPreferences sharedPreferences].shouldShowSummedBadges) {
+        ![STKPreferences sharedPreferences].shouldShowSummedBadges ||
+        ![[%c(SBIconController) sharedInstance] iconAllowsBadging:self]) {
         return %orig();
     }
     NSNumber *badgeNumber = [self badgeNumberOrString];
@@ -86,14 +87,17 @@ static BOOL _wantsSafeIconViewRetrieval;
 
 - (id)badgeNumberOrString
 {
-    NSNumber *ret = %orig() ?: @(0);
-    if (![STKPreferences sharedPreferences].shouldShowSummedBadges) {
+    SBIconController *iconController = [%c(SBIconController) sharedInstance];
+    NSNumber *ret = %orig();
+    if (![STKPreferences sharedPreferences].shouldShowSummedBadges || ![iconController iconAllowsBadging:self]) {
         return ret;
     }
-    if ([ret isKindOfClass:[NSNumber class]] && ICON_HAS_STACK(self)) {
+    if ((!ret || [ret isKindOfClass:[NSNumber class]]) && ICON_HAS_STACK(self)) {
         NSInteger subAppTotal = 0;
         for (SBIcon *icon in [[STKPreferences sharedPreferences] stackIconsForIcon:self]) {
-            subAppTotal += [icon badgeValue];
+            if ([iconController iconAllowsBadging:icon]) {
+                subAppTotal += [icon badgeValue];
+            }
         }
         ret = @([ret integerValue] + subAppTotal);
         if ([ret integerValue] <= 0) {

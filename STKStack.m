@@ -644,7 +644,6 @@
             _previousDelegate = centralIconView.delegate;
             centralIconView.delegate = self;
             centralIconView.userInteractionEnabled = YES;
-
             _isExpanded = YES;
         }
     }];
@@ -1600,7 +1599,7 @@
 
 - (BOOL)iconViewDisplaysBadges:(SBIconView *)iconView
 {    
-    return [_iconController iconViewDisplaysBadges:iconView];   
+    return [_iconController iconAllowsBadging:iconView.icon];   
 }
 
 @end
