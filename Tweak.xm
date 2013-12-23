@@ -81,7 +81,7 @@ static BOOL _wantsSafeIconViewRetrieval;
         return %orig();
     }
     NSNumber *badgeNumber = [self badgeNumberOrString];
-    NSString *badgeText = ([badgeNumber isKindOfClass:[NSNumber class]] && ([badgeNumber integerValue] != 0)) ? [badgeNumber stringValue] : %orig();
+    NSString *badgeText = ([badgeNumber isKindOfClass:[NSNumber class]] && ([badgeNumber integerValue] > 0)) ? [badgeNumber stringValue] : %orig();
     return badgeText;
 }
 
