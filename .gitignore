@@ -11,3 +11,4 @@ debs/
 
 *.sublime-workspace
 
+build/
