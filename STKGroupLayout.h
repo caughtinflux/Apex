@@ -1,18 +1,11 @@
 #import <Foundation/Foundation.h>
+#import "STKConstants.h"
 
 extern NSString * const STKPositionTopKey;
 extern NSString * const STKPositionBottomKey;
 extern NSString * const STKPositionLeftKey;
 extern NSString * const STKPositionRightKey;
 extern NSString * const STKPositionUnknownKey;
-
-typedef NS_ENUM(NSUInteger, STKLayoutPosition) {
-    STKPositionUnknown = 0,
-    STKPositionTop     = 1,
-    STKPositionBottom  = 2,
-    STKPositionLeft    = 3,
-    STKPositionRight   = 4
-};
 
 extern NSString * NSStringFromLayoutPosition(STKLayoutPosition position);
 
@@ -44,11 +37,15 @@ extern NSString * NSStringFromLayoutPosition(STKLayoutPosition position);
 - (id)objectAtIndexedSubscript:(STKLayoutPosition)position;
 - (void)setObject:(id)icons atIndexedSubscript:(STKLayoutPosition)position;
 
-- (void)addIcons:(NSArray *)icons toIconsAtPosition:(STKLayoutPosition)position;
-- (void)addIcon:(SBIcon *)icon toIconsAtPosition:(STKLayoutPosition)position;
-- (void)addIcon:(SBIcon *)icon toIconsAtPosition:(STKLayoutPosition)position atIndex:(NSUInteger)idx;
+- (id)iconAtSlot:(STKGroupSlot)slot;
 
-- (void)removeIcon:(SBIcon *)icon fromIconsAtPosition:(STKLayoutPosition)position;
+- (void)addIcons:(NSArray *)icons toIconsAtPosition:(STKLayoutPosition)position;
+- (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position;
+- (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position atIndex:(NSUInteger)idx;
+
+- (void)removeIcon:(id)icon fromIconsAtPosition:(STKLayoutPosition)position;
 - (void)removeIcons:(NSArray *)icons fromIconsAtPosition:(STKLayoutPosition)position;
+
+- (void)enumerateIconsUsingBlockWithIndexes:(void(^)(id icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index, BOOL *stop))block;
 
 @end

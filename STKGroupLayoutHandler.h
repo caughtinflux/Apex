@@ -24,9 +24,9 @@ typedef NS_OPTIONS(NSUInteger, STKLocation) {
 // Set the exact position by OR'ing the different values in the enum
 // It will just explode in your face if you try to pull crap.
 // I mean it.
-+ (STKGroupLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(STKLocation)position;
++ (STKGroupLayout *)layoutForIcons:(NSArray *)icons aroundIconAtLocation:(STKLocation)location;
 
-+ (BOOL)layout:(STKGroupLayout *)layout requiresRelayoutForPosition:(STKLocation)position suggestedLayout:(__autoreleasing STKGroupLayout **)outLayout;
++ (BOOL)layout:(STKGroupLayout *)layout requiresRelayoutForLocation:(STKLocation)location suggestedLayout:(__autoreleasing STKGroupLayout **)outLayout;
 
 // Returns an STKGroupLayout object whose properties contain SBIcons to be faded out when the new icons are coming in
 // This, is plain magic.
@@ -34,9 +34,9 @@ typedef NS_OPTIONS(NSUInteger, STKLocation) {
 + (SBIconCoordinate)coordinateForIcon:(SBIcon *)icon;
 
 // Returns a layout containing four id<NSObject> to indicate where the icons would go.
-+ (STKGroupLayout *)emptyLayoutForIconAtPosition:(STKLocation)position;
++ (STKGroupLayout *)emptyLayoutForIconAtLocation:(STKLocation)location;
 
 // Returns a STKGroupLayout instance with objects to indicate where there are empty spaces in `layout`
-+ (STKGroupLayout *)layoutForPlaceholdersInLayout:(STKGroupLayout *)layout withPosition:(STKLocation)position;
++ (STKGroupLayout *)layoutForPlaceholdersInLayout:(STKGroupLayout *)layout withLocation:(STKLocation)location;
 
 @end

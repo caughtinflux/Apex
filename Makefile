@@ -10,7 +10,7 @@ include theos/makefiles/common.mk
 
 TWEAK_NAME = Apex
 #Apex_FILES :=  $(wildcard *.*m)
-Apex_FILES = STKGroup.m STKGroupLayoutHandler.m STKGroupLayout.m STKConstants.m
+Apex_FILES = STKConstants.m STKGroup.m STKGroupView.m STKGroupLayoutHandler.m STKGroupLayout.m SBIconListView+ApexAdditions.xm Tweak.xm
 Apex_FRAMEWORKS = Foundation CoreFoundation UIKit CoreGraphics QuartzCore
 Apex_CFLAGS = -Wall -Werror -O3
 

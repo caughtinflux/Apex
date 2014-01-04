@@ -9,22 +9,6 @@ NSString * const STKPlaceholderIconIdentifier  = @"com.a3tweaks.apex.placeholder
 
 CFStringRef const STKPrefsChangedNotificationName = CFSTR("com.a3tweaks.apex.prefschanged");
 
-inline double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax)
-{
-    double oldRange = (prevMax - prevMin);
-    double newRange = (newMax - newMin);
-    return (((numToScale - prevMin) * newRange) / oldRange) + newMin;
-}
-
-inline double STKAlphaFromDistance(double distance, CGFloat targetDistance)
-{
-    double alpha = STKScaleNumber(distance, 0.0, targetDistance, 1.0, 0.0);
-    if (alpha < 0.0) {
-        alpha = 0.0;
-    }
-    return alpha;
-}
-
 SBIconListView * STKListViewForIcon(SBIcon *icon)
 {
     SBIconController *controller = [objc_getClass("SBIconController") sharedInstance];

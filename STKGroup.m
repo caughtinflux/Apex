@@ -26,6 +26,14 @@ NSString * const STKGroupLayoutKey = @"STKGroupLayout";
 	return self;
 }
 
+- (void)dealloc
+{
+	[_layout release];
+	[_observers removeAllObjects];
+	[_observers release];
+	[super dealloc];
+}
+
 - (STKGroupLayout *)layout
 {
 	return _layout;
@@ -37,22 +45,6 @@ NSString * const STKGroupLayoutKey = @"STKGroupLayout";
 		STKGroupCentralIconKey: [_centralIcon leafIdentifier] ?: @"",
 		STKGroupLayoutKey: [_layout identifierDictionary] ?: @{}
 	};
-}
-
-// Call this method after modifying the layout
-- (void)processLayout
-{
-
-}
-
-- (void)insertIcon:(SBIcon *)icon inSlot:(STKGroupSlot)slot
-{
-
-}
-
-- (void)removeIcon:(SBIcon *)icon fromIconsInSlot:(STKGroupSlot)slot
-{
-	[_layout removeIcon:icon fromIconsAtPosition:slot.position];
 }
 
 - (void)addObserver:(id<STKGroupObserver>)observer

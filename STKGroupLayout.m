@@ -156,6 +156,11 @@ static STKLayoutPosition _PositionFromString(NSString *string)
     return array;
 }
 
+- (id)iconAtSlot:(STKGroupSlot)slot
+{
+    return self[slot.position][slot.index];
+}
+
 - (void)addIcons:(NSArray *)icons toIconsAtPosition:(STKLayoutPosition)position
 {
     [self[position] addObjectsFromArray:icons];
@@ -182,6 +187,16 @@ static STKLayoutPosition _PositionFromString(NSString *string)
     [self[position] removeObjectsInArray:icons];
 }
 
+- (void)enumerateIconsUsingBlockWithIndexes:(void(^)(id icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index, BOOL *stop))block
+{
+    for (STKLayoutPosition i = 1; i <= 4; i++) {
+        NSArray *icons = self[i];
+        [icons enumerateObjectsUsingBlock:^(id icon, NSUInteger idx, BOOL *stop) {
+            block(icon, i, icons, idx, stop);
+        }];
+    }
+}
+
 // Use syntactic sugar to get the icons you need
 // layout[STKLayoutPositionTop]
 - (NSMutableArray *)objectAtIndexedSubscript:(STKLayoutPosition)position
@@ -190,7 +205,7 @@ static STKLayoutPosition _PositionFromString(NSString *string)
         return _unknownIcons;
     }
     NSMutableArray *icons[4] = {_topIcons, _bottomIcons, _leftIcons, _rightIcons};
-    return icons[position + 1];
+    return icons[position - 1];
 }
 
 - (void)setObject:(NSArray *)obj atIndexedSubscript:(STKLayoutPosition)position

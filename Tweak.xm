@@ -1,18 +1,39 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-
+#import <IconSupport/ISIconSupport.h>
 #import <SpringBoard/SpringBoard.h>
 #import <Search/SPSearchResultSection.h>
 
-#pragma mark - Function Declarations
-static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags);
+#import "STKGroupLayoutHandler.h"
+#import "STKGroupLayout.h"
+#import "STKGroup.h"
+#import "STKGroupView.h"
 
-#pragma mark - SpringBoard Hook
+#pragma mark - Function Declarations
 %hook SpringBoard
 - (void)_reportAppLaunchFinished
 {
-    %orig;
+    %orig();
+    %log();
+    SBIcon *icon = [[(SBIconController *)[CLASS(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:@"com.apple.weather"];
+    
+    SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
+    STKGroupLayout *layout = [STKGroupLayoutHandler layoutForIcons:[listView.icons subarrayWithRange:NSMakeRange(0, 4)] aroundIconAtLocation:0];
+    STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icon layout:layout];
+    STKGroupView *groupView = [[STKGroupView alloc] initWithGroup:group];
+    groupView = nil;
+    
+}
+%end
 
+/*
+
+static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags);
+
+#pragma mark - SpringBoard Hook
+- (void)_reportAppLaunchFinished
+{
+    %orig;
     if (![STKPreferences sharedPreferences].welcomeAlertShown) {
         NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey: @"Apex",
                                  (id)kCFUserNotificationAlertMessageKey: @"Thanks for purchasing!\nSwipe down on any app icon and tap the \"+\" to get started.",
@@ -40,6 +61,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
     CFRelease(userNotification);
 }
+*/
 
 #pragma mark - Constructor
 %ctor
@@ -47,12 +69,12 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     @autoreleasepool {
         STKLog(@"Initializing");
         %init();
-        [[STKPreferences sharedPreferences] reloadPreferences];
+        // [[STKPreferences sharedPreferences] reloadPreferences];
 
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
         [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName];
 
-        void *feHandle = dlopen("/Library/MobileSubstrate/DynamicLibraries/FolderEnhancer.dylib", RTLD_NOW);
+       /* void *feHandle = dlopen("/Library/MobileSubstrate/DynamicLibraries/FolderEnhancer.dylib", RTLD_NOW);
         if (feHandle) {
             %init(FECompat);
         }
@@ -60,5 +82,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         if (zephyrHandle) {
             %init(ZephyrCompat);
         }
+        */
     }
 }

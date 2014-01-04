@@ -1,12 +1,8 @@
 #import <Foundation/Foundation.h>
 #import "STKGroupLayout.h"
+#import "STKConstants.h"
 
 @protocol STKGroupObserver;
-
-typedef struct STKGroupSlot {
-	STKLayoutPosition position;
-	NSUInteger index;
-} STKGroupSlot;
 
 @class SBIcon, STKGroupLayout;
 @interface STKGroup : NSObject
@@ -17,12 +13,6 @@ typedef struct STKGroupSlot {
 @property (nonatomic, readonly) STKGroupLayout *layout;
 @property (nonatomic, readonly) NSDictionary *dictionaryRepresentation;
 
-// Call this method after modifying the layout
-- (void)processLayout;
-
-- (void)insertIcon:(SBIcon *)icon inSlot:(STKGroupSlot)slot;
-- (void)removeIcon:(SBIcon *)icon fromSlot:(STKGroupSlot)slot;
-
 - (void)addObserver:(id<STKGroupObserver>)observer;
 - (void)removeObserver:(id<STKGroupObserver>)observer;
 
@@ -30,5 +20,5 @@ typedef struct STKGroupSlot {
 
 @protocol STKGroupObserver <NSObject>
 @required
-- (void)group:(STKGroup *)group didUpdateLayoutByAddingIcons:(NSArray *)addedIcons removingIcons:(NSArray *)removingIcons;
+- (void)group:(STKGroup *)group didAddIcons:(NSArray *)addedIcons removedIcons:(NSArray *)removingIcons;
 @end

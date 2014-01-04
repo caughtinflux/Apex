@@ -13,7 +13,7 @@ static SBIconListView *_centralIconListView;
 
 @interface STKGroupLayoutHandler ()
 
-+ (STKGroupLayout *)_processLayoutForSymmetry:(STKGroupLayout *)layout withPosition:(STKLocation)position;
++ (STKGroupLayout *)_processLayoutForSymmetry:(STKGroupLayout *)layout withLocation:(STKLocation)location;
 
 + (NSArray *)_iconsAboveIcon:(SBIcon *)icon;
 + (NSArray *)_iconsBelowIcon:(SBIcon *)icon;
@@ -22,27 +22,27 @@ static SBIconListView *_centralIconListView;
 + (NSArray *)_iconsInColumn:(NSInteger)column;
 + (NSArray *)_iconsInRow:(NSInteger)row;
 
-+ (void)_logMask:(STKLocation)position;
++ (void)_logMask:(STKLocation)location;
 
 @end
 
 @implementation STKGroupLayoutHandler
 
-+ (STKGroupLayout *)layoutForIcons:(NSArray *)icons aroundIconAtPosition:(STKLocation)position
++ (STKGroupLayout *)layoutForIcons:(NSArray *)icons aroundIconAtLocation:(STKLocation)location;
 {
     NSAssert((icons != nil), (@"*** -[STKGroupLayoutHandler layoutForIcons:] cannot have a nil argument for icons"));
 
-    if ((position & STKLocationDock) == STKLocationDock) {
+    if ((location & STKLocationDock) == STKLocationDock) {
         return [STKGroupLayout layoutWithIconsAtTop:icons bottom:nil left:nil right:nil];
     }
-    [self _logMask:position];
+    [self _logMask:location];
 
     NSMutableArray *bottomIcons = [NSMutableArray array]; // 0 (Give bottom icons preference, since they're easier to tap with a downward swipe)
     NSMutableArray *topIcons    = [NSMutableArray array]; // 1
     NSMutableArray *leftIcons   = [NSMutableArray array]; // 2
     NSMutableArray *rightIcons  = [NSMutableArray array]; // 3
 
-    if ((position & STKLocationDock) == STKLocationDock) {
+    if ((location & STKLocationDock) == STKLocationDock) {
         // Return all the icons in the array as icons to be displaced from the top.
         return [STKGroupLayout layoutWithIconsAtTop:icons bottom:bottomIcons left:leftIcons right:rightIcons];
     }
@@ -51,7 +51,7 @@ static SBIconListView *_centralIconListView;
         NSInteger layoutLocation = ((NSInteger)i % 4); // ALL THE MAGIC IS HERE. MATH IS AWESOME
         switch (layoutLocation) {
             case 0: {
-                if (((position & STKLocationTouchingBottom) == STKLocationTouchingBottom)) {
+                if (((location & STKLocationTouchingBottom) == STKLocationTouchingBottom)) {
                     [topIcons addObject:icons[i]];
                 }
                 else {
@@ -60,7 +60,7 @@ static SBIconListView *_centralIconListView;
                 break;
             }
             case 1: {
-                if ((position & STKLocationTouchingTop) == STKLocationTouchingTop) {
+                if ((location & STKLocationTouchingTop) == STKLocationTouchingTop) {
                     [bottomIcons addObject:icons[i]];
                 }
                 else {
@@ -69,7 +69,7 @@ static SBIconListView *_centralIconListView;
                 break;
             }
             case 2: {
-                if ((position & STKLocationTouchingLeft) == STKLocationTouchingLeft) {                    
+                if ((location & STKLocationTouchingLeft) == STKLocationTouchingLeft) {                    
                     [rightIcons addObject:icons[i]];
                 }
                 else {
@@ -79,7 +79,7 @@ static SBIconListView *_centralIconListView;
             }
 
             case 3: {
-                if ((position & STKLocationTouchingRight) == STKLocationTouchingRight) {
+                if ((location & STKLocationTouchingRight) == STKLocationTouchingRight) {
                     [leftIcons addObject:icons[i]];
                 }
                 else {
@@ -94,43 +94,43 @@ static SBIconListView *_centralIconListView;
         }
     }
     
-    return [self _processLayoutForSymmetry:[STKGroupLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons] withPosition:position];
+    return [self _processLayoutForSymmetry:[STKGroupLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons] withLocation:location];
 }
 
-+ (BOOL)layout:(STKGroupLayout *)layout requiresRelayoutForPosition:(STKLocation)position suggestedLayout:(__autoreleasing STKGroupLayout **)outLayout
++ (BOOL)layout:(STKGroupLayout *)layout requiresRelayoutForLocation:(STKLocation)location suggestedLayout:(__autoreleasing STKGroupLayout **)outLayout
 {
-    if ((position & STKLocationDock) == STKLocationDock) {
+    if ((location & STKLocationDock) == STKLocationDock) {
         if (layout.leftIcons.count > 0 || layout.rightIcons.count > 0 || layout.bottomIcons.count > 0) {
             if (outLayout) {
-                *outLayout = [self layoutForIcons:[layout allIcons] aroundIconAtPosition:position];
+                *outLayout = [self layoutForIcons:[layout allIcons] aroundIconAtLocation:location];
             }
             return YES;
         }
         return NO;
     }
-    if ((position & STKLocationTouchingTop) == STKLocationTouchingTop) {
+    if ((location & STKLocationTouchingTop) == STKLocationTouchingTop) {
         if (layout.topIcons.count > 0) {
             return YES;
         }
     }
-    if ((position & STKLocationTouchingBottom) == STKLocationTouchingBottom) {
+    if ((location & STKLocationTouchingBottom) == STKLocationTouchingBottom) {
         if (layout.bottomIcons.count > 0) {
             return YES;
         }
     }
-    if ((position & STKLocationTouchingLeft) == STKLocationTouchingLeft) {
+    if ((location & STKLocationTouchingLeft) == STKLocationTouchingLeft) {
         if (layout.leftIcons.count > 0) {
             return YES;
         }
     }
-    if ((position & STKLocationTouchingRight) == STKLocationTouchingRight) {
+    if ((location & STKLocationTouchingRight) == STKLocationTouchingRight) {
         if (layout.rightIcons.count > 0) {
             return YES;
         }
     }
     if (layout.topIcons.count > 1 || layout.bottomIcons.count > 1 || layout.leftIcons.count > 1 || layout.rightIcons.count > 1) {
         if (outLayout) {
-            *outLayout = [self _processLayoutForSymmetry:layout withPosition:position];
+            *outLayout = [self _processLayoutForSymmetry:layout withLocation:location];
         }
         return YES;
     }
@@ -171,22 +171,22 @@ static SBIconListView *_centralIconListView;
     return [_centralIconListView coordinateForIcon:icon];
 }
 
-+ (STKGroupLayout *)emptyLayoutForIconAtPosition:(STKLocation)position
++ (STKGroupLayout *)emptyLayoutForIconAtLocation:(STKLocation)location
 {
     Class iconClass = objc_getClass("SBIcon");
     NSArray *fullSizeStackArray = @[[[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease]];
     
-    return [self layoutForIcons:fullSizeStackArray aroundIconAtPosition:position];
+    return [self layoutForIcons:fullSizeStackArray aroundIconAtLocation:location];
 }
 
-+ (STKGroupLayout *)layoutForPlaceholdersInLayout:(STKGroupLayout *)layout withPosition:(STKLocation)position
++ (STKGroupLayout *)layoutForPlaceholdersInLayout:(STKGroupLayout *)layout withLocation:(STKLocation)location
 {
     // Create an array with four objects to represent a full stack
     Class iconClass = objc_getClass("STKPlaceholderIcon");
     NSArray *fullSizeStackArray = @[[[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease]];
 
     // Get a layout object that represents how the icon would look with a full stack
-    STKGroupLayout *fullLayout = [self layoutForIcons:fullSizeStackArray aroundIconAtPosition:position];
+    STKGroupLayout *fullLayout = [self layoutForIcons:fullSizeStackArray aroundIconAtLocation:location];
 
     NSMutableArray *topIcons = [NSMutableArray array];
     NSMutableArray *bottomIcons = [NSMutableArray array];
@@ -194,7 +194,7 @@ static SBIconListView *_centralIconListView;
     NSMutableArray *rightIcons = [NSMutableArray array];
 
     void(^addPlaceHoldersToArray)(NSMutableArray *array, NSInteger numPlaceHolders) = ^(NSMutableArray *array, NSInteger numPlaceHolders) {
-        numPlaceHolders = MIN((position & STKLocationDock ? 4 : 2), numPlaceHolders); // A LA HAXX
+        numPlaceHolders = MIN((location & STKLocationDock ? 4 : 2), numPlaceHolders); // A LA HAXX
         if (numPlaceHolders <= 0) { 
             return;
         }
@@ -203,19 +203,19 @@ static SBIconListView *_centralIconListView;
         } while (--numPlaceHolders > 0);
     };
 
-    if ((layout.topIcons == nil || layout.topIcons.count == 0 || layout.topIcons.count < fullLayout.topIcons.count) && !(position & STKLocationTouchingTop)) {
+    if ((layout.topIcons == nil || layout.topIcons.count == 0 || layout.topIcons.count < fullLayout.topIcons.count) && !(location & STKLocationTouchingTop)) {
         addPlaceHoldersToArray(topIcons, (fullLayout.topIcons.count - layout.topIcons.count));
     }
 
-    if ((layout.bottomIcons == nil || layout.bottomIcons.count == 0 || layout.bottomIcons.count < fullLayout.bottomIcons.count) && !(position & STKLocationTouchingBottom)) {
+    if ((layout.bottomIcons == nil || layout.bottomIcons.count == 0 || layout.bottomIcons.count < fullLayout.bottomIcons.count) && !(location & STKLocationTouchingBottom)) {
         addPlaceHoldersToArray(bottomIcons, (fullLayout.bottomIcons.count - layout.bottomIcons.count));
     }
 
-    if ((layout.leftIcons == nil || layout.leftIcons.count == 0 || layout.leftIcons.count < fullLayout.leftIcons.count) && !(position & STKLocationTouchingLeft)) {
+    if ((layout.leftIcons == nil || layout.leftIcons.count == 0 || layout.leftIcons.count < fullLayout.leftIcons.count) && !(location & STKLocationTouchingLeft)) {
         addPlaceHoldersToArray(leftIcons, (fullLayout.leftIcons.count - layout.leftIcons.count));
     }
 
-    if ((layout.rightIcons == nil || layout.rightIcons.count == 0 || layout.rightIcons.count < fullLayout.rightIcons.count) && !(position & STKLocationTouchingRight)) {
+    if ((layout.rightIcons == nil || layout.rightIcons.count == 0 || layout.rightIcons.count < fullLayout.rightIcons.count) && !(location & STKLocationTouchingRight)) {
         addPlaceHoldersToArray(rightIcons, (fullLayout.rightIcons.count - layout.rightIcons.count));
     }
 
@@ -224,7 +224,7 @@ static SBIconListView *_centralIconListView;
     return placeHolderLayout;
 }
 
-+ (STKGroupLayout *)_processLayoutForSymmetry:(STKGroupLayout *)layout withPosition:(STKLocation)position
++ (STKGroupLayout *)_processLayoutForSymmetry:(STKGroupLayout *)layout withLocation:(STKLocation)location
 {
     NSMutableArray *topArray    = [layout.topIcons.mutableCopy autorelease] ?: [NSMutableArray array];
     NSMutableArray *bottomArray = [layout.bottomIcons.mutableCopy autorelease] ?: [NSMutableArray array];
@@ -232,19 +232,19 @@ static SBIconListView *_centralIconListView;
     NSMutableArray *rightArray  = [layout.rightIcons.mutableCopy autorelease] ?: [NSMutableArray array];
     
     void (^processArray)(NSMutableArray *array) = ^(NSMutableArray *array) {
-        if ((leftArray.count == 0) && !(position & STKLocationTouchingLeft)) {  
+        if ((leftArray.count == 0) && !(location & STKLocationTouchingLeft)) {  
             [leftArray addObject:array[1]];
             [array removeObjectAtIndex:1];
         }
-        else if ((rightArray.count == 0) && !(position & STKLocationTouchingRight)) {
+        else if ((rightArray.count == 0) && !(location & STKLocationTouchingRight)) {
             [rightArray addObject:array[1]]; 
             [array removeObjectAtIndex:1];
         }
-        else if ((bottomArray.count == 0) && !(position & STKLocationTouchingBottom)) {
+        else if ((bottomArray.count == 0) && !(location & STKLocationTouchingBottom)) {
             [bottomArray addObject:array[1]];
             [array removeObjectAtIndex:1];
         }
-        else if ((topArray.count == 0) && !(position & STKLocationTouchingTop)) {
+        else if ((topArray.count == 0) && !(location & STKLocationTouchingTop)) {
             [topArray addObject:array[1]];
             [array removeObjectAtIndex:1];
         }
@@ -252,7 +252,7 @@ static SBIconListView *_centralIconListView;
 
     NSMutableArray *extraArray = nil;
 
-    // Check for extras in the vertical positions   
+    // Check for extras in the vertical locations   
     if (topArray.count > 1) {
         extraArray = topArray;
     }
@@ -355,18 +355,18 @@ static SBIconListView *_centralIconListView;
     return icons;
 }
 
-+ (void)_logMask:(STKLocation)position
++ (void)_logMask:(STKLocation)location
 {
-    if (position & STKLocationTouchingTop) {
+    if (location & STKLocationTouchingTop) {
         CLog(@"STKLocationTouchingTop");
     }
-    if (position & STKLocationTouchingBottom) {
+    if (location & STKLocationTouchingBottom) {
         CLog(@"STKLocationTouchingBottom");
     }
-    if (position & STKLocationTouchingLeft){
+    if (location & STKLocationTouchingLeft){
         CLog(@"STKLocationTouchingLeft");
     }
-    if (position & STKLocationTouchingRight) {
+    if (location & STKLocationTouchingRight) {
         CLog(@"STKLocationTouchingRight");
     }
 }
