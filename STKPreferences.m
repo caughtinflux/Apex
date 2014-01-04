@@ -1,6 +1,5 @@
-#import "STKPreferences.h"
+
 #import "STKConstants.h"
-#import "STKStack.h"
 #import <CoreFoundation/CoreFoundation.h>
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
@@ -18,6 +17,9 @@ static NSString * const STKStackClosesOnLaunchKey = @"STKStackClosesOnLaunch";
 static NSString * const STKLockLayoutsKey         = @"STKLockLayouts";
 static NSString * const STKShowSummedBadgesKey    = @"STKShowSummedBadges";
 static NSString * const STKActivationModeKey      = @"STKActivationMode";
+
+@interface STKPreferences
+@end
 
 @interface STKPreferences ()
 {   
