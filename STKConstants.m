@@ -35,19 +35,3 @@ SBIconListView * STKListViewForIcon(SBIcon *icon)
 
     return listView;
 }
-
-static CGFloat _currentTargetDistance;
-CGFloat STKGetCurrentTargetDistance(void)
-{
-    return _currentTargetDistance;
-}
-
-void STKUpdateTargetDistanceInListView(SBIconListView *listView, BOOL forDock)
-{
-    CGFloat defaultHeight = [objc_getClass("SBIconView") defaultIconSize].height;
-    CGFloat verticalPadding = [listView stk_realVerticalIconPadding];
-    _currentTargetDistance = (defaultHeight + verticalPadding);
-    if (forDock) {
-        _currentTargetDistance += ([[objc_getClass("SBIconController") sharedInstance] dock].frame.origin.y * 0.5); 
-    }
-}

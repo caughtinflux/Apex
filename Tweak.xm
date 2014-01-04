@@ -7,49 +7,6 @@
 #pragma mark - Function Declarations
 static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags);
 
-#pragma mark - Compatibility Hooks
-#pragma mark - Folder Enhancer Compatibility
-%group FECompat
-%hook FEGridFolderView
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView
-{
-    [[STKStackController sharedInstance] closeActiveStack];
-    %orig();
-}
-%end
-%end
-
-#pragma mark - Zephyr
-%group ZephyrCompat
-%hook ZephyrSwitcherGesture
-
-- (void)handleGestureBegan:(id)gesture withLocation:(float)location
-{
-    _switcherIsVisible = YES;
-
-    SBIconModel *model = (SBIconModel *)[[%c(SBIconController) sharedInstance] model];
-    NSSet *&visibleIconTags = MSHookIvar<NSSet *>(model, "_visibleIconTags");
-    NSSet *&hiddenIconTags = MSHookIvar<NSSet *>(model, "_hiddenIconTags");
-
-    [model setVisibilityOfIconsWithVisibleTags:visibleIconTags hiddenTags:hiddenIconTags];
-
-    %orig(gesture, location);
-}
-
-- (void)resetAfterCancelDismissGesture
-{
-    _switcherIsVisible = NO;
-    %orig();
-}
-
-- (void)handleGestureEnded:(id)gesture withLocation:(CGFloat)location velocity:(CGPoint)velocity completionType:(int)type
-{
-    _switcherIsVisible = NO;
-    %orig();
-}
-%end
-%end
-
 #pragma mark - SpringBoard Hook
 %hook SpringBoard
 - (void)_reportAppLaunchFinished

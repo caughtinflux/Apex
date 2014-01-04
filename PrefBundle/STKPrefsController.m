@@ -7,7 +7,7 @@
 #import <dlfcn.h>
 #import <netdb.h>
 #import <arpa/inet.h>
-#import "../MobileGestalt.h"
+#import <MobileGestalt/MobileGestalt.h>
 
 #define TEXT_COLOR [UIColor colorWithRed:76/255.0f green:86/255.0f blue:106/255.0f alpha:1.0f]
 #define TEXT_LARGE_FONT [UIFont fontWithName:@"HelveticaNeue" size:72.0f]
@@ -190,12 +190,9 @@ static BOOL __didShowAlert = NO;
     });
 }
 
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)idx
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)idx
 {
-    if (idx == alertView.cancelButtonIndex) {
-        [alertView dismiss];
-    }
-    else {
+    if (idx == alertView.firstOtherButtonIndex) {
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"cydia://package/com.a3tweaks.apex"]];
     }
 }
