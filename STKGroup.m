@@ -1,6 +1,3 @@
-#import "STKGroup.h"
-#import "STKGroupLayout.h"
-#import "STKGroupLayoutHandler.h"
 #import "STKConstants.h"
 
 #import <objc/runtime.h>
@@ -13,6 +10,7 @@ NSString * const STKGroupLayoutKey = @"STKGroupLayout";
 @implementation STKGroup
 {
 	STKGroupLayout *_layout;
+	STKGroupView *_view;
 	NSHashTable *_observers;
 }
 
@@ -22,12 +20,15 @@ NSString * const STKGroupLayoutKey = @"STKGroupLayout";
 		_centralIcon = [icon retain];
 		_layout = [layout retain];
 		_observers = [[NSHashTable alloc] initWithOptions:NSHashTableWeakMemory capacity:0];
+		_view = [[STKGroupView alloc] initWithGroup:self];
 	}
 	return self;
 }
 
 - (void)dealloc
 {
+	_view.group = nil;
+	[_view release];
 	[_layout release];
 	[_observers removeAllObjects];
 	[_observers release];

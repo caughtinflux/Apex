@@ -3,28 +3,7 @@
 #import <IconSupport/ISIconSupport.h>
 #import <SpringBoard/SpringBoard.h>
 #import <Search/SPSearchResultSection.h>
-
-#import "STKGroupLayoutHandler.h"
-#import "STKGroupLayout.h"
-#import "STKGroup.h"
-#import "STKGroupView.h"
-
-#pragma mark - Function Declarations
-%hook SpringBoard
-- (void)_reportAppLaunchFinished
-{
-    %orig();
-    %log();
-    SBIcon *icon = [[(SBIconController *)[CLASS(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:@"com.apple.weather"];
-    
-    SBIconListView *listView = [[%c(SBIconController) sharedInstance] currentRootIconList];
-    STKGroupLayout *layout = [STKGroupLayoutHandler layoutForIcons:[listView.icons subarrayWithRange:NSMakeRange(0, 4)] aroundIconAtLocation:0];
-    STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icon layout:layout];
-    STKGroupView *groupView = [[STKGroupView alloc] initWithGroup:group];
-    groupView = nil;
-    
-}
-%end
+#import "STKConstants.h"
 
 /*
 
@@ -61,7 +40,39 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
     CFRelease(userNotification);
 }
+
+SBFolderZoomSettings *settings = [[(SBPrototypeController *)[%c(SBPrototypeController) sharedInstance] rootSettings] rootAnimationSettings].folderOpenSettings;
+SBRootFolderController *rfc = [self _rootFolderController];
+SBFolderIcon *folderIcon = [[self currentRootIconList] icons][16];
+SBFolder *folder = folderIcon.folder;
+SBFolderController *fc = [[%c(SBFolderController) alloc] initWithFolder:folder orientation:[[UIApplication sharedApplication] statusBarOrientation]];
+SBFolderIconZoomAnimator *animator = [[%c(SBFolderIconZoomAnimator) alloc] initWithOuterController:rfc innerController:fc folderIcon:folderIcon];
+animator.settings = settings;
+rfc.innerFolderController = fc;
+
+SBFAnimationFactory *factoryWhat = [animator centralAnimationFactory];
+[factoryWhat animateWithDelay:0 animations:^{
+    SBFolderView *folderView = [fc contentView];
+    [self.contentView pushFolderContentView:folderView];
+    [folderView prepareToOpen];
+    folderView.folder.isOpen = YES;
+} completion:nil];
+
+return animator;
+
 */
+
+%hook SBIconController 
+%new 
+- (id)setUpStackOnWeather
+{
+    SBRootIconListView *listView = [self currentRootIconList];
+    NSArray *icons = [listView icons];
+    STKGroupLayout *layout = [STKGroupLayout layoutWithIconsAtTop:@[icons[11]] bottom:@[icons[8]] left:@[icons[9]] right:@[icons[17]]];
+    STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icons[6] layout:layout];
+    return group;
+}
+%end
 
 #pragma mark - Constructor
 %ctor
@@ -69,19 +80,8 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     @autoreleasepool {
         STKLog(@"Initializing");
         %init();
-        // [[STKPreferences sharedPreferences] reloadPreferences];
 
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
         [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName];
-
-       /* void *feHandle = dlopen("/Library/MobileSubstrate/DynamicLibraries/FolderEnhancer.dylib", RTLD_NOW);
-        if (feHandle) {
-            %init(FECompat);
-        }
-        void *zephyrHandle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Zephyr.dylib", RTLD_NOW);
-        if (zephyrHandle) {
-            %init(ZephyrCompat);
-        }
-        */
     }
 }

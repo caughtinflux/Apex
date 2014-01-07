@@ -1,15 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <SpringBoard/SpringBoard.h>
-
-typedef NS_OPTIONS(NSUInteger, STKLocation) {
-    STKLocationRegular        = 0,
-    STKLocationTouchingTop    = 1 << 0,
-    STKLocationTouchingBottom = 1 << 1,
-    STKLocationTouchingLeft   = 1 << 2,
-    STKLocationTouchingRight  = 1 << 3,
-    STKLocationDock           = 1 << 4
-};
+#import "STKConstants.h"
 
 #define STKPositionMasksEqual(_a, _b) ( ((a & STKPositionRegular) == (b & STKPositionRegular)) && \
 									    ((a & STKPositionTouchingTop) == (b & STKPositionTouchingTop)) && ((a & STKPositionTouchingBottom) == (b & STKPositionTouchingBottom)) && \
@@ -29,7 +21,7 @@ typedef NS_OPTIONS(NSUInteger, STKLocation) {
 + (BOOL)layout:(STKGroupLayout *)layout requiresRelayoutForLocation:(STKLocation)location suggestedLayout:(__autoreleasing STKGroupLayout **)outLayout;
 
 // Returns an STKGroupLayout object whose properties contain SBIcons to be faded out when the new icons are coming in
-// This, is plain magic.
+// This, is pure magic.
 + (STKGroupLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)icon usingLayout:(STKGroupLayout *)layout;
 + (SBIconCoordinate)coordinateForIcon:(SBIcon *)icon;
 

@@ -9,6 +9,7 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 	STKActivationModeDoubleTap
 };
 
+@protocol STKGroupViewDelegate;
 @class SBIconView, STKGroup;
 @interface STKGroupView : UIView <UIGestureRecognizerDelegate>
 
@@ -17,8 +18,21 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 - (void)open;
 - (void)close;
 
-@property (nonatomic, readonly) STKGroup *group;
+@property (nonatomic, retain) STKGroup *group;
 @property (nonatomic, readonly) BOOL isOpen;
 @property (nonatomic, assign) STKActivationMode activationMode;
+@property (nonatomic, assign) id<STKGroupViewDelegate> delegate;
 
+@end
+
+@protocol STKGroupViewDelegate
+
+@required 
+- (BOOL)groupViewShouldOpen:(STKGroupView *)groupView;
+
+@optional
+- (void)groupViewWillOpen:(STKGroupView *)groupView;
+- (void)groupViewDidOpen:(STKGroupView *)groupView;
+- (void)groupViewWillClose:(STKGroupView *)groupView;
+- (void)groupViewDidClose:(STKGroupView *)groupView;
 @end

@@ -8,7 +8,15 @@
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
 
+#import "STKTypes.h"
 #import "STKVersion.h"
+#import "STKGroup.h"
+#import "STKGroupView.h"
+#import "STKGroupLayout.h"
+#import "STKGroupLayoutHandler.h"
+#import "STKFolderIconView.h"
+#import "SBFolder+Apex.h"
+#import "SBIconListView+ApexAdditions.h"
 
 #define kSTKTweakName @"Apex"
 
@@ -30,19 +38,6 @@
 #define UIIMAGE_NAMED(_name) [[[UIImage alloc] initWithContentsOfFile:PATH_TO_IMAGE(_name)] autorelease]
 
 #define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
-
-typedef NS_ENUM(NSUInteger, STKLayoutPosition) {
-    STKPositionUnknown = 0,
-    STKPositionTop     = 1,
-    STKPositionBottom  = 2,
-    STKPositionLeft    = 3,
-    STKPositionRight   = 4
-};
-
-typedef struct STKGroupSlot {
-    STKLayoutPosition position;
-    NSUInteger index;
-} STKGroupSlot;
 
 #ifdef __cplusplus 
 extern "C" {

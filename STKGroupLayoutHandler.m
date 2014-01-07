@@ -282,7 +282,7 @@ static SBIconListView *_centralIconListView;
     }
     NSRange range;
     range.location = 0;
-    range.length = (coordinate.row - 2);
+    range.length = (coordinate.row - 1);
     NSArray *iconsInColumn = [self _iconsInColumn:coordinate.col];
     return [[[iconsInColumn subarrayWithRange:range] reverseObjectEnumerator] allObjects];
 }
@@ -311,7 +311,7 @@ static SBIconListView *_centralIconListView;
     
     NSRange range;
     range.location = 0;
-    range.length = (coordinate.col - 2);
+    range.length = (coordinate.col - 1);
 
     return [[[iconsInRow subarrayWithRange:range] reverseObjectEnumerator] allObjects];
 }
