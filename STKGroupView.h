@@ -25,7 +25,7 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 
 @end
 
-@protocol STKGroupViewDelegate
+@protocol STKGroupViewDelegate <SBIconViewDelegate>
 
 @required 
 - (BOOL)groupViewShouldOpen:(STKGroupView *)groupView;
