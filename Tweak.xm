@@ -61,15 +61,17 @@ SBFAnimationFactory *factoryWhat = [animator centralAnimationFactory];
 return animator;
 
 */
-
+static STKGroup *_group;
 %hook SBIconController 
 %new 
 - (id)setUpStackOnWeather
 {
-    SBRootIconListView *listView = [self currentRootIconList];
+    SBRootIconListView *listView = [self rootIconListAtIndex:1];
     NSArray *icons = [listView icons];
-    STKGroupLayout *layout = [STKGroupLayout layoutWithIconsAtTop:@[icons[11]] bottom:@[icons[8]] left:@[icons[9]] right:@[icons[17]]];
-    STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icons[6] layout:layout];
+    SBIcon *centralIcon = [[self model] expectedIconForDisplayIdentifier:@"com.apple.AppStore"];
+    STKGroupLayout *layout = [STKGroupLayoutHandler layoutForIcons:@[icons[12], icons[13], icons[14], icons[15]] aroundIconAtLocation:[STKGroupLayoutHandler locationForIconView:[listView viewForIcon:centralIcon]]];
+    STKGroup *group = [[STKGroup alloc] initWithCentralIcon:centralIcon layout:layout];
+    _group = group;
     return group;
 }
 %end
