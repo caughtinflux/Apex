@@ -14,8 +14,6 @@
 #import "STKGroupView.h"
 #import "STKGroupLayout.h"
 #import "STKGroupLayoutHandler.h"
-#import "STKFolderIconView.h"
-#import "SBFolder+Apex.h"
 #import "SBIconListView+ApexAdditions.h"
 
 #define kSTKTweakName @"Apex"
@@ -46,6 +44,13 @@ extern "C" {
     extern CFStringRef const STKPrefsChangedNotificationName;
     
     extern SBIconListView * STKListViewForIcon(SBIcon *icon);
+
+    extern inline SBIconCoordinate STKCoordinateFromDictionary(NSDictionary *dict) {
+        return (SBIconCoordinate){[dict[@"row"] integerValue], [dict[@"col"] integerValue]};
+    }
+    extern inline NSDictionary * STKDictionaryFromCoordinate(SBIconCoordinate coordinate) {
+        return @{@"row":[NSNumber numberWithInteger:coordinate.row], @"col":[NSNumber numberWithInteger:coordinate.col]};
+    }
 #ifdef __cplusplus 
 }
 #endif
