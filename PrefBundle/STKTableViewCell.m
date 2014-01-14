@@ -17,11 +17,11 @@
 #define TWITTER_WIDTH 16.0f
 #define TWITTER_HEIGHT 13.0f
 
-#define NAME_LABEL_HEIGHT [nameLabel.text sizeWithFont:nameLabel.font].height
-#define NAME_LABEL_WIDTH [nameLabel.text sizeWithFont:nameLabel.font].width
+#define NAME_LABEL_HEIGHT [nameLabel.text sizeWithAttributes:@{NSFontAttributeName:nameLabel.font}].height
+#define NAME_LABEL_WIDTH [nameLabel.text sizeWithAttributes:@{NSFontAttributeName:nameLabel.font}].width
 
-#define HANDLE_LABEL_HEIGHT [handleLabel.text sizeWithFont:nameLabel.font].height
-#define HANDLE_LABEL_WIDTH [handleLabel.text sizeWithFont:nameLabel.font].width
+#define HANDLE_LABEL_HEIGHT [handleLabel.text sizeWithAttributes:@{NSFontAttributeName:nameLabel.font}].height
+#define HANDLE_LABEL_WIDTH [handleLabel.text sizeWithAttributes:@{NSFontAttributeName:nameLabel.font}].width
 
 @implementation STKTableViewCellProfile
 

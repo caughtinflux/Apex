@@ -71,17 +71,17 @@
     return nil;
 }
 
-- (int)numberOfSectionsInTableView:(UITableView *)tableView
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {    
     return 3;
 }
 
-- (id)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
+- (id)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
     return nil;
 }
 
-- (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {    
     return 1;
 }
