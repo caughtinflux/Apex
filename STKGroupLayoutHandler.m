@@ -22,7 +22,7 @@ static SBIconListView *_centralIconListView;
 + (NSArray *)_iconsInColumn:(NSInteger)column;
 + (NSArray *)_iconsInRow:(NSInteger)row;
 
-+ (void)_logMask:(STKLocation)location;
++ (void)_loglocation:(STKLocation)location;
 
 @end
 
@@ -35,7 +35,7 @@ static SBIconListView *_centralIconListView;
     if ((location & STKLocationDock) == STKLocationDock) {
         return [STKGroupLayout layoutWithIconsAtTop:icons bottom:nil left:nil right:nil];
     }
-    [self _logMask:location];
+    [self _loglocation:location];
 
     NSMutableArray *bottomIcons = [NSMutableArray array]; // 0 (Give bottom icons preference, since they're easier to tap with a downward swipe)
     NSMutableArray *topIcons    = [NSMutableArray array]; // 1
@@ -77,7 +77,6 @@ static SBIconListView *_centralIconListView;
                 }
                 break;
             }
-
             case 3: {
                 if ((location & STKLocationTouchingRight) == STKLocationTouchingRight) {
                     [leftIcons addObject:icons[i]];
@@ -87,7 +86,6 @@ static SBIconListView *_centralIconListView;
                 }
                 break;
             }
-
             default: {
                 break;
             }
@@ -169,6 +167,30 @@ static SBIconListView *_centralIconListView;
 {
     _centralIconListView = STKListViewForIcon(icon);
     return [_centralIconListView coordinateForIcon:icon];
+}
+
++ (STKLocation)locationForIconView:(SBIconView *)iconView
+{
+    STKLocation location = 0x0;
+    SBIcon *icon = iconView.icon;
+    if ([iconView isInDock]) {
+        return (location | STKLocationDock);
+    }
+    SBIconListView *listView = STKListViewForIcon(iconView.icon);
+    SBIconCoordinate coordinate = [STKGroupLayoutHandler coordinateForIcon:icon];
+    if (coordinate.col == 1) {
+        location |= STKLocationTouchingLeft;
+    }
+    if (coordinate.col == ([listView iconColumnsForCurrentOrientation])) {
+        location |= STKLocationTouchingRight;
+    }
+    if (coordinate.row == 1) {
+        location |= STKLocationTouchingTop;
+    }
+    if (coordinate.row == ([listView iconRowsForCurrentOrientation])) {
+        location |= STKLocationTouchingBottom;
+    }
+    return location;
 }
 
 + (STKGroupLayout *)emptyLayoutForIconAtLocation:(STKLocation)location
@@ -355,7 +377,7 @@ static SBIconListView *_centralIconListView;
     return icons;
 }
 
-+ (void)_logMask:(STKLocation)location
++ (void)_loglocation:(STKLocation)location
 {
     if (location & STKLocationTouchingTop) {
         CLog(@"STKLocationTouchingTop");

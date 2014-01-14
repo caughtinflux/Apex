@@ -13,6 +13,7 @@
 @class STKGroupLayout, SBIcon;
 @interface STKGroupLayoutHandler : NSObject
 
+
 // Set the exact position by OR'ing the different values in the enum
 // It will just explode in your face if you try to pull crap.
 // I mean it.
@@ -23,7 +24,9 @@
 // Returns an STKGroupLayout object whose properties contain SBIcons to be faded out when the new icons are coming in
 // This, is pure magic.
 + (STKGroupLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)icon usingLayout:(STKGroupLayout *)layout;
+
 + (SBIconCoordinate)coordinateForIcon:(SBIcon *)icon;
++ (STKLocation)locationForIconView:(SBIconView *)iconView;
 
 // Returns a layout containing four id<NSObject> to indicate where the icons would go.
 + (STKGroupLayout *)emptyLayoutForIconAtLocation:(STKLocation)location;
