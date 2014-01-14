@@ -56,6 +56,9 @@ static STKLayoutPosition _PositionFromString(NSString *string)
 // Init using dictionary of an array of identifiers for every layout position
 - (instancetype)initWithIdentifierDictionary:(NSDictionary *)dictionary
 {
+    if (!dictionary) {
+        return nil;
+    }
     if ((self = [self init])) {
         for (NSString *key in ALL_KEYS) {
             STKLayoutPosition currentPosition = _PositionFromString(key);
@@ -77,6 +80,9 @@ static STKLayoutPosition _PositionFromString(NSString *string)
 // Init using dictionary of an array of icons for every layout position
 - (instancetype)initWithIconDictionary:(NSDictionary *)dictionary
 {
+    if (!dictionary) {
+        return nil;
+    }
     if ((self = [self init])) {
         for (NSString *key in ALL_KEYS) {
             STKLayoutPosition currentPosition = _PositionFromString(key);
@@ -191,6 +197,9 @@ static STKLayoutPosition _PositionFromString(NSString *string)
 {
     for (STKLayoutPosition i = 1; i <= 4; i++) {
         NSArray *icons = self[i];
+        if (!icons || icons.count == 0) {
+            continue;
+        }
         [icons enumerateObjectsUsingBlock:^(id icon, NSUInteger idx, BOOL *stop) {
             block(icon, i, icons, idx, stop);
         }];

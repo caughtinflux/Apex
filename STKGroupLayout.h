@@ -9,6 +9,9 @@ extern NSString * const STKPositionUnknownKey;
 
 extern NSString * NSStringFromLayoutPosition(STKLayoutPosition position);
 
+#define STKPositionIsVertical(_pos) (_pos == STKPositionTop || _pos == STKPositionBottom)
+#define STKPositionIsHorizontal(_pos) (_pos == STKPositionLeft || _pos == STKPositionRight)
+
 @class SBIcon;
 @interface STKGroupLayout : NSObject <NSFastEnumeration>
 
