@@ -37,12 +37,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     if ((self = [super initWithFrame:CGRectZero])) {
         _group = [group retain];
-        _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
-        [self _configureCentralIconView];
-        [self _configureSubappViews];
-        [self layoutSubviews];
-
         _activationMode = STKActivationModeSwipeUpAndDown;
+        self.alpha = 0.f;
     }
     return self;
 }
@@ -87,8 +83,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 }
 
 #pragma mark - Config
-- (void)_configureCentralIconView
+- (void)configureSuperview
 {
+    _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
+    [self _configureSubappViews];
+    [self layoutSubviews];
+
     _panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_panned:)];
     _panRecognizer.delegate = self;
 
@@ -98,9 +98,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
     [_centralIconView addGestureRecognizer:_panRecognizer];
     [_centralIconView addGestureRecognizer:_tapRecognizer];
-    
-    [_centralIconView addSubview:self];
-    [_centralIconView sendSubviewToBack:self];
+
+    self.alpha = 1.f;
 }
 
 - (void)_configureSubappViews

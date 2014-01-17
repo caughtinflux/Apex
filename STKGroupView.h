@@ -15,13 +15,14 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 
 - (instancetype)initWithGroup:(STKGroup *)group;
 
-- (void)open;
-- (void)close;
-
 @property (nonatomic, retain) STKGroup *group;
 @property (nonatomic, readonly) BOOL isOpen;
 @property (nonatomic, assign) STKActivationMode activationMode;
 @property (nonatomic, assign) id<STKGroupViewDelegate> delegate;
+
+- (void)open;
+- (void)close;
+- (void)configureSuperview;
 
 @end
 

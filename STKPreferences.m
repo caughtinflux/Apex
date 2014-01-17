@@ -37,7 +37,7 @@ static NSString * const CentralIconKey      = @"STKCentralIcon";
         @autoreleasepool {
             NSDictionary *groupRepr = iconState[iconID];
             STKGroup *group = [[[STKGroup alloc] initWithDictionary:groupRepr] autorelease];
-            [self addGroup:group];
+            [self addOrUpdateGroup:group];
         }
     }
 }
@@ -49,20 +49,22 @@ static NSString * const CentralIconKey      = @"STKCentralIcon";
     [_preferences writeToFile:kPrefPath atomically:YES];
 }
 
-- (void)addGroup:(STKGroup *)group
+- (void)addOrUpdateGroup:(STKGroup *)group
 {
     if (!_groups) {
         _groups = [NSMutableDictionary new];
     }
     _groups[group.centralIcon.leafIdentifier] = group;
+    [self _synchronize];
 }
 
 - (void)removeGroup:(STKGroup *)group
 {
     [_groups removeObjectForKey:group.centralIcon.leafIdentifier];
+    [self _synchronize];
 }
 
-- (STKGroup *)groupForCentralIcon:(SBIcon *)icon
+- (STKGroup *)groupForIcon:(SBIcon *)icon
 {
     return _groups[icon.leafIdentifier];
 }

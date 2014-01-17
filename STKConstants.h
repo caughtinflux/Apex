@@ -10,11 +10,17 @@
 
 #import "STKTypes.h"
 #import "STKVersion.h"
+
 #import "STKGroup.h"
 #import "STKGroupView.h"
 #import "STKGroupLayout.h"
 #import "STKGroupLayoutHandler.h"
+#import "STKVersion.h"
+
+#import "SBIconView+STKGroupView.h"
 #import "SBIconListView+ApexAdditions.h"
+
+#import "STKPreferences.h"
 
 #define kSTKTweakName @"Apex"
 
