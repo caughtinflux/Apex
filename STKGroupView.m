@@ -207,6 +207,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self open];
 }
 
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
+{
+    return [recognizer isKindOfClass:[UIPanGestureRecognizer class]];
+}
+
 #pragma mark - Moving
 - (void)_moveAllIconsToOffset:(CFTimeInterval)timeOffset performingBlockOnSubApps:(void(^)(SBIconView *))block
 {
