@@ -19,3 +19,13 @@ SBIconListView * STKListViewForIcon(SBIcon *icon)
 
     return listView;
 }
+
+inline SBIconCoordinate STKCoordinateFromDictionary(NSDictionary *dict)
+{
+    return (SBIconCoordinate){[dict[@"row"] integerValue], [dict[@"col"] integerValue]};
+}
+
+inline NSDictionary * STKDictionaryFromCoordinate(SBIconCoordinate coordinate)
+{
+    return @{@"row":[NSNumber numberWithInteger:coordinate.row], @"col":[NSNumber numberWithInteger:coordinate.col]};
+}

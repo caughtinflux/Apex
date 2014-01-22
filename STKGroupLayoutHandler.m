@@ -22,8 +22,6 @@ static SBIconListView *_centralIconListView;
 + (NSArray *)_iconsInColumn:(NSInteger)column;
 + (NSArray *)_iconsInRow:(NSInteger)row;
 
-+ (void)_loglocation:(STKLocation)location;
-
 @end
 
 @implementation STKGroupLayoutHandler
@@ -35,7 +33,6 @@ static SBIconListView *_centralIconListView;
     if ((location & STKLocationDock) == STKLocationDock) {
         return [STKGroupLayout layoutWithIconsAtTop:icons bottom:nil left:nil right:nil];
     }
-    [self _loglocation:location];
 
     NSMutableArray *bottomIcons = [NSMutableArray array]; // 0 (Give bottom icons preference, since they're easier to tap with a downward swipe)
     NSMutableArray *topIcons    = [NSMutableArray array]; // 1
@@ -166,7 +163,8 @@ static SBIconListView *_centralIconListView;
 + (SBIconCoordinate)coordinateForIcon:(SBIcon *)icon
 {
     _centralIconListView = STKListViewForIcon(icon);
-    return [_centralIconListView coordinateForIcon:icon];
+    NSUInteger idx = [[_centralIconListView model] indexForIcon:icon];
+    return [_centralIconListView coordinateForIconAtIndex:idx];
 }
 
 + (STKLocation)locationForIconView:(SBIconView *)iconView
@@ -178,6 +176,7 @@ static SBIconListView *_centralIconListView;
     }
     SBIconListView *listView = STKListViewForIcon(iconView.icon);
     SBIconCoordinate coordinate = [STKGroupLayoutHandler coordinateForIcon:icon];
+    
     if (coordinate.col == 1) {
         location |= STKLocationTouchingLeft;
     }
@@ -190,6 +189,7 @@ static SBIconListView *_centralIconListView;
     if (coordinate.row == ([listView iconRowsForCurrentOrientation])) {
         location |= STKLocationTouchingBottom;
     }
+
     return location;
 }
 
@@ -299,9 +299,7 @@ static SBIconListView *_centralIconListView;
 + (NSArray *)_iconsAboveIcon:(SBIcon *)icon
 {
     SBIconCoordinate coordinate = [self coordinateForIcon:icon];
-    if (STKCoordinateIsValid(coordinate) == NO) {
-        return nil;
-    }
+
     NSRange range;
     range.location = 0;
     range.length = (coordinate.row - 1);
@@ -375,22 +373,6 @@ static SBIconListView *_centralIconListView;
         }
     }
     return icons;
-}
-
-+ (void)_loglocation:(STKLocation)location
-{
-    if (location & STKLocationTouchingTop) {
-        CLog(@"STKLocationTouchingTop");
-    }
-    if (location & STKLocationTouchingBottom) {
-        CLog(@"STKLocationTouchingBottom");
-    }
-    if (location & STKLocationTouchingLeft){
-        CLog(@"STKLocationTouchingLeft");
-    }
-    if (location & STKLocationTouchingRight) {
-        CLog(@"STKLocationTouchingRight");
-    }
 }
 
 @end

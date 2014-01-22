@@ -62,9 +62,7 @@ static BOOL _hasGridlock;
 %new
 - (void)stk_makeIconViewsPerformBlock:(void(^)(SBIconView *iv))block
 {
-    for (SBIcon *icon in [self icons]) {
-        block([self viewForIcon:icon]);
-    }
+    [self enumerateIconViewsUsingBlock:block];
 }
 
 %end

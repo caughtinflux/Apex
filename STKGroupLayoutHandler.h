@@ -3,12 +3,7 @@
 #import <SpringBoard/SpringBoard.h>
 #import "STKConstants.h"
 
-#define STKPositionMasksEqual(_a, _b) ( ((a & STKPositionRegular) == (b & STKPositionRegular)) && \
-									    ((a & STKPositionTouchingTop) == (b & STKPositionTouchingTop)) && ((a & STKPositionTouchingBottom) == (b & STKPositionTouchingBottom)) && \
-									    ((a & STKPositionTouchingLeft) == (b & STKPositionTouchingLeft)) && ((a & STKPositionTouchingRight) == (b & STKPositionTouchingRight)) && \
-									    ((a & STKPositionDock) == (b & STKPositionDock)) )
-
-#define STKCoordinateIsValid(_coords) (!(_coords.col > 1000) && !(_coords.row > 1000))
+#define STKCoordinateIsValid(_coord) ((_coord.col < 1000) && (_coord.row < 1000))
 
 @class STKGroupLayout, SBIcon;
 @interface STKGroupLayoutHandler : NSObject

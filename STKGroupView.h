@@ -22,7 +22,8 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 
 - (void)open;
 - (void)close;
-- (void)configureSuperview;
+
+- (void)resetLayouts;
 
 @end
 

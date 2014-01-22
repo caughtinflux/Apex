@@ -1,4 +1,4 @@
-#import <Foundation/Foundation.h>
+ #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <IconSupport/ISIconSupport.h>
 #import <SpringBoard/SpringBoard.h>
@@ -61,19 +61,22 @@ SBFAnimationFactory *factoryWhat = [animator centralAnimationFactory];
 return animator;
 
 */
-static STKGroup *_group;
-%hook SBIconController 
-%new 
-- (id)setUpStackOnWeather
+
+%hook SBIconView
+- (void)setLocation:(SBIconLocation)location
 {
-    SBRootIconListView *listView = [self rootIconListAtIndex:1];
-    NSArray *icons = [listView icons];
-    SBIcon *centralIcon = [[self model] expectedIconForDisplayIdentifier:@"com.apple.AppStore"];
-    STKGroupLayout *layout = [STKGroupLayoutHandler layoutForIcons:@[icons[12], icons[13], icons[14], icons[15]] aroundIconAtLocation:[STKGroupLayoutHandler locationForIconView:[listView viewForIcon:centralIcon]]];
-    STKGroup *group = [[STKGroup alloc] initWithCentralIcon:centralIcon layout:layout];
-    _group = group;
-    return group;
+    %orig(location);
+    if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:self.icon] && [self.superview isKindOfClass:%c(SBIconListView)]) {
+        [[STKGroupController sharedController] addGroupViewToIconView:self];
+    }
 }
+
+- (void)dealloc
+{
+    [self removeGroupView];
+    %orig();
+}
+
 %end
 
 #pragma mark - Constructor

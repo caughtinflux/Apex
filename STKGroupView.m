@@ -25,9 +25,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     SBIconView *_centralIconView;
     STKGroupLayout *_subappLayout;
     STKGroupLayout *_displacedIconLayout;
+
     UIPanGestureRecognizer *_panRecognizer;
     UITapGestureRecognizer *_tapRecognizer;
 
+    BOOL _needsCreation;
     BOOL _isOpen;
 
     NSMapTable *_pathCache;
@@ -45,21 +47,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)dealloc
 {
-    [self _invalidatePathCache];
-    [_panRecognizer.view removeGestureRecognizer:_panRecognizer];
-    [_tapRecognizer.view removeGestureRecognizer:_tapRecognizer];
-
-    [_panRecognizer release];
-    [_tapRecognizer release];
+    [self resetLayouts];
+    [self _removeGestureRecognizers];
     [_group release];
 
     [super dealloc];
-}
-
-- (void)layoutSubviews
-{
-    [super layoutSubviews];
-    self.frame = self.superview.bounds;
 }
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
@@ -82,28 +74,62 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self _animateClosedWithCompletion:nil];
 }
 
-#pragma mark - Config
-- (void)configureSuperview
+- (void)resetLayouts
 {
+    for (id view in self.subviews) {
+        [view removeFromSuperview];
+    }
+    [_subappLayout release];
+    _subappLayout = nil;
+    [_displacedIconLayout release];
+    _displacedIconLayout = nil;
+    [self _invalidatePathCache];
+}
+
+- (void)setGroup:(STKGroup *)group
+{
+    [_group release];
+    _group = [group retain];
+    [self resetLayouts];
+}
+
+#pragma mark - Layout
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    self.frame = self.superview.bounds;
+
+    for (SBIconView *subappView in _subappLayout) {
+        [_centralIconView sendSubviewToBack:subappView];
+    }
+}
+
+- (void)didMoveToSuperview
+{
+    if (!self.superview) {
+        return;
+    }
     _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
     [self _configureSubappViews];
     [self layoutSubviews];
 
-    _panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_panned:)];
-    _panRecognizer.delegate = self;
-
-    _tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_doubleTapped:)];
-    _tapRecognizer.numberOfTapsRequired = 2;
-    _tapRecognizer.delegate = self;
-
-    [_centralIconView addGestureRecognizer:_panRecognizer];
-    [_centralIconView addGestureRecognizer:_tapRecognizer];
+    [self _addGestureRecognizers];
 
     self.alpha = 1.f;
 }
 
 - (void)_configureSubappViews
 {
+    if (_group.empty) {
+        return;
+    }
+    [self _reallyConfigureSubappViews];
+}
+
+- (void)_reallyConfigureSubappViews
+{
+    [self resetLayouts];
+
     _subappLayout = [[STKGroupLayout alloc] init];
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         SBIconView *iconView = [[[CLASS(SBIconView) alloc] initWithDefaultSize] autorelease];
@@ -119,6 +145,31 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 }
 
 #pragma mark - Gesture Handling
+- (void)_addGestureRecognizers
+{
+    [self _removeGestureRecognizers];
+    _panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_panned:)];
+    _panRecognizer.delegate = self;
+    
+    _tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_doubleTapped:)];
+    _tapRecognizer.numberOfTapsRequired = 2;
+    _tapRecognizer.delegate = self;
+
+    [_centralIconView addGestureRecognizer:_panRecognizer];
+    [_centralIconView addGestureRecognizer:_tapRecognizer];
+}
+
+- (void)_removeGestureRecognizers
+{
+    [_panRecognizer.view removeGestureRecognizer:_panRecognizer];
+    [_tapRecognizer.view removeGestureRecognizer:_tapRecognizer];
+
+    [_panRecognizer release];
+    [_tapRecognizer release];
+    _panRecognizer = nil;
+    _tapRecognizer = nil;
+}
+
 - (void)_panned:(UIPanGestureRecognizer *)recognizer
 {
     static CGFloat targetDistance = 0.f;
@@ -128,6 +179,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     CGFloat realOffset = MIN((distance / targetDistance), 1.0);
     CFTimeInterval offset = MIN(distance / (targetDistance + kBandingAllowance), keyframeDuration - 0.00001);
     if (recognizer.state == UIGestureRecognizerStateBegan) {
+        if (_group.empty && !_subappLayout) {
+            [self _reallyConfigureSubappViews];
+        }
         keyframeDuration = KEYFRAME_DURATION();
         targetDistance = [self _targetDistance];
     }
@@ -150,14 +204,14 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_doubleTapped:(UITapGestureRecognizer *)recog
 {
-
+    [self open];
 }
 
 #pragma mark - Moving
 - (void)_moveAllIconsToOffset:(CFTimeInterval)timeOffset performingBlockOnSubApps:(void(^)(SBIconView *))block
 {
-    void(^mover)(SBIconView *, STKLayoutPosition, NSArray *, NSUInteger, CGPoint target) = 
-    ^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger index, CGPoint target) {
+    void(^mover)(SBIconView *, STKLayoutPosition, NSArray *, NSUInteger, BOOL, CGPoint) = 
+    ^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger index, BOOL isSubapp, CGPoint target) {
         if (!iconView) {
             return;
         }
@@ -165,7 +219,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             UIBezierPath *path = [self _cachedPathForIcon:iconView.icon];
             if (!path) {
                 target = [self _pointByApplyingBandingToPoint:target withPosition:position];
-                path = [self _pathForIconToPoint:target fromIconView:iconView];
+                path = [self _pathForIconToPoint:target fromIconView:iconView isSubapp:isSubapp];
                 [self _cachePath:path forIcon:iconView.icon];
             }
             path;
@@ -182,13 +236,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             block(iv);
         }
         CGPoint target = [self _targetPositionForSubappSlot:(STKGroupSlot){pos, i}];
-        mover(iv, pos, c, i, target);
+        mover(iv, pos, c, i, YES, target);
     }];
     SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
     [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger i, BOOL *s) {
         SBIconView *iv = [listView viewForIcon:icon];
         CGPoint target = [self _displacedOriginForIcon:iv.icon withPosition:pos];
-        mover(iv, pos, c, i, target);
+        mover(iv, pos, c, i, NO, target);
     }];
 }
 
@@ -202,10 +256,22 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     return animation;
 }
 
-- (UIBezierPath *)_pathForIconToPoint:(CGPoint)destination fromIconView:(SBIconView *)iconView
+- (UIBezierPath *)_pathForIconToPoint:(CGPoint)destination fromIconView:(SBIconView *)iconView isSubapp:(BOOL)isSubapp
 {
     UIBezierPath *path = [UIBezierPath bezierPath];
-    [path moveToPoint:iconView.layer.position];
+
+    CGPoint startPoint = ({
+        CGPoint s;
+        if (isSubapp) {
+            s = [iconView _iconImageView].layer.position;
+        }
+        else {
+            s = iconView.layer.position;
+        }
+        s;
+    });
+
+    [path moveToPoint:startPoint];
     [path addLineToPoint:destination];
     return path;
 }
@@ -228,7 +294,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                     if (path) {
                         // Use the endpoint for the cached path, since calculating manually again would yield wrong results.
                         dest = path.currentPoint;
-                        // However, the path is at target+banding allowance, so substract that
+                        // However, the path is at target+banding allowance, so subtract that
                         dest = [self _pointByRemovingBandingFromPoint:dest withPosition:pos];
                     }
                     else {
@@ -306,6 +372,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if ([self.delegate respondsToSelector:@selector(groupViewDidClose:)]) {
                 [self.delegate groupViewDidClose:self];
             }
+            [self.superview sendSubviewToBack:self];
         }
     }];
 }
@@ -318,8 +385,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     NSParameterAssert(icon.nodeIdentifier);
     if (!_pathCache) _pathCache = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsWeakMemory valueOptions:NSPointerFunctionsCopyIn capacity:0];
     [_pathCache setObject:path forKey:icon.nodeIdentifier];
-
-    CLog(@"Caching path for icon %@.. Count: %zd", icon.nodeIdentifier, [[_pathCache objectEnumerator] allObjects].count);
 }
 
 - (UIBezierPath *)_cachedPathForIcon:(SBIcon *)subOrDisplacedIcon
@@ -333,13 +398,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _pathCache = nil;
 }
 
-
 #pragma mark - Coordinate Calculations
 - (CGPoint)_targetPositionForSubappSlot:(STKGroupSlot)slot
 {
     CGFloat negator = ((slot.position == STKPositionTop || slot.position == STKPositionLeft) ? -1.f : 1.f);
     CGFloat factor = (slot.index + 1) * negator;
-    CGPoint target = [self.subviews[0] layer].position;
+    CGPoint target = _centralIconView._iconImageView.layer.position;
     CGSize iconSize = [CLASS(SBIconView) defaultIconSize];
     SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
     if (slot.position == STKPositionTop || slot.position == STKPositionBottom) {

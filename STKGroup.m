@@ -48,6 +48,11 @@ NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
     [super dealloc];
 }
 
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"<%@ %p centralIcon: %@ layout: %@ observers: %zd>", [self class], self, _centralIcon.leafIdentifier, _layout, _observers.count];
+}
+
 - (STKGroupLayout *)layout
 {
     return _layout;

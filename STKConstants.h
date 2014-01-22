@@ -15,9 +15,10 @@
 #import "STKGroupView.h"
 #import "STKGroupLayout.h"
 #import "STKGroupLayoutHandler.h"
+#import "STKGroupController.h"
 #import "STKVersion.h"
 
-#import "SBIconView+STKGroupView.h"
+#import "SBIconView+Apex.h"
 #import "SBIconListView+ApexAdditions.h"
 
 #import "STKPreferences.h"
@@ -51,12 +52,8 @@ extern "C" {
     
     extern SBIconListView * STKListViewForIcon(SBIcon *icon);
 
-    extern inline SBIconCoordinate STKCoordinateFromDictionary(NSDictionary *dict) {
-        return (SBIconCoordinate){[dict[@"row"] integerValue], [dict[@"col"] integerValue]};
-    }
-    extern inline NSDictionary * STKDictionaryFromCoordinate(SBIconCoordinate coordinate) {
-        return @{@"row":[NSNumber numberWithInteger:coordinate.row], @"col":[NSNumber numberWithInteger:coordinate.col]};
-    }
+    extern inline SBIconCoordinate STKCoordinateFromDictionary(NSDictionary *dict);
+    extern inline NSDictionary * STKDictionaryFromCoordinate(SBIconCoordinate coordinate);
 #ifdef __cplusplus 
 }
 #endif

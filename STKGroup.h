@@ -23,6 +23,7 @@ extern "C" {
 @property (nonatomic, readonly) STKGroupLayout *layout;
 @property (nonatomic, readonly) NSDictionary *dictionaryRepresentation;
 @property (nonatomic, assign) SBIconCoordinate lastKnownCoordinate;
+@property (nonatomic, assign, getter=isEmpty) BOOL empty;
 
 - (void)addObserver:(id<STKGroupObserver>)observer;
 - (void)removeObserver:(id<STKGroupObserver>)observer;
