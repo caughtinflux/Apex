@@ -374,10 +374,14 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 completion();
             }
             _isOpen = NO;
+            [self.superview sendSubviewToBack:self];
+
+            if (_group.isEmpty) {
+                [self resetLayouts];
+            }
             if ([self.delegate respondsToSelector:@selector(groupViewDidClose:)]) {
                 [self.delegate groupViewDidClose:self];
             }
-            [self.superview sendSubviewToBack:self];
         }
     }];
 }

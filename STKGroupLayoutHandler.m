@@ -195,7 +195,7 @@ static SBIconListView *_centralIconListView;
 
 + (STKGroupLayout *)emptyLayoutForIconAtLocation:(STKLocation)location
 {
-    Class iconClass = objc_getClass("SBIcon");
+    Class iconClass = objc_getClass("STKEmptyIcon");
     NSArray *fullSizeStackArray = @[[[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease]];
     
     return [self layoutForIcons:fullSizeStackArray aroundIconAtLocation:location];
@@ -204,7 +204,7 @@ static SBIconListView *_centralIconListView;
 + (STKGroupLayout *)layoutForPlaceholdersInLayout:(STKGroupLayout *)layout withLocation:(STKLocation)location
 {
     // Create an array with four objects to represent a full stack
-    Class iconClass = objc_getClass("STKPlaceholderIcon");
+    Class iconClass = objc_getClass("STKOverlayIcon");
     NSArray *fullSizeStackArray = @[[[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease]];
 
     // Get a layout object that represents how the icon would look with a full stack

@@ -16,7 +16,9 @@
 #import "STKGroupLayout.h"
 #import "STKGroupLayoutHandler.h"
 #import "STKGroupController.h"
-#import "STKVersion.h"
+
+#import "STKEmptyIcon.h"
+#import "STKiconOverlayView.h"
 
 #import "SBIconView+Apex.h"
 #import "SBIconListView+ApexAdditions.h"
