@@ -41,8 +41,9 @@ static NSString * const STKIconOverlayHardEdgesKey = @"inputHardEdges";
         CAFilter *filter = [CAFilter filterWithName:kCAFilterGaussianBlur];
         self.layer.filters = @[filter];
         self.blurFilter = filter;
-        self.blurQuality = STKIconOverlayBlurQualityLow;
+        self.blurQuality = STKIconOverlayBlurQualityDefault;
         self.blurRadius = 5.0f;
+        self.blurEdges = YES;
     }
     return self;
 }

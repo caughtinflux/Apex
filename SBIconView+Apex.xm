@@ -55,8 +55,8 @@
     [self setApexOverlayView:overlayView];
     overlayView.layer.cornerRadius = (overlayView.layer.bounds.size.height * 0.5f);
     overlayView.layer.masksToBounds = YES;
-    overlayView.blurRadius = 20.f;
-    [overlayView setBackgroundColor:[UIColor colorWithWhite:1.f alpha:0.3]];
+    overlayView.blurRadius = 5.f;
+    [overlayView setBackgroundColor:[UIColor colorWithWhite:1.f alpha:0.6]];
 
     CGRect bounds = overlayView.layer.bounds;
     CAShapeLayer *maskLayer = [CAShapeLayer layer];
@@ -67,7 +67,7 @@
     const CGFloat kHalfLength = kLineLength * 0.5f;
     const CGFloat kLineWidth = 3.f;
     CGPoint position = (CGPoint){(bounds.size.width * 0.5f), (bounds.size.height * 0.5f)};
-    CGPoint verticalOrigin = (CGPoint){(position.x - kLineWidth), (position.y - kHalfLength)};
+    CGPoint verticalOrigin = (CGPoint){position.x, (position.y - kHalfLength)};
     CGPoint horizontalOrigin = (CGPoint){verticalOrigin.y, verticalOrigin.x};
 
     CGRect vertical = (CGRect){verticalOrigin, {kLineWidth, kLineLength}};
