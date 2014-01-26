@@ -27,6 +27,29 @@
     return objc_getAssociatedObject(self, @selector(STKGroupView));
 }
 
+%new
+- (STKGroupView *)containerGroupView
+{
+    if ([self.superview isKindOfClass:[STKGroupView class]]) {
+        return (STKGroupView *)self.superview;
+    }
+    return nil;
+}
+
+%new
+- (void)setApexOverlayView:(STKIconOverlayView *)overlayView
+{
+    [[self apexOverlayView] removeFromSuperview];
+    objc_setAssociatedObject(self, @selector(STKOverlayView), overlayView, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [self addSubview:overlayView];
+}
+
+%new
+- (STKIconOverlayView *)apexOverlayView
+{
+    return objc_getAssociatedObject(self, @selector(STKOverlayView));
+}
+
 - (void)setAlpha:(CGFloat)alpha
 {
     %orig(alpha);
@@ -44,6 +67,21 @@
     [[self groupView] setAlpha:groupAlpha];
 }
 
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+    UIView *view = nil;
+    if (CGRectContainsPoint(self.bounds, point) && ![self groupView].isOpen) {
+        view = self;
+    }
+    else {
+        view = [[self groupView] hitTest:point withEvent:event] ?: %orig();
+    }
+    return view;
+}
+
+static const CGFloat kLineLength = 23.f;
+static const CGFloat kHalfLength = kLineLength * 0.5f;
+static const CGFloat kLineWidth  = 3.f;
 - (void)setIcon:(SBIcon *)icon
 {
     %orig(icon);
@@ -51,52 +89,33 @@
         [self setApexOverlayView:nil];
         return;
     }
-    STKIconOverlayView *overlayView = [[[STKIconOverlayView alloc] initWithFrame:[[self _iconImageView] frame]] autorelease];
+    
+    STKIconOverlayView *overlayView = [[[STKIconOverlayView alloc] initWithFrame:(CGRect){{0, 0}, {60.f, 60.f}}] autorelease];
     [self setApexOverlayView:overlayView];
-    overlayView.layer.cornerRadius = (overlayView.layer.bounds.size.height * 0.5f);
     overlayView.layer.masksToBounds = YES;
     overlayView.blurRadius = 5.f;
-    [overlayView setBackgroundColor:[UIColor colorWithWhite:1.f alpha:0.6]];
+    overlayView.center = [self _iconImageView].center;
+    overlayView.layer.backgroundColor = [UIColor colorWithWhite:1.0f alpha:0.5f].CGColor;
 
     CGRect bounds = overlayView.layer.bounds;
     CAShapeLayer *maskLayer = [CAShapeLayer layer];
     maskLayer.frame = bounds;
     maskLayer.fillColor = [UIColor blackColor].CGColor;
     
-    const CGFloat kLineLength = 23.f;
-    const CGFloat kHalfLength = kLineLength * 0.5f;
-    const CGFloat kLineWidth = 3.f;
-    CGPoint position = (CGPoint){(bounds.size.width * 0.5f), (bounds.size.height * 0.5f)};
-    CGPoint verticalOrigin = (CGPoint){position.x, (position.y - kHalfLength)};
-    CGPoint horizontalOrigin = (CGPoint){verticalOrigin.y, verticalOrigin.x};
-
-    CGRect vertical = (CGRect){verticalOrigin, {kLineWidth, kLineLength}};
-    CGRect horizontal = (CGRect){horizontalOrigin, {kLineLength, kLineWidth}};
-    //CGRect intersection = CGRectIntersection(vertical, horizontal);
+    CGPoint position = (CGPoint){(bounds.size.width * 0.5f), (bounds.size.height * 0.5f)};    
+    CGRect vertical = (CGRect){{position.x - kLineWidth * 0.5, position.y - kHalfLength}, {kLineWidth, kLineLength}};
+    CGRect horizontal = (CGRect){{vertical.origin.y, vertical.origin.x}, {kLineLength, kLineWidth}};
+    CGRect intersection = CGRectIntersection(vertical, horizontal);
     
     UIBezierPath *path = [UIBezierPath bezierPathWithRect:vertical];
     [path appendPath:[UIBezierPath bezierPathWithRect:horizontal]];
-    //[path appendPath:[UIBezierPath bezierPathWithRect:intersection]];
-    [path appendPath:[UIBezierPath bezierPathWithRect:bounds]];
+    [path appendPath:[UIBezierPath bezierPathWithRect:intersection]];
+    [path appendPath:[UIBezierPath bezierPathWithOvalInRect:CGRectInset(bounds, 8.f, 8.f)]];
 
     maskLayer.path = path.CGPath;
     maskLayer.fillRule = kCAFillRuleEvenOdd;
 
     overlayView.layer.mask = maskLayer;
-}
-
-%new
-- (void)setApexOverlayView:(STKIconOverlayView *)overlayView
-{
-    [[self apexOverlayView] removeFromSuperview];
-    objc_setAssociatedObject(self, @selector(STKOverlayView), overlayView, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    [self addSubview:overlayView];
-}
-
-%new
-- (STKIconOverlayView *)apexOverlayView
-{
-    return objc_getAssociatedObject(self, @selector(STKOverlayView));
 }
 
 %end
