@@ -136,8 +136,7 @@ static STKLayoutPosition _PositionFromString(NSString *string)
         STKPositionTopKey: [_topIcons valueForKey:@"leafIdentifier"] ?: @[],
         STKPositionBottomKey: [_bottomIcons valueForKey:@"leafIdentifier"] ?: @[],
         STKPositionLeftKey: [_leftIcons valueForKey:@"leafIdentifier"] ?: @[],
-        STKPositionRightKey: [_rightIcons valueForKey:@"leafIdentifier"] ?: @[],
-        STKPositionUnknownKey: [_unknownIcons valueForKey:@"leafIdentifier"] ?: @[]
+        STKPositionRightKey: [_rightIcons valueForKey:@"leafIdentifier"] ?: @[]
     };
 }
 
