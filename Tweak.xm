@@ -66,7 +66,9 @@ return animator;
 - (void)setLocation:(SBIconLocation)location
 {
     %orig(location);
-    if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:self.icon] && [self.superview isKindOfClass:%c(SBIconListView)]) {
+    if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:self.icon]
+        && [self.superview isKindOfClass:%c(SBIconListView)]
+        && STKListViewForIcon(self.icon)) {
         [[STKGroupController sharedController] addGroupViewToIconView:self];
     }
 }
