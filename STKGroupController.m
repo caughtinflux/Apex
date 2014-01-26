@@ -74,7 +74,7 @@
 
 - (void)iconHandleLongPress:(SBIconView *)iconView
 {
-    if ([iconView.icon isPlaceholder]) {
+    if ([iconView.icon isEmptyPlaceholder]) {
         return;
     }
 }
