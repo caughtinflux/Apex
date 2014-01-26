@@ -1,10 +1,10 @@
-#import "STKConstants.h"
+#import "STKGroupView.h"
 
-@interface STKGroupController : NSObject
+@interface STKGroupController : NSObject <STKGroupViewDelegate>
 
 + (instancetype)sharedController;
 
 - (void)addGroupViewToIconView:(SBIconView *)iconView;
-- (void)removeGroupViewFromIconView:(SBIconView *)iconView;;
+- (void)removeGroupViewFromIconView:(SBIconView *)iconView;
 
 @end
