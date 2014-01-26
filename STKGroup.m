@@ -1,3 +1,4 @@
+#import "STKGroup.h"
 #import "STKConstants.h"
 
 #import <objc/runtime.h>
@@ -75,41 +76,6 @@ NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
 - (void)removeObserver:(id<STKGroupObserver>)observer
 {
     [_observers removeObject:observer];     
-}
-
-- (SBIconView *)_iconViewForIcon:(SBIcon *)icon
-{
-    return [[CLASS(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
-}
-
-- (BOOL)iconViewDisplaysCloseBox:(SBIconView *)iconView
-{
-    return [[CLASS(SBIconController) sharedInstance] iconViewDisplaysBadges:iconView];
-}
-
-- (BOOL)iconViewDisplaysBadges:(SBIconView *)iconView
-{
-    return [[CLASS(SBIconController) sharedInstance] iconViewDisplaysBadges:iconView];
-}
-
-- (BOOL)icon:(SBIconView *)iconView canReceiveGrabbedIcon:(SBIcon *)grabbedIcon
-{
-    return NO;
-}
-
-- (void)iconTapped:(SBIconView *)iconView
-{
-    [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
-}
-
-- (BOOL)iconShouldAllowTap:(SBIconView *)iconView
-{
-    return YES;
-}
-
-- (void)iconHandleLongPress:(SBIconView *)iconView
-{
-    // TODO Editing?
 }
 
 @end

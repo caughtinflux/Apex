@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import "STKConstants.h"
+#import <SpringBoard/SpringBoard.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,7 +14,7 @@ extern "C" {
 
 @class STKGroupView, STKGroupLayout;
 @protocol STKGroupObserver;
-@interface STKGroup : NSObject <SBIconViewDelegate>
+@interface STKGroup : NSObject
 
 - (instancetype)initWithCentralIcon:(SBIcon *)icon layout:(STKGroupLayout *)layout;
 - (instancetype)initWithDictionary:(NSDictionary *)repr;
