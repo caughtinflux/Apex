@@ -1,6 +1,4 @@
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
-#import "STKConstants.h"
+#import "STKGroup.h"
 
 typedef NS_ENUM(NSInteger, STKActivationMode) {
 	STKActivationModeSwipeUp,
@@ -11,7 +9,7 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 
 @protocol STKGroupViewDelegate;
 @class SBIconView, STKGroup;
-@interface STKGroupView : UIView <UIGestureRecognizerDelegate>
+@interface STKGroupView : UIView <STKGroupObserver, UIGestureRecognizerDelegate>
 
 - (instancetype)initWithGroup:(STKGroup *)group;
 

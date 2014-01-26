@@ -3,6 +3,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 #import "STKGroupView.h"
+#import "STKConstants.h"
 
 #undef CLASS
 #define CLASS(cls) NSClassFromString(@#cls)
@@ -61,7 +62,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             return iconView;
         }
     }
-    return nil;
+    return [super hitTest:point withEvent:event];
 }
 
 - (void)open
@@ -133,7 +134,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _subappLayout = [[STKGroupLayout alloc] init];
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         SBIconView *iconView = [[[CLASS(SBIconView) alloc] initWithDefaultSize] autorelease];
-        iconView.frame = (CGRect){self.center, iconView.frame.size};
+        iconView.frame = (CGRect){{0, 0}, iconView.frame.size};
         iconView.icon = icon;
         iconView.delegate = self.delegate;
         [_subappLayout addIcon:iconView toIconsAtPosition:pos];
@@ -209,7 +210,14 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
-    return [recognizer isKindOfClass:[UIPanGestureRecognizer class]];
+    BOOL shouldReceive = YES;
+    if ([[CLASS(SBIconController) sharedInstance] isEditing]) {
+        shouldReceive = NO;
+    }
+    else if ([recognizer isKindOfClass:[UITapGestureRecognizer class]]) {
+        shouldReceive = (_activationMode == STKActivationModeDoubleTap);
+    }
+    return shouldReceive;
 }
 
 #pragma mark - Moving
@@ -498,6 +506,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     CGFloat defaultHeight = [objc_getClass("SBIconView") defaultIconSize].height;
     CGFloat verticalPadding = [STKListViewForIcon(_group.centralIcon) stk_realVerticalIconPadding];
     return verticalPadding + defaultHeight;
+}
+
+#pragma mark - Folder Delegate
+- (void)group:(STKGroup *)group didAddIcons:(NSArray *)addedIcons removedIcons:(NSArray *)removingIcons
+{
+
 }
 
 @end
