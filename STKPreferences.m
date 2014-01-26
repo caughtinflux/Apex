@@ -31,7 +31,7 @@ static NSString * const CentralIconKey      = @"STKCentralIcon";
 - (void)reloadPreferences
 {
     [_preferences release];
-    _preferences = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
+    _preferences = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath] ?: [NSMutableDictionary new];
     NSDictionary *iconState = _preferences[GroupStateKey];
     for (NSString *iconID in [iconState allKeys]) {
         @autoreleasepool {
@@ -72,7 +72,7 @@ static NSString * const CentralIconKey      = @"STKCentralIcon";
 - (NSDictionary *)_groupStateFromGroups
 {
     NSMutableDictionary *state = [NSMutableDictionary dictionary];
-    for (STKGroup *group in _groups) {
+    for (STKGroup *group in [_groups allValues]) {
         state[group.centralIcon.leafIdentifier] = [group dictionaryRepresentation];
     }
     return state;
