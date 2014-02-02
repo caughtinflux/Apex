@@ -73,12 +73,6 @@ return animator;
     }
 }
 
-- (void)dealloc
-{
-    [self removeGroupView];
-    %orig();
-}
-
 %end
 
 #pragma mark - Constructor
