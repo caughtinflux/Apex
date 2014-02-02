@@ -17,6 +17,7 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 @property (nonatomic, readonly) BOOL isOpen;
 @property (nonatomic, assign) STKActivationMode activationMode;
 @property (nonatomic, assign) id<STKGroupViewDelegate> delegate;
+@property (nonatomic, readonly) STKGroupLayout *subappLayout;
 
 - (void)open;
 - (void)close;
@@ -28,7 +29,7 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 @protocol STKGroupViewDelegate <SBIconViewDelegate>
 
 @required 
-- (BOOL)groupViewShouldOpen:(STKGroupView *)groupView;
+- (BOOL)shouldGroupViewOpen:(STKGroupView *)groupView;
 
 @optional
 - (void)groupViewWillOpen:(STKGroupView *)groupView;

@@ -2,6 +2,10 @@
 #import "STKConstants.h"
 
 @implementation STKGroupController
+{
+    STKGroupView *_openGroupView;
+    BOOL _openGroupIsEditing;
+}
 
 + (instancetype)sharedController
 {
@@ -15,9 +19,6 @@
 
 - (void)addGroupViewToIconView:(SBIconView *)iconView
 {
-    if ([iconView groupView]) {
-        [iconView removeGroupView];
-    }
     STKGroup *group = [[STKPreferences preferences] groupForIcon:iconView.icon];
     group.lastKnownCoordinate = [STKGroupLayoutHandler coordinateForIcon:group.centralIcon];
     if (!group) {
@@ -30,7 +31,7 @@
 
 - (void)removeGroupViewFromIconView:(SBIconView *)iconView
 {
-    [iconView removeGroupView];
+    iconView.groupView = nil;
 }
 
 - (STKGroup *)_groupWithEmptySlotsForIconView:(SBIconView *)iconView
@@ -42,9 +43,19 @@
 }
 
 #pragma mark - Group View Delegate
-- (BOOL)groupViewShouldOpen:(STKGroupView *)groupView
+- (BOOL)shouldGroupViewOpen:(STKGroupView *)groupView
 {
     return YES;
+}
+
+- (void)groupViewDidOpen:(STKGroupView *)groupView
+{
+    _openGroupView = groupView;
+}
+
+- (void)groupViewWillClose:(STKGroupView *)groupView
+{
+    _openGroupView = nil;
 }
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
@@ -54,6 +65,12 @@
 
 - (void)iconTapped:(SBIconView *)iconView
 {
+    if (_openGroupIsEditing) {
+        return;
+    }
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+        [iconView setHighlighted:NO];
+    });
     [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
 }
 
@@ -74,9 +91,24 @@
 
 - (void)iconHandleLongPress:(SBIconView *)iconView
 {
-    if ([iconView.icon isEmptyPlaceholder]) {
+    if ([iconView.icon isEmptyPlaceholder] || _openGroupView == nil) {
         return;
     }
+    [iconView setHighlighted:NO];
+    for (SBIconView *iconView in _openGroupView.subappLayout) {
+        [iconView showApexOverlayOfType:STKOverlayTypeEditing];
+    }
+    _openGroupIsEditing = YES;
+}
+
+- (void)iconTouchBegan:(SBIconView *)iconView
+{
+    [iconView setHighlighted:YES];   
+}
+
+- (void)icon:(SBIconView *)iconView touchEnded:(BOOL)ended
+{
+    [iconView setHighlighted:NO];
 }
 
 @end

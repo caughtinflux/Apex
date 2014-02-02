@@ -1,10 +1,9 @@
 #import "STKGroupLayoutHandler.h"
-#import "STKGroupLayout.h"
 #import "STKConstants.h"
 
 #import <objc/runtime.h>
 #import <SpringBoard/SpringBoard.h>
-#import "SBIconListView+ApexAdditions.h"
+
 
 #define kCurrentOrientation [UIApplication sharedApplication].statusBarOrientation
 
@@ -196,19 +195,18 @@ static SBIconListView *_centralIconListView;
 + (STKGroupLayout *)emptyLayoutForIconAtLocation:(STKLocation)location
 {
     Class iconClass = objc_getClass("STKEmptyIcon");
-    NSArray *fullSizeStackArray = @[[[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease]];
-    
-    return [self layoutForIcons:fullSizeStackArray aroundIconAtLocation:location];
+    NSArray *fullSizeGroupArray = @[[[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease]];
+    return [self layoutForIcons:fullSizeGroupArray aroundIconAtLocation:location];
 }
 
 + (STKGroupLayout *)layoutForPlaceholdersInLayout:(STKGroupLayout *)layout withLocation:(STKLocation)location
 {
-    // Create an array with four objects to represent a full stack
-    Class iconClass = objc_getClass("STKOverlayIcon");
-    NSArray *fullSizeStackArray = @[[[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease]];
+    // Create an array with four objects to represent a full group
+    Class iconClass = objc_getClass("STKEmptyIcon");
+    NSArray *fullSizeGroupArray = @[[[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease]];
 
     // Get a layout object that represents how the icon would look with a full stack
-    STKGroupLayout *fullLayout = [self layoutForIcons:fullSizeStackArray aroundIconAtLocation:location];
+    STKGroupLayout *fullLayout = [self layoutForIcons:fullSizeGroupArray aroundIconAtLocation:location];
 
     NSMutableArray *topIcons = [NSMutableArray array];
     NSMutableArray *bottomIcons = [NSMutableArray array];

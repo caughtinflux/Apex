@@ -10,7 +10,7 @@
 
 - (BOOL)isEmptyPlaceholder
 {
-	return YES;
+    return YES;
 }
 
 %end

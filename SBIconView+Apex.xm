@@ -1,7 +1,80 @@
 #import "SBIconView+Apex.h"
 #import "STKConstants.h"
 
+@interface SBIconView (ApexPrivate)
+
++ (UIBezierPath *)pathForApexCrossOverlayWithBounds:(CGRect)bounds;
++ (CALayer *)maskForApexEmptyIconOverlayWithBounds:(CGRect)bounds;
++ (CALayer *)maskForApexEditingOverlayWithBounds:(CGRect)bounds;
+
+@property (nonatomic, retain) STKIconOverlayView *apexOverlayView;
+
+- (void)removeGroupView;
+
+@end
+
 %hook SBIconView
+
+%new
++ (UIBezierPath *)pathForApexCrossOverlayWithBounds:(CGRect)bounds
+{
+    static const CGFloat kLineLength = 23.f;
+    static const CGFloat kHalfLength = kLineLength * 0.5f;
+    static const CGFloat kLineWidth  = 3.f;
+
+    CGPoint position = (CGPoint){(bounds.size.width * 0.5f), (bounds.size.height * 0.5f)};    
+    CGRect vertical = (CGRect){{position.x - kLineWidth * 0.5, position.y - kHalfLength}, {kLineWidth, kLineLength}};
+    CGRect horizontal = (CGRect){{vertical.origin.y, vertical.origin.x}, {kLineLength, kLineWidth}};
+    CGRect intersection = CGRectIntersection(vertical, horizontal);
+    
+    UIBezierPath *path = [UIBezierPath bezierPathWithRect:vertical];
+    [path appendPath:[UIBezierPath bezierPathWithRect:horizontal]];
+    [path appendPath:[UIBezierPath bezierPathWithRect:intersection]];
+    return path;
+}
+
+%new
++ (CALayer *)maskForApexEmptyIconOverlayWithBounds:(CGRect)bounds
+{
+    CAShapeLayer *maskLayer = [CAShapeLayer layer];
+    maskLayer.frame = bounds;
+    maskLayer.strokeColor = [UIColor clearColor].CGColor;
+    maskLayer.fillColor = [UIColor blackColor].CGColor;
+    
+    UIBezierPath *cross = [[self class] pathForApexCrossOverlayWithBounds:bounds];
+    [cross appendPath:[UIBezierPath bezierPathWithOvalInRect:CGRectInset(bounds, 8.f, 8.f)]];
+
+    maskLayer.path = cross.CGPath;
+    maskLayer.fillRule = kCAFillRuleEvenOdd;
+
+    return maskLayer;
+}
+
+%new
++ (CALayer *)maskForApexEditingOverlayWithBounds:(CGRect)bounds
+{
+    bounds.size.width -= 1.0;
+    bounds.size.height -= 1.0;
+    bounds.origin.x += 0.5f;
+    bounds.origin.y += 0.5f;
+
+    CAShapeLayer *maskLayer = [CAShapeLayer layer];
+    maskLayer.frame = bounds;
+    maskLayer.strokeColor = [UIColor clearColor].CGColor;
+    maskLayer.fillColor = [UIColor blackColor].CGColor;
+    
+    UIBezierPath *cross = [[self class] pathForApexCrossOverlayWithBounds:bounds];
+    cross.lineWidth = 1.f;
+    [cross appendPath:[UIBezierPath bezierPathWithOvalInRect:CGRectInset(bounds, 8.f, 8.f)]];
+    UIBezierPath *outerCircle = [UIBezierPath bezierPathWithOvalInRect:CGRectInset(bounds, 6.f, 6.f)];
+    outerCircle.lineWidth = 1.f;
+    [cross appendPath:outerCircle];
+    [cross appendPath:[UIBezierPath bezierPathWithRoundedRect:bounds cornerRadius:13.5f]];
+    maskLayer.path = cross.CGPath;
+    maskLayer.fillRule = kCAFillRuleEvenOdd;
+
+    return maskLayer;
+}
 
 %new
 - (void)setGroupView:(STKGroupView *)groupView
@@ -39,7 +112,7 @@
 %new
 - (void)setApexOverlayView:(STKIconOverlayView *)overlayView
 {
-    [[self apexOverlayView] removeFromSuperview];
+    [self.apexOverlayView removeFromSuperview];
     objc_setAssociatedObject(self, @selector(STKOverlayView), overlayView, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     [self addSubview:overlayView];
 }
@@ -50,10 +123,50 @@
     return objc_getAssociatedObject(self, @selector(STKOverlayView));
 }
 
+%new
+- (void)showApexOverlayOfType:(STKOverlayType)type
+{
+    STKIconOverlayView *overlayView = [[[STKIconOverlayView alloc] initWithFrame:[self _iconImageView].bounds] autorelease];
+    overlayView.layer.masksToBounds = YES;
+    overlayView.center = [self _iconImageView].center;
+
+    CALayer *mask = nil;
+    if (type == STKOverlayTypeEditing) {
+        mask = [[self class] maskForApexEditingOverlayWithBounds:overlayView.layer.bounds];
+        overlayView.blurRadius = 0.f;
+        overlayView.layer.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.8f].CGColor;
+    }
+    else {
+        mask = [[self class] maskForApexEmptyIconOverlayWithBounds:overlayView.layer.bounds];
+        overlayView.blurRadius = 5.f;
+        overlayView.layer.backgroundColor = [UIColor colorWithWhite:1.0f alpha:0.5f].CGColor;
+    }
+    overlayView.layer.mask = mask;
+    self.apexOverlayView = overlayView;
+}
+
+%new
+- (void)removeApexOverlay
+{
+    self.apexOverlayView = nil;
+}
+
+- (void)setIcon:(SBIcon *)icon
+{
+    %orig(icon);
+    if ([icon isKindOfClass:objc_getClass("STKEmptyIcon")]) {
+        [self showApexOverlayOfType:STKOverlayTypeEmpty];   
+    }
+    else {
+        [self removeApexOverlay];
+    }
+}
+
 - (void)setAlpha:(CGFloat)alpha
 {
     %orig(alpha);
 
+    // Number scaling.. There is probably an easier way to do this
     CGFloat prevMax = 1.0f;
     CGFloat prevMin = 0.2;
     CGFloat newMax = 1.0f;
@@ -64,7 +177,7 @@
 
     CGFloat groupAlpha = (((alpha - prevMin) * newRange) / oldRange) + newMin;
 
-    [[self groupView] setAlpha:groupAlpha];
+    [self.groupView setAlpha:groupAlpha];
 }
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
@@ -74,48 +187,15 @@
         view = self;
     }
     else {
-        view = [[self groupView] hitTest:point withEvent:event] ?: %orig();
+        view = [self.groupView hitTest:point withEvent:event] ?: %orig();
     }
     return view;
 }
 
-static const CGFloat kLineLength = 23.f;
-static const CGFloat kHalfLength = kLineLength * 0.5f;
-static const CGFloat kLineWidth  = 3.f;
-- (void)setIcon:(SBIcon *)icon
+- (void)dealloc
 {
-    %orig(icon);
-    if (![icon isKindOfClass:objc_getClass("STKEmptyIcon")]) {
-        [self setApexOverlayView:nil];
-        return;
-    }
-    
-    STKIconOverlayView *overlayView = [[[STKIconOverlayView alloc] initWithFrame:(CGRect){{0, 0}, {60.f, 60.f}}] autorelease];
-    [self setApexOverlayView:overlayView];
-    overlayView.layer.masksToBounds = YES;
-    overlayView.blurRadius = 5.f;
-    overlayView.center = [self _iconImageView].center;
-    overlayView.layer.backgroundColor = [UIColor colorWithWhite:1.0f alpha:0.5f].CGColor;
-
-    CGRect bounds = overlayView.layer.bounds;
-    CAShapeLayer *maskLayer = [CAShapeLayer layer];
-    maskLayer.frame = bounds;
-    maskLayer.fillColor = [UIColor blackColor].CGColor;
-    
-    CGPoint position = (CGPoint){(bounds.size.width * 0.5f), (bounds.size.height * 0.5f)};    
-    CGRect vertical = (CGRect){{position.x - kLineWidth * 0.5, position.y - kHalfLength}, {kLineWidth, kLineLength}};
-    CGRect horizontal = (CGRect){{vertical.origin.y, vertical.origin.x}, {kLineLength, kLineWidth}};
-    CGRect intersection = CGRectIntersection(vertical, horizontal);
-    
-    UIBezierPath *path = [UIBezierPath bezierPathWithRect:vertical];
-    [path appendPath:[UIBezierPath bezierPathWithRect:horizontal]];
-    [path appendPath:[UIBezierPath bezierPathWithRect:intersection]];
-    [path appendPath:[UIBezierPath bezierPathWithOvalInRect:CGRectInset(bounds, 8.f, 8.f)]];
-
-    maskLayer.path = path.CGPath;
-    maskLayer.fillRule = kCAFillRuleEvenOdd;
-
-    overlayView.layer.mask = maskLayer;
+    self.groupView = nil;
+    %orig();
 }
 
 %end

@@ -1,18 +1,18 @@
 #import <SpringBoard/SpringBoard.h>
-#import "STKIconOverlayView.h"
 
-@class STKGroupView;
+typedef NS_ENUM(NSInteger, STKOverlayType) {
+    STKOverlayTypeEmpty,
+    STKOverlayTypeEditing
+};
+
+@class STKGroupView, STKIconOverlayView;
 @interface SBIconView (Apex)
 
-- (void)setGroupView:(STKGroupView *)view;
-- (void)removeGroupView;
-// Returns the group view owned by the receiver
-- (STKGroupView *)groupView;
+@property (nonatomic, retain) STKGroupView *groupView;
+@property (nonatomic, readonly) STKIconOverlayView *apexOverlayView;
+@property (nonatomic, readonly) STKGroupView *containerGroupView;
 
-// Returns group view the receiver is contained in, if any
-- (STKGroupView *)containerGroupView;
-
-- (void)setApexOverlayView:(STKIconOverlayView *)overlayView;
-- (STKIconOverlayView *)apexOverlayView;
+- (void)showApexOverlayOfType:(STKOverlayType)type;
+- (void)removeApexOverlay;
 
 @end

@@ -12,7 +12,7 @@
 #define kSubappScale             0.81f
 #define kBandingAllowance        0.0
 
-#define KEYFRAME_DURATION() (1.0 + (kBandingAllowance / [self _targetDistance]))
+#define KEYFRAME_DURATION() (1.0 + (kBandingAllowance / [self _updatedTargetDistance]))
 
 typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     STKRecognizerDirectionNone,
@@ -33,6 +33,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     BOOL _needsCreation;
     BOOL _isOpen;
 
+    CGFloat _targetDistance;
+    CGFloat _keyframeDuration;
+    BOOL _ignoreRecognizer;
+
     NSMapTable *_pathCache;
 }
 
@@ -51,7 +55,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self resetLayouts];
     [self _removeGestureRecognizers];
     [_group release];
-
     [super dealloc];
 }
 
@@ -162,6 +165,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_removeGestureRecognizers
 {
+    _panRecognizer.delegate = nil;
+    _tapRecognizer.delegate = nil;
+
     [_panRecognizer.view removeGestureRecognizer:_panRecognizer];
     [_tapRecognizer.view removeGestureRecognizer:_tapRecognizer];
 
@@ -173,20 +179,26 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_panned:(UIPanGestureRecognizer *)recognizer
 {
-    static CGFloat targetDistance = 0.f;
-    static CGFloat keyframeDuration = 0.f;
-
     double distance = fabs([recognizer translationInView:self].y);
-    CGFloat realOffset = MIN((distance / targetDistance), 1.0);
-    CFTimeInterval offset = MIN(distance / (targetDistance + kBandingAllowance), keyframeDuration - 0.00001);
+    CGFloat realOffset = MIN((distance / _targetDistance), 1.0);
+    CFTimeInterval offset = MIN(distance / (_targetDistance + kBandingAllowance), _keyframeDuration - 0.00001);
+
     if (recognizer.state == UIGestureRecognizerStateBegan) {
+        _ignoreRecognizer = NO;
+        if (self.delegate && ![self.delegate shouldGroupViewOpen:self]) {
+            _ignoreRecognizer = YES;
+            return;
+        }
         if (_group.empty && !_subappLayout) {
             [self _reallyConfigureSubappViews];
         }
-        keyframeDuration = KEYFRAME_DURATION();
-        targetDistance = [self _targetDistance];
+        _targetDistance = [self _updatedTargetDistance];
+        _keyframeDuration = KEYFRAME_DURATION();
     }
     else if (recognizer.state == UIGestureRecognizerStateChanged) {
+        if (_ignoreRecognizer) {
+            return;
+        }
         [self _moveAllIconsToOffset:offset performingBlockOnSubApps:^(SBIconView *iconView) {
             [self _setAlpha:realOffset forLabelOfIconView:iconView];
         }];
@@ -199,7 +211,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         else {
             [self _animateClosedWithCompletion:nil];
         }
-        targetDistance = 0.f;
+        _ignoreRecognizer = NO;
+        _keyframeDuration = 0.f;
+        _targetDistance = 0.f;
     }
 }
 
@@ -501,7 +515,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     return [[CLASS(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
 }
 
-- (double)_targetDistance
+- (CGFloat)_updatedTargetDistance
 {
     CGFloat defaultHeight = [objc_getClass("SBIconView") defaultIconSize].height;
     CGFloat verticalPadding = [STKListViewForIcon(_group.centralIcon) stk_realVerticalIconPadding];
