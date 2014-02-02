@@ -45,7 +45,7 @@
     [cross appendPath:[UIBezierPath bezierPathWithOvalInRect:CGRectInset(bounds, 8.f, 8.f)]];
 
     maskLayer.path = cross.CGPath;
-    maskLayer.fillRule = kCAFillRuleEvenOdd;
+    maskLayer.fillRule = kCAFillRuleNonZero;
 
     return maskLayer;
 }
@@ -53,8 +53,8 @@
 %new
 + (CALayer *)maskForApexEditingOverlayWithBounds:(CGRect)bounds
 {
-    bounds.size.width -= 1.0;
-    bounds.size.height -= 1.0;
+    bounds.size.width -= 2.0f;
+    bounds.size.height -= 2.0f;
     bounds.origin.x += 0.5f;
     bounds.origin.y += 0.5f;
 
@@ -69,7 +69,7 @@
     UIBezierPath *outerCircle = [UIBezierPath bezierPathWithOvalInRect:CGRectInset(bounds, 6.f, 6.f)];
     outerCircle.lineWidth = 1.f;
     [cross appendPath:outerCircle];
-    [cross appendPath:[UIBezierPath bezierPathWithRoundedRect:bounds cornerRadius:13.5f]];
+    [cross appendPath:[UIBezierPath bezierPathWithRoundedRect:bounds cornerRadius:[%c(SBIconImageView) cornerRadius]]];
     maskLayer.path = cross.CGPath;
     maskLayer.fillRule = kCAFillRuleEvenOdd;
 
