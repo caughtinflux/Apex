@@ -45,7 +45,7 @@
     [cross appendPath:[UIBezierPath bezierPathWithOvalInRect:CGRectInset(bounds, 8.f, 8.f)]];
 
     maskLayer.path = cross.CGPath;
-    maskLayer.fillRule = kCAFillRuleNonZero;
+    maskLayer.fillRule = kCAFillRuleEvenOdd;
 
     return maskLayer;
 }
@@ -183,8 +183,8 @@
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
     UIView *view = nil;
-    if (CGRectContainsPoint(self.bounds, point) && ![self groupView].isOpen) {
-        view = self;
+    if ([self groupView].isOpen == NO) {
+        return %orig(point, event);
     }
     else {
         view = [self.groupView hitTest:point withEvent:event] ?: %orig();
