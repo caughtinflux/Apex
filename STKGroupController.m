@@ -42,10 +42,23 @@
 	return [group autorelease];
 }
 
+- (UIScrollView *)_currentScrollView
+{
+    SBFolderController *currentFolderController = [[CLASS(SBIconController) sharedInstance] _currentFolderController];
+    return [currentFolderController.contentView scrollView];
+}
+
 #pragma mark - Group View Delegate
 - (BOOL)shouldGroupViewOpen:(STKGroupView *)groupView
 {
     return YES;
+}
+
+- (void)groupViewWillOpen:(STKGroupView *)groupView
+{
+    if (groupView.activationMode != STKActivationModeDoubleTap) {
+        [self _currentScrollView].scrollEnabled = NO;
+    }
 }
 
 - (void)groupViewDidOpen:(STKGroupView *)groupView
@@ -55,6 +68,16 @@
 
 - (void)groupViewWillClose:(STKGroupView *)groupView
 {
+    [self _currentScrollView].scrollEnabled = YES;
+}
+
+- (void)groupViewDidClose:(STKGroupView *)groupView
+{
+    if (_openGroupIsEditing) {
+        for (SBIconView *iconView in _openGroupView.subappLayout) {
+            [iconView removeApexOverlay];
+        }
+    }
     _openGroupView = nil;
 }
 
