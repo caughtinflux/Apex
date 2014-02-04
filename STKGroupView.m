@@ -38,6 +38,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     BOOL _ignoreRecognizer;
 
     NSMapTable *_pathCache;
+
+    struct {
+        NSUInteger willOpen:1;
+        NSUInteger didOpen:1;
+        NSUInteger willClose:1;
+        NSUInteger didClose:1;
+    } _delegateFlags;
 }
 
 - (instancetype)initWithGroup:(STKGroup *)group
@@ -60,9 +67,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
-    for (SBIconView *iconView in _subappLayout) {
-        if ([iconView pointInside:[self convertPoint:point toView:iconView] withEvent:event]) {
-            return iconView;
+    if (_isOpen) {
+        for (SBIconView *iconView in _subappLayout) {
+            if ([iconView pointInside:[self convertPoint:point toView:iconView] withEvent:event]) {
+                return iconView;
+            }
         }
     }
     return [super hitTest:point withEvent:event];
@@ -95,6 +104,15 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [_group release];
     _group = [group retain];
     [self resetLayouts];
+}
+
+- (void)setDelegate:(id<STKGroupViewDelegate>)delegate
+{
+    _delegate = delegate;
+    _delegateFlags.willOpen = ([_delegate respondsToSelector:@selector(groupViewWillOpen:)]);
+    _delegateFlags.didOpen = ([_delegate respondsToSelector:@selector(groupViewDidOpen:)]);
+    _delegateFlags.willClose = ([_delegate respondsToSelector:@selector(groupViewWillClose:)]);
+    _delegateFlags.didClose = ([_delegate respondsToSelector:@selector(groupViewDidClose:)]);
 }
 
 #pragma mark - Layout
@@ -179,15 +197,20 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_panned:(UIPanGestureRecognizer *)recognizer
 {
-    double distance = fabs([recognizer translationInView:self].y);
+    CGPoint translation = [recognizer translationInView:self];
+    double distance = fabs(translation.y);
     CGFloat realOffset = MIN((distance / _targetDistance), 1.0);
     CFTimeInterval offset = MIN(distance / (_targetDistance + kBandingAllowance), _keyframeDuration - 0.00001);
 
     if (recognizer.state == UIGestureRecognizerStateBegan) {
         _ignoreRecognizer = NO;
-        if (self.delegate && ![self.delegate shouldGroupViewOpen:self]) {
+        BOOL isHorizontalSwipe = !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0);
+        if ((self.delegate && ![self.delegate shouldGroupViewOpen:self]) || isHorizontalSwipe) {
             _ignoreRecognizer = YES;
             return;
+        }
+        if (_delegateFlags.willOpen) {
+            [self.delegate groupViewWillOpen:self];
         }
         if (_group.empty && !_subappLayout) {
             [self _reallyConfigureSubappViews];
@@ -205,11 +228,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self _setAlphaForOtherIcons:(1.2 - realOffset)];
     }
     else if (recognizer.state == UIGestureRecognizerStateEnded) {
-        if (realOffset > 0.5f) {
-            [self _animateOpenWithCompletion:nil];
-        }
-        else {
-            [self _animateClosedWithCompletion:nil];
+        if (!_ignoreRecognizer) {
+            if (realOffset > 0.5f) {
+                [self _animateOpenWithCompletion:nil];
+            }
+            else {
+                [self _animateClosedWithCompletion:nil];
+            }
         }
         _ignoreRecognizer = NO;
         _keyframeDuration = 0.f;
@@ -232,6 +257,14 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         shouldReceive = (_activationMode == STKActivationModeDoubleTap);
     }
     return shouldReceive;
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gr shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)ogr
+{
+    NSArray *targets = [ogr valueForKey:@"_targets"];
+    id target = ((targets.count > 0) ? targets[0] : nil);
+    target = [target valueForKey:@"_target"];
+    return (![target isKindOfClass:CLASS(SBSearchScrollView)] && [ogr.view isKindOfClass:[UIScrollView class]]);
 }
 
 #pragma mark - Moving
