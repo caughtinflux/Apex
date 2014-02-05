@@ -1,13 +1,13 @@
 #import <SpringBoard/SpringBoard.h>
 #import <dlfcn.h>
+#import "STKConstants.h"
 #import "SBIconListView+ApexAdditions.h"
 
+#define kInvalidIconPadding -1337.f
 
-%hook SBIconListView
-static CGFloat _verticalPadding = -1337.f;
-static CGFloat _horizontalPadding = -1337.f;
 static BOOL _hasGridlock;
 
+%hook SBIconListView
 %new
 - (NSUInteger)stk_visibleIconRowsForCurrentOrientation
 {
@@ -21,21 +21,41 @@ static BOOL _hasGridlock;
 }
 
 %new
+- (void)setStk_realVerticalIconPadding:(CGFloat)padding
+{
+    objc_setAssociatedObject(self, @selector(stk_realVerticalIconPadding), @(padding), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+%new
 - (CGFloat)stk_realVerticalIconPadding
 {
-    if (_verticalPadding == -1337.f) {
-        CGFloat defaultIconHeight = [%c(SBIconView) defaultIconSize].height;
-        CGFloat position1 = [self originForIconAtCoordinate:(SBIconCoordinate){1, 1}].y;
-        CGFloat position2 = [self originForIconAtCoordinate:(SBIconCoordinate){2, 1}].y;
-        _verticalPadding = (position2 - position1 - defaultIconHeight);
+    CGFloat padding = [objc_getAssociatedObject(self, @selector(stk_realVerticalIconPadding)) floatValue];
+    if (padding == kInvalidIconPadding || padding == 0.f) {
+        if ([self isKindOfClass:CLASS(SBDockIconListView)]) {
+            padding = [[CLASS(SBIconController) sharedInstance] currentRootIconList].stk_realVerticalIconPadding;
+        }
+        else {
+            CGFloat defaultIconHeight = [%c(SBIconView) defaultIconSize].height;
+            CGFloat position1 = [self originForIconAtCoordinate:(SBIconCoordinate){1, 1}].y;
+            CGFloat position2 = [self originForIconAtCoordinate:(SBIconCoordinate){2, 1}].y;
+            padding = (position2 - position1 - defaultIconHeight);
+        }
+        self.stk_realVerticalIconPadding = padding;
     }
-    return _verticalPadding;
+    return padding;
+}
+
+%new
+- (void)setStk_realHorizontalIconPadding:(CGFloat)padding
+{
+    objc_setAssociatedObject(self, @selector(stk_realHorizontalIconPadding), @(padding), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 %new
 - (CGFloat)stk_realHorizontalIconPadding
 {
-    if (_horizontalPadding == -1337.f) {
+    CGFloat padding = [objc_getAssociatedObject(self, @selector(stk_realHorizontalIconPadding)) floatValue];
+    if (padding == kInvalidIconPadding || padding == 0.f) {
         CGFloat defaultIconWidth = [%c(SBIconView) defaultIconSize].width;
         CGFloat position1 = 0.f;
         CGFloat position2 = 0.f;
@@ -47,15 +67,16 @@ static BOOL _hasGridlock;
             position1 = [self originForIconAtCoordinate:(SBIconCoordinate){1, 1}].x;
             position2 = [self originForIconAtCoordinate:(SBIconCoordinate){1, 2}].x;
         }
-        _horizontalPadding = (position2 - position1 - defaultIconWidth);
+        padding = (position2 - position1 - defaultIconWidth);
+        self.stk_realHorizontalIconPadding = padding;
     }
-    return _horizontalPadding;
+    return padding;
 }
 
 - (void)layoutIconsNow
 {
-    _verticalPadding = -1337.f;
-    _horizontalPadding = -1337.f;
+    self.stk_realHorizontalIconPadding = kInvalidIconPadding;
+    self.stk_realHorizontalIconPadding = kInvalidIconPadding;
     %orig();
 }
 
