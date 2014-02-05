@@ -166,14 +166,13 @@ static SBIconListView *_centralIconListView;
     return [_centralIconListView coordinateForIconAtIndex:idx];
 }
 
-+ (STKLocation)locationForIconView:(SBIconView *)iconView
++ (STKLocation)locationForIcon:(SBIcon *)icon
 {
     STKLocation location = 0x0;
-    SBIcon *icon = iconView.icon;
-    if ([iconView isInDock]) {
+    SBIconListView *listView = STKListViewForIcon(icon);
+    if ([[listView viewForIcon:icon] isInDock]) {
         return (location | STKLocationDock);
     }
-    SBIconListView *listView = STKListViewForIcon(iconView.icon);
     SBIconCoordinate coordinate = [STKGroupLayoutHandler coordinateForIcon:icon];
     
     if (coordinate.col == 1) {

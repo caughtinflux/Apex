@@ -22,7 +22,7 @@
     STKGroup *group = [[STKPreferences preferences] groupForIcon:iconView.icon];
     group.lastKnownCoordinate = [STKGroupLayoutHandler coordinateForIcon:group.centralIcon];
     if (!group) {
-    	group = [self _groupWithEmptySlotsForIconView:iconView];
+    	group = [self _groupWithEmptySlotsForIcon:iconView.icon];
     }
     STKGroupView *groupView = [[[STKGroupView alloc] initWithGroup:group] autorelease];
     groupView.delegate = self;
@@ -34,10 +34,10 @@
     iconView.groupView = nil;
 }
 
-- (STKGroup *)_groupWithEmptySlotsForIconView:(SBIconView *)iconView
+- (STKGroup *)_groupWithEmptySlotsForIcon:(SBIcon *)icon
 {
-	STKGroupLayout *slotLayout = [STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIconView:iconView]];
-	STKGroup *group = [[STKGroup alloc] initWithCentralIcon:iconView.icon layout:slotLayout];
+	STKGroupLayout *slotLayout = [STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:icon]];
+	STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icon layout:slotLayout];
     group.empty = YES;
 	return [group autorelease];
 }

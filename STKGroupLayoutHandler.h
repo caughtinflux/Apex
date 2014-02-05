@@ -21,7 +21,7 @@
 + (STKGroupLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)icon usingLayout:(STKGroupLayout *)layout;
 
 + (SBIconCoordinate)coordinateForIcon:(SBIcon *)icon;
-+ (STKLocation)locationForIconView:(SBIconView *)iconView;
++ (STKLocation)locationForIcon:(SBIcon *)icon;
 
 // Returns a layout containing four id<NSObject> to indicate where the icons would go.
 + (STKGroupLayout *)emptyLayoutForIconAtLocation:(STKLocation)location;
