@@ -161,9 +161,14 @@ static STKLayoutPosition _PositionFromString(NSString *string)
     return array;
 }
 
-- (id)iconAtSlot:(STKGroupSlot)slot
+- (id)iconInSlot:(STKGroupSlot)slot
 {
     return self[slot.position][slot.index];
+}
+
+- (void)setIcon:(id)icon inSlot:(STKGroupSlot)slot
+{
+    [self[slot.position] setObject:icon atIndex:slot.index];
 }
 
 - (void)addIcons:(NSArray *)icons toIconsAtPosition:(STKLayoutPosition)position

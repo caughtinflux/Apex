@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import <SpringBoard/SpringBoard.h>
+#import "STKTypes.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,12 +12,12 @@ extern "C" {
 }
 #endif
 
-typedef NS_ENUM(NSUInteger, STKGroupState) {
-	STKGroupStateInvalid = -1,
-	STKGroupStateNormal,
-	STKGroupStateEmpty,
-	STKGroupStateEditing,
-	STKGroupStateQuasiEmpty
+typedef NS_ENUM(NSInteger, STKGroupState) {
+    STKGroupStateInvalid = -1,
+    STKGroupStateNormal,
+    STKGroupStateEmpty,
+    STKGroupStateEditing,
+    STKGroupStateQuasiEmpty
 };
 
 @class STKGroupView, STKGroupLayout;
@@ -30,18 +31,22 @@ typedef NS_ENUM(NSUInteger, STKGroupState) {
 @property (nonatomic, readonly) STKGroupLayout *layout;
 @property (nonatomic, readonly) NSDictionary *dictionaryRepresentation;
 @property (nonatomic, assign) SBIconCoordinate lastKnownCoordinate;
-@property (nonatomic, assign, getter=isEmpty) BOOL empty;
-@property (nonatomic, readonly) STKGroupState state;
+@property (nonatomic, readonly) BOOL empty;
+@property (nonatomic, assign) STKGroupState state;
+
+- (void)relayoutForNewCoordinate:(SBIconCoordinate)coordinate;
+// Relayouts if `coordinate` != `lastKnownCoordinate`
+
+- (void)replaceIconInSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
+- (void)removeIconInSlot:(STKGroupSlot)slot;
 
 - (void)addObserver:(id<STKGroupObserver>)observer;
 - (void)removeObserver:(id<STKGroupObserver>)observer;
 
-- (void)replaceIconAtSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
-- (void)removeIconAtSlot:(STKGroupSlot)slot;
-
 @end
 
 @protocol STKGroupObserver <NSObject>
-@required
-- (void)group:(STKGroup *)group didAddIcon:(NSArray *)addedIcon removedIcon:(NSArray *)removingIcon;
+@optional
+- (void)group:(STKGroup *)group didReplaceIcon:(SBIcon *)replacedIcon inSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
+- (void)groupDidRelayout:(STKGroup *)group;
 @end

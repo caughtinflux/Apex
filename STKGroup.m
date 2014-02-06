@@ -12,9 +12,7 @@ NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
 @implementation STKGroup
 {
     STKGroupLayout *_layout;
-    STKGroupView *_view;
     NSHashTable *_observers;
-    STKGroupState _state;
 }
 
 - (instancetype)initWithCentralIcon:(SBIcon *)icon layout:(STKGroupLayout *)layout
@@ -41,8 +39,6 @@ NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
 
 - (void)dealloc
 {
-    _view.group = nil;
-    [_view release];
     [_layout release];
     [_observers removeAllObjects];
     [_observers release];
@@ -69,12 +65,44 @@ NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
     };
 }
 
-- (void)replaceIconAtSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon
+- (BOOL)empty
 {
-
+    return (_state == STKGroupStateEmpty);
 }
 
-- (void)removeIconAtSlot:(STKGroupSlot)slot
+- (void)relayoutForNewCoordinate:(SBIconCoordinate)coordinate
+{
+    if (coordinate.row == _lastKnownCoordinate.row && coordinate.col == _lastKnownCoordinate.col) {
+        return;
+    }
+    CLog(@"Relayoutting %@", _centralIcon.displayName);
+
+    if (_state == STKGroupStateEmpty) {
+        [_layout release];
+        _layout = [[STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:_centralIcon]] retain];
+    }
+    _lastKnownCoordinate = coordinate;
+    id<STKGroupObserver> obs = nil;
+    while ((obs = [[_observers objectEnumerator] nextObject])) {
+        if ([obs respondsToSelector:@selector(groupDidRelayout)]) {
+            [obs groupDidRelayout:self];
+        }
+    }
+}
+
+- (void)replaceIconInSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon
+{
+    SBIcon *iconToReplace = [[[_layout iconInSlot:slot] retain] autorelease];
+    [_layout setIcon:icon inSlot:slot];
+    id<STKGroupObserver> obs = nil;
+    while ((obs = [[_observers objectEnumerator] nextObject])) {
+        if ([obs respondsToSelector:@selector(group:didReplaceIcon:inSlot:withIcon:)]) {
+            [obs group:self didReplaceIcon:iconToReplace inSlot:slot withIcon:icon];
+        }
+    }
+}
+
+- (void)removeIconInSlot:(STKGroupSlot)slot
 {
     
 }

@@ -40,7 +40,8 @@ extern NSString * NSStringFromLayoutPosition(STKLayoutPosition position);
 - (id)objectAtIndexedSubscript:(STKLayoutPosition)position;
 - (void)setObject:(id)icons atIndexedSubscript:(STKLayoutPosition)position;
 
-- (id)iconAtSlot:(STKGroupSlot)slot;
+- (id)iconInSlot:(STKGroupSlot)slot;
+- (void)setIcon:(id)icon inSlot:(STKGroupSlot)slot;
 
 - (void)addIcons:(NSArray *)icons toIconsAtPosition:(STKLayoutPosition)position;
 - (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position;

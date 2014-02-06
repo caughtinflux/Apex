@@ -19,12 +19,19 @@
 
 - (void)addGroupViewToIconView:(SBIconView *)iconView
 {
+    STKGroupView *groupView = nil;
+    if ((groupView = [iconView groupView])) {
+        SBIconCoordinate currentCoordinate = [STKGroupLayoutHandler coordinateForIcon:iconView.icon];
+        [groupView.group relayoutForNewCoordinate:currentCoordinate];
+        return;
+    }
+
     STKGroup *group = [[STKPreferences preferences] groupForIcon:iconView.icon];
-    group.lastKnownCoordinate = [STKGroupLayoutHandler coordinateForIcon:group.centralIcon];
     if (!group) {
     	group = [self _groupWithEmptySlotsForIcon:iconView.icon];
     }
-    STKGroupView *groupView = [[[STKGroupView alloc] initWithGroup:group] autorelease];
+    group.lastKnownCoordinate = [STKGroupLayoutHandler coordinateForIcon:group.centralIcon];
+    groupView = [[[STKGroupView alloc] initWithGroup:group] autorelease];
     groupView.delegate = self;
     [iconView setGroupView:groupView];
 }
@@ -38,7 +45,7 @@
 {
 	STKGroupLayout *slotLayout = [STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:icon]];
 	STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icon layout:slotLayout];
-    group.empty = YES;
+    group.state = STKGroupStateEmpty;
 	return [group autorelease];
 }
 

@@ -75,6 +75,21 @@ return animator;
 
 %end
 
+%hook SBIconViewMap
+- (void)_recycleIconView:(SBIconView *)iconView
+{
+    [[STKGroupController sharedController] removeGroupViewFromIconView:iconView];
+    %orig();
+}
+
+- (SBIconView *)iconViewForIcon:(SBIcon *)icon
+{
+    /* Return a valid icon view even for icons in the group */
+    id ret = %orig(icon);
+    return ret;
+}
+%end
+
 #pragma mark - Constructor
 %ctor
 {

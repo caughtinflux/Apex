@@ -50,7 +50,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (instancetype)initWithGroup:(STKGroup *)group
 {
     if ((self = [super initWithFrame:CGRectZero])) {
-        _group = [group retain];
+        self.group = group;
         _activationMode = STKActivationModeSwipeUpAndDown;
         self.alpha = 0.f;
     }
@@ -101,8 +101,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)setGroup:(STKGroup *)group
 {
+    [_group removeObserver:self];
     [_group release];
     _group = [group retain];
+    [_group addObserver:self];
     [self resetLayouts];
 }
 
@@ -120,10 +122,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     [super layoutSubviews];
     self.frame = self.superview.bounds;
-
-    for (SBIconView *subappView in _subappLayout) {
-        [_centralIconView sendSubviewToBack:subappView];
-    }
 }
 
 - (void)didMoveToSuperview
@@ -170,8 +168,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_addGestureRecognizers
 {
     [self _removeGestureRecognizers];
+
     _panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_panned:)];
-    _panRecognizer.delegate = self;
+    _panRecognizer.delegate = self;   
     
     _tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_doubleTapped:)];
     _tapRecognizer.numberOfTapsRequired = 2;
@@ -250,13 +249,19 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
     BOOL shouldReceive = YES;
-    if ([[CLASS(SBIconController) sharedInstance] isEditing]) {
+    SBIconController *controller = [CLASS(SBIconController) sharedInstance];
+    if ([controller isEditing] || ([controller grabbedIcon] == _group.centralIcon)) {
         shouldReceive = NO;
     }
     else if ([recognizer isKindOfClass:[UITapGestureRecognizer class]]) {
         shouldReceive = (_activationMode == STKActivationModeDoubleTap);
     }
     return shouldReceive;
+}
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer
+{
+    return !([[CLASS(SBIconController) sharedInstance] isEditing]);
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gr shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)ogr
@@ -431,7 +436,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             _isOpen = NO;
             [self.superview sendSubviewToBack:self];
 
-            if (_group.isEmpty) {
+            if (_group.empty) {
                 [self resetLayouts];
             }
             if ([self.delegate respondsToSelector:@selector(groupViewDidClose:)]) {
@@ -555,8 +560,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     return verticalPadding + defaultHeight;
 }
 
-#pragma mark - Folder Delegate
-- (void)group:(STKGroup *)group didAddIcon:(NSArray *)addedIcon removedIcon:(NSArray *)removingIcon
+#pragma mark - Folder Observer
+- (void)groupDidRelayout:(STKGroup *)group
+{
+    [self resetLayouts];
+}
+
+- (void)group:(STKGroup *)group didReplaceIcon:(SBIcon *)replacedIcon inSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
 {
 
 }
