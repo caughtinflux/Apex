@@ -14,6 +14,7 @@ NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
     STKGroupLayout *_layout;
     STKGroupView *_view;
     NSHashTable *_observers;
+    STKGroupState _state;
 }
 
 - (instancetype)initWithCentralIcon:(SBIcon *)icon layout:(STKGroupLayout *)layout
@@ -66,6 +67,16 @@ NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
         STKGroupLayoutKey: [_layout identifierDictionary] ?: @{},
         STKGroupCoordinateKey: STKDictionaryFromCoordinate(_lastKnownCoordinate)
     };
+}
+
+- (void)replaceIconAtSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon
+{
+
+}
+
+- (void)removeIconAtSlot:(STKGroupSlot)slot
+{
+    
 }
 
 - (void)addObserver:(id<STKGroupObserver>)observer

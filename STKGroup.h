@@ -11,6 +11,13 @@ extern "C" {
 }
 #endif
 
+typedef NS_ENUM(NSUInteger, STKGroupState) {
+	STKGroupStateInvalid = -1,
+	STKGroupStateNormal,
+	STKGroupStateEmpty,
+	STKGroupStateEditing,
+	STKGroupStateQuasiEmpty
+};
 
 @class STKGroupView, STKGroupLayout;
 @protocol STKGroupObserver;
@@ -24,13 +31,17 @@ extern "C" {
 @property (nonatomic, readonly) NSDictionary *dictionaryRepresentation;
 @property (nonatomic, assign) SBIconCoordinate lastKnownCoordinate;
 @property (nonatomic, assign, getter=isEmpty) BOOL empty;
+@property (nonatomic, readonly) STKGroupState state;
 
 - (void)addObserver:(id<STKGroupObserver>)observer;
 - (void)removeObserver:(id<STKGroupObserver>)observer;
+
+- (void)replaceIconAtSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
+- (void)removeIconAtSlot:(STKGroupSlot)slot;
 
 @end
 
 @protocol STKGroupObserver <NSObject>
 @required
-- (void)group:(STKGroup *)group didAddIcons:(NSArray *)addedIcons removedIcons:(NSArray *)removingIcons;
+- (void)group:(STKGroup *)group didAddIcon:(NSArray *)addedIcon removedIcon:(NSArray *)removingIcon;
 @end

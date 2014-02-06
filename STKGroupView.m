@@ -556,7 +556,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 }
 
 #pragma mark - Folder Delegate
-- (void)group:(STKGroup *)group didAddIcons:(NSArray *)addedIcons removedIcons:(NSArray *)removingIcons
+- (void)group:(STKGroup *)group didAddIcon:(NSArray *)addedIcon removedIcon:(NSArray *)removingIcon
 {
 
 }
