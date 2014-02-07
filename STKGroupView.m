@@ -547,12 +547,14 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         view.alpha = alpha;
         [self _setAlpha:alpha forLabelOfIconView:[listView viewForIcon:icon]];
     };
-    SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
-    for (SBIcon *icon in [listView icons]) {
-        setter(listView, icon);
+    SBIconController *controller = [CLASS(SBIconController) sharedInstance];
+    SBIconListView *currentListView = [controller currentRootIconList];
+    SBIconListView *dock = [controller dockListView];
+    for (SBIcon *icon in [currentListView icons]) {
+        setter(currentListView, icon);
     }
-    for (SBIcon *icon in [[[CLASS(SBIconController) sharedInstance] dockListView] icons]) {
-        setter([[CLASS(SBIconController) sharedInstance] dockListView], icon);
+    for (SBIcon *icon in [dock icons]) {
+        setter(dock, icon);
     }
 }
 
