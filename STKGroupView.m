@@ -36,6 +36,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     CGFloat _targetDistance;
     CGFloat _keyframeDuration;
     BOOL _ignoreRecognizer;
+    STKRecognizerDirection _recognizerDirection;
 
     NSMapTable *_pathCache;
 
@@ -197,9 +198,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_panned:(UIPanGestureRecognizer *)recognizer
 {
     CGPoint translation = [recognizer translationInView:self];
-    double distance = fabs(translation.y);
+    double distance = translation.y;
     CGFloat realOffset = MIN((distance / _targetDistance), 1.0);
-    CFTimeInterval offset = MIN(distance / (_targetDistance + kBandingAllowance), _keyframeDuration - 0.00001);
+    CFTimeInterval offset = MIN((distance / (_targetDistance + kBandingAllowance)), (_keyframeDuration - 0.00001));
+    // `offset` adds banding allowance
 
     if (recognizer.state == UIGestureRecognizerStateBegan) {
         _ignoreRecognizer = NO;
@@ -216,11 +218,19 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         }
         _targetDistance = [self _updatedTargetDistance];
         _keyframeDuration = KEYFRAME_DURATION();
+        _recognizerDirection = ((translation.y < 0) ? STKRecognizerDirectionUp : STKRecognizerDirectionDown);
     }
     else if (recognizer.state == UIGestureRecognizerStateChanged) {
         if (_ignoreRecognizer) {
             return;
         }
+        BOOL passedStartPoint = ((realOffset < 0 && _recognizerDirection == STKRecognizerDirectionDown)
+                                || (realOffset > 0 && _recognizerDirection == STKRecognizerDirectionUp));
+        if (passedStartPoint) {
+            offset = realOffset = 0.f;
+        }
+        offset = fabsf(offset);
+        realOffset = fabsf(realOffset);
         [self _moveAllIconsToOffset:offset performingBlockOnSubApps:^(SBIconView *iconView) {
             [self _setAlpha:realOffset forLabelOfIconView:iconView];
         }];
@@ -228,6 +238,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     else if (recognizer.state == UIGestureRecognizerStateEnded) {
         if (!_ignoreRecognizer) {
+            offset = fabsf(offset);
+            realOffset = fabsf(realOffset);
             if (realOffset > 0.5f) {
                 [self _animateOpenWithCompletion:nil];
             }
