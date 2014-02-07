@@ -199,8 +199,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     CGPoint translation = [recognizer translationInView:self];
     double distance = translation.y;
-    CGFloat realOffset = MIN((distance / _targetDistance), 1.0);
-    CFTimeInterval offset = MIN((distance / (_targetDistance + kBandingAllowance)), (_keyframeDuration - 0.00001));
+    CGFloat realOffset = (distance / _targetDistance); // MIN((distance / _targetDistance), 1.0);
+    CFTimeInterval offset = (distance / (_targetDistance + kBandingAllowance)); //MIN((distance / (_targetDistance + kBandingAllowance)), (_keyframeDuration - 0.00001));
     // `offset` adds banding allowance
 
     if (recognizer.state == UIGestureRecognizerStateBegan) {
@@ -229,8 +229,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         if (passedStartPoint) {
             offset = realOffset = 0.f;
         }
-        offset = fabsf(offset);
-        realOffset = fabsf(realOffset);
+        else {
+            offset = MIN(fabsf(offset), (_keyframeDuration - 0.00001));
+            realOffset = MIN(fabsf(realOffset), 1.0f);
+        }
         [self _moveAllIconsToOffset:offset performingBlockOnSubApps:^(SBIconView *iconView) {
             [self _setAlpha:realOffset forLabelOfIconView:iconView];
         }];
