@@ -1,4 +1,4 @@
- #import <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <IconSupport/ISIconSupport.h>
 #import <SpringBoard/SpringBoard.h>
@@ -59,7 +59,6 @@ SBFAnimationFactory *factoryWhat = [animator centralAnimationFactory];
 } completion:nil];
 
 return animator;
-
 */
 
 %hook SBIconView

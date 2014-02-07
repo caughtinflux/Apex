@@ -75,15 +75,12 @@ NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
     if (coordinate.row == _lastKnownCoordinate.row && coordinate.col == _lastKnownCoordinate.col) {
         return;
     }
-    CLog(@"Relayoutting %@", _centralIcon.displayName);
-
     if (_state == STKGroupStateEmpty) {
         [_layout release];
         _layout = [[STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:_centralIcon]] retain];
     }
     _lastKnownCoordinate = coordinate;
-    id<STKGroupObserver> obs = nil;
-    while ((obs = [[_observers objectEnumerator] nextObject])) {
+    for (id<STKGroupObserver> obs in [[_observers objectEnumerator] allObjects]) {
         if ([obs respondsToSelector:@selector(groupDidRelayout)]) {
             [obs groupDidRelayout:self];
         }

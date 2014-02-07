@@ -19,6 +19,9 @@
 
 - (void)addGroupViewToIconView:(SBIconView *)iconView
 {
+    if (iconView.icon == [[CLASS(SBIconController) sharedInstance] grabbedIcon]) {
+        return;
+    }
     STKGroupView *groupView = nil;
     if ((groupView = [iconView groupView])) {
         SBIconCoordinate currentCoordinate = [STKGroupLayoutHandler coordinateForIcon:iconView.icon];
