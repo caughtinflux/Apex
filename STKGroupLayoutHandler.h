@@ -20,6 +20,13 @@
 // This, is pure magic.
 + (STKGroupLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)icon usingLayout:(STKGroupLayout *)layout;
 
+// `layout`: appearing layout
+// `provider`: block that returns a CGRect for the icon at index `idx` in `layout[STKPositionTop]`.
+// The frame should be converted to the coordinate system of the current root icon list.
++ (STKGroupLayout *)layoutForIconsToHideAboveDockedIcon:(SBIcon *)centralIcon
+                                            usingLayout:(STKGroupLayout *)layout
+                                    targetFrameProvider:(CGRect(^)(NSUInteger idx))provider;
+
 + (SBIconCoordinate)coordinateForIcon:(SBIcon *)icon;
 + (STKLocation)locationForIcon:(SBIcon *)icon;
 

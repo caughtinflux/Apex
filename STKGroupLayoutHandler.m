@@ -138,9 +138,7 @@ static SBIconListView *_centralIconListView;
     NSArray *displacedBottomIcons = nil;
     NSArray *displacedLeftIcons   = nil;
     NSArray *displacedRightIcons  = nil;
-    
     _centralIconListView = STKListViewForIcon(centralIcon);
-
     if (layout.topIcons.count > 0) {
         displacedTopIcons = [self _iconsAboveIcon:centralIcon];
     }
@@ -154,10 +152,32 @@ static SBIconListView *_centralIconListView;
         displacedRightIcons = [self _iconsRightOfIcon:centralIcon];
     }
     _centralIconListView = nil;
-    
     return [STKGroupLayout layoutWithIconsAtTop:displacedTopIcons bottom:displacedBottomIcons left:displacedLeftIcons right:displacedRightIcons]; 
 }
 
++ (STKGroupLayout *)layoutForIconsToHideAboveDockedIcon:(SBIcon *)centralIcon
+                                            usingLayout:(STKGroupLayout *)layout
+                                    targetFrameProvider:(CGRect(^)(NSUInteger idx))provider;
+{
+    NSParameterAssert(provider);
+    if (layout.topIcons.count == 0) {
+        return nil;
+    }
+    SBIconListView *rootListView = [[CLASS(SBIconController) sharedInstance] currentRootIconList];
+    STKGroupLayout *displacedLayout = [[[STKGroupLayout alloc] init] autorelease];
+    NSUInteger idx = 0;
+    for (id icon in layout) {
+        CGRect targetFrame = provider(idx);
+        for (SBIcon *icon in [rootListView icons]) {
+            SBIconView *iv = [rootListView viewForIcon:icon];
+            if (CGRectIntersectsRect(targetFrame, iv.frame)) {
+                [displacedLayout addIcon:iv.icon toIconsAtPosition:STKPositionTop];
+            }
+        }
+        idx++;
+    }
+    return displacedLayout;
+}
 
 + (SBIconCoordinate)coordinateForIcon:(SBIcon *)icon
 {

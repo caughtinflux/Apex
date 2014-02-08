@@ -162,7 +162,22 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self addSubview:iconView];
         [self sendSubviewToBack:iconView];
     }];
-    _displacedIconLayout = [[STKGroupLayoutHandler layoutForIconsToDisplaceAroundIcon:_group.centralIcon usingLayout:_group.layout] retain];
+    if ([_centralIconView isInDock]) {
+        CGSize defaultSize = [CLASS(SBIconView) defaultIconSize];
+        SBIconListView *currentListView = [[CLASS(SBIconController) sharedInstance] currentRootIconList];
+        _displacedIconLayout = [[STKGroupLayoutHandler layoutForIconsToHideAboveDockedIcon:_group.centralIcon
+            usingLayout:_group.layout
+            targetFrameProvider:^CGRect(NSUInteger idx) {
+                STKGroupSlot slot = (STKGroupSlot){STKPositionTop, idx};
+                CGPoint targetPosition = [self _targetPositionForSubappSlot:slot];
+                CGPoint targetOrigin = (CGPoint){(targetPosition.x - (defaultSize.width * 0.5f)), (targetPosition.y - (defaultSize.height * 0.5f))};
+                CGRect frame = (CGRect){targetOrigin, defaultSize};
+                return [self convertRect:frame toView:currentListView];
+            }] retain];
+    }
+    else {
+        _displacedIconLayout = [[STKGroupLayoutHandler layoutForIconsToDisplaceAroundIcon:_group.centralIcon usingLayout:_group.layout] retain];
+    }
 }
 
 #pragma mark - Gesture Handling
@@ -237,6 +252,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             [self _setAlpha:realOffset forLabelOfIconView:iconView];
         }];
         [self _setAlphaForOtherIcons:(1.2 - realOffset)];
+        if ([_centralIconView isInDock]) {
+            [self _setAlphaForDisplacedIcons:(1.0 - realOffset)];   
+        }
     }
     else if (recognizer.state == UIGestureRecognizerStateEnded) {
         if (!_ignoreRecognizer) {
@@ -317,11 +335,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         CGPoint target = [self _targetPositionForSubappSlot:(STKGroupSlot){pos, i}];
         mover(iv, pos, c, i, YES, target);
     }];
-    SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
     [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger i, BOOL *s) {
-        SBIconView *iv = [listView viewForIcon:icon];
-        CGPoint target = [self _displacedOriginForIcon:iv.icon withPosition:pos];
-        mover(iv, pos, c, i, NO, target);
+        SBIconView *iv = [self _iconViewForIcon:icon];
+        if (![_centralIconView isInDock]) {
+            CGPoint target = [self _displacedOriginForIcon:iv.icon withPosition:pos];
+            mover(iv, pos, c, i, NO, target);
+        }
     }];
 }
 
@@ -390,19 +409,24 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:
             ^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
                 SBIconView *iconView = [listView viewForIcon:icon];
-                CGPoint destination = ({
-                    CGPoint dest;
-                    UIBezierPath *path = [self _cachedPathForIcon:iconView.icon];
-                    if (path) {
-                        dest = path.currentPoint;
-                        dest = [self _pointByRemovingBandingFromPoint:dest withPosition:pos];
-                    }
-                    else {
-                        dest = [self _displacedOriginForIcon:icon withPosition:pos];
-                    }
-                    dest;
-                });
-                iconView.layer.position = destination;
+                if ([_centralIconView isInDock]) {
+                    iconView.alpha = 0.f;   
+                }
+                else {
+                    CGPoint destination = ({
+                        CGPoint dest;
+                        UIBezierPath *path = [self _cachedPathForIcon:iconView.icon];
+                        if (path) {
+                            dest = path.currentPoint;
+                            dest = [self _pointByRemovingBandingFromPoint:dest withPosition:pos];
+                        }
+                        else {
+                            dest = [self _displacedOriginForIcon:icon withPosition:pos];
+                        }
+                        dest;
+                    });
+                    iconView.layer.position = destination;
+                }
                 [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
             }
         ];
@@ -425,9 +449,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self.delegate groupViewWillClose:self];
     }
     [UIView animateWithDuration:0.22f animations:^{
-        SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
         [self _setAlphaForOtherIcons:1.f];
-
         [_subappLayout enumerateIconsUsingBlockWithIndexes:
             ^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
                 [self _setAlpha:0.f forLabelOfIconView:iconView];
@@ -437,11 +459,16 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         ];
         [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:
             ^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
-                SBIconView *iconView = [listView viewForIcon:icon];
-                iconView.frame = (CGRect){[listView originForIcon:icon], iconView.frame.size};
+                SBIconView *iconView = [self _iconViewForIcon:icon];
+                if ([_centralIconView isInDock]) {
+                    iconView.alpha = 1.f;
+                }
                 [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
             }
         ];
+        SBIconListView *listView = [[CLASS(SBIconController) sharedInstance] currentRootIconList];
+        [listView setIconsNeedLayout];
+        [listView layoutIconsIfNeeded:0.0f domino:0.f];
     } completion:^(BOOL finished) {
         if (finished) {
             if (completion) {
@@ -495,6 +522,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     else if (slot.position == STKPositionLeft || slot.position == STKPositionRight) {
         target.x += ([listView stk_realHorizontalIconPadding] + iconSize.width) * factor;
     }
+    if ([_centralIconView isInDock]) {
+        SBDockIconListView *dock = (SBDockIconListView *)STKListViewForIcon(_centralIconView.icon);
+        target.y -= (dock.frame.origin.y + ([CLASS(SBIconView) defaultIconImageSize].height * 0.5f) - 10.f);
+    }
     return target;
 }
 
@@ -540,7 +571,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_setAlphaForOtherIcons:(CGFloat)alpha
 {
     void(^setter)(id, id) = ^(SBIconListView *listView, SBIcon *icon){
-        if (icon == _group.centralIcon) {
+        if ((icon == _group.centralIcon) || ([_centralIconView isInDock] &&[ _displacedIconLayout[STKPositionTop] containsObject:icon])) {
             return;
         }
         SBIconView *view = [listView viewForIcon:icon];
@@ -562,6 +593,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     UIView *view = [iconView valueForKey:@"_labelView"];
     view.alpha = alpha;
+}
+
+- (void)_setAlphaForDisplacedIcons:(CGFloat)alpha
+{
+    for (SBIcon *icon in _displacedIconLayout) {
+        [self _iconViewForIcon:icon].alpha = alpha;
+    }
 }
 
 - (SBIconView *)_iconViewForIcon:(SBIcon *)icon
