@@ -83,9 +83,17 @@ return animator;
 
 - (SBIconView *)iconViewForIcon:(SBIcon *)icon
 {
-    /* Return a valid icon view even for icons in the group */
+    /* TODO: Return a valid icon view even for icons in the group */
     id ret = %orig(icon);
     return ret;
+}
+%end
+
+%hook SBRootFolderView
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    [[STKGroupController sharedController].openGroupView close];
+    %orig();
 }
 %end
 
