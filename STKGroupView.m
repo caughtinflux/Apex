@@ -32,6 +32,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
     BOOL _needsCreation;
     BOOL _isOpen;
+    BOOL _isAnimating;
 
     CGFloat _targetDistance;
     CGFloat _keyframeDuration;
@@ -214,9 +215,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     CGPoint translation = [recognizer translationInView:self];
     double distance = translation.y;
-    CGFloat realOffset = (distance / _targetDistance); // MIN((distance / _targetDistance), 1.0);
-    CFTimeInterval offset = (distance / (_targetDistance + kBandingAllowance)); //MIN((distance / (_targetDistance + kBandingAllowance)), (_keyframeDuration - 0.00001));
+    CGFloat realOffset = (distance / _targetDistance);
+    CFTimeInterval offset = (distance / (_targetDistance + kBandingAllowance));
     // `offset` adds banding allowance
+
+    BOOL passedStartPoint = ((realOffset < 0 && _recognizerDirection == STKRecognizerDirectionDown)
+                            || (realOffset > 0 && _recognizerDirection == STKRecognizerDirectionUp));
 
     if (recognizer.state == UIGestureRecognizerStateBegan) {
         _ignoreRecognizer = NO;
@@ -239,8 +243,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         if (_ignoreRecognizer) {
             return;
         }
-        BOOL passedStartPoint = ((realOffset < 0 && _recognizerDirection == STKRecognizerDirectionDown)
-                                || (realOffset > 0 && _recognizerDirection == STKRecognizerDirectionUp));
         if (passedStartPoint) {
             offset = realOffset = 0.f;
         }
@@ -260,7 +262,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         if (!_ignoreRecognizer) {
             offset = fabsf(offset);
             realOffset = fabsf(realOffset);
-            if (realOffset > 0.5f) {
+            if ((realOffset > 0.5f) && !passedStartPoint) {
                 [self _animateOpenWithCompletion:nil];
             }
             else {
@@ -301,7 +303,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     NSArray *targets = [ogr valueForKey:@"_targets"];
     id target = ((targets.count > 0) ? targets[0] : nil);
     target = [target valueForKey:@"_target"];
-    return (![target isKindOfClass:CLASS(SBSearchScrollView)] && [ogr.view isKindOfClass:[UIScrollView class]]);
+    BOOL isCloseRecognizer = (ogr.view == [[CLASS(SBIconController) sharedInstance] contentView]);
+    return (isCloseRecognizer || (![target isKindOfClass:CLASS(SBSearchScrollView)] && [ogr.view isKindOfClass:[UIScrollView class]]));
 }
 
 #pragma mark - Moving
@@ -377,6 +380,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 #pragma mark - Animate
 - (void)_animateOpenWithCompletion:(void(^)(void))completion
 {
+    if (_isAnimating) {
+        return;
+    }
+    _isAnimating = YES;
     if ([self.delegate respondsToSelector:@selector(groupViewWillOpen:)]) {
         [self.delegate groupViewWillOpen:self];
     }
@@ -436,6 +443,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 completion();
             }
             _isOpen = YES;
+            _isAnimating = NO;
             if ([self.delegate respondsToSelector:@selector(groupViewDidOpen:)]) {
                 [self.delegate groupViewDidOpen:self];
             }
@@ -445,10 +453,14 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_animateClosedWithCompletion:(void(^)(void))completion
 {
+    if (_isAnimating) {
+        return;
+    }
+    _isAnimating = YES;
     if ([self.delegate respondsToSelector:@selector(groupViewWillClose:)]) {
         [self.delegate groupViewWillClose:self];
     }
-    [UIView animateWithDuration:0.22f animations:^{
+    [UIView animateWithDuration:0.25f animations:^{
         [self _setAlphaForOtherIcons:1.f];
         [_subappLayout enumerateIconsUsingBlockWithIndexes:
             ^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
@@ -475,8 +487,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 completion();
             }
             _isOpen = NO;
-            [self.superview sendSubviewToBack:self];
-
+            _isAnimating = NO;
             if (_group.empty) {
                 [self resetLayouts];
             }

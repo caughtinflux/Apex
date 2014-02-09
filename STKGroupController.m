@@ -4,6 +4,8 @@
 @implementation STKGroupController
 {
     STKGroupView *_openGroupView;
+    UISwipeGestureRecognizer *_closeSwipeRecognizer;
+    UITapGestureRecognizer *_closeTapRecognizer;
     BOOL _openGroupIsEditing;
 }
 
@@ -15,6 +17,16 @@
 		_si = [[self alloc] init];
 	});
 	return _si;
+}
+
+- (instancetype)init
+{
+    if ((self = [super init])) {
+        _closeTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_closeOpenGroupView)];
+        _closeSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(_closeOpenGroupView)];
+        _closeSwipeRecognizer.direction = (UISwipeGestureRecognizerDirectionUp | UISwipeGestureRecognizerDirectionDown);
+    }
+    return self;
 }
 
 - (void)addGroupViewToIconView:(SBIconView *)iconView
@@ -58,10 +70,30 @@
     return [currentFolderController.contentView scrollView];
 }
 
+- (void)_closeOpenGroupView
+{
+    DLog();
+    [_openGroupView close];
+    [self _removeCloseGestureRecognizers];
+}
+
+- (void)_addCloseGestureRecognizers
+{
+    UIView *view = [[CLASS(SBIconController) sharedInstance] contentView];
+    [view addGestureRecognizer:_closeSwipeRecognizer];
+    [view addGestureRecognizer:_closeTapRecognizer];
+}
+
+- (void)_removeCloseGestureRecognizers
+{
+    [_closeTapRecognizer.view removeGestureRecognizer:_closeTapRecognizer];
+    [_closeSwipeRecognizer.view removeGestureRecognizer:_closeSwipeRecognizer];
+}
+
 #pragma mark - Group View Delegate
 - (BOOL)shouldGroupViewOpen:(STKGroupView *)groupView
 {
-    return YES;
+    return !_openGroupView;
 }
 
 - (void)groupViewWillOpen:(STKGroupView *)groupView
@@ -74,6 +106,9 @@
 - (void)groupViewDidOpen:(STKGroupView *)groupView
 {
     _openGroupView = groupView;
+    [self _addCloseGestureRecognizers];
+    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:NO];
+    [self _currentScrollView].scrollEnabled = YES;
 }
 
 - (void)groupViewWillClose:(STKGroupView *)groupView
@@ -88,6 +123,8 @@
             [iconView removeApexOverlay];
         }
     }
+    [self _removeCloseGestureRecognizers];
+    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
     _openGroupView = nil;
 }
 
