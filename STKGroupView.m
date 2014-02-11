@@ -63,7 +63,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     [self resetLayouts];
     [self _removeGestureRecognizers];
-    [_group release];
+    self.group = nil;
     [super dealloc];
 }
 
@@ -280,7 +280,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self open];
 }
 
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer
 {
     BOOL shouldReceive = YES;
     SBIconController *controller = [CLASS(SBIconController) sharedInstance];
@@ -293,18 +293,15 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     return shouldReceive;
 }
 
-- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)recog shouldReceiveTouch:(UITouch *)touch
 {
-    return !([[CLASS(SBIconController) sharedInstance] isEditing]);
+    return (([recog isKindOfClass:[UITapGestureRecognizer class]] && _activationMode == STKActivationModeDoubleTap)
+           || ([recog isKindOfClass:[UIPanGestureRecognizer class]] && _activationMode != STKActivationModeDoubleTap));
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gr shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)ogr
 {
-    NSArray *targets = [ogr valueForKey:@"_targets"];
-    id target = ((targets.count > 0) ? targets[0] : nil);
-    target = [target valueForKey:@"_target"];
-    BOOL isCloseRecognizer = (ogr.view == [[CLASS(SBIconController) sharedInstance] contentView]);
-    return (isCloseRecognizer || (![target isKindOfClass:CLASS(SBSearchScrollView)] && [ogr.view isKindOfClass:[UIScrollView class]]));
+    return [self.delegate groupView:self shouldRecognizeGesturesSimultaneouslyWithGestureRecognizer:ogr]; 
 }
 
 #pragma mark - Moving

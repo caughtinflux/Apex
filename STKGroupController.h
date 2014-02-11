@@ -1,6 +1,6 @@
 #import "STKGroupView.h"
 
-@interface STKGroupController : NSObject <STKGroupViewDelegate>
+@interface STKGroupController : NSObject <STKGroupViewDelegate, UIGestureRecognizerDelegate>
 
 + (instancetype)sharedController;
 

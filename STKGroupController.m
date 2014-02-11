@@ -25,6 +25,8 @@
         _closeTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_closeOpenGroupView)];
         _closeSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(_closeOpenGroupView)];
         _closeSwipeRecognizer.direction = (UISwipeGestureRecognizerDirectionUp | UISwipeGestureRecognizerDirectionDown);
+        _closeSwipeRecognizer.delegate = self;
+        _closeTapRecognizer.delegate = self;
     }
     return self;
 }
@@ -72,7 +74,6 @@
 
 - (void)_closeOpenGroupView
 {
-    DLog();
     [_openGroupView close];
     [self _removeCloseGestureRecognizers];
 }
@@ -94,6 +95,17 @@
 - (BOOL)shouldGroupViewOpen:(STKGroupView *)groupView
 {
     return !_openGroupView;
+}
+
+- (BOOL)groupView:(STKGroupView *)groupView shouldRecognizeGesturesSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)recognizer
+{
+    if (recognizer == _closeSwipeRecognizer || recognizer == _closeTapRecognizer) {
+        return NO;
+    }
+    NSArray *targets = [recognizer valueForKey:@"_targets"];
+    id target = ((targets.count > 0) ? targets[0] : nil);
+    target = [target valueForKey:@"_target"];
+    return (![target isKindOfClass:CLASS(SBSearchScrollView)] && [recognizer.view isKindOfClass:[UIScrollView class]]);
 }
 
 - (void)groupViewWillOpen:(STKGroupView *)groupView
@@ -179,6 +191,13 @@
 - (void)icon:(SBIconView *)iconView touchEnded:(BOOL)ended
 {
     [iconView setHighlighted:NO];
+}
+
+#pragma mark - Gesture Recognizer Delegate
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
+{
+    CGPoint point = [touch locationInView:_openGroupView];
+    return !([_openGroupView hitTest:point withEvent:nil]);   
 }
 
 @end
