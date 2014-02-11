@@ -1,7 +1,7 @@
 #import "STKSelectionFolder.h"
 #import "STKConstants.h"
 
-%subclass SBFolder
+%subclass STKSelectionFolder : SBFolder
 
 %new
 + (id)sharedInstance
