@@ -1,4 +1,4 @@
 #import <SpringBoard/SpringBoard.h>
 
-@interface STKEmptyIcon : SBIcon
+@interface STKEmptyIcon : SBFolderIcon
 @end
