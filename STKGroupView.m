@@ -79,6 +79,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     return [super hitTest:point withEvent:event];
 }
 
+#pragma mark - Public Methods
 - (void)open
 {
     [self _animateOpenWithCompletion:nil];
@@ -99,6 +100,17 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [_displacedIconLayout release];
     _displacedIconLayout = nil;
     [self _invalidatePathCache];
+}
+
+- (SBIconView *)subappIconViewForIcon:(SBIcon *)icon
+{
+    SBIconView *iconView = nil;
+    for (iconView in _subappLayout) {
+        if (iconView.icon == icon) {
+            break;
+        }
+    }
+    return iconView;
 }
 
 - (void)setGroup:(STKGroup *)group
@@ -154,7 +166,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
     _subappLayout = [[STKGroupLayout alloc] init];
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
-        SBIconView *iconView = [[[CLASS(SBIconView) alloc] initWithDefaultSize] autorelease];
+        Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
+        PARAMLOGC(@"%@", icon);
+        PARAMLOGC(@"%@", viewClass);
+        SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
         iconView.frame = (CGRect){{0, 0}, iconView.frame.size};
         iconView.icon = icon;
         iconView.delegate = self.delegate;
@@ -222,56 +237,64 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     BOOL passedStartPoint = ((realOffset < 0 && _recognizerDirection == STKRecognizerDirectionDown)
                             || (realOffset > 0 && _recognizerDirection == STKRecognizerDirectionUp));
 
-    if (recognizer.state == UIGestureRecognizerStateBegan) {
-        _ignoreRecognizer = NO;
-        BOOL isHorizontalSwipe = !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0);
-        if ((self.delegate && ![self.delegate shouldGroupViewOpen:self]) || isHorizontalSwipe) {
-            _ignoreRecognizer = YES;
-            return;
+    switch (recognizer.state) {
+        case UIGestureRecognizerStateBegan: {
+            _ignoreRecognizer = NO;
+            BOOL isHorizontalSwipe = !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0);
+            if ((self.delegate && ![self.delegate shouldGroupViewOpen:self]) || isHorizontalSwipe) {
+                _ignoreRecognizer = YES;
+                break;
+            }
+            if (_delegateFlags.willOpen) {
+                [self.delegate groupViewWillOpen:self];
+            }
+            if (_group.empty && !_subappLayout) {
+                [self _reallyConfigureSubappViews];
+            }
+            _targetDistance = [self _updatedTargetDistance];
+            _keyframeDuration = KEYFRAME_DURATION();
+            _recognizerDirection = ((translation.y < 0) ? STKRecognizerDirectionUp : STKRecognizerDirectionDown);    
+            break;
         }
-        if (_delegateFlags.willOpen) {
-            [self.delegate groupViewWillOpen:self];
-        }
-        if (_group.empty && !_subappLayout) {
-            [self _reallyConfigureSubappViews];
-        }
-        _targetDistance = [self _updatedTargetDistance];
-        _keyframeDuration = KEYFRAME_DURATION();
-        _recognizerDirection = ((translation.y < 0) ? STKRecognizerDirectionUp : STKRecognizerDirectionDown);
-    }
-    else if (recognizer.state == UIGestureRecognizerStateChanged) {
-        if (_ignoreRecognizer) {
-            return;
-        }
-        if (passedStartPoint) {
-            offset = realOffset = 0.f;
-        }
-        else {
-            offset = MIN(fabsf(offset), (_keyframeDuration - 0.00001));
-            realOffset = MIN(fabsf(realOffset), 1.0f);
-        }
-        [self _moveAllIconsToOffset:offset performingBlockOnSubApps:^(SBIconView *iconView) {
-            [self _setAlpha:realOffset forLabelOfIconView:iconView];
-        }];
-        [self _setAlphaForOtherIcons:(1.2 - realOffset)];
-        if ([_centralIconView isInDock]) {
-            [self _setAlphaForDisplacedIcons:(1.0 - realOffset)];   
-        }
-    }
-    else if (recognizer.state == UIGestureRecognizerStateEnded) {
-        if (!_ignoreRecognizer) {
-            offset = fabsf(offset);
-            realOffset = fabsf(realOffset);
-            if ((realOffset > 0.5f) && !passedStartPoint) {
-                [self _animateOpenWithCompletion:nil];
+        case UIGestureRecognizerStateChanged: {
+            if (_ignoreRecognizer) {
+                break;
+            }
+            if (passedStartPoint) {
+                offset = realOffset = 0.f;
             }
             else {
-                [self _animateClosedWithCompletion:nil];
+                offset = MIN(fabsf(offset), (_keyframeDuration - 0.00001));
+                realOffset = MIN(fabsf(realOffset), 1.0f);
             }
+            [self _moveAllIconsToOffset:offset performingBlockOnSubApps:^(SBIconView *iconView) {
+                [self _setAlpha:realOffset forLabelOfIconView:iconView];
+            }];
+            [self _setAlphaForOtherIcons:(1.2 - realOffset)];
+            if ([_centralIconView isInDock]) {
+                [self _setAlphaForDisplacedIcons:(1.0 - realOffset)];   
+            }
+            break;
         }
-        _ignoreRecognizer = NO;
-        _keyframeDuration = 0.f;
-        _targetDistance = 0.f;
+        case UIGestureRecognizerStateEnded: {
+            if (!_ignoreRecognizer) {
+                offset = fabsf(offset);
+                realOffset = fabsf(realOffset);
+                if ((realOffset > 0.5f) && !passedStartPoint) {
+                    [self _animateOpenWithCompletion:nil];
+                }
+                else {
+                    [self _animateClosedWithCompletion:nil];
+                }
+            }
+            _ignoreRecognizer = NO;
+            _keyframeDuration = 0.f;
+            _targetDistance = 0.f;
+            break;
+        }
+        default: {
+            // do nothing
+        }
     }
 }
 

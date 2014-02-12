@@ -1,7 +1,7 @@
 #import "STKEmptyIcon.h"
 #import "STKConstants.h"
 
-%subclass STKEmptyIcon : SBIcon
+%subclass STKEmptyIcon : SBFolderIcon
 
 - (id)getIconImage:(NSInteger)imgType
 {
@@ -11,6 +11,11 @@
 - (BOOL)isEmptyPlaceholder
 {
     return YES;
+}
+
+- (id)nodeIdentifier
+{
+	return self;
 }
 
 %end

@@ -41,25 +41,33 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     CFRelease(userNotification);
 }
 
-SBFolderZoomSettings *settings = [[(SBPrototypeController *)[%c(SBPrototypeController) sharedInstance] rootSettings] rootAnimationSettings].folderOpenSettings;
-SBRootFolderController *rfc = [self _rootFolderController];
-SBFolderIcon *folderIcon = [[self currentRootIconList] icons][16];
-SBFolder *folder = folderIcon.folder;
-SBFolderController *fc = [[%c(SBFolderController) alloc] initWithFolder:folder orientation:[[UIApplication sharedApplication] statusBarOrientation]];
-SBFolderIconZoomAnimator *animator = [[%c(SBFolderIconZoomAnimator) alloc] initWithOuterController:rfc innerController:fc folderIcon:folderIcon];
-animator.settings = settings;
-rfc.innerFolderController = fc;
-
-SBFAnimationFactory *factoryWhat = [animator centralAnimationFactory];
-[factoryWhat animateWithDelay:0 animations:^{
-    SBFolderView *folderView = [fc contentView];
-    [self.contentView pushFolderContentView:folderView];
-    [folderView prepareToOpen];
-    folderView.folder.isOpen = YES;
-} completion:nil];
-
-return animator;
 */
+
+#pragma mark - SBIconController
+%hook SBIconController
+%new
+- (id)youWat
+{
+    SBFolderZoomSettings *settings = [[(SBPrototypeController *)[%c(SBPrototypeController) sharedInstance] rootSettings] rootAnimationSettings].folderOpenSettings;
+    SBRootFolderController *rfc = [self _rootFolderController];
+    SBFolderIcon *folderIcon = [[self currentRootIconList] icons][16];
+    SBFolder *folder = [%c(STKSelectionFolder) sharedInstance];
+    SBFolderController *fc = [(SBFolderController *)[%c(SBFolderController) alloc] initWithFolder:folder orientation:[[UIApplication sharedApplication] statusBarOrientation]];
+    SBFolderIconZoomAnimator *animator = [[%c(SBFolderIconZoomAnimator) alloc] initWithOuterController:rfc innerController:fc folderIcon:folderIcon];
+    animator.settings = settings;
+    rfc.innerFolderController = fc;
+
+    SBFAnimationFactory *factoryWhat = [animator centralAnimationFactory];
+    [factoryWhat animateWithDelay:0 animations:^{
+        SBFolderView *folderView = [fc contentView];
+        [self.contentView pushFolderContentView:folderView];
+        [folderView prepareToOpen];
+        folderView.folder.isOpen = YES;
+    } completion:nil];
+
+    return animator;
+}
+%end
 
 %hook SBIconView
 - (void)setLocation:(SBIconLocation)location
@@ -74,6 +82,7 @@ return animator;
 
 %end
 
+#pragma mark - SBIconViewMap
 %hook SBIconViewMap
 - (void)_recycleIconView:(SBIconView *)iconView
 {
@@ -81,15 +90,18 @@ return animator;
     %orig();
 }
 
-- (SBIconView *)iconViewForIcon:(SBIcon *)icon
+- (SBIconView *)mappedIconViewForIcon:(SBIcon *)icon
 {
-    /* TODO: Return a valid icon view even for icons in the group */
-    id ret = %orig(icon);
-    return ret;
+    SBIconView *mappedView = %orig(icon);
+    if (!mappedView && [STKGroupController sharedController].openGroupView) {
+        mappedView = [[STKGroupController sharedController].openGroupView subappIconViewForIcon:icon];
+    }
+    return mappedView;
 }
 %end
 
-%hook SBRootFolderView
+#pragma mark - SBRootFolderView
+%hook SBFolderView
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     [[STKGroupController sharedController].openGroupView close];
@@ -103,7 +115,6 @@ return animator;
     @autoreleasepool {
         STKLog(@"Initializing");
         %init();
-
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
         [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName];
     }

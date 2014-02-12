@@ -21,8 +21,8 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 
 - (void)open;
 - (void)close;
-
 - (void)resetLayouts;
+- (SBIconView *)subappIconViewForIcon:(SBIcon *)icon;
 
 @end
 

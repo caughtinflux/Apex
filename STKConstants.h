@@ -19,6 +19,7 @@
 
 #import "STKEmptyIcon.h"
 #import "STKiconOverlayView.h"
+#import "STKSelectionFolder.h"
 
 #import "SBIconView+Apex.h"
 #import "SBIconListView+ApexAdditions.h"
@@ -44,7 +45,7 @@
 #define PATH_TO_IMAGE(_name) [[NSBundle bundleWithPath:@"/Library/Application Support/Apex.bundle"] pathForResource:_name ofType:@"png"]
 #define UIIMAGE_NAMED(_name) [[[UIImage alloc] initWithContentsOfFile:PATH_TO_IMAGE(_name)] autorelease]
 
-#define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
+#define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
 
 #ifdef __cplusplus 
 extern "C" {

@@ -1,4 +1,4 @@
-#import "STKGroupController.h"
+    #import "STKGroupController.h"
 #import "STKConstants.h"
 
 @implementation STKGroupController
@@ -11,12 +11,12 @@
 
 + (instancetype)sharedController
 {
-	static dispatch_once_t pred;
-	static id _si;
-	dispatch_once(&pred, ^{
-		_si = [[self alloc] init];
-	});
-	return _si;
+    static dispatch_once_t pred;
+    static id _si;
+    dispatch_once(&pred, ^{
+        _si = [[self alloc] init];
+    });
+    return _si;
 }
 
 - (instancetype)init
@@ -40,17 +40,17 @@
     if ((groupView = [iconView groupView])) {
         SBIconCoordinate currentCoordinate = [STKGroupLayoutHandler coordinateForIcon:iconView.icon];
         [groupView.group relayoutForNewCoordinate:currentCoordinate];
-        return;
     }
-
-    STKGroup *group = [[STKPreferences preferences] groupForIcon:iconView.icon];
-    if (!group) {
-    	group = [self _groupWithEmptySlotsForIcon:iconView.icon];
+    else {
+        STKGroup *group = [[STKPreferences preferences] groupForIcon:iconView.icon];
+        if (!group) {
+            group = [self _groupWithEmptySlotsForIcon:iconView.icon];
+        }
+        group.lastKnownCoordinate = [STKGroupLayoutHandler coordinateForIcon:group.centralIcon];
+        groupView = [[[STKGroupView alloc] initWithGroup:group] autorelease];
+        groupView.delegate = self;
+        [iconView setGroupView:groupView];
     }
-    group.lastKnownCoordinate = [STKGroupLayoutHandler coordinateForIcon:group.centralIcon];
-    groupView = [[[STKGroupView alloc] initWithGroup:group] autorelease];
-    groupView.delegate = self;
-    [iconView setGroupView:groupView];
 }
 
 - (void)removeGroupViewFromIconView:(SBIconView *)iconView
@@ -60,10 +60,10 @@
 
 - (STKGroup *)_groupWithEmptySlotsForIcon:(SBIcon *)icon
 {
-	STKGroupLayout *slotLayout = [STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:icon]];
-	STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icon layout:slotLayout];
+    STKGroupLayout *slotLayout = [STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:icon]];
+    STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icon layout:slotLayout];
     group.state = STKGroupStateEmpty;
-	return [group autorelease];
+    return [group autorelease];
 }
 
 - (UIScrollView *)_currentScrollView
@@ -150,10 +150,17 @@
     if (_openGroupIsEditing) {
         return;
     }
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+    EXECUTE_BLOCK_AFTER_DELAY(0.2, ^{
         [iconView setHighlighted:NO];
     });
-    [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
+    if ([iconView.icon isEmptyPlaceholder]) {
+        STKSelectionFolder *folder = [CLASS(STKSelectionFolder) sharedInstance];
+        folder.icon = (STKEmptyIcon *)iconView.icon;
+        [[CLASS(SBIconController) sharedInstance] openFolder:folder animated:YES];
+    }
+    else {
+        [iconView.icon launchFromLocation:SBIconLocationHomeScreen];        
+    }
 }
 
 - (BOOL)iconViewDisplaysCloseBox:(SBIconView *)iconView
