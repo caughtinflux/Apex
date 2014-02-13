@@ -37,4 +37,5 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 - (void)groupViewDidOpen:(STKGroupView *)groupView;
 - (void)groupViewWillClose:(STKGroupView *)groupView;
 - (void)groupViewDidClose:(STKGroupView *)groupView;
+- (void)groupViewWillBeDestroyed:(STKGroupView *)groupView;
 @end

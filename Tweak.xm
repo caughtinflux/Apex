@@ -50,10 +50,9 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     SBFolderZoomSettings *settings = [[(SBPrototypeController *)[%c(SBPrototypeController) sharedInstance] rootSettings] rootAnimationSettings].folderOpenSettings;
     SBRootFolderController *rfc = [self _rootFolderController];
-    SBFolderIcon *folderIcon = [[self currentRootIconList] icons][16];
     SBFolder *folder = [%c(STKSelectionFolder) sharedInstance];
     SBFolderController *fc = [(SBFolderController *)[%c(SBFolderController) alloc] initWithFolder:folder orientation:[[UIApplication sharedApplication] statusBarOrientation]];
-    SBFolderIconZoomAnimator *animator = [[%c(SBFolderIconZoomAnimator) alloc] initWithOuterController:rfc innerController:fc folderIcon:folderIcon];
+    SBFolderIconZoomAnimator *animator = [[%c(SBFolderIconZoomAnimator) alloc] initWithOuterController:rfc innerController:fc folderIcon:folder.icon];
     animator.settings = settings;
     rfc.innerFolderController = fc;
 
@@ -69,6 +68,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
+#pragma mark - SBIconView
 %hook SBIconView
 - (void)setLocation:(SBIconLocation)location
 {
@@ -97,6 +97,47 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         mappedView = [[STKGroupController sharedController].openGroupView subappIconViewForIcon:icon];
     }
     return mappedView;
+}
+%end
+
+#pragma mark - SBIconZoomAnimator
+%hook SBIconZoomAnimator
+- (SBIconView *)iconViewForIcon:(SBIcon *)icon
+{
+    // SBIconZoomAnimator loves icon views, and can never let them go
+    // let's make sure it doesn't feel heartbroken (i.e. failing assertions)
+    SBIconView *iconView = %orig(icon);
+    if (!iconView && [STKGroupController sharedController].openGroupView) {
+        iconView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
+    }
+    return iconView;
+}
+%end
+
+#pragma mark - SBIconListView 
+%hook SBIconListView
+- (NSArray *)icons
+{
+    NSMutableArray *icons = [%orig() mutableCopy];
+    STKGroupView *groupView = nil;
+    if ((groupView = [STKGroupController sharedController].openGroupView)) {
+        [icons addObjectsFromArray:[groupView.group.layout allIcons]];
+    }
+    return icons;
+}
+%end
+
+#pragma mark - SBFolderController
+%hook SBRootFolderController
+- (BOOL)_iconAppearsOnCurrentPage:(SBIcon *)icon
+{
+    // Folder animation expects the icon to be on the current page
+    // However, it uses convoluted methods that I cbf about to check
+    STKGroupView *groupView = nil;
+    if ((groupView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon].containerGroupView)) {
+        icon = groupView.group.centralIcon;
+    }
+    return %orig(icon);
 }
 %end
 

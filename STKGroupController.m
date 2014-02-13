@@ -145,6 +145,13 @@
     return YES;   
 }
 
+- (void)groupViewWillBeDestroyed:(STKGroupView *)groupView
+{
+    if (groupView == _openGroupView){
+        _openGroupView = nil;
+    }
+}
+
 - (void)iconTapped:(SBIconView *)iconView
 {
     if (_openGroupIsEditing) {
@@ -154,9 +161,18 @@
         [iconView setHighlighted:NO];
     });
     if ([iconView.icon isEmptyPlaceholder]) {
-        STKSelectionFolder *folder = [CLASS(STKSelectionFolder) sharedInstance];
-        folder.icon = (STKEmptyIcon *)iconView.icon;
-        [[CLASS(SBIconController) sharedInstance] openFolder:folder animated:YES];
+        SBIcon *icon = iconView.icon;
+        SBRootFolderController *rfc = [(SBIconController *)[CLASS(SBIconController) sharedInstance] _rootFolderController];
+        SBScaleIconZoomAnimator *animator = [[CLASS(SBScaleIconZoomAnimator) alloc] initWithFolderController:rfc targetIcon:icon];
+        SBScaleZoomSettings *settings = [[[CLASS(SBScaleZoomSettings) alloc] init] autorelease];
+        [settings setDefaultValues];
+        animator.settings = settings;
+        [animator prepare];
+        [animator animateToFraction:1.0 afterDelay:0.0 withCompletion:^{
+            [animator animateToFraction:0.0 afterDelay:1.0 withCompletion:^{
+                [animator release];
+            }];
+        }];
     }
     else {
         [iconView.icon launchFromLocation:SBIconLocationHomeScreen];        

@@ -1,7 +1,7 @@
 #import "STKEmptyIcon.h"
 #import "STKConstants.h"
 
-%subclass STKEmptyIcon : SBFolderIcon
+%subclass STKEmptyIcon : SBIcon
 
 - (id)getIconImage:(NSInteger)imgType
 {

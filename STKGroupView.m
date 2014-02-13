@@ -61,6 +61,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)dealloc
 {
+    if ([_delegate respondsToSelector:@selector(groupViewWillBeDestroyed:)]) {
+        [_delegate groupViewWillBeDestroyed:self];
+    }
     [self resetLayouts];
     [self _removeGestureRecognizers];
     self.group = nil;
@@ -167,8 +170,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _subappLayout = [[STKGroupLayout alloc] init];
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
-        PARAMLOGC(@"%@", icon);
-        PARAMLOGC(@"%@", viewClass);
         SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
         iconView.frame = (CGRect){{0, 0}, iconView.frame.size};
         iconView.icon = icon;
@@ -498,7 +499,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
             }
         ];
-        SBIconListView *listView = [[CLASS(SBIconController) sharedInstance] currentRootIconList];
+        SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
         [listView setIconsNeedLayout];
         [listView layoutIconsIfNeeded:0.0f domino:0.f];
     } completion:^(BOOL finished) {
@@ -645,7 +646,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     return verticalPadding + defaultHeight;
 }
 
-#pragma mark - Folder Observer
+#pragma mark - Group Observer
 - (void)groupDidRelayout:(STKGroup *)group
 {
     [self resetLayouts];
