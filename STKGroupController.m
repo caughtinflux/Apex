@@ -1,4 +1,4 @@
-    #import "STKGroupController.h"
+#import "STKGroupController.h"
 #import "STKConstants.h"
 
 @implementation STKGroupController
@@ -168,10 +168,22 @@
         [settings setDefaultValues];
         animator.settings = settings;
         [animator prepare];
+
         [animator animateToFraction:1.0 afterDelay:0.0 withCompletion:^{
-            [animator animateToFraction:0.0 afterDelay:1.0 withCompletion:^{
-                [animator release];
-            }];
+            SBIconContentView *cv = [(SBIconController *)[CLASS(SBIconController) sharedInstance] contentView];
+            STKSelectionView *view = [[[STKSelectionView alloc] initWithFrame:cv.bounds delegate:self] autorelease];
+            view.frame = (CGRect){{0.f, 0.f}, [CLASS(SBFolderBackgroundView) folderBackgroundSize]};
+            view.center = (CGPoint){(CGRectGetWidth(cv.frame) * 0.5f), (CGRectGetHeight(cv.frame) * 0.5f)};
+            view.delegate = self;
+            NSSet *icons = [[(SBIconController *)[CLASS(SBIconController) sharedInstance] model] leafIcons];
+            NSMutableArray *availableIcons = [NSMutableArray array];
+            for (SBIcon *icon in icons) {
+                if ([[(SBIconController *)[CLASS(SBIconController) sharedInstance] model] isIconVisible:icon]) {
+                    [availableIcons addObject:icon];
+                }
+            }
+            view.iconsForSelection = availableIcons;
+            [cv addSubview:view];
         }];
     }
     else {
@@ -221,6 +233,12 @@
 {
     CGPoint point = [touch locationInView:_openGroupView];
     return !([_openGroupView hitTest:point withEvent:nil]);   
+}
+
+#pragma mark - Icon Selection
+- (void)selectionView:(STKSelectionView *)selectionView didSelectIconView:(SBIconView *)iconView
+{
+    
 }
 
 @end

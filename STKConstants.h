@@ -19,7 +19,6 @@
 
 #import "STKEmptyIcon.h"
 #import "STKiconOverlayView.h"
-#import "STKSelectionFolder.h"
 
 #import "SBIconView+Apex.h"
 #import "SBIconListView+ApexAdditions.h"
