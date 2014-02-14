@@ -120,7 +120,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     NSMutableArray *icons = [%orig() mutableCopy];
     STKGroupView *groupView = nil;
-    if ((groupView = [STKGroupController sharedController].openGroupView)) {
+    if ((groupView = [STKGroupController sharedController].openGroupView) && !groupView.isAnimating) {
         [icons addObjectsFromArray:[groupView.group.layout allIcons]];
     }
     return icons;

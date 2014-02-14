@@ -405,6 +405,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         return;
     }
     _isAnimating = YES;
+    _isOpen = YES;
     if ([self.delegate respondsToSelector:@selector(groupViewWillOpen:)]) {
         [self.delegate groupViewWillOpen:self];
     }
@@ -463,7 +464,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if (completion) {
                 completion();
             }
-            _isOpen = YES;
             _isAnimating = NO;
             if ([self.delegate respondsToSelector:@selector(groupViewDidOpen:)]) {
                 [self.delegate groupViewDidOpen:self];
@@ -478,6 +478,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         return;
     }
     _isAnimating = YES;
+    _isOpen = NO;
     if ([self.delegate respondsToSelector:@selector(groupViewWillClose:)]) {
         [self.delegate groupViewWillClose:self];
     }
@@ -507,7 +508,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if (completion) {
                 completion();
             }
-            _isOpen = NO;
             _isAnimating = NO;
             if (_group.empty) {
                 [self resetLayouts];
