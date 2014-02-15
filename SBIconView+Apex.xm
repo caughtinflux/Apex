@@ -91,6 +91,7 @@
     STKGroupView *view = [self groupView];
     [view resetLayouts];
     [view removeFromSuperview];
+    view.frame = self.bounds;
     objc_setAssociatedObject(self, @selector(STKGroupView), nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 

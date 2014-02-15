@@ -135,12 +135,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 }
 
 #pragma mark - Layout
-- (void)layoutSubviews
-{
-    [super layoutSubviews];
-    self.frame = self.superview.bounds;
-}
-
 - (void)didMoveToSuperview
 {
     if (!self.superview) {
@@ -171,13 +165,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
         SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
-        iconView.frame = (CGRect){{0, 0}, iconView.frame.size};
+        iconView.frame = (CGRect){{-1.f, -1.f}, iconView.frame.size};
         iconView.icon = icon;
         iconView.delegate = self.delegate;
         [_subappLayout addIcon:iconView toIconsAtPosition:pos];
         [self _setAlpha:0.f forLabelOfIconView:iconView];
         [self addSubview:iconView];
-        [self sendSubviewToBack:iconView];
     }];
     if ([_centralIconView isInDock]) {
         CGSize defaultSize = [CLASS(SBIconView) defaultIconSize];
@@ -382,16 +375,15 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     UIBezierPath *path = [UIBezierPath bezierPath];
 
-    CGPoint startPoint = ({
-        CGPoint s;
-        if (isSubapp) {
-            s = [iconView _iconImageView].layer.position;
-        }
-        else {
-            s = iconView.layer.position;
-        }
-        s;
-    });
+    CGPoint startPoint;    
+    if (isSubapp) {
+        startPoint = [iconView _iconImageView].layer.position;
+        startPoint.x -= 1.f;
+        startPoint.y -= 1.f;
+    }
+    else {
+        startPoint = iconView.layer.position;
+    }
 
     [path moveToPoint:startPoint];
     [path addLineToPoint:destination];
@@ -409,7 +401,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ([self.delegate respondsToSelector:@selector(groupViewWillOpen:)]) {
         [self.delegate groupViewWillOpen:self];
     }
-    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseInOut
+    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut
         animations:^{
         SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
         [self _setAlphaForOtherIcons:0.2f];
@@ -489,7 +481,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ([self.delegate respondsToSelector:@selector(groupViewWillClose:)]) {
         [self.delegate groupViewWillClose:self];
     }
-    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseInOut
+    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut
         animations:^{
         [self _setAlphaForOtherIcons:1.f];
         [_subappLayout enumerateIconsUsingBlockWithIndexes:
