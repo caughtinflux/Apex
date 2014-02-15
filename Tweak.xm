@@ -116,15 +116,29 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 #pragma mark - SBIconListView 
 %hook SBIconListView
+
 - (NSArray *)icons
 {
     NSMutableArray *icons = [%orig() mutableCopy];
-    STKGroupView *groupView = nil;
-    if ((groupView = [STKGroupController sharedController].openGroupView) && !groupView.isAnimating) {
+    STKGroupView *groupView = [STKGroupController sharedController].openGroupView;
+    if (groupView && !groupView.isAnimating) {
         [icons addObjectsFromArray:[groupView.group.layout allIcons]];
     }
     return icons;
 }
+
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+    STKGroupView *openGroupView = [[STKGroupController sharedController] openGroupView];
+    UIView *ret = %orig();
+    if (openGroupView) {
+        UIView *superview = [openGroupView superview];
+        CGPoint newPoint = [self convertPoint:point toView:superview];
+        ret = [superview hitTest:newPoint withEvent:event];
+    }
+    return ret;
+}
+
 %end
 
 #pragma mark - SBFolderController
@@ -133,8 +147,8 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     // Folder animation expects the icon to be on the current page
     // However, it uses convoluted methods that I cbf about to check
-    STKGroupView *groupView = nil;
-    if ((groupView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon].containerGroupView)) {
+    STKGroupView *groupView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon].containerGroupView;
+    if (groupView) {
         icon = groupView.group.centralIcon;
     }
     return %orig(icon);
