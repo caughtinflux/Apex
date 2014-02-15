@@ -349,6 +349,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         animation.path = path.CGPath;
         animation.timeOffset = timeOffset;
         [iconView.layer addAnimation:animation forKey:@"ApexIconMoveAnimation"];
+        iconView.layer.position = [iconView.layer.presentationLayer position];
     };
 
     [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iv, STKLayoutPosition pos, NSArray *c, NSUInteger i, BOOL *s) {
@@ -408,7 +409,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ([self.delegate respondsToSelector:@selector(groupViewWillOpen:)]) {
         [self.delegate groupViewWillOpen:self];
     }
-    [UIView animateWithDuration:0.22f animations:^{
+    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseInOut
+        animations:^{
         SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
         [self _setAlphaForOtherIcons:0.2f];
 
@@ -431,7 +433,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 });
                 [self _setAlpha:1.f forLabelOfIconView:iconView];
                 [UIView performWithoutAnimation:^{
-                    iconView.layer.position = ((CALayer *)iconView.layer.presentationLayer).position;
+                    iconView.layer.position = [iconView.layer.presentationLayer position];
                 }];
                 iconView.layer.position = destination;
                 [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
@@ -457,7 +459,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                         dest;
                     });
                     [UIView performWithoutAnimation:^{
-                        iconView.layer.position = ((CALayer *)iconView.layer.presentationLayer).position;
+                        iconView.layer.position = [iconView.layer.presentationLayer position];
                     }];
                     iconView.layer.position = destination;
                 }
@@ -487,13 +489,14 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ([self.delegate respondsToSelector:@selector(groupViewWillClose:)]) {
         [self.delegate groupViewWillClose:self];
     }
-    [UIView animateWithDuration:0.25f animations:^{
+    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseInOut
+        animations:^{
         [self _setAlphaForOtherIcons:1.f];
         [_subappLayout enumerateIconsUsingBlockWithIndexes:
             ^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
                 [self _setAlpha:0.f forLabelOfIconView:iconView];
                 [UIView performWithoutAnimation:^{
-                    iconView.layer.position = ((CALayer *)iconView.layer.presentationLayer).position;
+                    iconView.layer.position = [iconView.layer.presentationLayer position];
                 }];
                 iconView.frame = (CGRect){CGPointZero, iconView.frame.size};
                 [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
