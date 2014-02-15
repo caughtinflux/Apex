@@ -348,7 +348,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         CAKeyframeAnimation *animation = [self _defaultAnimation];
         animation.path = path.CGPath;
         animation.timeOffset = timeOffset;
-        iconView.layer.position = [(CALayer *)iconView.layer.presentationLayer position];
         [iconView.layer addAnimation:animation forKey:@"ApexIconMoveAnimation"];
     };
 
@@ -431,6 +430,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                     dest;
                 });
                 [self _setAlpha:1.f forLabelOfIconView:iconView];
+                [UIView performWithoutAnimation:^{
+                    iconView.layer.position = ((CALayer *)iconView.layer.presentationLayer).position;
+                }];
                 iconView.layer.position = destination;
                 [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
             }    
@@ -454,6 +456,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                         }
                         dest;
                     });
+                    [UIView performWithoutAnimation:^{
+                        iconView.layer.position = ((CALayer *)iconView.layer.presentationLayer).position;
+                    }];
                     iconView.layer.position = destination;
                 }
                 [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
@@ -487,6 +492,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [_subappLayout enumerateIconsUsingBlockWithIndexes:
             ^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
                 [self _setAlpha:0.f forLabelOfIconView:iconView];
+                [UIView performWithoutAnimation:^{
+                    iconView.layer.position = ((CALayer *)iconView.layer.presentationLayer).position;
+                }];
                 iconView.frame = (CGRect){CGPointZero, iconView.frame.size};
                 [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
             }    
