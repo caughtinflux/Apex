@@ -501,6 +501,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 if ([_centralIconView isInDock]) {
                     iconView.alpha = 1.f;
                 }
+                [UIView performWithoutAnimation:^{
+                    iconView.layer.position = [iconView.layer.presentationLayer position];
+                }];
                 [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
             }
         ];
