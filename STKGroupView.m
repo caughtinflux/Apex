@@ -272,9 +272,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         }
         case UIGestureRecognizerStateEnded: {
             if (!_ignoreRecognizer) {
-                offset = fabsf(offset);
-                realOffset = fabsf(realOffset);
-                if ((realOffset > 0.5f) && !passedStartPoint) {
+                CGPoint velocity = [recognizer velocityInView:self];
+                if (((_recognizerDirection == STKRecognizerDirectionUp && velocity.y < 0) 
+                    || (_recognizerDirection == STKRecognizerDirectionDown && velocity.y > 0))
+                    && !passedStartPoint) {
                     [self _animateOpenWithCompletion:nil];
                 }
                 else {
