@@ -10,9 +10,9 @@
 
 #define kCentralIconPreviewScale 0.95f
 #define kSubappScale             0.81f
-#define kBandingAllowance        0.0
+#define kBandingAllowance        20.f
 
-#define KEYFRAME_DURATION() (1.0 + (kBandingAllowance / [self _updatedTargetDistance]))
+#define KEYFRAME_DURATION() (1.0 + (kBandingAllowance / _targetDistance))
 
 typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     STKRecognizerDirectionNone,
