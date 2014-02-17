@@ -23,6 +23,7 @@
         _collectionView.contentInset = UIEdgeInsetsMake(20, 20, 20, 20);
         _collectionView.layer.cornerRadius = 35.f; // the default corner radius for folders, apparently.
         _collectionView.layer.masksToBounds = YES;
+        _collectionView.allowsSelection = YES;
         self.autoresizingMask = _collectionView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
         [_collectionView registerClass:[STKSelectionViewCell class] forCellWithReuseIdentifier:kCellReuseIdentifier];
 
@@ -55,12 +56,14 @@
 {
     STKSelectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:kCellReuseIdentifier forIndexPath:indexPath];
     cell.iconView.icon = self.iconsForSelection[indexPath.item];
+    cell.tapHandler = ^(STKSelectionViewCell *tappedCell) {
+        [self _selectedCell:[[tappedCell retain] autorelease]];
+    };
     return cell;
 }
 
-- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
+- (void)_selectedCell:(STKSelectionViewCell *)cell
 {
-    STKSelectionViewCell *cell = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:indexPath];
     [self.delegate selectionView:self didSelectIconView:cell.iconView];
 }
 

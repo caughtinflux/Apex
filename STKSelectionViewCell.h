@@ -1,5 +1,9 @@
 #import <UIKit/UIKit.h>
-@class SBIconView;
-@interface STKSelectionViewCell : UICollectionViewCell
+#import <SpringBoard/SpringBoard.h>
+
+typedef void (^STKSelectionViewCellTapHandler)(id cell);
+
+@interface STKSelectionViewCell : UICollectionViewCell <SBIconViewDelegate>
 @property (nonatomic, readonly) SBIconView *iconView;
+@property (nonatomic, copy) STKSelectionViewCellTapHandler tapHandler;
 @end
