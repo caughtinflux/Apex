@@ -17,7 +17,7 @@ extern NSString * NSStringFromLayoutPosition(STKLayoutPosition position);
 
 + (NSArray *)allPositions;
 
-// Init using dictionary of an array of identifiers for every layout position
+// Init using dictionary of an array of identifiers for every layout position.
 - (instancetype)initWithIdentifierDictionary:(NSDictionary *)dictionary;
 // Init using dictionary of an array of icons for every layout position
 - (instancetype)initWithIconDictionary:(NSDictionary *)dictionary;
@@ -42,6 +42,7 @@ extern NSString * NSStringFromLayoutPosition(STKLayoutPosition position);
 
 - (id)iconInSlot:(STKGroupSlot)slot;
 - (void)setIcon:(id)icon inSlot:(STKGroupSlot)slot;
+- (STKGroupSlot)slotForIcon:(id)icon;
 
 - (void)addIcons:(NSArray *)icons toIconsAtPosition:(STKLayoutPosition)position;
 - (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position;

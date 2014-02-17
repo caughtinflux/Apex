@@ -66,7 +66,9 @@ static STKLayoutPosition _PositionFromString(NSString *string)
             if (iconIDs.count != 0) {
                 for (NSString *ID in iconIDs) {
                     SBIcon *icon = [[(SBIconController *)[CLASS(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:ID];
-                    [self addIcon:icon toIconsAtPosition:currentPosition];
+                    if (icon) {
+                        [self addIcon:icon toIconsAtPosition:currentPosition];
+                    }
                 }
             }
             else {
@@ -168,7 +170,28 @@ static STKLayoutPosition _PositionFromString(NSString *string)
 
 - (void)setIcon:(id)icon inSlot:(STKGroupSlot)slot
 {
-    [self[slot.position] setObject:icon atIndex:slot.index];
+    if (!icon) {
+        [self[slot.position] removeObjectAtIndex:slot.index];
+    }
+    else {
+        [self[slot.position] setObject:icon atIndex:slot.index];
+    }
+}
+
+- (STKGroupSlot)slotForIcon:(id)iconToFind
+{
+    STKGroupSlot slot = (STKGroupSlot){STKPositionUnknown, NSNotFound};
+    for (STKLayoutPosition position = STKPositionTop; position <= STKPositionRight; position++) {
+        NSUInteger idx = 0;
+        for (id icon in self[position]) {
+            if (icon == iconToFind) {
+                slot = (STKGroupSlot){position, idx};
+                break;
+            }
+            idx++;
+        }
+    }
+    return slot;
 }
 
 - (void)addIcons:(NSArray *)icons toIconsAtPosition:(STKLayoutPosition)position

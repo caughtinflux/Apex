@@ -659,9 +659,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self resetLayouts];
 }
 
-- (void)group:(STKGroup *)group didReplaceIcon:(SBIcon *)replacedIcon inSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
+- (void)group:(STKGroup *)group didReplaceIcon:(SBIcon *)replacedIcon inSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon
 {
-
+    [(SBIconView *)_subappLayout[slot.position][slot.index] setIcon:icon];
 }
 
 @end
