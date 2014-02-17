@@ -135,7 +135,7 @@
     if (type == STKOverlayTypeEditing) {
         mask = [[self class] maskForApexEditingOverlayWithBounds:overlayView.layer.bounds];
         overlayView.blurRadius = 0.f;
-        overlayView.layer.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.8f].CGColor;
+        overlayView.layer.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.6f].CGColor;
     }
     else {
         mask = [[self class] maskForApexEmptyIconOverlayWithBounds:overlayView.layer.bounds];
