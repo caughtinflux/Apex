@@ -91,17 +91,52 @@ NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
 {
     SBIcon *iconToReplace = [[[_layout iconInSlot:slot] retain] autorelease];
     [_layout setIcon:icon inSlot:slot];
-    id<STKGroupObserver> obs = nil;
-    while ((obs = [[_observers objectEnumerator] nextObject])) {
+    [self _updateState];
+    for (id<STKGroupObserver> obs in [[_observers objectEnumerator] allObjects]) {
         if ([obs respondsToSelector:@selector(group:didReplaceIcon:inSlot:withIcon:)]) {
             [obs group:self didReplaceIcon:iconToReplace inSlot:slot withIcon:icon];
         }
     }
 }
 
+- (void)removeIcon:(SBIcon *)icon
+{
+    STKGroupSlot slot = [_layout slotForIcon:icon];
+    [self removeIconInSlot:slot];
+}
+
 - (void)removeIconInSlot:(STKGroupSlot)slot
 {
-    
+    SBIcon *icon = [[[_layout iconInSlot:slot] retain] autorelease];
+    [_layout setIcon:nil inSlot:slot];
+    [self _updateState];
+    for (id<STKGroupObserver> obs in [[_observers objectEnumerator] allObjects]) {
+        if ([obs respondsToSelector:@selector(group:didRemoveIcon:inSlot:)]) {
+            [obs group:self didRemoveIcon:icon inSlot:slot];
+        }
+    }
+}
+
+- (void)finalizeState
+{
+    if (_state != STKGroupStateDirty) {
+        goto notifyObservers;
+    }
+    STKGroupLayout *newLayout = [[STKGroupLayout alloc] init];
+    [_layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index, BOOL *stop) {
+        if ([icon isLeafIcon]) {
+            [newLayout addIcon:icon toIconsAtPosition:position];
+        }
+    }];
+    [_layout release];
+    _layout = newLayout;
+    _state = STKGroupStateNormal;
+notifyObservers:
+    for (id<STKGroupObserver> obs in [[_observers objectEnumerator] allObjects]) {
+        if ([obs respondsToSelector:@selector(groupDidFinalizeState)]) {
+            [obs groupDidFinalizeState:self];
+        }
+    }
 }
 
 - (void)addObserver:(id<STKGroupObserver>)observer
@@ -112,6 +147,30 @@ NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
 - (void)removeObserver:(id<STKGroupObserver>)observer
 {
     [_observers removeObject:observer];     
+}
+
+- (void)_updateState
+{
+    NSUInteger emptyIconCount = 0;
+    NSUInteger realIconCount = 0;
+    for (SBIcon *icon in _layout) {
+        if ([icon isEmptyPlaceholder]) {
+            emptyIconCount++;
+        }
+        else {
+            realIconCount++;
+        }
+    }
+    if (realIconCount > 0 && emptyIconCount > 0) {
+        // we need to process the icons to get rid of the empty placeholders
+        _state = STKGroupStateDirty;
+    }
+    else if (realIconCount > 0 && emptyIconCount == 0) {
+        _state = STKGroupStateNormal;
+    }
+    else {
+        _state = STKGroupStateEmpty;
+    }
 }
 
 @end

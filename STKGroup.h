@@ -16,8 +16,7 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
     STKGroupStateInvalid = -1,
     STKGroupStateNormal,
     STKGroupStateEmpty,
-    STKGroupStateEditing,
-    STKGroupStateQuasiEmpty
+    STKGroupStateDirty
 };
 
 @class STKGroupView, STKGroupLayout;
@@ -39,6 +38,9 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
 
 - (void)replaceIconInSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
 - (void)removeIconInSlot:(STKGroupSlot)slot;
+- (void)removeIcon:(SBIcon *)icon;
+
+- (void)finalizeState;
 
 - (void)addObserver:(id<STKGroupObserver>)observer;
 - (void)removeObserver:(id<STKGroupObserver>)observer;
@@ -47,6 +49,8 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
 
 @protocol STKGroupObserver <NSObject>
 @optional
+- (void)group:(STKGroup *)group didRemoveIcon:(SBIcon *)icon inSlot:(STKGroupSlot)slot;
 - (void)group:(STKGroup *)group didReplaceIcon:(SBIcon *)replacedIcon inSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
 - (void)groupDidRelayout:(STKGroup *)group;
+- (void)groupDidFinalizeState:(STKGroup *)group;
 @end
