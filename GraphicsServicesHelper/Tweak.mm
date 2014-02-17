@@ -5,9 +5,6 @@
 #import <substrate.h>
 
 #define kSTKTweakName @"Apex"
-#define DLog(fmt, ...) NSLog((@"[%@] %s [Line %d] " fmt), kSTKTweakName, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
-#define CLog(fmt, ...) NSLog((@"[%@] " fmt), kSTKTweakName, ##__VA_ARGS__)
-
 
 static NSMutableArray *_stackedIconIdentifiers = nil;
 
