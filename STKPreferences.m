@@ -17,7 +17,7 @@ static NSString * const CentralIconKey      = @"STKCentralIcon";
     NSMutableDictionary *_groups;
 }
 
-+ (instancetype)preferences
++ (instancetype)sharedPreferences
 {
     static dispatch_once_t pred;
     static STKPreferences *_sharedInstance;

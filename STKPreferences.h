@@ -1,9 +1,9 @@
 #import "STKConstants.h"
 
 @class STKGroup;
-@interface STKPreferences : NSObject
+@interface STKPreferences : NSObject <STKGroupObserver>
 
-+ (instancetype)preferences;
++ (instancetype)sharedPreferences;
 
 - (void)addOrUpdateGroup:(STKGroup *)group;
 - (void)removeGroup:(STKGroup *)group;
