@@ -11,7 +11,8 @@ include theos/makefiles/common.mk
 TWEAK_NAME = Apex
 Apex_FILES :=  $(wildcard *.*m)
 Apex_FRAMEWORKS = Foundation CoreFoundation UIKit CoreGraphics QuartzCore
-Apex_CFLAGS = -Wall -Werror -O3
+Apex_CFLAGS += -Wall -Werror -O3
+ADDITIONAL_LDFLAGS += -Wl,-map,$@.map -g -x c /dev/null -x none
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
