@@ -8,7 +8,6 @@
 @class STKGroupLayout, SBIcon;
 @interface STKGroupLayoutHandler : NSObject
 
-
 // Set the exact position by OR'ing the different values in the enum
 // It will just explode in your face if you try to pull crap.
 // I mean it.
@@ -33,7 +32,7 @@
 // Returns a layout containing four id<NSObject> to indicate where the icons would go.
 + (STKGroupLayout *)emptyLayoutForIconAtLocation:(STKLocation)location;
 
-// Returns a STKGroupLayout instance with objects to indicate where there are empty spaces in `layout`
-+ (STKGroupLayout *)layoutForPlaceholdersInLayout:(STKGroupLayout *)layout withLocation:(STKLocation)location;
+// Returns a STKGroupLayout instance with STKPlaceholderIcons to indicate empty spaces in the group
++ (STKGroupLayout *)placeholderLayoutForGroup:(STKGroup *)group;
 
 @end

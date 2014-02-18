@@ -218,12 +218,13 @@ static SBIconListView *_centralIconListView;
     return [self layoutForIcons:fullSizeGroupArray aroundIconAtLocation:location];
 }
 
-+ (STKGroupLayout *)layoutForPlaceholdersInLayout:(STKGroupLayout *)layout withLocation:(STKLocation)location
++ (STKGroupLayout *)placeholderLayoutForGroup:(STKGroup *)group
 {
     // Create an array with four objects to represent a full group
-    Class iconClass = objc_getClass("STKEmptyIcon");
+    Class iconClass = objc_getClass("STKPlaceholderIcon");
     NSArray *fullSizeGroupArray = @[[[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease], [[iconClass new] autorelease]];
-
+    STKLocation location = [self locationForIcon:group.centralIcon];
+    STKGroupLayout *layout = group.layout;
     // Get a layout object that represents how the icon would look with a full stack
     STKGroupLayout *fullLayout = [self layoutForIcons:fullSizeGroupArray aroundIconAtLocation:location];
 
