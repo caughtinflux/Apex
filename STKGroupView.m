@@ -123,6 +123,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _group = [group retain];
     [_group addObserver:self];
     [self resetLayouts];
+    _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
 }
 
 - (void)setDelegate:(id<STKGroupViewDelegate>)delegate
@@ -140,7 +141,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if (!self.superview) {
         return;
     }
-    _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
     [self _configureSubappViews];
     [self layoutSubviews];
 
