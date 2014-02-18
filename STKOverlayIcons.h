@@ -2,3 +2,6 @@
 
 @interface STKEmptyIcon : SBIcon
 @end
+
+@interface STKPlaceholderIcon : SBIcon
+@end
