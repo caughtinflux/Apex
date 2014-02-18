@@ -33,6 +33,7 @@ NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
         _centralIcon = [[(SBIconModel *)[[CLASS(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:iconID] retain];
         _layout = [[STKGroupLayout alloc] initWithIdentifierDictionary:repr[STKGroupLayoutKey]];
         _lastKnownCoordinate = STKCoordinateFromDictionary(repr[STKGroupCoordinateKey]);
+        _observers = [[NSHashTable alloc] initWithOptions:NSHashTableWeakMemory capacity:0];
     }
     return self;
 }
@@ -117,12 +118,23 @@ NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
     }
 }
 
+- (void)addPlaceholders
+{
+
+}
+
+- (void)removePlaceholders
+{
+    
+}
+
 - (void)finalizeState
 {
     if (_state != STKGroupStateDirty) {
         goto notifyObservers;
     }
     STKGroupLayout *newLayout = [[STKGroupLayout alloc] init];
+    // keep only the leaf icons
     [_layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index, BOOL *stop) {
         if ([icon isLeafIcon]) {
             [newLayout addIcon:icon toIconsAtPosition:position];

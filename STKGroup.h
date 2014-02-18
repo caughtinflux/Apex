@@ -40,6 +40,8 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
 - (void)removeIconInSlot:(STKGroupSlot)slot;
 - (void)removeIcon:(SBIcon *)icon;
 
+- (void)addPlaceholders;
+- (void)removePlaceholders;
 - (void)finalizeState;
 
 - (void)addObserver:(id<STKGroupObserver>)observer;
