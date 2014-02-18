@@ -1,7 +1,6 @@
 Package: com.a3tweaks.apex
 Name: Apex
-Depends: mobilesubstrate, com.chpwn.iconsupport, firmware (>= 6.0)
-Conflicts: gsc.ipad
+Depends: mobilesubstrate, com.chpwn.iconsupport, firmware (>= 7.0)
 Version: 1.4.2
 Architecture: iphoneos-arm
 Description: Group your icons in a fun, beautiful way.
