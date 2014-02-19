@@ -52,7 +52,7 @@
 #ifdef __cplusplus 
 extern "C" {
 #endif
-    extern NSString * const STKPlaceholderIconIdentifier;
+    extern NSString * const STKEditingEndedNotificationName;
     extern CFStringRef const STKPrefsChangedNotificationName;
     
     extern SBIconListView * STKListViewForIcon(SBIcon *icon);

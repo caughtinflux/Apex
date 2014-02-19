@@ -13,8 +13,8 @@ static NSString * const CentralIconKey      = @"centralIcon";
 @implementation STKPreferences
 {
     NSMutableDictionary *_preferences;
-    NSMutableDictionary *_groupState;
     NSMutableDictionary *_groups;
+    NSMutableSet *_subappIcons;
 }
 
 + (instancetype)sharedPreferences
@@ -31,6 +31,11 @@ static NSString * const CentralIconKey      = @"centralIcon";
 - (void)reloadPreferences
 {
     [_preferences release];
+    [_groups release];
+    [_subappIcons release];
+    _groups = nil;
+    _subappIcons = nil;
+
     _preferences = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath] ?: [NSMutableDictionary new];
     NSDictionary *iconState = _preferences[GroupStateKey];
     NSMutableArray *groupArray = [NSMutableArray array];
@@ -38,7 +43,11 @@ static NSString * const CentralIconKey      = @"centralIcon";
         @autoreleasepool {
             NSDictionary *groupRepr = iconState[iconID];
             STKGroup *group = [[[STKGroup alloc] initWithDictionary:groupRepr] autorelease];
-            [groupArray addObject:group];
+            if (group.centralIcon) {
+                [groupArray addObject:group];
+                [_subappIcons addObjectsFromArray:[group.layout allIcons]];
+                [group addObserver:self];
+            }
         }
     }
     [self _addOrUpdateGroups:groupArray];
@@ -53,6 +62,9 @@ static NSString * const CentralIconKey      = @"centralIcon";
 
 - (void)addOrUpdateGroup:(STKGroup *)group
 {
+    if (!group) {
+        return;
+    }
     if (!_groups) {
         _groups = [NSMutableDictionary new];
     }
@@ -82,6 +94,11 @@ static NSString * const CentralIconKey      = @"centralIcon";
     return _groups[icon.leafIdentifier];
 }
 
+- (void)_validateGroups
+{
+
+}
+
 - (NSDictionary *)_groupStateFromGroups
 {
     NSMutableDictionary *state = [NSMutableDictionary dictionary];
@@ -89,6 +106,17 @@ static NSString * const CentralIconKey      = @"centralIcon";
         state[group.centralIcon.leafIdentifier] = [group dictionaryRepresentation];
     }
     return state;
+}
+
+#pragma mark - STKGroupObserver
+- (void)groupDidFinalizeState:(STKGroup *)group
+{
+    [self addOrUpdateGroup:group];
+}
+
+- (void)groupDidRelayout:(STKGroup *)group
+{
+    [self addOrUpdateGroup:group];
 }
 
 @end

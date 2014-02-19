@@ -4,8 +4,8 @@
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
 
-NSString * const STKTweakName                  = @"Apex";
-NSString * const STKPlaceholderIconIdentifier  = @"com.a3tweaks.apex.placeholderid";
+NSString * const STKTweakName = @"Apex";
+NSString * const STKEditingEndedNotificationName = @"STKEditingEnded";
 
 CFStringRef const STKPrefsChangedNotificationName = CFSTR("com.a3tweaks.apex.prefschanged");
 

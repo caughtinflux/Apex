@@ -45,27 +45,15 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 #pragma mark - SBIconController
 %hook SBIconController
-%new
-- (id)youWat
+- (void)setIsEditing:(BOOL)editing
 {
-    SBFolderZoomSettings *settings = [[(SBPrototypeController *)[%c(SBPrototypeController) sharedInstance] rootSettings] rootAnimationSettings].folderOpenSettings;
-    SBRootFolderController *rfc = [self _rootFolderController];
-    SBFolder *folder = [%c(STKSelectionFolder) sharedInstance];
-    SBFolderController *fc = [(SBFolderController *)[%c(SBFolderController) alloc] initWithFolder:folder orientation:[[UIApplication sharedApplication] statusBarOrientation]];
-    SBFolderIconZoomAnimator *animator = [[%c(SBFolderIconZoomAnimator) alloc] initWithOuterController:rfc innerController:fc folderIcon:folder.icon];
-    animator.settings = settings;
-    rfc.innerFolderController = fc;
-
-    SBFAnimationFactory *factoryWhat = [animator centralAnimationFactory];
-    [factoryWhat animateWithDelay:0 animations:^{
-        SBFolderView *folderView = [fc contentView];
-        [self.contentView pushFolderContentView:folderView];
-        [folderView prepareToOpen];
-        folderView.folder.isOpen = YES;
-    } completion:nil];
-
-    return animator;
+    BOOL stoppedEditing = ([self isEditing] && editing == NO);
+    %orig(editing);
+    if (stoppedEditing) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
+    }
 }
+
 %end
 
 #pragma mark - SBIconView

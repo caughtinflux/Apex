@@ -21,7 +21,7 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     if ((self = [super init])) {
         _centralIcon = [icon retain];
         _layout = [layout retain];
-        _observers = [[NSHashTable alloc] initWithOptions:NSHashTableWeakMemory capacity:0];
+        [self _commonInit];
     }
     return self;
 }
@@ -34,9 +34,15 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
         _centralIcon = [[(SBIconModel *)[[CLASS(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:iconID] retain];
         _layout = [[STKGroupLayout alloc] initWithIdentifierDictionary:repr[STKGroupLayoutKey]];
         _lastKnownCoordinate = STKCoordinateFromDictionary(repr[STKGroupCoordinateKey]);
-        _observers = [[NSHashTable alloc] initWithOptions:NSHashTableWeakMemory capacity:0];
+        [self _commonInit];
     }
     return self;
+}
+
+- (void)_commonInit
+{
+    _observers = [[NSHashTable alloc] initWithOptions:NSHashTableWeakMemory capacity:0];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_editingEnded:) name:STKEditingEndedNotificationName object:nil];
 }
 
 - (void)dealloc
@@ -46,6 +52,7 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     [_observers removeAllObjects];
     [_observers release];
     [_centralIcon release];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super dealloc];
 }
 
@@ -154,6 +161,12 @@ notifyObservers:
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
         [obs groupDidFinalizeState:self];
     } forSelector:@selector(groupDidFinalizeState:)];
+}
+
+- (void)_editingEnded:(NSNotification *)notf
+{
+    SBIconCoordinate coord = [STKGroupLayoutHandler coordinateForIcon:_centralIcon];
+    [self relayoutForNewCoordinate:coord];
 }
 
 - (void)addObserver:(id<STKGroupObserver>)observer
