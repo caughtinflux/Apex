@@ -12,6 +12,7 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
 @implementation STKGroup
 {
     STKGroupLayout *_layout;
+    STKGroupLayout *_placeholderLayout;
     NSHashTable *_observers;
 }
 
@@ -41,6 +42,7 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
 - (void)dealloc
 {
     [_layout release];
+    [_placeholderLayout release];
     [_observers removeAllObjects];
     [_observers release];
     [_centralIcon release];
@@ -66,6 +68,11 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     };
 }
 
+- (BOOL)hasPlaceholders
+{
+    return !!(_placeholderLayout);
+}
+
 - (BOOL)empty
 {
     return (_state == STKGroupStateEmpty);
@@ -81,11 +88,9 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
         _layout = [[STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:_centralIcon]] retain];
     }
     _lastKnownCoordinate = coordinate;
-    for (id<STKGroupObserver> obs in [[_observers objectEnumerator] allObjects]) {
-        if ([obs respondsToSelector:@selector(groupDidRelayout)]) {
-            [obs groupDidRelayout:self];
-        }
-    }
+    [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
+        [obs groupDidRelayout:self];
+    } forSelector:@selector(groupDidRelayout:)];
 }
 
 - (void)replaceIconInSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon
@@ -93,11 +98,9 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     SBIcon *iconToReplace = [[[_layout iconInSlot:slot] retain] autorelease];
     [_layout setIcon:icon inSlot:slot];
     [self _updateState];
-    for (id<STKGroupObserver> obs in [[_observers objectEnumerator] allObjects]) {
-        if ([obs respondsToSelector:@selector(group:didReplaceIcon:inSlot:withIcon:)]) {
-            [obs group:self didReplaceIcon:iconToReplace inSlot:slot withIcon:icon];
-        }
-    }
+    [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
+        [obs group:self didReplaceIcon:iconToReplace inSlot:slot withIcon:icon];
+    } forSelector:@selector(group:didReplaceIcon:inSlot:withIcon:)];
 }
 
 - (void)removeIcon:(SBIcon *)icon
@@ -111,21 +114,36 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     SBIcon *icon = [[[_layout iconInSlot:slot] retain] autorelease];
     [_layout setIcon:nil inSlot:slot];
     [self _updateState];
-    for (id<STKGroupObserver> obs in [[_observers objectEnumerator] allObjects]) {
-        if ([obs respondsToSelector:@selector(group:didRemoveIcon:inSlot:)]) {
-            [obs group:self didRemoveIcon:icon inSlot:slot];
-        }
-    }
+    [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
+        [obs group:self didRemoveIcon:icon inSlot:slot];
+    } forSelector:@selector(group:didRemoveIcon:inSlot:)];
 }
 
 - (void)addPlaceholders
 {
-
+    if (_placeholderLayout) {
+        return;
+    }
+    _state = STKGroupStateDirty;
+    _placeholderLayout = [[STKGroupLayoutHandler placeholderLayoutForGroup:self] retain];
+    for (STKLayoutPosition pos = STKPositionTop; pos <= STKPositionRight; pos++) {
+        [_layout addIcons:_placeholderLayout[pos] toIconsAtPosition:pos];
+    }
+    [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
+        [obs groupDidAddPlaceholders:self];
+    } forSelector:@selector(groupDidAddPlaceholders:)];
 }
 
 - (void)removePlaceholders
 {
-    
+    for (STKLayoutPosition pos = STKPositionTop; pos <= STKPositionRight; pos++) {
+        [_layout removeIcons:_placeholderLayout[pos] fromIconsAtPosition:pos];
+    }
+    [_placeholderLayout release];
+    _placeholderLayout = nil;
+    [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
+        [obs groupDidRemovePlaceholders:self];
+    } forSelector:@selector(groupDidRemovePlaceholders:)];
 }
 
 - (void)finalizeState
@@ -144,11 +162,10 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     _layout = newLayout;
     _state = STKGroupStateNormal;
 notifyObservers:
-    for (id<STKGroupObserver> obs in [[_observers objectEnumerator] allObjects]) {
-        if ([obs respondsToSelector:@selector(groupDidFinalizeState)]) {
-            [obs groupDidFinalizeState:self];
-        }
-    }
+    
+    [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
+        [obs groupDidFinalizeState:self];
+    } forSelector:@selector(groupDidFinalizeState:)];
 }
 
 - (void)addObserver:(id<STKGroupObserver>)observer
@@ -166,7 +183,7 @@ notifyObservers:
     NSUInteger emptyIconCount = 0;
     NSUInteger realIconCount = 0;
     for (SBIcon *icon in _layout) {
-        if ([icon isEmptyPlaceholder]) {
+        if ([icon isEmptyPlaceholder] || [icon isPlaceholder]) {
             emptyIconCount++;
         }
         else {
@@ -182,6 +199,15 @@ notifyObservers:
     }
     else {
         _state = STKGroupStateEmpty;
+    }
+}
+
+- (void)_enumerateObserversUsingBlock:(void(^)(id<STKGroupObserver>))block forSelector:(SEL)sel
+{
+    for (id<STKGroupObserver> obs in [[_observers objectEnumerator] allObjects]) {
+        if ([obs respondsToSelector:sel]) {
+            block(obs);
+        }
     }
 }
 

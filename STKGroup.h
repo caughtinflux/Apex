@@ -29,6 +29,7 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
 @property (nonatomic, retain) SBIcon *centralIcon;
 @property (nonatomic, readonly) STKGroupLayout *layout;
 @property (nonatomic, readonly) NSDictionary *dictionaryRepresentation;
+@property (nonatomic, readonly) BOOL hasPlaceholders;
 @property (nonatomic, assign) SBIconCoordinate lastKnownCoordinate;
 @property (nonatomic, readonly) BOOL empty;
 @property (nonatomic, assign) STKGroupState state;
@@ -54,5 +55,8 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
 - (void)group:(STKGroup *)group didRemoveIcon:(SBIcon *)icon inSlot:(STKGroupSlot)slot;
 - (void)group:(STKGroup *)group didReplaceIcon:(SBIcon *)replacedIcon inSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
 - (void)groupDidRelayout:(STKGroup *)group;
+- (void)groupDidAddPlaceholders:(STKGroup *)group;
+- (void)groupDidRemovePlaceholders:(STKGroup *)group;
 - (void)groupDidFinalizeState:(STKGroup *)group;
 @end
+
