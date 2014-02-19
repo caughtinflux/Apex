@@ -8,7 +8,7 @@
     UITapGestureRecognizer *_closeTapRecognizer;
     SBScaleIconZoomAnimator *_zoomAnimator;
     STKSelectionView *_selectionView;
-    BOOL _openGroupIsEditing;
+    STKGroupSlot _selectionSlot;
 }
 
 + (instancetype)sharedController
@@ -44,7 +44,7 @@
         [groupView.group relayoutForNewCoordinate:currentCoordinate];
     }
     else {
-        STKGroup *group = [[STKPreferences preferences] groupForIcon:iconView.icon];
+        STKGroup *group = [[STKPreferences sharedPreferences] groupForIcon:iconView.icon];
         if (!group) {
             group = [self _groupWithEmptySlotsForIcon:iconView.icon];
         }
@@ -65,6 +65,7 @@
     STKGroupLayout *slotLayout = [STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:icon]];
     STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icon layout:slotLayout];
     group.state = STKGroupStateEmpty;
+    [group addObserver:[STKPreferences sharedPreferences]];
     return [group autorelease];
 }
 
@@ -72,24 +73,6 @@
 {
     SBFolderController *currentFolderController = [[CLASS(SBIconController) sharedInstance] _currentFolderController];
     return [currentFolderController.contentView scrollView];
-}
-
-- (void)_closeOpenGroupView
-{
-    if (_selectionView) {
-        [UIView animateWithDuration:0.25f animations:^{
-            _selectionView.alpha = 0.f;
-        }];
-        [_zoomAnimator animateToFraction:0.f afterDelay:0 withCompletion:^{
-            [_selectionView removeFromSuperview];
-            [_selectionView release];
-            _selectionView = nil;
-        }];
-    }
-    else {
-        [_openGroupView close];
-        [self _removeCloseGestureRecognizers];
-    }
 }
 
 - (void)_addCloseGestureRecognizers
@@ -105,6 +88,69 @@
     [_closeSwipeRecognizer.view removeGestureRecognizer:_closeSwipeRecognizer];
 }
 
+- (void)_closeOpenGroupView
+{
+    if (_selectionView) {
+        [self _closeSelectionView];
+    }
+    else if ([_openGroupView.group hasPlaceholders]) {
+        [_openGroupView.group removePlaceholders];
+    }
+    else {
+        [_openGroupView close];
+    }
+}
+
+- (void)_showSelectionViewForIconView:(SBIconView *)selectedIconView
+{
+    _selectionSlot = [_openGroupView.subappLayout slotForIcon:selectedIconView];
+
+    SBRootFolderController *rfc = [(SBIconController *)[CLASS(SBIconController) sharedInstance] _rootFolderController];
+    SBScaleZoomSettings *settings = [[[CLASS(SBScaleZoomSettings) alloc] init] autorelease];
+    [settings setDefaultValues];
+
+    SBIconContentView *cv = [(SBIconController *)[CLASS(SBIconController) sharedInstance] contentView];
+    _selectionView = [[[STKSelectionView alloc] initWithFrame:CGRectZero delegate:self] autorelease];
+    _selectionView.center = (CGPoint){(CGRectGetWidth(cv.frame) * 0.5f), (CGRectGetHeight(cv.frame) * 0.5f)};
+    _selectionView.delegate = self;
+    SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
+    NSSet *icons = [model leafIcons];
+    NSMutableArray *availableIcons = [NSMutableArray array];
+    for (SBIcon *icon in icons) {
+        if (icon != selectedIconView.icon && [model isIconVisible:icon]) {
+            [availableIcons addObject:icon];
+        }
+    }
+    _selectionView.iconsForSelection = availableIcons;
+    _selectionView.alpha = 0.0f;
+    [cv addSubview:_selectionView];
+
+    _zoomAnimator = [[CLASS(SBScaleIconZoomAnimator) alloc] initWithFolderController:rfc targetIcon:selectedIconView.icon];    
+    _zoomAnimator.settings = settings;
+    [_zoomAnimator prepare];
+
+    CGSize size = [CLASS(SBFolderBackgroundView) folderBackgroundSize];
+    CGPoint center = _selectionView.center;
+    CGPoint origin = (CGPoint){(center.x - (size.width * 0.5)), (center.y - (size.width * 0.5))};
+    [UIView animateWithDuration:0.25 animations:^{
+        _selectionView.frame = (CGRect){origin, size};
+        _selectionView.alpha = 1.f;
+    }];
+    [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:nil];
+}
+
+- (void)_closeSelectionView
+{
+    [UIView animateWithDuration:0.25f animations:^{
+        _selectionView.alpha = 0.f;
+    }];
+    [_zoomAnimator animateToFraction:0.f afterDelay:0 withCompletion:^{
+        [_selectionView removeFromSuperview];
+        [_selectionView release];
+        _selectionView = nil;
+    }];
+}
+
 #pragma mark - Group View Delegate
 - (BOOL)shouldGroupViewOpen:(STKGroupView *)groupView
 {
@@ -113,13 +159,19 @@
 
 - (BOOL)groupView:(STKGroupView *)groupView shouldRecognizeGesturesSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)recognizer
 {
-    if (recognizer == _closeSwipeRecognizer || recognizer == _closeTapRecognizer) {
-        return NO;
+    BOOL allow = YES;
+    if ([recognizer isKindOfClass:[UISwipeGestureRecognizer class]] || [recognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
+        if (recognizer == _closeSwipeRecognizer || recognizer == _closeTapRecognizer) {
+            allow = NO;
+        }
+        else {
+            NSArray *targets = [recognizer valueForKey:@"_targets"];
+            id target = ((targets.count > 0) ? targets[0] : nil);
+            target = [target valueForKey:@"_target"];
+            allow = (![target isKindOfClass:CLASS(SBSearchScrollView)] && [recognizer.view isKindOfClass:[UIScrollView class]]);
+        }
     }
-    NSArray *targets = [recognizer valueForKey:@"_targets"];
-    id target = ((targets.count > 0) ? targets[0] : nil);
-    target = [target valueForKey:@"_target"];
-    return (![target isKindOfClass:CLASS(SBSearchScrollView)] && [recognizer.view isKindOfClass:[UIScrollView class]]);
+    return allow;
 }
 
 - (void)groupViewWillOpen:(STKGroupView *)groupView
@@ -144,10 +196,9 @@
 
 - (void)groupViewDidClose:(STKGroupView *)groupView
 {
-    if (_openGroupIsEditing) {
-        for (SBIconView *iconView in _openGroupView.subappLayout) {
-            [iconView removeApexOverlay];
-        }
+    if (_openGroupView.group.state == STKGroupStateDirty) {
+        [_openGroupView.group finalizeState];
+        [_openGroupView resetLayouts];
     }
     [self _removeCloseGestureRecognizers];
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
@@ -168,41 +219,11 @@
 
 - (void)iconTapped:(SBIconView *)iconView
 {
-    if (_openGroupIsEditing) {
-        return;
-    }
     EXECUTE_BLOCK_AFTER_DELAY(0.2, ^{
         [iconView setHighlighted:NO];
     });
-    if ([iconView.icon isEmptyPlaceholder]) {
-        SBIcon *icon = iconView.icon;
-        SBRootFolderController *rfc = [(SBIconController *)[CLASS(SBIconController) sharedInstance] _rootFolderController];
-        _zoomAnimator = [[CLASS(SBScaleIconZoomAnimator) alloc] initWithFolderController:rfc targetIcon:icon];
-        SBScaleZoomSettings *settings = [[[CLASS(SBScaleZoomSettings) alloc] init] autorelease];
-        [settings setDefaultValues];
-        _zoomAnimator.settings = settings;
-        [_zoomAnimator prepare];
-
-        [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:^{
-            SBIconContentView *cv = [(SBIconController *)[CLASS(SBIconController) sharedInstance] contentView];
-            _selectionView = [[[STKSelectionView alloc] initWithFrame:CGRectZero delegate:self] autorelease];
-            _selectionView.center = (CGPoint){(CGRectGetWidth(cv.frame) * 0.5f), (CGRectGetHeight(cv.frame) * 0.5f)};
-            _selectionView.delegate = self;
-            [UIView animateWithDuration:0.25 animations:^{
-                CGRect endFrame = (CGRect){{0.f, 0.f}, [CLASS(SBFolderBackgroundView) folderBackgroundSize]};
-                _selectionView.frame = endFrame;
-                _selectionView.center = (CGPoint){(CGRectGetWidth(cv.frame) * 0.5f), (CGRectGetHeight(cv.frame) * 0.5f)};
-            }];
-            NSSet *icons = [[(SBIconController *)[CLASS(SBIconController) sharedInstance] model] leafIcons];
-            NSMutableArray *availableIcons = [NSMutableArray array];
-            for (SBIcon *icon in icons) {
-                if ([[(SBIconController *)[CLASS(SBIconController) sharedInstance] model] isIconVisible:icon]) {
-                    [availableIcons addObject:icon];
-                }
-            }
-            _selectionView.iconsForSelection = availableIcons;
-            [cv addSubview:_selectionView];
-        }];
+    if (iconView.apexOverlayView) {
+        [self _showSelectionViewForIconView:iconView];
     }
     else {
         [iconView.icon launchFromLocation:SBIconLocationHomeScreen];        
@@ -226,14 +247,11 @@
 
 - (void)iconHandleLongPress:(SBIconView *)iconView
 {
-    if ([iconView.icon isEmptyPlaceholder] || _openGroupView == nil) {
+    if ([iconView.icon isEmptyPlaceholder] || [iconView.icon isPlaceholder]) {
         return;
     }
     [iconView setHighlighted:NO];
-    for (SBIconView *iconView in _openGroupView.subappLayout) {
-        [iconView showApexOverlayOfType:STKOverlayTypeEditing];
-    }
-    _openGroupIsEditing = YES;
+    [[iconView containerGroupView].group addPlaceholders]; 
 }
 
 - (void)iconTouchBegan:(SBIconView *)iconView
@@ -256,7 +274,9 @@
 #pragma mark - Icon Selection
 - (void)selectionView:(STKSelectionView *)selectionView didSelectIconView:(SBIconView *)iconView
 {
-    
+    [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:iconView.icon];
+    [_openGroupView.group addPlaceholders];
+    [self _closeSelectionView];
 }
 
 @end
