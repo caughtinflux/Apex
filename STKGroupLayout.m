@@ -2,11 +2,11 @@
 #import <objc/runtime.h>
 #import <SpringBoard/SpringBoard.h>
 
-NSString * const STKPositionTopKey = @"STKPositionTop";
-NSString * const STKPositionBottomKey = @"STKPositionBottom";
-NSString * const STKPositionLeftKey = @"STKPositionLeft";
-NSString * const STKPositionRightKey = @"STKPositionRight";
-NSString * const STKPositionUnknownKey = @"STKPositionUnknown";
+NSString * const STKPositionTopKey = @"top";
+NSString * const STKPositionBottomKey = @"bottom";
+NSString * const STKPositionLeftKey = @"left";
+NSString * const STKPositionRightKey = @"right";
+NSString * const STKPositionUnknownKey = @"unknown";
 
 NSString * NSStringFromLayoutPosition(STKLayoutPosition position)
 {
@@ -46,11 +46,6 @@ static STKLayoutPosition _PositionFromString(NSString *string)
 @implementation STKGroupLayout
 {
     NSMutableArray *_topIcons, *_bottomIcons, *_leftIcons, *_rightIcons, *_unknownIcons;
-}
-
-+ (NSArray *)allPositions
-{
-    return @[TONUM(STKPositionTop), TONUM(STKPositionBottom), TONUM(STKPositionRight), TONUM(STKPositionLeft)];
 }
 
 // Init using dictionary of an array of identifiers for every layout position

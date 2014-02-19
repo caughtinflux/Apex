@@ -25,23 +25,9 @@
 			<key>default</key>
 			<true/>
 			<key>key</key>
-			<string>STKStackPreviewEnabled</string>
+			<string>previewEnabled</string>
 			<key>label</key>
 			<string>SHOW_PREVIEW</string>
-			<key>defaults</key>
-			<string>com.a3tweaks.Apex</string>
-			<key>PostNotification</key>
-			<string>com.a3tweaks.apex.prefschanged</string>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSSwitchCell</string>
-			<key>default</key>
-			<true/>
-			<key>key</key>
-			<string>STKShowSectionTitles</string>
-			<key>label</key>
-			<string>ALPHABETIC_SCROLL</string>
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>PostNotification</key>
@@ -64,7 +50,7 @@
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>key</key>
-			<string>STKStackClosesOnLaunch</string>
+			<string>closeOnLaunch</string>
 			<key>label</key>
 			<string>CLOSE_ON_LAUNCH</string>
 			<key>defaults</key>
@@ -80,7 +66,7 @@
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>key</key>
-			<string>STKLockLayouts</string>
+			<string>lockLayouts</string>
 			<key>label</key>
 			<string>LOCK_LAYOUTS</string>
 			<key>defaults</key>
@@ -96,7 +82,7 @@
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>key</key>
-			<string>STKShowSummedBadges</string>
+			<string>summedBadges</string>
 			<key>label</key>
 			<string>SUMMED_BADGES</string>
 			<key>defaults</key>
@@ -116,7 +102,7 @@
             <key>valuesDataSource</key>
             <string>activationModeValues</string>
             <key>key</key>
-            <string>STKActivationMode</string>
+            <string>activationMode</string>
             <key>staticTextMessage</key>
             <string></string>
             <key>default</key>
@@ -162,7 +148,7 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>© 2013 Aditya KD and Newar Choukeir</string>
+			<string>© 2014 Aditya KD and Newar Choukeir</string>
 		</dict>
 
 	</array>

@@ -15,8 +15,6 @@ extern NSString * NSStringFromLayoutPosition(STKLayoutPosition position);
 @class SBIcon;
 @interface STKGroupLayout : NSObject <NSFastEnumeration>
 
-+ (NSArray *)allPositions;
-
 // Init using dictionary of an array of identifiers for every layout position.
 - (instancetype)initWithIdentifierDictionary:(NSDictionary *)dictionary;
 // Init using dictionary of an array of icons for every layout position

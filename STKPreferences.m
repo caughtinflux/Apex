@@ -1,12 +1,12 @@
 #import "STKPreferences.h"
 
-static NSString * const ActivationModeKey   = @"STKActivationMode";
-static NSString * const ShowPreviewKey      = @"STKShowPreview";
-static NSString * const GroupStateKey       = @"STKGroupState";
-static NSString * const ClosesOnLaunchKey   = @"STKStackClosesOnLaunch";
-static NSString * const LockLayoutsKey      = @"STKLockLayouts";
-static NSString * const ShowSummedBadgesKey = @"STKShowSummedBadges";
-static NSString * const CentralIconKey      = @"STKCentralIcon";
+static NSString * const ActivationModeKey   = @"activationMode";
+static NSString * const ShowPreviewKey      = @"preview";
+static NSString * const GroupStateKey       = @"state";
+static NSString * const ClosesOnLaunchKey   = @"closeOnLaunch";
+static NSString * const LockLayoutsKey      = @"lockLayouts";
+static NSString * const ShowSummedBadgesKey = @"summedBadges";
+static NSString * const CentralIconKey      = @"centralIcon";
 
 #define GETBOOL(_key, _default) (_preferences[_key] ? [_preferences[_key] boolValue] : _default)
 
@@ -33,13 +33,15 @@ static NSString * const CentralIconKey      = @"STKCentralIcon";
     [_preferences release];
     _preferences = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath] ?: [NSMutableDictionary new];
     NSDictionary *iconState = _preferences[GroupStateKey];
+    NSMutableArray *groupArray = [NSMutableArray array];
     for (NSString *iconID in [iconState allKeys]) {
         @autoreleasepool {
             NSDictionary *groupRepr = iconState[iconID];
             STKGroup *group = [[[STKGroup alloc] initWithDictionary:groupRepr] autorelease];
-            [self addOrUpdateGroup:group];
+            [groupArray addObject:group];
         }
     }
+    [self _addOrUpdateGroups:groupArray];
 }
 
 - (void)_synchronize
@@ -56,6 +58,17 @@ static NSString * const CentralIconKey      = @"STKCentralIcon";
     }
     _groups[group.centralIcon.leafIdentifier] = group;
     [self _synchronize];
+}
+
+- (void)_addOrUpdateGroups:(NSArray *)groupArray
+{
+    if (!_groups) {
+        _groups = [NSMutableDictionary new];
+    }
+    for (STKGroup *group in groupArray) {
+        _groups[group.centralIcon.leafIdentifier] = group;
+    }
+    [self _synchronize];   
 }
 
 - (void)removeGroup:(STKGroup *)group

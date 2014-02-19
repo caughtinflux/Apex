@@ -5,9 +5,9 @@
 #import <UIKit/UIKit.h>
 #import <SpringBoard/SpringBoard.h>
 
-NSString * const STKGroupCentralIconKey = @"STKGroupCentralIcon";
-NSString * const STKGroupLayoutKey      = @"STKGroupLayout";
-NSString * const STKGroupCoordinateKey  = @"STKLastKnownCoordinate";
+NSString * const STKGroupCentralIconKey = @"centralIcon";
+NSString * const STKGroupLayoutKey      = @"layout";
+NSString * const STKGroupCoordinateKey  = @"coordinate";
 
 @implementation STKGroup
 {
