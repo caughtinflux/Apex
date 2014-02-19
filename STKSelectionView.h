@@ -8,6 +8,7 @@
 
 @property (nonatomic, assign) id<STKSelectionViewDelegate> delegate;
 @property (nonatomic, copy) NSArray *iconsForSelection;
+@property (nonatomic, readonly) UIView *contentView;
 
 @end
 

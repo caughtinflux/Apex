@@ -8,6 +8,7 @@
 @implementation STKSelectionView
 {
     UICollectionView *_collectionView;
+    SBFolderBackgroundView *_backgroundView;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame delegate:(id<STKSelectionViewDelegate>)delegate;
@@ -27,8 +28,9 @@
         self.autoresizingMask = _collectionView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
         [_collectionView registerClass:[STKSelectionViewCell class] forCellWithReuseIdentifier:kCellReuseIdentifier];
 
-        SBFolderBackgroundView *backgroundView = [[CLASS(SBFolderBackgroundView) alloc] initWithFrame:self.bounds];
-        _collectionView.backgroundView = [backgroundView autorelease];
+        _backgroundView = [[CLASS(SBFolderBackgroundView) alloc] initWithFrame:self.bounds];
+        [self addSubview:_backgroundView];
+        _collectionView.backgroundView = [[[UIView alloc] initWithFrame:CGRectZero] autorelease];
 
         [self addSubview:_collectionView];
         _delegate = delegate;
@@ -39,6 +41,16 @@
 - (instancetype)initWithFrame:(CGRect)frame
 {
     return [self initWithFrame:frame delegate:nil];
+}
+
+- (void)layoutSubviews
+{
+    _backgroundView.frame = self.bounds;
+}
+
+- (UIView *)contentView
+{
+    return _collectionView;
 }
 
 - (void)setIconsForSelection:(NSArray *)icons
