@@ -6,7 +6,7 @@
     STKGroupView *_openGroupView;
     UISwipeGestureRecognizer *_closeSwipeRecognizer;
     UITapGestureRecognizer *_closeTapRecognizer;
-    SBScaleIconZoomAnimator *_zoomAnimator;
+    STKGroupSelectionAnimator *_selectionAnimator;
     STKSelectionView *_selectionView;
     STKGroupSlot _selectionSlot;
 }
@@ -104,14 +104,7 @@
 - (void)_showSelectionViewForIconView:(SBIconView *)selectedIconView
 {
     _selectionSlot = [_openGroupView.subappLayout slotForIcon:selectedIconView];
-
-    SBRootFolderController *rfc = [(SBIconController *)[CLASS(SBIconController) sharedInstance] _rootFolderController];
-    SBScaleZoomSettings *settings = [[[CLASS(SBScaleZoomSettings) alloc] init] autorelease];
-    [settings setDefaultValues];
-
-    SBIconContentView *cv = [(SBIconController *)[CLASS(SBIconController) sharedInstance] contentView];
     _selectionView = [[[STKSelectionView alloc] initWithFrame:CGRectZero delegate:self] autorelease];
-    _selectionView.center = (CGPoint){(CGRectGetWidth(cv.frame) * 0.5f), (CGRectGetHeight(cv.frame) * 0.5f)};
     _selectionView.delegate = self;
     SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
     NSSet *icons = [model leafIcons];
@@ -122,32 +115,18 @@
         }
     }
     _selectionView.iconsForSelection = availableIcons;
-    _selectionView.alpha = 0.0f;
-    [cv addSubview:_selectionView];
-
-    _zoomAnimator = [[CLASS(SBScaleIconZoomAnimator) alloc] initWithFolderController:rfc targetIcon:selectedIconView.icon];    
-    _zoomAnimator.settings = settings;
-    [_zoomAnimator prepare];
-
-    CGSize size = [CLASS(SBFolderBackgroundView) folderBackgroundSize];
-    CGPoint center = _selectionView.center;
-    CGPoint origin = (CGPoint){(center.x - (size.width * 0.5)), (center.y - (size.width * 0.5))};
-    [UIView animateWithDuration:0.25 animations:^{
-        _selectionView.frame = (CGRect){origin, size};
-        _selectionView.alpha = 1.f;
-    }];
-    [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:nil];
+    _selectionAnimator = [[STKGroupSelectionAnimator alloc] initWithSelectionView:_selectionView iconView:selectedIconView];
+    [_selectionAnimator openSelectionViewAnimatedWithCompletion:nil];
 }
 
 - (void)_closeSelectionView
 {
-    [UIView animateWithDuration:0.25f animations:^{
-        _selectionView.alpha = 0.f;
-    }];
-    [_zoomAnimator animateToFraction:0.f afterDelay:0 withCompletion:^{
+    [_selectionAnimator closeSelectionViewAnimatedWithCompletion:^{
         [_selectionView removeFromSuperview];
         [_selectionView release];
         _selectionView = nil;
+        [_selectionAnimator release];
+        _selectionAnimator = nil;
     }];
 }
 

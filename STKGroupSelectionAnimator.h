@@ -5,7 +5,9 @@ typedef void (^STKAnimatorCompletion)(void);
 @class SBIconView, STKSelectionView;
 @interface STKGroupSelectionAnimator : NSObject
 
-- (void)openSelectionViewAnimated:(STKSelectionView *)selectionView onIconView:(SBIconView *)iconView withCompletion:(STKAnimatorCompletion)completion;
+- (instancetype)initWithSelectionView:(STKSelectionView *)selectionView iconView:(SBIconView *)iconView;
+
+- (void)openSelectionViewAnimatedWithCompletion:(STKAnimatorCompletion)completion;
 - (void)closeSelectionViewAnimatedWithCompletion:(STKAnimatorCompletion)completion;
 
 @end
