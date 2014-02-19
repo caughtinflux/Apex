@@ -56,7 +56,7 @@
     cornerRadiusAnim.toValue = @0;
     cornerRadiusAnim.duration = duration;    
     [UIView animateWithDuration:duration animations:^{
-        [[CLASS(SBIconController) sharedInstance] currentRootIconList].hidden = YES;
+        [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 0.f;
         _selectionView.frame = _endFrame;
         _selectionView.contentView.alpha = 1.f;
     }];
@@ -74,7 +74,7 @@
     _zoomAnimator.settings = [[CLASS(SBPrototypeController) sharedInstance] rootSettings].rootAnimationSettings.folderCloseSettings;
     double duration = _zoomAnimator.settings.outerFolderFadeSettings.duration;
     [UIView animateWithDuration:duration delay:0.0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
-        [[CLASS(SBIconController) sharedInstance] currentRootIconList].hidden = NO;
+        [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 1.f;
         _selectionView.alpha = 0.f;
     } completion:nil];
     [_zoomAnimator animateToFraction:0.f afterDelay:0 withCompletion:^{
