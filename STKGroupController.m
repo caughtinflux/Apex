@@ -170,6 +170,7 @@
 
 - (void)groupViewWillClose:(STKGroupView *)groupView
 {
+    [groupView.group removePlaceholders];
     [self _currentScrollView].scrollEnabled = YES;
 }
 
@@ -177,7 +178,6 @@
 {
     if (_openGroupView.group.state == STKGroupStateDirty) {
         [_openGroupView.group finalizeState];
-        [_openGroupView resetLayouts];
     }
     [self _removeCloseGestureRecognizers];
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
@@ -230,7 +230,9 @@
         return;
     }
     [iconView setHighlighted:NO];
-    [[iconView containerGroupView].group addPlaceholders]; 
+    [[iconView containerGroupView].group addPlaceholders];
+    iconView.userInteractionEnabled = NO;
+    iconView.userInteractionEnabled = YES;
 }
 
 - (void)iconTouchBegan:(SBIconView *)iconView

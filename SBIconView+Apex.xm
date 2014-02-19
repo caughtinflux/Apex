@@ -155,11 +155,8 @@
 - (void)setIcon:(SBIcon *)icon
 {
     %orig(icon);
-    if ([icon isKindOfClass:CLASS(STKEmptyIcon)]) {
+    if ([icon isKindOfClass:CLASS(STKEmptyIcon)] || [icon isKindOfClass:CLASS(STKPlaceholderIcon)]) {
         [self showApexOverlayOfType:STKOverlayTypeEmpty];   
-    }
-    else if ([icon isKindOfClass:CLASS(STKPlaceholderIcon)]) {
-        [self showApexOverlayOfType:STKOverlayTypeEditing];
     }
     else {
         [self removeApexOverlay];

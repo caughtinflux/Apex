@@ -45,7 +45,7 @@ extern NSString * NSStringFromLayoutPosition(STKLayoutPosition position);
 - (void)addIcons:(NSArray *)icons toIconsAtPosition:(STKLayoutPosition)position;
 - (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position;
 - (void)addIcon:(id)icon toIconsAtPosition:(STKLayoutPosition)position atIndex:(NSUInteger)idx;
-
+;
 - (void)removeIcon:(id)icon fromIconsAtPosition:(STKLayoutPosition)position;
 - (void)removeIcons:(NSArray *)icons fromIconsAtPosition:(STKLayoutPosition)position;
 

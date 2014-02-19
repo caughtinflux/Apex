@@ -26,6 +26,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     SBIconView *_centralIconView;
     STKGroupLayout *_subappLayout;
     STKGroupLayout *_displacedIconLayout;
+    NSSet *_iconsHiddenForPlaceholders;
 
     UIPanGestureRecognizer *_panRecognizer;
     UITapGestureRecognizer *_tapRecognizer;
@@ -95,9 +96,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)resetLayouts
 {
-    for (id view in self.subviews) {
-        [view removeFromSuperview];
-    }
+    [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];   
     [_subappLayout release];
     _subappLayout = nil;
     [_displacedIconLayout release];
@@ -151,7 +150,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_configureSubappViews
 {
-    if (_group.empty) {
+    if (_group.state == STKGroupStateEmpty) {
         return;
     }
     [self _reallyConfigureSubappViews];
@@ -169,7 +168,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         iconView.icon = icon;
         iconView.delegate = self.delegate;
         [_subappLayout addIcon:iconView toIconsAtPosition:pos];
-        [self _setAlpha:0.f forLabelOfIconView:iconView];
+        [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
         [self addSubview:iconView];
     }];
     if ([_centralIconView isInDock]) {
@@ -242,7 +241,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if (_delegateFlags.willOpen) {
                 [self.delegate groupViewWillOpen:self];
             }
-            if (_group.empty && !_subappLayout) {
+            if (_group.empty || !_subappLayout) {
                 [self _reallyConfigureSubappViews];
             }
             _targetDistance = [self _updatedTargetDistance];
@@ -262,7 +261,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 realOffset = MIN(fabsf(realOffset), 1.0f);
             }
             [self _moveAllIconsToOffset:offset performingBlockOnSubApps:^(SBIconView *iconView) {
-                [self _setAlpha:realOffset forLabelOfIconView:iconView];
+                [self _setAlpha:realOffset forBadgeAndLabelOfIconView:iconView];
             }];
             [self _setAlphaForOtherIcons:(1.2 - realOffset)];
             if ([_centralIconView isInDock]) {
@@ -424,7 +423,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                     }
                     dest;
                 });
-                [self _setAlpha:1.f forLabelOfIconView:iconView];
+                [self _setAlpha:1.f forBadgeAndLabelOfIconView:iconView];
                 [UIView performWithoutAnimation:^{
                     iconView.layer.position = [iconView.layer.presentationLayer position];
                 }];
@@ -487,7 +486,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self _setAlphaForOtherIcons:1.f];
         [_subappLayout enumerateIconsUsingBlockWithIndexes:
             ^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
-                [self _setAlpha:0.f forLabelOfIconView:iconView];
+                [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
                 [UIView performWithoutAnimation:^{
                     iconView.layer.position = [iconView.layer.presentationLayer position];
                 }];
@@ -615,7 +614,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         }
         SBIconView *view = [listView viewForIcon:icon];
         view.alpha = alpha;
-        [self _setAlpha:alpha forLabelOfIconView:[listView viewForIcon:icon]];
+        [self _setAlpha:alpha forBadgeAndLabelOfIconView:[listView viewForIcon:icon]];
     };
     SBIconController *controller = [CLASS(SBIconController) sharedInstance];
     SBIconListView *currentListView = [controller currentRootIconList];
@@ -628,9 +627,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
 }
 
-- (void)_setAlpha:(CGFloat)alpha forLabelOfIconView:(SBIconView *)iconView
+- (void)_setAlpha:(CGFloat)alpha forBadgeAndLabelOfIconView:(SBIconView *)iconView
 {
     UIView *view = [iconView valueForKey:@"_labelView"];
+    iconView.iconAccessoryAlpha = alpha;
     view.alpha = alpha;
 }
 
@@ -659,9 +659,88 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self resetLayouts];
 }
 
-- (void)group:(STKGroup *)group didReplaceIcon:(SBIcon *)replacedIcon inSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon
+- (void)group:(STKGroup *)group replacedIcon:(SBIcon *)replacedIcon inSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon
 {
     [(SBIconView *)_subappLayout[slot.position][slot.index] setIcon:icon];
+}
+
+- (void)groupDidAddPlaceholders:(STKGroupView *)groupView
+{
+    [UIView animateWithDuration:0.15 animations:^{
+        [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
+            if ([icon isPlaceholder]) {
+                Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
+                SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
+                iconView.frame = (CGRect){CGPointZero, iconView.frame.size};
+                iconView.layer.position = [self _targetPositionForSubappSlot:(STKGroupSlot){pos, idx}];
+                iconView.icon = icon;
+                iconView.delegate = self.delegate;
+                [_subappLayout addIcon:iconView toIconsAtPosition:pos];
+                [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
+                [self addSubview:iconView];
+            }
+            else if ([icon isLeafIcon]) {
+                SBIconView *iconView = _subappLayout[pos][idx];
+                [iconView showApexOverlayOfType:STKOverlayTypeEditing];
+            }
+        }];
+        [self _hideIconsForPlaceholders];
+    }];
+}
+
+- (void)groupWillRemovePlaceholders:(STKGroup *)group
+{
+    NSMutableArray *viewsToRemove = [NSMutableArray array];
+    [UIView animateWithDuration:0.15 animations:^{
+        [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
+            SBIconView *iconView = _subappLayout[pos][idx];
+            if ([icon isPlaceholder]) {
+                [viewsToRemove addObject:iconView];
+                [iconView removeFromSuperview];
+            }
+            else if ([iconView.icon isLeafIcon]) {
+                [iconView removeApexOverlay];
+            }
+        }];
+        [self _unhideIconsForPlaceholders];
+    }];
+    for (SBIconView *view in viewsToRemove) {
+        [_subappLayout removeIcon:view fromIconsAtPosition:[_subappLayout slotForIcon:view].position];
+    }
+}
+
+- (void)groupDidFinalizeState:(STKGroup *)group
+{
+    [self resetLayouts];
+}
+
+- (void)_hideIconsForPlaceholders
+{
+    _iconsHiddenForPlaceholders = [[NSMutableSet alloc] initWithCapacity:4];
+    SBIconListView *listView = [[CLASS(SBIconController) sharedInstance] currentRootIconList];
+    for (SBIconView *iconView in _subappLayout) {
+        if (![iconView.icon isPlaceholder]) {
+            continue;
+        }
+        CGRect frame = [iconView.superview convertRect:iconView.frame toView:listView];
+        for (SBIcon *icon in [listView icons]) {
+            SBIconView *otherView = [listView viewForIcon:icon];
+            if ((otherView != _centralIconView) && (otherView != iconView) && (CGRectIntersectsRect(frame, otherView.frame))) {
+                [(NSMutableSet *)_iconsHiddenForPlaceholders addObject:otherView];
+                otherView.alpha = 0.f;
+                break;
+            }
+        }
+    }
+}
+
+- (void)_unhideIconsForPlaceholders
+{
+    for (SBIconView *iconView in _iconsHiddenForPlaceholders) {
+        iconView.alpha = 0.2f;
+    }
+    [_iconsHiddenForPlaceholders release];
+    _iconsHiddenForPlaceholders = nil;
 }
 
 @end

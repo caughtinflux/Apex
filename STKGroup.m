@@ -99,36 +99,21 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     [_layout setIcon:icon inSlot:slot];
     [self _updateState];
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
-        [obs group:self didReplaceIcon:iconToReplace inSlot:slot withIcon:icon];
-    } forSelector:@selector(group:didReplaceIcon:inSlot:withIcon:)];
-}
-
-- (void)removeIcon:(SBIcon *)icon
-{
-    STKGroupSlot slot = [_layout slotForIcon:icon];
-    [self removeIconInSlot:slot];
-}
-
-- (void)removeIconInSlot:(STKGroupSlot)slot
-{
-    SBIcon *icon = [[[_layout iconInSlot:slot] retain] autorelease];
-    [_layout setIcon:nil inSlot:slot];
-    [self _updateState];
-    [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
-        [obs group:self didRemoveIcon:icon inSlot:slot];
-    } forSelector:@selector(group:didRemoveIcon:inSlot:)];
+        [obs group:self replacedIcon:iconToReplace inSlot:slot withIcon:icon];
+    } forSelector:@selector(group:replacedIcon:inSlot:withIcon:)];
 }
 
 - (void)addPlaceholders
 {
     if (_placeholderLayout) {
-        return;
+        goto notifyObs;
     }
     _state = STKGroupStateDirty;
     _placeholderLayout = [[STKGroupLayoutHandler placeholderLayoutForGroup:self] retain];
     for (STKLayoutPosition pos = STKPositionTop; pos <= STKPositionRight; pos++) {
         [_layout addIcons:_placeholderLayout[pos] toIconsAtPosition:pos];
     }
+notifyObs:
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
         [obs groupDidAddPlaceholders:self];
     } forSelector:@selector(groupDidAddPlaceholders:)];
@@ -136,6 +121,9 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
 
 - (void)removePlaceholders
 {
+    [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
+        [obs groupWillRemovePlaceholders:self];
+    } forSelector:@selector(groupWillRemovePlaceholders:)];
     for (STKLayoutPosition pos = STKPositionTop; pos <= STKPositionRight; pos++) {
         [_layout removeIcons:_placeholderLayout[pos] fromIconsAtPosition:pos];
     }
@@ -161,8 +149,8 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     [_layout release];
     _layout = newLayout;
     _state = STKGroupStateNormal;
+
 notifyObservers:
-    
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
         [obs groupDidFinalizeState:self];
     } forSelector:@selector(groupDidFinalizeState:)];

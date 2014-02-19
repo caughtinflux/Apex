@@ -38,8 +38,6 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
 // Relayouts if `coordinate` != `lastKnownCoordinate`
 
 - (void)replaceIconInSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
-- (void)removeIconInSlot:(STKGroupSlot)slot;
-- (void)removeIcon:(SBIcon *)icon;
 
 - (void)addPlaceholders;
 - (void)removePlaceholders;
@@ -52,10 +50,11 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
 
 @protocol STKGroupObserver <NSObject>
 @optional
-- (void)group:(STKGroup *)group didRemoveIcon:(SBIcon *)icon inSlot:(STKGroupSlot)slot;
-- (void)group:(STKGroup *)group didReplaceIcon:(SBIcon *)replacedIcon inSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
+- (void)group:(STKGroup *)group removedIcon:(SBIcon *)icon inSlot:(STKGroupSlot)slot;
+- (void)group:(STKGroup *)group replacedIcon:(SBIcon *)replacedIcon inSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
 - (void)groupDidRelayout:(STKGroup *)group;
 - (void)groupDidAddPlaceholders:(STKGroup *)group;
+- (void)groupWillRemovePlaceholders:(STKGroup *)group;
 - (void)groupDidRemovePlaceholders:(STKGroup *)group;
 - (void)groupDidFinalizeState:(STKGroup *)group;
 @end
