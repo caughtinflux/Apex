@@ -91,8 +91,11 @@ static SBIconListView *_centralIconListView;
     return [self _processLayoutForSymmetry:[STKGroupLayout layoutWithIconsAtTop:topIcons bottom:bottomIcons left:leftIcons right:rightIcons] withLocation:location];
 }
 
-+ (BOOL)layout:(STKGroupLayout *)layout requiresRelayoutForLocation:(STKLocation)location suggestedLayout:(__autoreleasing STKGroupLayout **)outLayout
++ (BOOL)groupRequiresRelayout:(STKGroup *)group suggestedLayout:(__autoreleasing STKGroupLayout **)outLayout;
 {
+    NSParameterAssert(group.centralIcon);
+    STKLocation location = [self locationForIcon:group.centralIcon];
+    STKGroupLayout *layout = group.layout;
     if ((location & STKLocationDock) == STKLocationDock) {
         if (layout.leftIcons.count > 0 || layout.rightIcons.count > 0 || layout.bottomIcons.count > 0) {
             if (outLayout) {
