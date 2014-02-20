@@ -164,6 +164,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
         SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
+        iconView.frame = (CGRect){CGPointZero, iconView.frame.size};
         iconView.icon = icon;
         iconView.delegate = self.delegate;
         [_subappLayout addIcon:iconView toIconsAtPosition:pos];
@@ -328,15 +329,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         if (!iconView) {
             return;
         }
-        UIBezierPath *path = ({
-            UIBezierPath *path = [self _cachedPathForIcon:iconView.icon];
-            if (!path) {
-                target = [self _pointByApplyingBandingToPoint:target withPosition:position];
-                path = [self _pathForIconToPoint:target fromIconView:iconView isSubapp:isSubapp];
-                [self _cachePath:path forIcon:iconView.icon];
-            }
-            path;
-        });
+        UIBezierPath *path = [self _cachedPathForIcon:iconView.icon];
+        if (!path) {
+            target = [self _pointByApplyingBandingToPoint:target withPosition:position];
+            path = [self _pathForIconToPoint:target fromIconView:iconView isSubapp:isSubapp];
+            [self _cachePath:path forIcon:iconView.icon];
+        }
         CAKeyframeAnimation *animation = [self _defaultAnimation];
         animation.path = path.CGPath;
         animation.timeOffset = timeOffset;
