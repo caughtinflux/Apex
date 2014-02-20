@@ -37,6 +37,9 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
 - (void)relayoutForNewCoordinate:(SBIconCoordinate)coordinate;
 // Relayouts if `coordinate` != `lastKnownCoordinate`
 
+- (void)forceRelayout;
+// Relayouts because YOLO
+
 - (void)replaceIconInSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
 
 - (void)addPlaceholders;

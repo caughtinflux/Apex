@@ -5,6 +5,10 @@
 
 + (instancetype)sharedPreferences;
 
+@property (nonatomic, readonly) STKActivationMode activationMode;
+@property (nonatomic, readonly) BOOL shouldLockLayouts;
+@property (nonatomic, readonly) BOOL shouldShowhowPreview;
+
 - (void)addOrUpdateGroup:(STKGroup *)group;
 - (void)removeGroup:(STKGroup *)group;
 

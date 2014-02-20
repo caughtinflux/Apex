@@ -14,7 +14,7 @@ static NSString * const CentralIconKey      = @"centralIcon";
 {
     NSMutableDictionary *_preferences;
     NSMutableDictionary *_groups;
-    NSMutableSet *_subappIcons;
+    NSMutableDictionary *_subappToCentralMap;
 }
 
 + (instancetype)sharedPreferences
@@ -32,9 +32,9 @@ static NSString * const CentralIconKey      = @"centralIcon";
 {
     [_preferences release];
     [_groups release];
-    [_subappIcons release];
+    [_subappToCentralMap release];
+    _subappToCentralMap = nil;
     _groups = nil;
-    _subappIcons = nil;
 
     _preferences = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath] ?: [NSMutableDictionary new];
     NSDictionary *iconState = _preferences[GroupStateKey];
@@ -45,7 +45,6 @@ static NSString * const CentralIconKey      = @"centralIcon";
             STKGroup *group = [[[STKGroup alloc] initWithDictionary:groupRepr] autorelease];
             if (group.centralIcon) {
                 [groupArray addObject:group];
-                [_subappIcons addObjectsFromArray:[group.layout allIcons]];
                 [group addObserver:self];
             }
         }
@@ -62,14 +61,20 @@ static NSString * const CentralIconKey      = @"centralIcon";
 
 - (void)addOrUpdateGroup:(STKGroup *)group
 {
-    if (!group) {
+    if (!group.centralIcon.leafIdentifier) {
         return;
     }
     if (!_groups) {
         _groups = [NSMutableDictionary new];
     }
-    _groups[group.centralIcon.leafIdentifier] = group;
-    [self _synchronize];
+    if (group.state == STKGroupStateEmpty) {
+        [_groups removeObjectForKey:group.centralIcon.leafIdentifier];
+    }
+    else {
+        _groups[group.centralIcon.leafIdentifier] = group;
+        [self _mapSubappsInGroup:group];
+        [self _synchronize];
+    }
 }
 
 - (void)_addOrUpdateGroups:(NSArray *)groupArray
@@ -79,8 +84,21 @@ static NSString * const CentralIconKey      = @"centralIcon";
     }
     for (STKGroup *group in groupArray) {
         _groups[group.centralIcon.leafIdentifier] = group;
+        [self _mapSubappsInGroup:group];
     }
     [self _synchronize];   
+}
+
+- (void)_mapSubappsInGroup:(STKGroup *)group
+{
+    if (!_subappToCentralMap) {
+        _subappToCentralMap = [NSMutableDictionary new];
+    }
+    for (SBIcon *icon in group.layout) {
+        if ([icon isLeafIcon]) {
+            _subappToCentralMap[icon.leafIdentifier] = group.centralIcon.leafIdentifier;
+        }
+    }
 }
 
 - (void)removeGroup:(STKGroup *)group
@@ -111,6 +129,19 @@ static NSString * const CentralIconKey      = @"centralIcon";
 #pragma mark - STKGroupObserver
 - (void)groupDidFinalizeState:(STKGroup *)group
 {
+    SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
+    for (SBIcon *subappIcon in group.layout) {
+        if (_subappToCentralMap[subappIcon.leafIdentifier]
+            && ![_subappToCentralMap[subappIcon.leafIdentifier] isEqual:group.centralIcon.leafIdentifier]) {
+            // Another group has `subappIcon`, so remove subappIcon from it
+            SBIcon *centralIconForPreviousGroup = [model expectedIconForDisplayIdentifier:_subappToCentralMap[subappIcon.leafIdentifier]];
+            STKGroup *previousGroup = [self groupForIcon:centralIconForPreviousGroup];
+            STKGroupSlot slotForRemovedIcon = [previousGroup.layout slotForIcon:subappIcon];
+            [previousGroup replaceIconInSlot:slotForRemovedIcon withIcon:nil];
+            [previousGroup forceRelayout];
+            [self addOrUpdateGroup:previousGroup];
+        }
+    }
     [self addOrUpdateGroup:group];
 }
 

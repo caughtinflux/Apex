@@ -90,11 +90,24 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     if (coordinate.row == _lastKnownCoordinate.row && coordinate.col == _lastKnownCoordinate.col) {
         return;
     }
+    _lastKnownCoordinate = coordinate;
+    [self forceRelayout];
+}
+
+- (void)forceRelayout
+{
     if (_state == STKGroupStateEmpty) {
         [_layout release];
         _layout = [[STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:_centralIcon]] retain];
+    } 
+    else {
+        STKGroupLayout *newLayout = nil;
+        if ([STKGroupLayoutHandler groupRequiresRelayout:self suggestedLayout:&newLayout]) {
+            [_layout release];
+            _layout = [newLayout retain];
+        }
     }
-    _lastKnownCoordinate = coordinate;
+    // Notify observers irrespective of whether we needed to relayout    
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
         [obs groupDidRelayout:self];
     } forSelector:@selector(groupDidRelayout:)];
