@@ -164,7 +164,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
         SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
-        iconView.frame = (CGRect){{-1.f, -1.f}, iconView.frame.size};
         iconView.icon = icon;
         iconView.delegate = self.delegate;
         [_subappLayout addIcon:iconView toIconsAtPosition:pos];
