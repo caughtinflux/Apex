@@ -117,6 +117,12 @@ static STKLayoutPosition _PositionFromString(NSString *string)
     return self;
 }
 
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"<%@ %p topIcons: %@ bottomIcons: %@ leftIcons: %@ rightIcons: %@>", [self class], self,
+        self[STKPositionTop], self[STKPositionBottom], self[STKPositionLeft], self[STKPositionRight]];
+}
+
 - (void)dealloc
 {
     [_topIcons release];
