@@ -53,7 +53,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
     }
 }
-
 %end
 
 #pragma mark - SBIconView
@@ -68,9 +67,24 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         [[STKGroupController sharedController] addGroupViewToIconView:self];
     }
 }
-
 %end
 
+#pragma mark - SBIconModel
+%hook SBIconModel
+- (BOOL)isIconVisible:(SBIcon *)icon
+{
+    BOOL isVisible = %orig(icon);
+    if ([icon isLeafIcon] && [[STKPreferences sharedPreferences] groupForSubappIcon:icon]) {
+        isVisible = NO;
+    }
+    return isVisible;
+}
+%end
+
+/***********************************************************************************************************
+************************************ (Mostly) Hooks For Zoom Animator **************************************
+************************************************************************************************************
+************************************************************************************************************/
 #pragma mark - SBIconViewMap
 %hook SBIconViewMap
 - (void)_recycleIconView:(SBIconView *)iconView
@@ -161,6 +175,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         STKLog(@"Initializing");
         %init();
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
-        [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName];
+        [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName@"DEBUG"];
     }
 }

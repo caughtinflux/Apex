@@ -9,6 +9,9 @@
     STKGroupSelectionAnimator *_selectionAnimator;
     STKSelectionView *_selectionView;
     STKGroupSlot _selectionSlot;
+
+    NSMutableArray *_iconsToShow;
+    NSMutableArray *_iconsToHide;
 }
 
 + (instancetype)sharedController
@@ -44,7 +47,7 @@
         [groupView.group relayoutForNewCoordinate:currentCoordinate];
     }
     else {
-        STKGroup *group = [[STKPreferences sharedPreferences] groupForIcon:iconView.icon];
+        STKGroup *group = [[STKPreferences sharedPreferences] groupForCentralIcon:iconView.icon];
         if (!group) {
             group = [self _groupWithEmptySlotsForIcon:iconView.icon];
         }
@@ -110,7 +113,7 @@
     NSSet *icons = [model leafIcons];
     NSMutableArray *availableIcons = [NSMutableArray array];
     for (SBIcon *icon in icons) {
-        if (icon != selectedIconView.icon && [model isIconVisible:icon]) {
+        if (icon != selectedIconView.icon) {
             [availableIcons addObject:icon];
         }
     }
@@ -182,10 +185,21 @@
     [self _removeCloseGestureRecognizers];
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
     _openGroupView = nil;
+
+    if (_iconsToHide.count > 0 || _iconsToShow.count > 0) {
+        SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
+        [model _postIconVisibilityChangedNotificationShowing:_iconsToShow hiding:_iconsToHide];
+        [_iconsToShow release];
+        [_iconsToHide release];
+        _iconsToShow = nil;
+        _iconsToHide = nil;
+        [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
+    } 
 }
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
 {
+    DLog();
     return YES;   
 }
 
@@ -226,6 +240,7 @@
 
 - (void)iconHandleLongPress:(SBIconView *)iconView
 {
+    DLog();
     if ([iconView.icon isEmptyPlaceholder] || [iconView.icon isPlaceholder]) {
         return;
     }
@@ -255,6 +270,15 @@
 #pragma mark - Icon Selection
 - (void)selectionView:(STKSelectionView *)selectionView didSelectIconView:(SBIconView *)iconView
 {
+    SBIcon *iconInSelectedSlot = [_openGroupView.group.layout iconInSlot:_selectionSlot];
+    if (!_iconsToHide) _iconsToHide = [NSMutableArray new];
+    if (!_iconsToShow) _iconsToShow = [NSMutableArray new];
+    if (![iconInSelectedSlot isEmptyPlaceholder]) {
+        [_iconsToShow addObject:iconInSelectedSlot];
+    }
+    if (![iconView.icon isEmptyPlaceholder]) {
+        [_iconsToHide addObject:iconView.icon];
+    }
     [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:iconView.icon];
     [_openGroupView.group addPlaceholders];
     [self _closeSelectionView];

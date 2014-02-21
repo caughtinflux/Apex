@@ -55,7 +55,8 @@
 
 - (void)setIconsForSelection:(NSArray *)icons
 {
-    _iconsForSelection = [icons copy];
+    NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
+    _iconsForSelection = [[icons sortedArrayUsingDescriptors:@[sortDescriptor]] retain];
     [_collectionView reloadData];
 }
 
