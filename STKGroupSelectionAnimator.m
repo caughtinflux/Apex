@@ -33,6 +33,8 @@
 {
     SBIconContentView *contentView = [(SBIconController *)[CLASS(SBIconController) sharedInstance] contentView];
     _selectionView.contentView.alpha = 0.0f;
+    _selectionView.layer.cornerRadius = 35.f;
+    _selectionView.layer.masksToBounds = YES;
     [contentView addSubview:_selectionView];
 
     SBRootFolderController *rootFolderController = [(SBIconController *)[CLASS(SBIconController) sharedInstance] _rootFolderController];
@@ -47,21 +49,13 @@
     _endFrame = (CGRect){endOrigin, [CLASS(SBFolderBackgroundView) folderBackgroundSize]};
 
     _selectionView.frame = _startFrame;
-    _selectionView.layer.cornerRadius = (_startFrame.size.height) * 0.5;
-    _selectionView.layer.masksToBounds = YES;
 
     double duration = _zoomAnimator.settings.outerFolderFadeSettings.duration;
-    CABasicAnimation *cornerRadiusAnim = [CABasicAnimation animationWithKeyPath:@"cornerRadius"];
-    cornerRadiusAnim.fromValue = @(_selectionView.layer.cornerRadius);
-    cornerRadiusAnim.toValue = @0;
-    cornerRadiusAnim.duration = duration;    
     [UIView animateWithDuration:duration animations:^{
         [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 0.f;
         _selectionView.frame = _endFrame;
         _selectionView.contentView.alpha = 1.f;
     }];
-    [_selectionView.layer addAnimation:cornerRadiusAnim forKey:@"cornerRadiusAnim"];
-    _selectionView.layer.cornerRadius = 0;
     [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:^{
         if (completion) {
             completion();
