@@ -199,8 +199,7 @@
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
 {
-    DLog();
-    return YES;   
+    return !_selectionView;
 }
 
 - (void)groupViewWillBeDestroyed:(STKGroupView *)groupView
