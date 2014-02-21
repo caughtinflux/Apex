@@ -18,7 +18,6 @@
 #import "STKGroupController.h"
 
 #import "STKOverlayIcons.h"
-#import "STKiconOverlayView.h"
 #import "STKSelectionView.h"
 #import "STKGroupSelectionAnimator.h"
 

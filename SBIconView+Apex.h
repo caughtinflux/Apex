@@ -5,11 +5,11 @@ typedef NS_ENUM(NSInteger, STKOverlayType) {
     STKOverlayTypeEditing
 };
 
-@class STKGroupView, STKIconOverlayView;
+@class STKGroupView;
 @interface SBIconView (Apex)
 
 @property (nonatomic, retain) STKGroupView *groupView;
-@property (nonatomic, readonly) STKIconOverlayView *apexOverlayView;
+@property (nonatomic, readonly) UIView *apexOverlayView;
 @property (nonatomic, readonly) STKGroupView *containerGroupView;
 
 - (void)showApexOverlayOfType:(STKOverlayType)type;

@@ -7,7 +7,7 @@
 + (CALayer *)maskForApexEmptyIconOverlayWithBounds:(CGRect)bounds;
 + (CALayer *)maskForApexEditingOverlayWithBounds:(CGRect)bounds;
 
-@property (nonatomic, retain) STKIconOverlayView *apexOverlayView;
+@property (nonatomic, retain) UIView *apexOverlayView;
 
 - (void)removeGroupView;
 
@@ -111,7 +111,7 @@
 }
 
 %new
-- (void)setApexOverlayView:(STKIconOverlayView *)overlayView
+- (void)setApexOverlayView:(UIView *)overlayView
 {
     [self.apexOverlayView removeFromSuperview];
     objc_setAssociatedObject(self, @selector(STKOverlayView), overlayView, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -119,7 +119,7 @@
 }
 
 %new
-- (STKIconOverlayView *)apexOverlayView
+- (UIView *)apexOverlayView
 {
     return objc_getAssociatedObject(self, @selector(STKOverlayView));
 }
@@ -127,21 +127,20 @@
 %new
 - (void)showApexOverlayOfType:(STKOverlayType)type
 {
-    STKIconOverlayView *overlayView = [[[STKIconOverlayView alloc] initWithFrame:[self _iconImageView].bounds] autorelease];
-    overlayView.layer.masksToBounds = YES;
-    overlayView.center = [self _iconImageView].center;
+    UIView *overlayView = nil;
 
     CALayer *mask = nil;
     if (type == STKOverlayTypeEditing) {
+        overlayView = [[[UIView alloc] initWithFrame:[self _iconImageView].bounds] autorelease];
         mask = [[self class] maskForApexEditingOverlayWithBounds:overlayView.layer.bounds];
-        overlayView.blurRadius = 0.f;
         overlayView.layer.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.6f].CGColor;
     }
     else {
+        overlayView = [[[CLASS(SBFolderBackgroundView) alloc] initWithFrame:[self _iconImageView].bounds] autorelease];
         mask = [[self class] maskForApexEmptyIconOverlayWithBounds:overlayView.layer.bounds];
-        overlayView.blurRadius = 5.f;
-        overlayView.layer.backgroundColor = [UIColor colorWithWhite:1.0f alpha:0.5f].CGColor;
     }
+    overlayView.layer.masksToBounds = YES;
+    overlayView.center = [self _iconImageView].center;
     overlayView.layer.mask = mask;
     self.apexOverlayView = overlayView;
 }
