@@ -101,8 +101,8 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
         _layout = [[STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:_centralIcon]] retain];
     } 
     else {
-        STKGroupLayout *newLayout = nil;
-        if ([STKGroupLayoutHandler groupRequiresRelayout:self suggestedLayout:&newLayout]) {
+        STKGroupLayout *newLayout = [STKGroupLayoutHandler correctLayoutForGroupIfNecessary:self];
+        if (newLayout) {
             [_layout release];
             _layout = [newLayout retain];
         }

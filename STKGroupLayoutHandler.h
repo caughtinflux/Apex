@@ -13,7 +13,7 @@
 // I mean it.
 + (STKGroupLayout *)layoutForIcons:(NSArray *)icons aroundIconAtLocation:(STKLocation)location;
 
-+ (BOOL)groupRequiresRelayout:(STKGroup *)group suggestedLayout:(__autoreleasing STKGroupLayout **)outLayout;
++ (STKGroupLayout *)correctLayoutForGroupIfNecessary:(STKGroup *)group;
 
 // Returns an STKGroupLayout object whose properties contain SBIcons to be faded out when the new icons are coming in
 // This, is pure magic.
