@@ -8,9 +8,9 @@
 #undef CLASS
 #define CLASS(cls) NSClassFromString(@#cls)
 
-#define kCentralIconPreviewScale 0.95f
-#define kSubappScale             0.81f
-#define kBandingAllowance        20.f
+#define kSubappScale      0.81f
+#define kBandingAllowance 20.f
+#define kFullDimStrength  0.2f     
 
 #define KEYFRAME_DURATION() (1.0 + (kBandingAllowance / _targetDistance))
 
@@ -26,21 +26,20 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     SBIconView *_centralIconView;
     STKGroupLayout *_subappLayout;
     STKGroupLayout *_displacedIconLayout;
-    NSSet *_iconsHiddenForPlaceholders;
-
     UIPanGestureRecognizer *_panRecognizer;
     UITapGestureRecognizer *_tapRecognizer;
+    NSSet *_iconsHiddenForPlaceholders;
+    NSMapTable *_pathCache;
+    UIView *_dimmingView;
 
     BOOL _needsCreation;
     BOOL _isOpen;
+    BOOL _showPreview;
     BOOL _isAnimating;
-
+    BOOL _ignoreRecognizer;
     CGFloat _targetDistance;
     CGFloat _keyframeDuration;
-    BOOL _ignoreRecognizer;
     STKRecognizerDirection _recognizerDirection;
-
-    NSMapTable *_pathCache;
 
     struct {
         NSUInteger willOpen:1;
@@ -55,6 +54,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ((self = [super initWithFrame:CGRectZero])) {
         self.group = group;
         _activationMode = STKActivationModeSwipeUpAndDown;
+        _showPreview = YES;
         self.alpha = 0.f;
     }
     return self;
@@ -68,6 +68,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self resetLayouts];
     [self _removeGestureRecognizers];
     self.group = nil;
+    [self _removeDimmingView];
     [super dealloc];
 }
 
@@ -263,6 +264,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             [self _moveAllIconsToOffset:offset performingBlockOnSubApps:^(SBIconView *iconView) {
                 [self _setAlpha:realOffset forBadgeAndLabelOfIconView:iconView];
             }];
+            [self _setDimStrength:(offset * kFullDimStrength)];
             [self _setAlphaForOtherIcons:(1.2 - realOffset)];
             if ([_centralIconView isInDock]) {
                 [self _setAlphaForDisplacedIcons:(1.0 - realOffset)];   
@@ -371,17 +373,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (UIBezierPath *)_pathForIconToPoint:(CGPoint)destination fromIconView:(SBIconView *)iconView isSubapp:(BOOL)isSubapp
 {
     UIBezierPath *path = [UIBezierPath bezierPath];
-
     CGPoint startPoint;    
     if (isSubapp) {
         startPoint = [iconView _iconImageView].layer.position;
-        startPoint.x -= 1.f;
-        startPoint.y -= 1.f;
     }
     else {
         startPoint = iconView.layer.position;
     }
-
     [path moveToPoint:startPoint];
     [path addLineToPoint:destination];
     return path;
@@ -455,6 +453,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
             }
         ];
+        [self _setDimStrength:kFullDimStrength];
     } completion:^(BOOL finished) {
         if (finished) {
             if (completion) {
@@ -506,6 +505,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
         [listView setIconsNeedLayout];
         [listView layoutIconsIfNeeded:0.0f domino:0.f];
+        [self _setDimStrength:0.0f];
     } completion:^(BOOL finished) {
         if (finished) {
             if (completion) {
@@ -515,6 +515,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if (_group.empty) {
                 [self resetLayouts];
             }
+            [self _removeDimmingView];
             if ([self.delegate respondsToSelector:@selector(groupViewDidClose:)]) {
                 [self.delegate groupViewDidClose:self];
             }
@@ -636,6 +637,26 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     for (SBIcon *icon in _displacedIconLayout) {
         [self _iconViewForIcon:icon].alpha = alpha;
     }
+}
+
+- (void)_setDimStrength:(CGFloat)strength
+{
+    if (!_dimmingView) {
+        SBWallpaperController *controller = [CLASS(SBWallpaperController) sharedInstance];
+        UIView *homescreenWallpaperView = [controller valueForKey:@"_homescreenWallpaperView"];
+        _dimmingView = [[UIView alloc] initWithFrame:homescreenWallpaperView.bounds];
+        _dimmingView.backgroundColor = [UIColor colorWithWhite:0.f alpha:1.f];
+        _dimmingView.alpha = 0.f;
+        [homescreenWallpaperView addSubview:_dimmingView];
+    }
+    _dimmingView.alpha = strength;
+}
+
+- (void)_removeDimmingView
+{
+    [_dimmingView removeFromSuperview];
+    [_dimmingView release];
+    _dimmingView = nil;
 }
 
 - (SBIconView *)_iconViewForIcon:(SBIcon *)icon
