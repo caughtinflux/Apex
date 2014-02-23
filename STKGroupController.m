@@ -110,12 +110,11 @@
     _selectionView = [[[STKSelectionView alloc] initWithFrame:CGRectZero delegate:self] autorelease];
     _selectionView.delegate = self;
     SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
-    NSSet *icons = [model leafIcons];
+    NSMutableArray *visibleIconIdentifiers = [[[[[model visibleIconIdentifiers] objectEnumerator] allObjects] mutableCopy] autorelease];
+    [visibleIconIdentifiers addObjectsFromArray:[STKPreferences sharedPreferences].identifiersForSubappIcons];
     NSMutableArray *availableIcons = [NSMutableArray array];
-    for (SBIcon *icon in icons) {
-        if (icon != selectedIconView.icon) {
-            [availableIcons addObject:icon];
-        }
+    for (NSString *identifier in visibleIconIdentifiers) {
+        [availableIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
     }
     _selectionView.iconsForSelection = availableIcons;
     _selectionAnimator = [[STKGroupSelectionAnimator alloc] initWithSelectionView:_selectionView iconView:selectedIconView];
