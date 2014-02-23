@@ -43,7 +43,6 @@ CFSetRef new_SBSCopyDisplayIdentifiers(void)
 static __attribute__((constructor)) void _construct(void)
 {
     @autoreleasepool {
-        NSLog(@"[ApexSBSHook] Loading");
         STKUpdateIdentifiers();
         [[NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/SpringBoardServices.framework"] load];
         MSHookFunction(SBSCopyDisplayIdentifiers, (void *)new_SBSCopyDisplayIdentifiers, (void **)&original_SBSCopyDisplayIdentifiers);
