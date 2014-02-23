@@ -187,6 +187,8 @@
     _openGroupView = nil;
 
     if (_iconsToHide.count > 0 || _iconsToShow.count > 0) {
+        VLog(@"%@", _iconsToHide);
+        VLog(@"%@", _iconsToShow);
         SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
         [model _postIconVisibilityChangedNotificationShowing:_iconsToShow hiding:_iconsToHide];
         [_iconsToShow release];
@@ -272,10 +274,10 @@
     SBIcon *iconInSelectedSlot = [_openGroupView.group.layout iconInSlot:_selectionSlot];
     if (!_iconsToHide) _iconsToHide = [NSMutableArray new];
     if (!_iconsToShow) _iconsToShow = [NSMutableArray new];
-    if (![iconInSelectedSlot isEmptyPlaceholder]) {
+    if ([iconInSelectedSlot isLeafIcon]) {
         [_iconsToShow addObject:iconInSelectedSlot];
     }
-    if (![iconView.icon isEmptyPlaceholder]) {
+    if ([iconView.icon isLeafIcon]) {
         [_iconsToHide addObject:iconView.icon];
     }
     [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:iconView.icon];
