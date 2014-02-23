@@ -1,4 +1,5 @@
 #import "STKPreferences.h"
+#import <notify.h>
 
 static NSString * const ActivationModeKey   = @"activationMode";
 static NSString * const ShowPreviewKey      = @"preview";
@@ -165,6 +166,7 @@ static NSString * const CentralIconKey      = @"centralIcon";
 - (void)groupDidRelayout:(STKGroup *)group
 {
     [self addOrUpdateGroup:group];
+    notify_post("com.a3tweaks.apex.iconstatechanged");
 }
 
 @end
