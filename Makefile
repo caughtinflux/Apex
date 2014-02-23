@@ -16,7 +16,7 @@ ADDITIONAL_LDFLAGS += -Wl,-map,$@.map -g -x c /dev/null -x none
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
-SUBPROJECTS += GraphicsServicesHelper
+SUBPROJECTS += SBSHook
 SUBPROJECTS += PrefBundle
 
 before-all::
