@@ -74,7 +74,8 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 - (BOOL)isIconVisible:(SBIcon *)icon
 {
     BOOL isVisible = %orig(icon);
-    if ([icon isLeafIcon] && [[STKPreferences sharedPreferences] groupForSubappIcon:icon]) {
+    if (![[%c(SBUIController) sharedInstance] isAppSwitcherShowing]
+        && [[STKPreferences sharedPreferences] groupForSubappIcon:icon]) {
         isVisible = NO;
     }
     return isVisible;
@@ -146,7 +147,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 %end
 
 #pragma mark - SBFolderController
-%hook SBRootFolderController
+%hook SBFolderController
 - (BOOL)_iconAppearsOnCurrentPage:(SBIcon *)icon
 {
     // Folder animation expects the icon to be on the current page
