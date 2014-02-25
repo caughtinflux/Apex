@@ -10,4 +10,6 @@
 - (void)addGroupViewToIconView:(SBIconView *)iconView;
 - (void)removeGroupViewFromIconView:(SBIconView *)iconView;
 
+- (void)handleHomeButtonPress;
+
 @end

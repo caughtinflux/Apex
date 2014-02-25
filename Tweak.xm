@@ -169,6 +169,18 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
+#pragma mark - SBUIController
+%hook SBUIController
+- (BOOL)clickedMenuButton
+{
+    if ([STKGroupController sharedController].openGroupView) {
+        [[STKGroupController sharedController] handleHomeButtonPress];
+        return YES;
+    }
+    return %orig();
+}
+%end
+
 #pragma mark - Constructor
 %ctor
 {

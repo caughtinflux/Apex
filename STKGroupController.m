@@ -27,8 +27,8 @@
 - (instancetype)init
 {
     if ((self = [super init])) {
-        _closeTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_closeOpenGroupView)];
-        _closeSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(_closeOpenGroupView)];
+        _closeTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_closeOpenGroupOrSelectionView)];
+        _closeSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(_closeOpenGroupOrSelectionView)];
         _closeSwipeRecognizer.direction = (UISwipeGestureRecognizerDirectionUp | UISwipeGestureRecognizerDirectionDown);
         _closeSwipeRecognizer.delegate = self;
         _closeTapRecognizer.delegate = self;
@@ -63,6 +63,11 @@
     iconView.groupView = nil;
 }
 
+- (void)handleHomeButtonPress
+{
+    [self _closeOpenGroupOrSelectionView];
+}
+
 - (STKGroup *)_groupWithEmptySlotsForIcon:(SBIcon *)icon
 {
     STKGroupLayout *slotLayout = [STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:icon]];
@@ -91,7 +96,7 @@
     [_closeSwipeRecognizer.view removeGestureRecognizer:_closeSwipeRecognizer];
 }
 
-- (void)_closeOpenGroupView
+- (void)_closeOpenGroupOrSelectionView
 {
     if (_selectionView) {
         [self _closeSelectionView];
