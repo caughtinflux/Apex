@@ -194,6 +194,9 @@ notifyObservers:
 
 - (void)_updateState
 {
+    if (_state == STKGroupStateDirty) {
+        return;
+    }
     NSUInteger emptyIconCount = 0;
     NSUInteger realIconCount = 0;
     for (SBIcon *icon in _layout) {

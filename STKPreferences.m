@@ -151,9 +151,8 @@ static NSString * const CentralIconKey      = @"centralIcon";
 {
     for (SBIcon *subappIcon in group.layout) {
         STKGroup *previousGroup = [self groupForSubappIcon:subappIcon];
-        if (group != previousGroup) {
+        if (previousGroup && group != previousGroup) {
             // Another group has `subappIcon`, so remove subappIcon from it
-            STKGroup *previousGroup = [self groupForSubappIcon:subappIcon];
             STKGroupSlot slotForRemovedIcon = [previousGroup.layout slotForIcon:subappIcon];
             [previousGroup replaceIconInSlot:slotForRemovedIcon withIcon:nil];
             [previousGroup forceRelayout];

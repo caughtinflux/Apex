@@ -181,9 +181,6 @@
     if (_openGroupView.group.state == STKGroupStateDirty) {
         [_openGroupView.group finalizeState];
     }
-    [self _removeCloseGestureRecognizers];
-    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
-    _openGroupView = nil;
 
     if (_iconsToHide.count > 0 || _iconsToShow.count > 0) {
         SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
@@ -193,7 +190,11 @@
         _iconsToShow = nil;
         _iconsToHide = nil;
         [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
-    } 
+        [groupView resetLayouts];
+    }
+    [self _removeCloseGestureRecognizers];
+    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
+    _openGroupView = nil;
 }
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
@@ -238,7 +239,6 @@
 
 - (void)iconHandleLongPress:(SBIconView *)iconView
 {
-    DLog();
     if ([iconView.icon isEmptyPlaceholder] || [iconView.icon isPlaceholder]) {
         return;
     }

@@ -649,7 +649,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         _dimmingView.alpha = 0.f;
         [homescreenWallpaperView addSubview:_dimmingView];
     }
-    _dimmingView.alpha = strength;
+    _dimmingView.alpha = MIN(strength, kFullDimStrength);
 }
 
 - (void)_removeDimmingView
