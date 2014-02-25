@@ -39,10 +39,6 @@ static STKLayoutPosition _PositionFromString(NSString *string)
     return STKPositionUnknown;
 }
 
-#define KEY(_p) NSStringFromLayoutPosition(_p)
-#define TONUM(_p) [NSNumber numberWithUnsignedInteger:_p]
-#define ALL_KEYS @[STKPositionTopKey, STKPositionBottomKey, STKPositionLeftKey, STKPositionRightKey]
-
 @implementation STKGroupLayout
 {
     NSMutableArray *_topIcons, *_bottomIcons, *_leftIcons, *_rightIcons, *_unknownIcons;
@@ -55,7 +51,7 @@ static STKLayoutPosition _PositionFromString(NSString *string)
         return nil;
     }
     if ((self = [self init])) {
-        for (NSString *key in ALL_KEYS) {
+        for (NSString *key in [dictionary allKeys]) {
             STKLayoutPosition currentPosition = _PositionFromString(key);
             NSArray *iconIDs = dictionary[key];
             if (iconIDs.count != 0) {
@@ -81,7 +77,7 @@ static STKLayoutPosition _PositionFromString(NSString *string)
         return nil;
     }
     if ((self = [self init])) {
-        for (NSString *key in ALL_KEYS) {
+        for (NSString *key in [dictionary allKeys]) {
             STKLayoutPosition currentPosition = _PositionFromString(key);
             NSArray *icons = dictionary[key];
             self[currentPosition] = (icons.count > 0) ? icons : @[];
@@ -135,23 +131,28 @@ static STKLayoutPosition _PositionFromString(NSString *string)
 
 - (NSDictionary *)identifierDictionary
 {
-    return @{
-        STKPositionTopKey: [_topIcons valueForKey:@"leafIdentifier"] ?: @[],
-        STKPositionBottomKey: [_bottomIcons valueForKey:@"leafIdentifier"] ?: @[],
-        STKPositionLeftKey: [_leftIcons valueForKey:@"leafIdentifier"] ?: @[],
-        STKPositionRightKey: [_rightIcons valueForKey:@"leafIdentifier"] ?: @[]
-    };
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    NSMutableArray *icons[5] = {_unknownIcons, _topIcons, _bottomIcons, _leftIcons, _rightIcons};
+    for (STKLayoutPosition pos = STKPositionUnknown; pos <= STKPositionRight; pos++) {
+        NSString *key = NSStringFromLayoutPosition(pos);
+        if (icons[pos].count > 0) {
+            dictionary[key] = [icons[pos] valueForKey:@"leafIdentifier"];
+        }
+    }
+    return dictionary;
 }
 
 - (NSDictionary *)iconDictionary
 {
-    return @{
-        STKPositionTopKey: _topIcons ?: @[],
-        STKPositionBottomKey: _bottomIcons ?: @[],
-        STKPositionLeftKey: _leftIcons ?: @[],
-        STKPositionRightKey: _rightIcons ?: @[],
-        STKPositionUnknownKey: _unknownIcons ?: @[]
-    };
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    NSMutableArray *icons[5] = {_unknownIcons, _topIcons, _bottomIcons, _leftIcons, _rightIcons};
+    for (STKLayoutPosition pos = STKPositionUnknown; pos <= STKPositionRight; pos++) {
+        NSString *key = NSStringFromLayoutPosition(pos);
+        if (icons[pos].count > 0) {
+            dictionary[key] = icons[pos];
+        }
+    }
+    return dictionary;
 }
 
 - (NSArray *)allIcons
@@ -223,7 +224,7 @@ static STKLayoutPosition _PositionFromString(NSString *string)
 
 - (void)enumerateIconsUsingBlockWithIndexes:(void(^)(id icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index, BOOL *stop))block
 {
-    for (STKLayoutPosition i = 1; i <= 4; i++) {
+    for (STKLayoutPosition i = STKPositionTop; i <= STKPositionRight; i++) {
         NSArray *icons = self[i];
         if (!icons || icons.count == 0) {
             continue;

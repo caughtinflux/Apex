@@ -186,8 +186,6 @@
     _openGroupView = nil;
 
     if (_iconsToHide.count > 0 || _iconsToShow.count > 0) {
-        VLog(@"%@", _iconsToHide);
-        VLog(@"%@", _iconsToShow);
         SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
         [model _postIconVisibilityChangedNotificationShowing:_iconsToShow hiding:_iconsToHide];
         [_iconsToShow release];
