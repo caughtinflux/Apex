@@ -112,8 +112,7 @@
 - (void)_showSelectionViewForIconView:(SBIconView *)selectedIconView
 {
     _selectionSlot = [_openGroupView.subappLayout slotForIcon:selectedIconView];
-    _selectionView = [[[STKSelectionView alloc] initWithFrame:CGRectZero delegate:self] autorelease];
-    _selectionView.delegate = self;
+    _selectionView = [[[STKSelectionView alloc] initWithFrame:CGRectZero selectedIcon:[selectedIconView.icon isLeafIcon] ? selectedIconView.icon : nil] autorelease];
     SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
     NSMutableArray *visibleIconIdentifiers = [[[[[model visibleIconIdentifiers] objectEnumerator] allObjects] mutableCopy] autorelease];
     [visibleIconIdentifiers addObjectsFromArray:[STKPreferences sharedPreferences].identifiersForSubappIcons];
@@ -128,6 +127,23 @@
 
 - (void)_closeSelectionView
 {
+    SBIcon *iconInSelectedSlot = [_openGroupView.group.layout iconInSlot:_selectionSlot];
+    if (_selectionView.selectedIcon && (iconInSelectedSlot != _selectionView.selectedIcon)) {
+        if ([iconInSelectedSlot isLeafIcon]) {
+            if (!_iconsToShow) _iconsToShow = [NSMutableArray new];
+            [_iconsToShow addObject:iconInSelectedSlot];
+        }
+        if ([_selectionView.selectedIcon isLeafIcon]) {
+            if (!_iconsToHide) _iconsToHide = [NSMutableArray new];
+            [_iconsToHide addObject:_selectionView.selectedIcon];
+        }
+        [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:_selectionView.selectedIcon];
+    }
+    else if ([iconInSelectedSlot isLeafIcon] && !_selectionView.selectedIcon) {
+        [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:[[CLASS(STKEmptyIcon) new] autorelease]];
+    }
+    [_openGroupView.group addPlaceholders];
+
     [_selectionAnimator closeSelectionViewAnimatedWithCompletion:^{
         [_selectionView removeFromSuperview];
         [_selectionView release];
@@ -185,17 +201,16 @@
 {
     if (_openGroupView.group.state == STKGroupStateDirty) {
         [_openGroupView.group finalizeState];
-    }
-
-    if (_iconsToHide.count > 0 || _iconsToShow.count > 0) {
-        SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
-        [model _postIconVisibilityChangedNotificationShowing:_iconsToShow hiding:_iconsToHide];
-        [_iconsToShow release];
-        [_iconsToHide release];
-        _iconsToShow = nil;
-        _iconsToHide = nil;
-        [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
-        [groupView resetLayouts];
+        if (_iconsToHide.count > 0 || _iconsToShow.count > 0) {
+            SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
+            [model _postIconVisibilityChangedNotificationShowing:_iconsToShow hiding:_iconsToHide];
+            [_iconsToShow release];
+            [_iconsToHide release];
+            _iconsToShow = nil;
+            _iconsToHide = nil;
+            [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
+            [groupView resetLayouts];
+        }
     }
     [self _removeCloseGestureRecognizers];
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
@@ -268,23 +283,6 @@
 {
     CGPoint point = [touch locationInView:_openGroupView];
     return !([_openGroupView hitTest:point withEvent:nil]);   
-}
-
-#pragma mark - Icon Selection
-- (void)selectionView:(STKSelectionView *)selectionView didSelectIconView:(SBIconView *)iconView
-{
-    SBIcon *iconInSelectedSlot = [_openGroupView.group.layout iconInSlot:_selectionSlot];
-    if (!_iconsToHide) _iconsToHide = [NSMutableArray new];
-    if (!_iconsToShow) _iconsToShow = [NSMutableArray new];
-    if ([iconInSelectedSlot isLeafIcon]) {
-        [_iconsToShow addObject:iconInSelectedSlot];
-    }
-    if ([iconView.icon isLeafIcon]) {
-        [_iconsToHide addObject:iconView.icon];
-    }
-    [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:iconView.icon];
-    [_openGroupView.group addPlaceholders];
-    [self _closeSelectionView];
 }
 
 @end

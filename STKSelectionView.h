@@ -1,18 +1,12 @@
 #import <UIKit/UIKit.h>
 
-@protocol STKSelectionViewDelegate;
-@class SBIconView;
+@class SBIcon, SBIconView;
 @interface STKSelectionView : UIView <UICollectionViewDelegateFlowLayout, UICollectionViewDataSource>
 
-- (instancetype)initWithFrame:(CGRect)frame delegate:(id<STKSelectionViewDelegate>)delegate;
+- (instancetype)initWithFrame:(CGRect)frame selectedIcon:(SBIcon *)icon;
 
-@property (nonatomic, assign) id<STKSelectionViewDelegate> delegate;
 @property (nonatomic, copy) NSArray *iconsForSelection;
+@property (nonatomic, readonly) SBIcon *selectedIcon; // selectedIcon has to be in iconsForSelection
 @property (nonatomic, readonly) UIView *contentView;
 
-@end
-
-@protocol STKSelectionViewDelegate <NSObject>
-@required
-- (void)selectionView:(STKSelectionView *)selectionView didSelectIconView:(SBIconView *)iconView;
 @end

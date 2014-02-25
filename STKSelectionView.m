@@ -9,11 +9,14 @@
 {
     UICollectionView *_collectionView;
     SBFolderBackgroundView *_backgroundView;
+    SBIcon *_selectedIcon;
+    SBIconView *_selectedIconView;
 }
 
-- (instancetype)initWithFrame:(CGRect)frame delegate:(id<STKSelectionViewDelegate>)delegate;
+- (instancetype)initWithFrame:(CGRect)frame selectedIcon:(SBIcon *)selectedIcon
 {   
     if ((self = [super initWithFrame:frame])) {
+        _selectedIcon = selectedIcon;
         UICollectionViewFlowLayout *flowLayout = [[[UICollectionViewFlowLayout alloc] init] autorelease];
         flowLayout.itemSize = [CLASS(SBIconView) defaultIconSize];
 
@@ -33,14 +36,13 @@
         _collectionView.backgroundView = [[[UIView alloc] initWithFrame:CGRectZero] autorelease];
 
         [self addSubview:_collectionView];
-        _delegate = delegate;
     }
     return self;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
 {
-    return [self initWithFrame:frame delegate:nil];
+    return [self initWithFrame:frame selectedIcon:nil];
 }
 
 - (void)layoutSubviews
@@ -69,6 +71,16 @@
 {
     STKSelectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:kCellReuseIdentifier forIndexPath:indexPath];
     cell.iconView.icon = self.iconsForSelection[indexPath.item];
+    if (cell.iconView.icon == _selectedIcon) {
+        [cell.iconView showApexOverlayOfType:STKOverlayTypeEditing];
+        [collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
+    }
+    else {
+        if ([indexPath compare:[[collectionView indexPathsForSelectedItems] firstObject]] == NSOrderedSame) {
+            [collectionView deselectItemAtIndexPath:indexPath animated:NO];
+        }
+        [cell.iconView removeApexOverlay];
+    }
     cell.tapHandler = ^(STKSelectionViewCell *tappedCell) {
         [self _selectedCell:[[tappedCell retain] autorelease]];
     };
@@ -77,7 +89,21 @@
 
 - (void)_selectedCell:(STKSelectionViewCell *)cell
 {
-    [self.delegate selectionView:self didSelectIconView:cell.iconView];
+    NSIndexPath *previousIndexPath = [[_collectionView indexPathsForSelectedItems] firstObject];
+    STKSelectionViewCell *previousSelection = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:previousIndexPath];
+    [previousSelection.iconView removeApexOverlay]; 
+    [_collectionView deselectItemAtIndexPath:previousIndexPath animated:NO];
+
+    if (_selectedIcon == cell.iconView.icon) {
+        _selectedIcon = nil;
+        return;
+    }
+    _selectedIcon = cell.iconView.icon;
+    
+    NSIndexPath *currentIndexPath = [_collectionView indexPathForCell:cell];
+    STKSelectionViewCell *currentSelection = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:currentIndexPath];
+    [currentSelection.iconView showApexOverlayOfType:STKOverlayTypeEditing];
+    [_collectionView selectItemAtIndexPath:currentIndexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
 }
 
 @end

@@ -66,10 +66,13 @@ static NSString * const CentralIconKey      = @"centralIcon";
     if (!_groups) {
         _groups = [NSMutableDictionary new];
     }
+    VLog(@"%@", group);
     if (group.state == STKGroupStateEmpty) {
+        CLog(@"Removing");
         [_groups removeObjectForKey:group.centralIcon.leafIdentifier];
     }
     else {
+        CLog(@"Added/Updated");
         _groups[group.centralIcon.leafIdentifier] = group;
     }
     [self _resetSubappMap];
