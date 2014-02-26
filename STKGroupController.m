@@ -1,11 +1,15 @@
 #import "STKGroupController.h"
 #import "STKConstants.h"
 
+#define kFullDimStrength 0.2f
+
 @implementation STKGroupController
 {
     STKGroupView *_openGroupView;
+    UIView *_dimmingView;
     UISwipeGestureRecognizer *_closeSwipeRecognizer;
     UITapGestureRecognizer *_closeTapRecognizer;
+    
     STKGroupSelectionAnimator *_selectionAnimator;
     STKSelectionView *_selectionView;
     STKGroupSlot _selectionSlot;
@@ -83,6 +87,26 @@
     return [currentFolderController.contentView scrollView];
 }
 
+- (void)_setDimStrength:(CGFloat)strength
+{
+    if (!_dimmingView) {
+        SBWallpaperController *controller = [CLASS(SBWallpaperController) sharedInstance];
+        UIView *homescreenWallpaperView = [controller valueForKey:@"_homescreenWallpaperView"];
+        _dimmingView = [[UIView alloc] initWithFrame:homescreenWallpaperView.bounds];
+        _dimmingView.backgroundColor = [UIColor colorWithWhite:0.f alpha:1.f];
+        _dimmingView.alpha = 0.f;
+        [homescreenWallpaperView addSubview:_dimmingView];
+    }
+    _dimmingView.alpha = strength;
+}
+
+- (void)_removeDimmingView
+{
+    [_dimmingView removeFromSuperview];
+    [_dimmingView release];
+    _dimmingView = nil;
+}
+
 - (void)_addCloseGestureRecognizers
 {
     UIView *view = [[CLASS(SBIconController) sharedInstance] contentView];
@@ -142,7 +166,9 @@
     else if ([iconInSelectedSlot isLeafIcon] && !_selectionView.selectedIcon) {
         [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:[[CLASS(STKEmptyIcon) new] autorelease]];
     }
-    [_openGroupView.group addPlaceholders];
+    if (_openGroupView.group.state != STKGroupStateEmpty) {
+        [_openGroupView.group addPlaceholders];
+    }
 
     [_selectionAnimator closeSelectionViewAnimatedWithCompletion:^{
         [_selectionView removeFromSuperview];
@@ -183,6 +209,11 @@
     }
 }
 
+- (void)groupView:(STKGroupView *)groupView didMoveToOffset:(CGFloat)offset
+{
+    [self _setDimStrength:(offset * kFullDimStrength)];
+}
+
 - (void)groupViewDidOpen:(STKGroupView *)groupView
 {
     _openGroupView = groupView;
@@ -212,6 +243,7 @@
             [groupView resetLayouts];
         }
     }
+    [self _removeDimmingView];
     [self _removeCloseGestureRecognizers];
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
     _openGroupView = nil;

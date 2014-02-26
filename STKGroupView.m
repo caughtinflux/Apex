@@ -10,7 +10,6 @@
 
 #define kSubappScale      0.81f
 #define kBandingAllowance 20.f
-#define kFullDimStrength  0.2f     
 
 #define KEYFRAME_DURATION() (1.0 + (kBandingAllowance / _targetDistance))
 
@@ -30,7 +29,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     UITapGestureRecognizer *_tapRecognizer;
     NSSet *_iconsHiddenForPlaceholders;
     NSMapTable *_pathCache;
-    UIView *_dimmingView;
 
     BOOL _needsCreation;
     BOOL _isOpen;
@@ -42,6 +40,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     STKRecognizerDirection _recognizerDirection;
 
     struct {
+        NSUInteger didMoveToOffset:1;
         NSUInteger willOpen:1;
         NSUInteger didOpen:1;
         NSUInteger willClose:1;
@@ -68,7 +67,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self resetLayouts];
     [self _removeGestureRecognizers];
     self.group = nil;
-    [self _removeDimmingView];
     [super dealloc];
 }
 
@@ -129,10 +127,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)setDelegate:(id<STKGroupViewDelegate>)delegate
 {
     _delegate = delegate;
-    _delegateFlags.willOpen = ([_delegate respondsToSelector:@selector(groupViewWillOpen:)]);
-    _delegateFlags.didOpen = ([_delegate respondsToSelector:@selector(groupViewDidOpen:)]);
-    _delegateFlags.willClose = ([_delegate respondsToSelector:@selector(groupViewWillClose:)]);
-    _delegateFlags.didClose = ([_delegate respondsToSelector:@selector(groupViewDidClose:)]);
+    _delegateFlags.didMoveToOffset = [_delegate respondsToSelector:@selector(groupView:didMoveToOffset:)];
+    _delegateFlags.willOpen = [_delegate respondsToSelector:@selector(groupViewWillOpen:)];
+    _delegateFlags.didOpen = [_delegate respondsToSelector:@selector(groupViewDidOpen:)];
+    _delegateFlags.willClose = [_delegate respondsToSelector:@selector(groupViewWillClose:)];
+    _delegateFlags.didClose = [_delegate respondsToSelector:@selector(groupViewDidClose:)];
 }
 
 #pragma mark - Layout
@@ -264,7 +263,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             [self _moveAllIconsToOffset:offset performingBlockOnSubApps:^(SBIconView *iconView) {
                 [self _setAlpha:realOffset forBadgeAndLabelOfIconView:iconView];
             }];
-            [self _setDimStrength:(offset * kFullDimStrength)];
+            if (_delegateFlags.didMoveToOffset) {
+                [_delegate groupView:self didMoveToOffset:realOffset];
+            }
             [self _setAlphaForOtherIcons:(1.2 - realOffset)];
             if ([_centralIconView isInDock]) {
                 [self _setAlphaForDisplacedIcons:(1.0 - realOffset)];   
@@ -453,7 +454,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
             }
         ];
-        [self _setDimStrength:kFullDimStrength];
+        if (_delegateFlags.didMoveToOffset) {
+            [_delegate groupView:self didMoveToOffset:1.f];
+        }
     } completion:^(BOOL finished) {
         if (finished) {
             if (completion) {
@@ -505,7 +508,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
         [listView setIconsNeedLayout];
         [listView layoutIconsIfNeeded:0.0f domino:0.f];
-        [self _setDimStrength:0.0f];
+        if (_delegateFlags.didMoveToOffset) {
+            [_delegate groupView:self didMoveToOffset:0.f];
+        }
     } completion:^(BOOL finished) {
         if (finished) {
             if (completion) {
@@ -515,7 +520,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if (_group.empty) {
                 [self resetLayouts];
             }
-            [self _removeDimmingView];
             if ([self.delegate respondsToSelector:@selector(groupViewDidClose:)]) {
                 [self.delegate groupViewDidClose:self];
             }
@@ -637,26 +641,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     for (SBIcon *icon in _displacedIconLayout) {
         [self _iconViewForIcon:icon].alpha = alpha;
     }
-}
-
-- (void)_setDimStrength:(CGFloat)strength
-{
-    if (!_dimmingView) {
-        SBWallpaperController *controller = [CLASS(SBWallpaperController) sharedInstance];
-        UIView *homescreenWallpaperView = [controller valueForKey:@"_homescreenWallpaperView"];
-        _dimmingView = [[UIView alloc] initWithFrame:homescreenWallpaperView.bounds];
-        _dimmingView.backgroundColor = [UIColor colorWithWhite:0.f alpha:1.f];
-        _dimmingView.alpha = 0.f;
-        [homescreenWallpaperView addSubview:_dimmingView];
-    }
-    _dimmingView.alpha = MIN(strength, kFullDimStrength);
-}
-
-- (void)_removeDimmingView
-{
-    [_dimmingView removeFromSuperview];
-    [_dimmingView release];
-    _dimmingView = nil;
 }
 
 - (SBIconView *)_iconViewForIcon:(SBIcon *)icon

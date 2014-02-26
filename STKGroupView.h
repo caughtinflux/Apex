@@ -34,6 +34,7 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 - (BOOL)groupView:(STKGroupView *)groupView shouldRecognizeGesturesSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)recognizer;
 
 @optional
+- (void)groupView:(STKGroupView *)groupView didMoveToOffset:(CGFloat)offset;
 - (void)groupViewWillOpen:(STKGroupView *)groupView;
 - (void)groupViewDidOpen:(STKGroupView *)groupView;
 - (void)groupViewWillClose:(STKGroupView *)groupView;
