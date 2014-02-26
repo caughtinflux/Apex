@@ -121,17 +121,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 #pragma mark - SBIconListView 
 %hook SBIconListView
 
-- (NSArray *)icons
-{
-    NSArray *icons = %orig();
-    STKGroupView *groupView = [STKGroupController sharedController].openGroupView;
-    if (groupView && !groupView.isAnimating && STKListViewForIcon(groupView.group.centralIcon) == self) {
-        icons = [[icons mutableCopy] autorelease];
-        [(NSMutableArray *)icons addObjectsFromArray:[groupView.group.layout allIcons]];
-    }
-    return icons;
-}
-
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
     STKGroupView *openGroupView = [[STKGroupController sharedController] openGroupView];
