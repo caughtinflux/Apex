@@ -700,20 +700,24 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     NSMutableArray *viewsToRemove = [NSMutableArray array];
     [UIView animateWithDuration:0.15 animations:^{
         [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
+            // we cannot mutate _subappLayout during iteration, so iterate over _group.layout
+            // and store the views to be removed in a separate array
             SBIconView *iconView = _subappLayout[pos][idx];
             if ([icon isPlaceholder]) {
-                [viewsToRemove addObject:iconView];
-                [iconView removeFromSuperview];
+                [iconView.superview sendSubviewToBack:iconView];
+                iconView.frame = (CGRect){CGPointZero, iconView.frame.size};
             }
             else if ([iconView.icon isLeafIcon]) {
                 [iconView removeApexOverlay];
             }
         }];
         [self _unhideIconsForPlaceholders];
+    } completion:^(BOOL finished) {
+        for (SBIconView *view in viewsToRemove) {
+            [view removeFromSuperview];
+            [_subappLayout removeIcon:view fromIconsAtPosition:[_subappLayout slotForIcon:view].position];
+        }
     }];
-    for (SBIconView *view in viewsToRemove) {
-        [_subappLayout removeIcon:view fromIconsAtPosition:[_subappLayout slotForIcon:view].position];
-    }
 }
 
 - (void)groupDidFinalizeState:(STKGroup *)group
