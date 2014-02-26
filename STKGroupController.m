@@ -10,6 +10,8 @@
     UISwipeGestureRecognizer *_closeSwipeRecognizer;
     UITapGestureRecognizer *_closeTapRecognizer;
     
+    BOOL _wasLongPressed;
+
     STKGroupSelectionAnimator *_selectionAnimator;
     STKSelectionView *_selectionView;
     STKGroupSlot _selectionSlot;
@@ -252,11 +254,6 @@
     _openGroupView = nil;
 }
 
-- (BOOL)iconShouldAllowTap:(SBIconView *)iconView
-{
-    return !_selectionView;
-}
-
 - (void)groupViewWillBeDestroyed:(STKGroupView *)groupView
 {
     if (groupView == _openGroupView){
@@ -275,6 +272,15 @@
     else {
         [iconView.icon launchFromLocation:SBIconLocationHomeScreen];        
     }
+}
+
+- (BOOL)iconShouldAllowTap:(SBIconView *)iconView
+{
+    if (_wasLongPressed) {
+        _wasLongPressed = NO;
+        return NO;
+    }
+    return !_selectionView;
 }
 
 - (BOOL)iconViewDisplaysCloseBox:(SBIconView *)iconView
@@ -297,10 +303,9 @@
     if ([iconView.icon isEmptyPlaceholder] || [iconView.icon isPlaceholder]) {
         return;
     }
+    _wasLongPressed = YES;
     [iconView setHighlighted:NO];
     [[iconView containerGroupView].group addPlaceholders];
-    iconView.userInteractionEnabled = NO;
-    iconView.userInteractionEnabled = YES;
 }
 
 - (void)iconTouchBegan:(SBIconView *)iconView
@@ -308,9 +313,12 @@
     [iconView setHighlighted:YES];   
 }
 
-- (void)icon:(SBIconView *)iconView touchEnded:(BOOL)ended
+- (void)icon:(SBIconView *)iconView touchMoved:(UITouch *)touch
 {
-    [iconView setHighlighted:NO];
+    if (_wasLongPressed) {
+        CGPoint location = [touch locationInView:[iconView _iconImageView]];
+        _wasLongPressed = [[iconView _iconImageView] pointInside:location withEvent:nil];
+    }
 }
 
 #pragma mark - Gesture Recognizer Delegate
