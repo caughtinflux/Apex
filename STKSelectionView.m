@@ -87,6 +87,11 @@
     return cell;
 }
 
+- (BOOL)collectionView:(UICollectionView *)collectionView shouldHighlightItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    return NO;
+}
+
 - (void)_selectedCell:(STKSelectionViewCell *)cell
 {
     NSIndexPath *previousIndexPath = [[_collectionView indexPathsForSelectedItems] firstObject];

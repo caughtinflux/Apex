@@ -147,6 +147,7 @@
     _selectionView.iconsForSelection = availableIcons;
     _selectionAnimator = [[STKGroupSelectionAnimator alloc] initWithSelectionView:_selectionView iconView:selectedIconView];
     [_selectionAnimator openSelectionViewAnimatedWithCompletion:nil];
+    [self _currentScrollView].scrollEnabled = NO;
 }
 
 - (void)_closeSelectionView
@@ -176,6 +177,8 @@
         _selectionView = nil;
         [_selectionAnimator release];
         _selectionAnimator = nil;
+
+        [self _currentScrollView].scrollEnabled = YES;
     }];
 }
 
