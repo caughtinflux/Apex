@@ -96,7 +96,23 @@ static NSString * const CentralIconKey      = @"centralIcon";
 {
     NSDictionary *groupState = [self _groupStateFromGroups];
     _preferences[GroupStateKey] = groupState;
-    [_preferences writeToFile:kPrefPath atomically:YES];
+
+    NSOutputStream *outputStream = [NSOutputStream outputStreamToFileAtPath:kPrefPath append:NO];
+    [outputStream open];
+    NSError *err = nil;
+    NSInteger bytesWritten = [NSPropertyListSerialization writePropertyList:_preferences
+                                                                   toStream:outputStream
+                                                                     format:NSPropertyListBinaryFormat_v1_0
+                                                                    options:0
+                                                                      error:&err];
+#ifdef DEBUG
+    if (bytesWritten > 0) {
+        DLog(@"Wrote %zd bytes to file", bytesWritten);
+    }
+    else {
+        DLog(@"Failed to write to stream. Error %zd: %@", err.code, err.localizedDescription);
+    }
+#endif
 }
 
 - (void)_addOrUpdateGroups:(NSArray *)groupArray
