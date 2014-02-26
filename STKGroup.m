@@ -117,6 +117,9 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
 {
     SBIcon *iconToReplace = [[[_layout iconInSlot:slot] retain] autorelease];
     [_layout setIcon:icon inSlot:slot];
+    if (_placeholderLayout && [icon isEmptyPlaceholder]) {
+        [_placeholderLayout addIcon:icon toIconsAtPosition:slot.position atIndex:slot.index];
+    }
     [self _updateState];
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
         [obs group:self replacedIcon:iconToReplace inSlot:slot withIcon:icon];
@@ -126,14 +129,13 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
 - (void)addPlaceholders
 {
     if (_placeholderLayout) {
-        goto notifyObs;
+        return;
     }
     _state = STKGroupStateDirty;
     _placeholderLayout = [[STKGroupLayoutHandler placeholderLayoutForGroup:self] retain];
     for (STKLayoutPosition pos = STKPositionTop; pos <= STKPositionRight; pos++) {
         [_layout addIcons:_placeholderLayout[pos] toIconsAtPosition:pos];
     }
-notifyObs:
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
         [obs groupDidAddPlaceholders:self];
     } forSelector:@selector(groupDidAddPlaceholders:)];
@@ -141,6 +143,9 @@ notifyObs:
 
 - (void)removePlaceholders
 {
+    if (_state != STKGroupStateDirty) {
+        return;
+    }
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
         [obs groupWillRemovePlaceholders:self];
     } forSelector:@selector(groupWillRemovePlaceholders:)];
@@ -166,9 +171,19 @@ notifyObs:
             [newLayout addIcon:icon toIconsAtPosition:position];
         }
     }];
-    [_layout release];
-    _layout = newLayout;
-    _state = STKGroupStateNormal;
+    if ([newLayout allIcons].count > 0) {
+        // move to newLayout only if it has any icons!
+        [_layout release];
+        _layout = newLayout;
+        _state = STKGroupStateNormal;
+    }
+    else {
+        // If newLayout doesn't have any icons, it means the _layout is full of empty icons
+        // So we transition to STKGroupStateEmpty!
+        _state = STKGroupStateEmpty;
+    }
+    [_placeholderLayout release];
+    _placeholderLayout = nil;
 
 notifyObservers:
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {

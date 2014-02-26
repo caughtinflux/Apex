@@ -28,6 +28,7 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
 
 @property (nonatomic, retain) SBIcon *centralIcon;
 @property (nonatomic, readonly) STKGroupLayout *layout;
+@property (nonatomic, readonly) STKGroupLayout *placeholderLayout;
 @property (nonatomic, readonly) NSDictionary *dictionaryRepresentation;
 @property (nonatomic, readonly) BOOL hasPlaceholders;
 @property (nonatomic, assign) SBIconCoordinate lastKnownCoordinate;
@@ -41,6 +42,7 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
 // Relayouts because YOLO
 
 - (void)replaceIconInSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
+// if `icon` is an empty placeholder, it is treated as such internally 
 
 - (void)addPlaceholders;
 - (void)removePlaceholders;

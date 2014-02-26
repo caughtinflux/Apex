@@ -507,6 +507,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         ];
         SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
         [listView setIconsNeedLayout];
+
         [listView layoutIconsIfNeeded:0.0f domino:0.f];
         if (_delegateFlags.didMoveToOffset) {
             [_delegate groupView:self didMoveToOffset:0.f];
@@ -663,7 +664,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)group:(STKGroup *)group replacedIcon:(SBIcon *)replacedIcon inSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon
 {
-    [(SBIconView *)_subappLayout[slot.position][slot.index] setIcon:icon];
+    SBIconView *iconView = (SBIconView *)_subappLayout[slot.position][slot.index];
+    [iconView setIcon:icon];
+    if (group.hasPlaceholders && [icon isLeafIcon]) {
+        [iconView showApexOverlayOfType:STKOverlayTypeEditing];
+    }
 }
 
 - (void)groupDidAddPlaceholders:(STKGroupView *)groupView

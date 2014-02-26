@@ -124,11 +124,17 @@
 
 - (void)_closeOpenGroupOrSelectionView
 {
+    STKGroup *openGroup = _openGroupView.group;
     if (_selectionView) {
         [self _closeSelectionView];
     }
-    else if ([_openGroupView.group hasPlaceholders]) {
-        [_openGroupView.group removePlaceholders];
+    else if ([openGroup hasPlaceholders]) {
+        if ([openGroup.layout allIcons].count == [openGroup.placeholderLayout allIcons].count) {
+            [_openGroupView close];
+        }
+        else {
+            [openGroup removePlaceholders];
+        }
     }
     else {
         [_openGroupView close];
@@ -152,27 +158,27 @@
     [self _currentScrollView].scrollEnabled = NO;
 }
 
-- (void)_closeSelectionView
+- (void)_selectIconForCurrentSlot:(SBIcon *)iconToSelect
 {
     SBIcon *iconInSelectedSlot = [_openGroupView.group.layout iconInSlot:_selectionSlot];
-    if (_selectionView.selectedIcon && (iconInSelectedSlot != _selectionView.selectedIcon)) {
-        if ([iconInSelectedSlot isLeafIcon]) {
-            if (!_iconsToShow) _iconsToShow = [NSMutableArray new];
-            [_iconsToShow addObject:iconInSelectedSlot];
-        }
-        if ([_selectionView.selectedIcon isLeafIcon]) {
-            if (!_iconsToHide) _iconsToHide = [NSMutableArray new];
-            [_iconsToHide addObject:_selectionView.selectedIcon];
-        }
-        [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:_selectionView.selectedIcon];
+    if (!_iconsToHide) _iconsToHide = [NSMutableArray new];
+    if (!_iconsToShow) _iconsToShow = [NSMutableArray new];
+    if ([iconInSelectedSlot isLeafIcon]) {
+        [_iconsToShow addObject:iconInSelectedSlot];
     }
-    else if ([iconInSelectedSlot isLeafIcon] && !_selectionView.selectedIcon) {
-        [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:[[CLASS(STKEmptyIcon) new] autorelease]];
+    if (iconToSelect) {
+        [_iconsToHide addObject:iconToSelect];
     }
-    if (_openGroupView.group.state != STKGroupStateEmpty) {
-        [_openGroupView.group addPlaceholders];
+    else {
+        iconToSelect = [[CLASS(STKEmptyIcon) new] autorelease];
     }
+    [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:iconToSelect];
+    [_openGroupView.group addPlaceholders];
+}
 
+- (void)_closeSelectionView
+{
+    [self _selectIconForCurrentSlot:_selectionView.selectedIcon];
     [_selectionAnimator closeSelectionViewAnimatedWithCompletion:^{
         [_selectionView removeFromSuperview];
         [_selectionView release];
@@ -229,7 +235,6 @@
 
 - (void)groupViewWillClose:(STKGroupView *)groupView
 {
-    [groupView.group removePlaceholders];
     [self _currentScrollView].scrollEnabled = YES;
 }
 
