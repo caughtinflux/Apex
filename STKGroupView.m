@@ -171,6 +171,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
         [self addSubview:iconView];
     }];
+    [self _resetDisplacedIconLayout];
+}
+
+- (void)_resetDisplacedIconLayout
+{
+    [_displacedIconLayout release];
+    _displacedIconLayout = nil;
     if ([_centralIconView isInDock]) {
         CGSize defaultSize = [CLASS(SBIconView) defaultIconSize];
         SBIconListView *currentListView = [[CLASS(SBIconController) sharedInstance] currentRootIconList];
@@ -247,6 +254,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             _targetDistance = [self _updatedTargetDistance];
             _keyframeDuration = KEYFRAME_DURATION();
             _recognizerDirection = ((translation.y < 0) ? STKRecognizerDirectionUp : STKRecognizerDirectionDown);    
+            if ([_centralIconView isInDock]) {
+                [self _resetDisplacedIconLayout];
+            }
             break;
         }
         case UIGestureRecognizerStateChanged: {
