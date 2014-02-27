@@ -716,6 +716,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if ([icon isPlaceholder]) {
                 [iconView.superview sendSubviewToBack:iconView];
                 iconView.frame = (CGRect){CGPointZero, iconView.frame.size};
+                [viewsToRemove addObject:iconView];
             }
             else if ([iconView.icon isLeafIcon]) {
                 [iconView removeApexOverlay];
