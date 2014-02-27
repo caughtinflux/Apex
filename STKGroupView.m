@@ -263,7 +263,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if (_ignoreRecognizer) {
                 break;
             }
-            if (passedStartPoint) {
+            if (passedStartPoint && ![_centralIconView isInDock]) {
                 offset = realOffset = 0.f;
             }
             else {
@@ -285,9 +285,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         case UIGestureRecognizerStateEnded: {
             if (!_ignoreRecognizer) {
                 CGPoint velocity = [recognizer velocityInView:self];
-                if (((_recognizerDirection == STKRecognizerDirectionUp && velocity.y < 0) 
+                if ((((_recognizerDirection == STKRecognizerDirectionUp && velocity.y < 0) 
                     || (_recognizerDirection == STKRecognizerDirectionDown && velocity.y > 0))
-                    && !passedStartPoint) {
+                    && !passedStartPoint)
+                    || [_centralIconView isInDock]) {
                     [self _animateOpenWithCompletion:nil];
                 }
                 else {
