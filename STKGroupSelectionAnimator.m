@@ -55,6 +55,7 @@
         [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 0.f;
         _selectionView.frame = _endFrame;
         _selectionView.contentView.alpha = 1.f;
+        _iconView.alpha = 0.f;
     }];
     [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:^{
         if (completion) {
@@ -70,6 +71,7 @@
     [UIView animateWithDuration:duration delay:0.0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
         [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 1.f;
         _selectionView.alpha = 0.f;
+        _iconView.alpha = 1.f;
     } completion:nil];
     [_zoomAnimator animateToFraction:0.f afterDelay:0 withCompletion:^{
         if (completion) {
