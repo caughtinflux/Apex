@@ -137,7 +137,6 @@
     }
     else {
         overlayView = [[[CLASS(SBFolderBackgroundView) alloc] initWithFrame:[self _iconImageView].bounds] autorelease];
-        overlayView.tintColor = [UIColor colorWithWhite:1.f alpha:0.2];
         mask = [[self class] maskForApexEmptyIconOverlayWithBounds:overlayView.layer.bounds];
     }
     overlayView.layer.masksToBounds = YES;
