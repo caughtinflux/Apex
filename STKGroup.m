@@ -117,8 +117,8 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
 {
     SBIcon *iconToReplace = [[[_layout iconInSlot:slot] retain] autorelease];
     [_layout setIcon:icon inSlot:slot];
-    if (_placeholderLayout && [icon isEmptyPlaceholder]) {
-        [_placeholderLayout addIcon:icon toIconsAtPosition:slot.position atIndex:slot.index];
+    if (_placeholderLayout && [icon isPlaceholder]) {
+        [_placeholderLayout addIcon:icon toIconsAtPosition:slot.position];
     }
     [self _updateState];
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
