@@ -173,7 +173,9 @@
         iconToSelect = [[CLASS(STKEmptyIcon) new] autorelease];
     }
     [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:iconToSelect];
-    [_openGroupView.group addPlaceholders];
+    if (_openGroupView.group.state != STKGroupStateEmpty) {
+        [_openGroupView.group addPlaceholders];
+    }
 }
 
 - (void)_closeSelectionView
