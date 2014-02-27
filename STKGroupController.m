@@ -180,7 +180,7 @@
         [_iconsToHide addObject:iconToSelect];
     }
     else {
-        iconToSelect = [[CLASS(STKPlaceholderIcon) new] autorelease];
+        iconToSelect = [[CLASS(STKEmptyIcon) new] autorelease];
     }
     [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:iconToSelect];
     if (_openGroupView.group.state != STKGroupStateEmpty) {
