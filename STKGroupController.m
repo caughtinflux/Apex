@@ -69,9 +69,19 @@
     iconView.groupView = nil;
 }
 
-- (void)handleHomeButtonPress
+- (BOOL)handleClosingEvent:(STKClosingEvent)event
 {
-    [self _closeOpenGroupOrSelectionView];
+    BOOL handled = NO;
+    if (event == STKClosingEventHomeButtonPress) {
+        handled = (_openGroupView || _selectionView);
+        [self _closeOpenGroupOrSelectionView];
+    }
+    else if (!_selectionView) {
+        // scroll event 
+        handled = (_openGroupView != nil);
+        [self _closeOpenGroupOrSelectionView];
+    }
+    return handled;
 }
 
 - (STKGroup *)_groupWithEmptySlotsForIcon:(SBIcon *)icon

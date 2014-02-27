@@ -149,11 +149,11 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
-#pragma mark - SBRootFolderView
+#pragma mark - SBFolderView
 %hook SBFolderView
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
-{
-    [[STKGroupController sharedController].openGroupView close];
+{    
+    [[STKGroupController sharedController] handleClosingEvent:STKClosingEventListViewScroll];   
     %orig();
 }
 %end
@@ -162,11 +162,8 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 %hook SBUIController
 - (BOOL)clickedMenuButton
 {
-    if ([STKGroupController sharedController].openGroupView) {
-        [[STKGroupController sharedController] handleHomeButtonPress];
-        return YES;
-    }
-    return %orig();
+    BOOL didReact = [[STKGroupController sharedController] handleClosingEvent:STKClosingEventHomeButtonPress];
+    return (didReact ?: %orig());
 }
 %end
 
