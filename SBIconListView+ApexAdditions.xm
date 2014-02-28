@@ -93,6 +93,6 @@ static BOOL _hasGridlock;
     @autoreleasepool {
         %init();
         void *handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Gridlock.dylib", RTLD_NOW);
-        _hasGridlock = !!handle;
+        _hasGridlock = (handle != nil);
     }   
 }
