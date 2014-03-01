@@ -8,7 +8,7 @@
 
 @property (nonatomic, readonly) STKActivationMode activationMode;
 @property (nonatomic, readonly) BOOL shouldLockLayouts;
-@property (nonatomic, readonly) BOOL shouldShowhowPreview;
+@property (nonatomic, readonly) BOOL shouldShowPreviews;
 @property (nonatomic, readonly) NSArray *identifiersForSubappIcons;
 
 - (void)addOrUpdateGroup:(STKGroup *)group;

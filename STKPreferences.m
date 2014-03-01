@@ -16,6 +16,10 @@ static NSString * const CentralIconKey      = @"centralIcon";
     NSMutableDictionary *_preferences;
     NSMutableDictionary *_groups;
     NSMutableDictionary *_subappToCentralMap;
+
+    STKActivationMode _activationMode;
+    BOOL _shouldLockLayouts;
+    BOOL _shouldShowPreviews;
 }
 
 + (instancetype)sharedPreferences
