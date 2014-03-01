@@ -8,8 +8,10 @@
 #undef CLASS
 #define CLASS(cls) NSClassFromString(@#cls)
 
-#define kSubappScale      0.81f
-#define kBandingAllowance 20.f
+#define kApexIconPreviewScale 0.95f
+#define kSubappPreviewScale   0.81f
+#define kBandingAllowance     20.f
+#define kPopoutDistance       9.f
 
 #define KEYFRAME_DURATION() (1.0 + (kBandingAllowance / _targetDistance))
 
@@ -28,15 +30,18 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     UIPanGestureRecognizer *_panRecognizer;
     UITapGestureRecognizer *_tapRecognizer;
     NSSet *_iconsHiddenForPlaceholders;
-    NSMapTable *_pathCache;
 
     BOOL _needsCreation;
     BOOL _isOpen;
     BOOL _showPreview;
     BOOL _isAnimating;
+
     BOOL _ignoreRecognizer;
+    BOOL _hasVerticalIcons;
+    BOOL _isUpwardSwipe;
+    CGFloat _lastDistanceFromCenter;
     CGFloat _targetDistance;
-    CGFloat _keyframeDuration;
+    CGFloat _distanceRatio;
     STKRecognizerDirection _recognizerDirection;
 
     struct {
@@ -100,7 +105,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _subappLayout = nil;
     [_displacedIconLayout release];
     _displacedIconLayout = nil;
-    [self _invalidatePathCache];
 }
 
 - (SBIconView *)subappIconViewForIcon:(SBIcon *)icon
@@ -185,9 +189,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             usingLayout:_group.layout
             targetFrameProvider:^CGRect(NSUInteger idx) {
                 STKGroupSlot slot = (STKGroupSlot){STKPositionTop, idx};
-                CGPoint targetPosition = [self _targetPositionForSubappSlot:slot];
-                CGPoint targetOrigin = (CGPoint){(targetPosition.x - (defaultSize.width * 0.5f)), (targetPosition.y - (defaultSize.height * 0.5f))};
-                CGRect frame = (CGRect){targetOrigin, defaultSize};
+                CGRect frame = (CGRect){[self _targetOriginForSubappSlot:slot], defaultSize};
                 return [self convertRect:frame toView:currentListView];
             }] retain];
     }
@@ -226,24 +228,26 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _tapRecognizer = nil;
 }
 
-- (void)_panned:(UIPanGestureRecognizer *)recognizer
+#pragma mark - Activation Recognizer Handling
+#define kBandingFactor  0.1 // The factor by which the distance should be multiplied to simulate the rubber banding effect
+- (void)_panned:(UIPanGestureRecognizer *)sender
 {
-    CGPoint translation = [recognizer translationInView:self];
-    double distance = translation.y;
-    CGFloat realOffset = (distance / _targetDistance);
-    CFTimeInterval offset = (distance / (_targetDistance + kBandingAllowance));
-    // `offset` adds banding allowance
-
-    BOOL passedStartPoint = ((realOffset < 0 && _recognizerDirection == STKRecognizerDirectionDown)
-                            || (realOffset > 0 && _recognizerDirection == STKRecognizerDirectionUp));
-
-    switch (recognizer.state) {
+    if (self.isOpen) {
+        _ignoreRecognizer = YES;
+        return;
+    }
+    switch (sender.state) {
         case UIGestureRecognizerStateBegan: {
-            _ignoreRecognizer = NO;
+            CGPoint translation = [sender translationInView:self];
+            _isUpwardSwipe = ([sender velocityInView:self].y < 0);
+            
             BOOL isHorizontalSwipe = !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0);
-            if ((self.delegate && ![self.delegate shouldGroupViewOpen:self]) || isHorizontalSwipe) {
+            BOOL isUpwardSwipeInSwipeDownMode = (_activationMode == STKActivationModeSwipeDown && _isUpwardSwipe);
+            BOOL isDownwardSwipeInSwipeUpMode = (_activationMode == STKActivationModeSwipeUp && !_isUpwardSwipe);
+            BOOL delegateDeniedOpen = (self.delegate && ![self.delegate shouldGroupViewOpen:self]);
+            if (delegateDeniedOpen || isHorizontalSwipe || isUpwardSwipeInSwipeDownMode || isDownwardSwipeInSwipeUpMode) {
                 _ignoreRecognizer = YES;
-                break;
+                return;
             }
             if (_delegateFlags.willOpen) {
                 [self.delegate groupViewWillOpen:self];
@@ -251,9 +255,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if (_group.empty || !_subappLayout) {
                 [self _reallyConfigureSubappViews];
             }
-            _targetDistance = [self _updatedTargetDistance];
-            _keyframeDuration = KEYFRAME_DURATION();
-            _recognizerDirection = ((translation.y < 0) ? STKRecognizerDirectionUp : STKRecognizerDirectionDown);    
+            [self _updateTargetDistance];
+            [self _calculateDistanceRatio];
+            //_targetDistance *= (_hasVerticalIcons == NO ? _distanceRatio : 1.f);
+            _recognizerDirection = ((translation.y < 0) ? STKRecognizerDirectionUp : STKRecognizerDirectionDown);
+            _hasVerticalIcons = ([_subappLayout[STKPositionTop] count] > 0) || ([_subappLayout[STKPositionBottom] count] > 0);
+            _lastDistanceFromCenter = 0.f;
             if ([_centralIconView isInDock]) {
                 [self _resetDisplacedIconLayout];
             }
@@ -261,47 +268,60 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         }
         case UIGestureRecognizerStateChanged: {
             if (_ignoreRecognizer) {
-                break;
+                return;
             }
-            if (passedStartPoint && ![_centralIconView isInDock]) {
-                offset = realOffset = 0.f;
+            CGFloat change = [sender translationInView:self].y;
+            if (_isUpwardSwipe) {
+                change = -change;
             }
-            else {
-                offset = MIN(fabsf(offset), (_keyframeDuration - 0.00001));
-                realOffset = MIN(fabsf(realOffset), 1.0f);
+            if ((change > 0) && (_lastDistanceFromCenter >= _targetDistance)) {
+                // Factor this down to simulate elasticity when the icons have reached their target locations
+                // The stack allows the icons to go beyond their targets for a little distance
+                change *= kBandingFactor;
             }
-            [self _moveAllIconsToOffset:offset performingBlockOnSubApps:^(SBIconView *iconView) {
-                [self _setAlpha:realOffset forBadgeAndLabelOfIconView:iconView];
+
+            CGFloat offset = MIN((_lastDistanceFromCenter / _targetDistance), 1.f);
+            [self _setAlphaForOtherIcons:(1.2 - offset)];
+            if ([_centralIconView isInDock]) {
+                [self _setAlphaForDisplacedIcons:(1.0 - offset)];   
+            }
+            [self _moveByDistance:change performingBlockOnSubApps:^(SBIconView *subappView, STKGroupSlot slot) {
+                [self _setAlpha:offset forBadgeAndLabelOfIconView:subappView];
+                if (slot.index == 0) {
+                    if (_hasVerticalIcons && STKPositionIsVertical(slot.position)) {
+                        _lastDistanceFromCenter = fabsf(subappView.frame.origin.y - _centralIconView.bounds.origin.y);
+                    }
+                    else if (!_hasVerticalIcons && STKPositionIsHorizontal(slot.position)) {
+                       _lastDistanceFromCenter = fabsf(subappView.frame.origin.x - _centralIconView.bounds.origin.x);
+                    }
+                }
             }];
             if (_delegateFlags.didMoveToOffset) {
-                [_delegate groupView:self didMoveToOffset:realOffset];
+                [_delegate groupView:self didMoveToOffset:offset];
             }
-            [self _setAlphaForOtherIcons:(1.2 - realOffset)];
-            if ([_centralIconView isInDock]) {
-                [self _setAlphaForDisplacedIcons:(1.0 - realOffset)];   
-            }
+            [sender setTranslation:CGPointZero inView:self];
             break;
         }
         case UIGestureRecognizerStateEnded: {
             if (!_ignoreRecognizer) {
-                CGPoint velocity = [recognizer velocityInView:self];
-                if ((((_recognizerDirection == STKRecognizerDirectionUp && velocity.y < 0) 
-                    || (_recognizerDirection == STKRecognizerDirectionDown && velocity.y > 0))
-                    && !passedStartPoint)
-                    || [_centralIconView isInDock]) {
+                CGPoint velocity = [sender velocityInView:self];
+                if ((_recognizerDirection == STKRecognizerDirectionUp && velocity.y < 0) 
+                 || (_recognizerDirection == STKRecognizerDirectionDown && velocity.y > 0)) {
                     [self _animateOpenWithCompletion:nil];
                 }
                 else {
                     [self _animateClosedWithCompletion:nil];
                 }
             }
-            _ignoreRecognizer = NO;
-            _keyframeDuration = 0.f;
-            _targetDistance = 0.f;
-            break;
+            /* NOTE THE LACK OF A break; */
         }
         default: {
-            // do nothing
+            _ignoreRecognizer = NO; 
+            _isUpwardSwipe = NO; 
+            _hasVerticalIcons = NO;
+            _targetDistance = 0.f;
+            _recognizerDirection = STKRecognizerDirectionNone;
+            break;
         }
     }
 }
@@ -336,65 +356,142 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 }
 
 #pragma mark - Moving
-- (void)_moveAllIconsToOffset:(CFTimeInterval)timeOffset performingBlockOnSubApps:(void(^)(SBIconView *))block
-{
-    void(^mover)(SBIconView *, STKLayoutPosition, NSArray *, NSUInteger, BOOL, CGPoint) = 
-    ^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger index, BOOL isSubapp, CGPoint target) {
-        if (!iconView) {
-            return;
-        }
-        UIBezierPath *path = [self _cachedPathForIcon:iconView.icon];
-        if (!path) {
-            target = [self _pointByApplyingBandingToPoint:target withPosition:position];
-            path = [self _pathForIconToPoint:target fromIconView:iconView isSubapp:isSubapp];
-            [self _cachePath:path forIcon:iconView.icon];
-        }
-        CAKeyframeAnimation *animation = [self _defaultAnimation];
-        animation.path = path.CGPath;
-        animation.timeOffset = timeOffset;
-        [iconView.layer addAnimation:animation forKey:@"ApexIconMoveAnimation"];
-        iconView.layer.position = [iconView.layer.presentationLayer position];
-    };
+// These macros give us information about _a relative to _b, relative to their paths.
+#define IS_GREATER(_float_a, _float_b, _position) ((_position == STKPositionTop || _position == STKPositionLeft) ? (_float_a < _float_b) : (_float_a > _float_b))
+#define IS_LESSER(_float_a, _float_b, _position) ((_position == STKPositionTop || _position == STKPositionLeft) ? (_float_a > _float_b) : (_float_a < _float_b))
 
-    [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iv, STKLayoutPosition pos, NSArray *c, NSUInteger i, BOOL *s) {
-        if (block) {
-            block(iv);
-        }
-        CGPoint target = [self _targetPositionForSubappSlot:(STKGroupSlot){pos, i}];
-        mover(iv, pos, c, i, YES, target);
-    }];
-    [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger i, BOOL *s) {
-        SBIconView *iv = [self _iconViewForIcon:icon];
-        if (![_centralIconView isInDock]) {
-            CGPoint target = [self _displacedOriginForIcon:iv.icon withPosition:pos];
-            mover(iv, pos, c, i, NO, target);
-        }
+- (void)_moveByDistance:(CGFloat)distance performingBlockOnSubApps:(void(^)(SBIconView *iv, STKGroupSlot slot))block
+{ 
+    // Move _subapps icons
+    if (![_centralIconView isInDock]) {
+        [self _moveDisplacedIconsByDistance:distance];
+    }
+    [self _moveSubappsByDistance:distance performingTask:block];
+    if (_delegateFlags.didMoveToOffset) {
+        [self.delegate groupView:self didMoveToOffset:MIN((_lastDistanceFromCenter / _targetDistance), 1.f)];   
+    }
+}
+
+- (void)_moveDisplacedIconsByDistance:(CGFloat)distance
+{
+    SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
+    [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:
+        ^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index, BOOL *stop) {
+            SBIconView *iconView = [self _iconViewForIcon:icon]; // Get the on-screen icon view from the list view.
+            CGRect iconFrame = iconView.frame;
+            CGRect newFrame = iconView.frame;
+            CGPoint originalOrigin = [listView originForIcon:icon];
+            CGPoint targetOrigin = [self _displacedOriginForIcon:icon withPosition:position];
+            NSUInteger appearingIconsCount = [_subappLayout[position] count];
+            CGFloat factoredDistance = (distance * appearingIconsCount);  // Factor the distance up by the number of icons that are coming in at that position
+            
+            CGFloat *targetCoord, *currentCoord, *newCoord, *originalCoord;
+            CGFloat moveDistance;
+            if (STKPositionIsVertical(position)) {
+                targetCoord = &(targetOrigin.y); 
+                currentCoord = &(iconFrame.origin.y);
+                newCoord = &(newFrame.origin.y);
+                originalCoord = &(originalOrigin.y);
+                moveDistance = factoredDistance;
+            }
+            else {
+                targetCoord = &(targetOrigin.x);
+                currentCoord = &(iconFrame.origin.x);
+                newCoord = &(newFrame.origin.x);
+                originalCoord = &(originalOrigin.x);
+                // The distance to be moved horizontally is slightly different than vertical, multiply it by the ratio to have them work perfectly. :)
+                moveDistance = (factoredDistance * _distanceRatio);
+            }
+            CGFloat negator = ((position == STKPositionTop || position == STKPositionLeft) ? -1.f : 1.f);
+            moveDistance *= negator;
+            if (IS_GREATER((*currentCoord + (moveDistance / appearingIconsCount)), *targetCoord, position)) {
+                // If, after moving, the icon would pass its target, factor the distance back to it's original.
+                // Now it has to move only as much as all the other icons
+                moveDistance /= appearingIconsCount;
+            }
+            *targetCoord += kBandingAllowance * negator;
+            if (IS_GREATER(*currentCoord + moveDistance, *targetCoord, position)) {
+                // Do not go beyond target
+                *newCoord = *targetCoord;
+            }
+            else if (IS_LESSER(*currentCoord + moveDistance, *originalCoord, position)) {
+                // Or beyond the original position on the homescreen
+                *newCoord = *originalCoord;
+            }
+            else {
+                // Move that shit
+                *newCoord += moveDistance;
+            }
+            iconView.frame = newFrame;
     }];
 }
 
-- (CAKeyframeAnimation *)_defaultAnimation
+- (void)_moveSubappsByDistance:(CGFloat)distance performingTask:(void(^)(SBIconView *iv, STKGroupSlot slot))task
 {
-    CAKeyframeAnimation *animation = [CAKeyframeAnimation animationWithKeyPath:@"position"];
-    animation.duration = KEYFRAME_DURATION();
-    animation.speed = 0.0;
-    animation.fillMode = kCAFillModeForwards;
-    animation.removedOnCompletion = NO;
-    return animation;
+    BOOL isShowingPreview = ((_group.state != STKGroupStateEmpty) && _showPreview);
+    [_subappLayout enumerateIconsUsingBlockWithIndexes:
+        ^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx, BOOL *stop) {
+            STKGroupSlot slot = (STKGroupSlot){position, idx};
+            if (task) {
+                task(iconView, slot);
+            }
+            CGRect iconFrame = iconView.frame;
+            CGRect newFrame = iconView.frame;
+            CGPoint targetOrigin = [self _targetOriginForSubappSlot:slot];
+            CGRect centralFrame = _centralIconView.bounds;
+            CGFloat negator = ((position == STKPositionTop || position == STKPositionLeft) ? -1.f : 1.f);
+            CGFloat distanceRatio = 1.f;
+            CGFloat *targetCoord, *currentCoord, *newCoord, *centralCoord;
+            CGFloat moveDistance = distance * negator;
+            if (STKPositionIsVertical(position)) {
+                targetCoord = &(targetOrigin.y);
+                currentCoord = &(iconFrame.origin.y);
+                newCoord = &(newFrame.origin.y);
+                centralCoord = &(centralFrame.origin.y);
+            }
+            else {
+                targetCoord = &(targetOrigin.x);
+                currentCoord = &(iconFrame.origin.x);
+                newCoord = &(newFrame.origin.x);
+                centralCoord = &(centralFrame.origin.x);
+                distanceRatio = _distanceRatio;
+            }
+            CGFloat multFactor = (IS_LESSER((*currentCoord + moveDistance), *targetCoord, position) ? (idx + 1) : 1);
+            // Compensate for the popout if necessary
+            CGFloat popComp = ((idx == currentArray.count - 1 && isShowingPreview) ? ((*targetCoord - kPopoutDistance * negator) / *targetCoord) : 1.f);
+            moveDistance *= (distanceRatio * multFactor * popComp);
+            if (IS_GREATER((*currentCoord + (moveDistance / popComp)), *targetCoord, position)) {
+                // Don't compensate for anything if the icon is moving past the target
+                moveDistance /= popComp;
+            }
+            // Modify the target to allow for a `kBandingAllowance` distance extra for the rubber banding effect
+            *targetCoord += (kBandingAllowance * negator);
+            if (IS_LESSER((*currentCoord + moveDistance), *centralCoord, position)) {
+                // going past start point, don't move further
+                newFrame = centralFrame;
+            }
+            else if (IS_LESSER((*currentCoord + moveDistance), *targetCoord, position)) {
+                // we're neither here nor there – just floating through space somewhere in between
+                *newCoord += moveDistance;
+            }
+            else if (IS_GREATER((*currentCoord + moveDistance), *targetCoord, position)) {
+                // trying to move past the target! STICK TO THE TARGET, ICONVIEW...STICK TO THE TARGET.
+                *newCoord = *targetCoord;
+            }
+            iconView.frame = newFrame;
+    }];
 }
 
-- (UIBezierPath *)_pathForIconToPoint:(CGPoint)destination fromIconView:(SBIconView *)iconView isSubapp:(BOOL)isSubapp
+- (void)_calculateDistanceRatio
 {
-    UIBezierPath *path = [UIBezierPath bezierPath];
-    CGPoint startPoint;    
-    if (isSubapp) {
-        startPoint = [iconView _iconImageView].layer.position;
-    }
-    else {
-        startPoint = iconView.layer.position;
-    }
-    [path moveToPoint:startPoint];
-    [path addLineToPoint:destination];
-    return path;
+    SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
+    CGPoint referencePoint = [listView originForIconAtCoordinate:(SBIconCoordinate){2, 2}];
+    CGPoint verticalOrigin = [listView originForIconAtCoordinate:(SBIconCoordinate){1, 2}];
+    CGPoint horizontalOrigin = [listView originForIconAtCoordinate:(SBIconCoordinate){2, 1}];
+    
+    CGFloat verticalDistance = referencePoint.y - verticalOrigin.y;
+    CGFloat horizontalDistance = referencePoint.x - horizontalOrigin.x;
+    _distanceRatio = (horizontalDistance / verticalDistance);
 }
 
 #pragma mark - Animate
@@ -415,28 +512,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
         [_subappLayout enumerateIconsUsingBlockWithIndexes:
             ^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
-                CGPoint destination = ({
-                    CGPoint dest = CGPointZero;
-                    UIBezierPath *path = [self _cachedPathForIcon:iconView.icon];
-                    if (path) {
-                        // Use the endpoint for the cached path, since calculating manually again would yield wrong results.
-                        dest = path.currentPoint;
-                        // However, the path is at target+banding allowance, so subtract that
-                        dest = [self _pointByRemovingBandingFromPoint:dest withPosition:pos];
-                    }
-                    else {
-                        // The path is nil, meaning the icons haven't been moved yet, so we can use manual calculation
-                        dest = [self _targetPositionForSubappSlot:(STKGroupSlot){pos, idx}];;
-                    }
-                    dest;
-                });
-                [self _setAlpha:1.f forBadgeAndLabelOfIconView:iconView];
-                [UIView performWithoutAnimation:^{
-                    iconView.layer.position = [iconView.layer.presentationLayer position];
-                }];
-                iconView.layer.position = destination;
-                [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
-            }    
+                iconView.frame = (CGRect){[self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}], iconView.frame.size};
+            } 
         ];
         [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:
             ^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
@@ -445,24 +522,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                     iconView.alpha = 0.f;   
                 }
                 else {
-                    CGPoint destination = ({
-                        CGPoint dest;
-                        UIBezierPath *path = [self _cachedPathForIcon:iconView.icon];
-                        if (path) {
-                            dest = path.currentPoint;
-                            dest = [self _pointByRemovingBandingFromPoint:dest withPosition:pos];
-                        }
-                        else {
-                            dest = [self _displacedOriginForIcon:icon withPosition:pos];
-                        }
-                        dest;
-                    });
-                    [UIView performWithoutAnimation:^{
-                        iconView.layer.position = [iconView.layer.presentationLayer position];
-                    }];
-                    iconView.layer.position = destination;
-                }
-                [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
+                    CGPoint destination = [self _displacedOriginForIcon:icon withPosition:pos];
+                    iconView.frame = (CGRect){destination, iconView.frame.size};
+                };
             }
         ];
         if (_delegateFlags.didMoveToOffset) {
@@ -539,33 +601,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }];
 }
 
-
-#pragma mark - Cache Handling
-- (void)_cachePath:(UIBezierPath *)path forIcon:(SBIcon *)icon
-{
-    NSParameterAssert(path);
-    NSParameterAssert(icon.nodeIdentifier);
-    if (!_pathCache) _pathCache = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsWeakMemory valueOptions:NSPointerFunctionsCopyIn capacity:0];
-    [_pathCache setObject:path forKey:icon.nodeIdentifier];
-}
-
-- (UIBezierPath *)_cachedPathForIcon:(SBIcon *)subOrDisplacedIcon
-{
-    return [_pathCache objectForKey:subOrDisplacedIcon.nodeIdentifier];
-}
-
-- (void)_invalidatePathCache
-{
-    [_pathCache release];
-    _pathCache = nil;
-}
-
 #pragma mark - Coordinate Calculations
-- (CGPoint)_targetPositionForSubappSlot:(STKGroupSlot)slot
+- (CGPoint)_targetOriginForSubappSlot:(STKGroupSlot)slot
 {
     CGFloat negator = ((slot.position == STKPositionTop || slot.position == STKPositionLeft) ? -1.f : 1.f);
     CGFloat factor = (slot.index + 1) * negator;
-    CGPoint target = _centralIconView._iconImageView.layer.position;
+    CGPoint target = CGPointZero;
     CGSize iconSize = [CLASS(SBIconView) defaultIconSize];
     SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
     if (slot.position == STKPositionTop || slot.position == STKPositionBottom) {
@@ -588,7 +629,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     SBIconView *iconView = [self _iconViewForIcon:icon];
     STKGroupLayout *layout = _group.layout;
     
-    CGPoint originalOrigin = [listView viewForIcon:icon].layer.position; 
+    CGPoint originalOrigin = [listView originForIcon:icon];
     CGRect originalFrame = (CGRect){originalOrigin, {iconView.frame.size.width, iconView.frame.size.height}};
     CGPoint returnPoint = originalOrigin;
     NSInteger multiplicationFactor = [layout[position] count];
@@ -600,24 +641,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         returnPoint.x = (originalFrame.origin.x + ((originalFrame.size.width + [listView stk_realHorizontalIconPadding]) * multiplicationFactor * negator));
     }
     return returnPoint;
-}
-
-- (CGPoint)_pointByApplyingBandingToPoint:(CGPoint)point withPosition:(STKLayoutPosition)position
-{
-    CGFloat allowance = kBandingAllowance * ((position == STKPositionTop || position == STKPositionLeft) ? -1.f : 1.f);
-    if (STKPositionIsVertical(position)) {
-        return (CGPoint){point.x, point.y + allowance};
-    }
-    return (CGPoint){point.x + allowance, point.y};
-}
-
-- (CGPoint)_pointByRemovingBandingFromPoint:(CGPoint)point withPosition:(STKLayoutPosition)position
-{
-    CGFloat allowance = kBandingAllowance * ((position == STKPositionTop || position == STKPositionLeft) ? -1.f : 1.f);
-    if (STKPositionIsVertical(position)) {
-        return (CGPoint){point.x, point.y - allowance};
-    }
-    return (CGPoint){point.x - allowance, point.y};
 }
 
 - (void)_setAlphaForOtherIcons:(CGFloat)alpha
@@ -660,11 +683,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     return [[CLASS(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
 }
 
-- (CGFloat)_updatedTargetDistance
+- (void)_updateTargetDistance
 {
-    CGFloat defaultHeight = [objc_getClass("SBIconView") defaultIconSize].height;
-    CGFloat verticalPadding = [STKListViewForIcon(_group.centralIcon) stk_realVerticalIconPadding];
-    return verticalPadding + defaultHeight;
+    _targetDistance = ([self _targetOriginForSubappSlot:(STKGroupSlot){STKPositionTop, 0}].y * -1.f);
 }
 
 #pragma mark - Group Observer
@@ -689,8 +710,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if ([icon isPlaceholder]) {
                 Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
                 SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
-                iconView.frame = (CGRect){CGPointZero, iconView.frame.size};
-                iconView.layer.position = [self _targetPositionForSubappSlot:(STKGroupSlot){pos, idx}];
+                iconView.frame = (CGRect){[self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}], iconView.frame.size};
                 iconView.icon = icon;
                 iconView.delegate = self.delegate;
                 [_subappLayout addIcon:iconView toIconsAtPosition:pos];
