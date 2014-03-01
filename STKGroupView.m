@@ -306,8 +306,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         case UIGestureRecognizerStateEnded: {
             if (!_ignoreRecognizer) {
                 CGPoint velocity = [sender velocityInView:self];
-                if ((_recognizerDirection == STKRecognizerDirectionUp && velocity.y < 0) 
-                 || (_recognizerDirection == STKRecognizerDirectionDown && velocity.y > 0)) {
+                if (((_recognizerDirection == STKRecognizerDirectionUp && velocity.y < 0) 
+                    || (_recognizerDirection == STKRecognizerDirectionDown && velocity.y > 0))
+                    && _lastDistanceFromCenter >= 25.f) {
                     [self _animateOpenWithCompletion:nil];
                 }
                 else {
@@ -506,38 +507,25 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ([self.delegate respondsToSelector:@selector(groupViewWillOpen:)]) {
         [self.delegate groupViewWillOpen:self];
     }
-    UIDynamicAnimator *animator = [[UIDynamicAnimator alloc] initWithReferenceView:self];
-    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut
-        animations:^{
+    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
         [self _setAlphaForOtherIcons:0.2f];
 
-        [_subappLayout enumerateIconsUsingBlockWithIndexes:
-            ^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
-                [self _setAlpha:1.0 forBadgeAndLabelOfIconView:iconView];
-                CGPoint point = [self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}];
-                if ([_centralIconView isInDock]) {
-                    iconView.frame = (CGRect){point, iconView.frame.size};
-                }
-                else {
-                    CGPoint center = (CGPoint){(point.x + iconView.bounds.size.width / 2.0), (point.y + iconView._iconImageView.bounds.size.height / 2.0)};
-                    UISnapBehavior *behavior = [[[UISnapBehavior alloc] initWithItem:iconView snapToPoint:center] autorelease];
-                    [animator addBehavior:behavior];
-                }
-            } 
-        ];
-        [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:
-            ^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
-                SBIconView *iconView = [listView viewForIcon:icon];
-                if ([_centralIconView isInDock]) {
-                    iconView.alpha = 0.f;   
-                }
-                else {
-                    CGPoint destination = [self _displacedOriginForIcon:icon withPosition:pos];
-                    iconView.frame = (CGRect){destination, iconView.frame.size};
-                };
+        [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
+            [self _setAlpha:1.0 forBadgeAndLabelOfIconView:iconView];
+            CGPoint origin = [self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}];
+            iconView.frame = (CGRect){origin, iconView.frame.size};
+        }];
+        [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
+            SBIconView *iconView = [listView viewForIcon:icon];
+            if ([_centralIconView isInDock]) {
+                iconView.alpha = 0.f;
             }
-        ];
+            else {
+                CGPoint destination = [self _displacedOriginForIcon:icon withPosition:pos];
+                iconView.frame = (CGRect){destination, iconView.frame.size};
+            };
+        }];
         if (_delegateFlags.didMoveToOffset) {
             [_delegate groupView:self didMoveToOffset:1.f];
         }
@@ -546,8 +534,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if (completion) {
                 completion();
             }
-            [animator removeAllBehaviors];
-            [animator release];
             _isAnimating = NO;
             if ([self.delegate respondsToSelector:@selector(groupViewDidOpen:)]) {
                 [self.delegate groupViewDidOpen:self];
@@ -569,11 +555,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
     // Shrink-Grow animation for the central iconView's image
     CGFloat scale = 1.f; //(_group.empty || !_showPreview ? 1.f : kCentralIconPreviewScale);
-    [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
         [_centralIconView stk_setImageViewScale:(scale - 0.1f)];
     } completion:^(BOOL done) {
         if (done) {
-            [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
                 [_centralIconView stk_setImageViewScale:scale];
             } completion:nil];
         }
