@@ -8,10 +8,11 @@
 #undef CLASS
 #define CLASS(cls) NSClassFromString(@#cls)
 
-#define kApexIconPreviewScale 0.95f
-#define kSubappPreviewScale   0.81f
-#define kBandingAllowance     20.f
-#define kPopoutDistance       9.f
+#define kApexIconPreviewScale    0.95f
+#define kSubappPreviewScale      0.81f
+#define kBandingAllowance        20.f
+#define kPopoutDistance          9.f
+#define kCentralIconPreviewScale 0.95f
 
 #define KEYFRAME_DURATION() (1.0 + (kBandingAllowance / _targetDistance))
 
@@ -229,7 +230,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 }
 
 #pragma mark - Activation Recognizer Handling
-#define kBandingFactor  0.1 // The factor by which the distance should be multiplied to simulate the rubber banding effect
+#define kBandingFactor  0.25 // The factor by which the distance should be multiplied to simulate the rubber banding effect
 - (void)_panned:(UIPanGestureRecognizer *)sender
 {
     if (self.isOpen) {
@@ -505,6 +506,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ([self.delegate respondsToSelector:@selector(groupViewWillOpen:)]) {
         [self.delegate groupViewWillOpen:self];
     }
+    UIDynamicAnimator *animator = [[UIDynamicAnimator alloc] initWithReferenceView:self];
     [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut
         animations:^{
         SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
@@ -512,7 +514,16 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
         [_subappLayout enumerateIconsUsingBlockWithIndexes:
             ^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
-                iconView.frame = (CGRect){[self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}], iconView.frame.size};
+                [self _setAlpha:1.0 forBadgeAndLabelOfIconView:iconView];
+                CGPoint point = [self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}];
+                if ([_centralIconView isInDock]) {
+                    iconView.frame = (CGRect){point, iconView.frame.size};
+                }
+                else {
+                    CGPoint center = (CGPoint){(point.x + iconView.bounds.size.width / 2.0), (point.y + iconView._iconImageView.bounds.size.height / 2.0)};
+                    UISnapBehavior *behavior = [[[UISnapBehavior alloc] initWithItem:iconView snapToPoint:center] autorelease];
+                    [animator addBehavior:behavior];
+                }
             } 
         ];
         [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:
@@ -535,6 +546,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if (completion) {
                 completion();
             }
+            [animator removeAllBehaviors];
+            [animator release];
             _isAnimating = NO;
             if ([self.delegate respondsToSelector:@selector(groupViewDidOpen:)]) {
                 [self.delegate groupViewDidOpen:self];
@@ -553,31 +566,31 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ([self.delegate respondsToSelector:@selector(groupViewWillClose:)]) {
         [self.delegate groupViewWillClose:self];
     }
-    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut
-        animations:^{
+
+    // Shrink-Grow animation for the central iconView's image
+    CGFloat scale = 1.f; //(_group.empty || !_showPreview ? 1.f : kCentralIconPreviewScale);
+    [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [_centralIconView stk_setImageViewScale:(scale - 0.1f)];
+    } completion:^(BOOL done) {
+        if (done) {
+            [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                [_centralIconView stk_setImageViewScale:scale];
+            } completion:nil];
+        }
+    }];
+
+    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         [self _setAlphaForOtherIcons:1.f];
-        [_subappLayout enumerateIconsUsingBlockWithIndexes:
-            ^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
-                [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
-                [UIView performWithoutAnimation:^{
-                    iconView.layer.position = [iconView.layer.presentationLayer position];
-                }];
-                iconView.frame = (CGRect){CGPointZero, iconView.frame.size};
-                [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
-            }    
-        ];
-        [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:
-            ^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
-                SBIconView *iconView = [self _iconViewForIcon:icon];
-                if ([_centralIconView isInDock]) {
-                    iconView.alpha = 1.f;
-                }
-                [UIView performWithoutAnimation:^{
-                    iconView.layer.position = [iconView.layer.presentationLayer position];
-                }];
-                [iconView.layer removeAnimationForKey:@"ApexIconMoveAnimation"];
+        [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
+            [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
+            iconView.frame = (CGRect){CGPointZero, iconView.frame.size};
+        }];
+        [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
+            SBIconView *iconView = [self _iconViewForIcon:icon];
+            if ([_centralIconView isInDock]) {
+                iconView.alpha = 1.f;
             }
-        ];
+        }];
         SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
         [listView setIconsNeedLayout];
 
