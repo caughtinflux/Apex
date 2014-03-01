@@ -12,7 +12,9 @@ TWEAK_NAME = Apex
 Apex_FILES :=  $(wildcard *.*m)
 Apex_FRAMEWORKS = Foundation CoreFoundation UIKit CoreGraphics QuartzCore
 Apex_CFLAGS += -Wall -Werror -O3
-ADDITIONAL_LDFLAGS += -Wl,-map,$@.map -g -x c /dev/null -x none
+ifeq ($DEBUG, 1)
+	ADDITIONAL_LDFLAGS += -Wl,-map,$@.map -g -x c /dev/null -x none
+endif
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
