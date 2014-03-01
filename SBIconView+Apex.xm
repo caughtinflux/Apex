@@ -151,6 +151,12 @@
     self.apexOverlayView = nil;
 }
 
+%new
+- (void)stk_setImageViewScale:(CGFloat)scale
+{
+    [self _iconImageView].layer.transform = CATransform3DMakeScale(scale, scale, scale);
+}
+
 - (void)setIcon:(SBIcon *)icon
 {
     %orig(icon);
