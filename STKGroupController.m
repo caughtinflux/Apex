@@ -176,10 +176,16 @@
     if ([iconInSelectedSlot isLeafIcon]) {
         [_iconsToShow addObject:iconInSelectedSlot];
     }
-    if (iconToSelect) {
+    if (iconToSelect && iconToSelect != iconInSelectedSlot) {
+        // The selected icon needs to be hidden from the home screen
         [_iconsToHide addObject:iconToSelect];
+        STKGroupSlot slotForIconIfAlreadyInGroup = [_openGroupView.group.layout slotForIcon:iconToSelect];
+        if (slotForIconIfAlreadyInGroup.index != NSNotFound) {
+            // the group already contains this icon, so replace it with an empty icon
+            [_openGroupView.group replaceIconInSlot:slotForIconIfAlreadyInGroup withIcon:[[CLASS(STKEmptyIcon) new] autorelease]];
+        }
     }
-    else {
+    else if (!iconToSelect) {
         iconToSelect = [[CLASS(STKEmptyIcon) new] autorelease];
     }
     [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:iconToSelect];
