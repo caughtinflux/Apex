@@ -160,7 +160,10 @@
     [visibleIconIdentifiers addObjectsFromArray:[STKPreferences sharedPreferences].identifiersForSubappIcons];
     NSMutableArray *availableIcons = [NSMutableArray array];
     for (NSString *identifier in visibleIconIdentifiers) {
-        [availableIcons addObject:[model expectedIconForDisplayIdentifier:identifier]];
+        SBIcon *icon = [model expectedIconForDisplayIdentifier:identifier];
+        if (![[STKPreferences sharedPreferences] groupForCentralIcon:icon]) {
+            [availableIcons addObject:icon];
+        }
     }
     _selectionView.iconsForSelection = availableIcons;
     _selectionAnimator = [[STKGroupSelectionAnimator alloc] initWithSelectionView:_selectionView iconView:selectedIconView];
