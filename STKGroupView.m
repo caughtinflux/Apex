@@ -258,13 +258,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             }
             [self _updateTargetDistance];
             [self _calculateDistanceRatio];
-            //_targetDistance *= (_hasVerticalIcons == NO ? _distanceRatio : 1.f);
             _recognizerDirection = ((translation.y < 0) ? STKRecognizerDirectionUp : STKRecognizerDirectionDown);
             _hasVerticalIcons = ([_subappLayout[STKPositionTop] count] > 0) || ([_subappLayout[STKPositionBottom] count] > 0);
+            _targetDistance *= (_hasVerticalIcons == NO ? _distanceRatio : 1.f);
             _lastDistanceFromCenter = 0.f;
-            if ([_centralIconView isInDock]) {
-                [self _resetDisplacedIconLayout];
-            }
+            
+            [self _resetDisplacedIconLayout];
+            
             break;
         }
         case UIGestureRecognizerStateChanged: {
