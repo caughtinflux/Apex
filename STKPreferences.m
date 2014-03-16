@@ -1,6 +1,8 @@
 #import "STKPreferences.h"
 #import <notify.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-const-variable"
 static NSString * const ActivationModeKey   = @"activationMode";
 static NSString * const ShowPreviewKey      = @"preview";
 static NSString * const GroupStateKey       = @"state";
@@ -8,6 +10,7 @@ static NSString * const ClosesOnLaunchKey   = @"closeOnLaunch";
 static NSString * const LockLayoutsKey      = @"lockLayouts";
 static NSString * const ShowSummedBadgesKey = @"summedBadges";
 static NSString * const CentralIconKey      = @"centralIcon";
+#pragma clang diagnostic pop
 
 #define GETBOOL(_key, _default) (_preferences[_key] ? [_preferences[_key] boolValue] : _default)
 

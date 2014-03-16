@@ -56,8 +56,8 @@ extern "C" {
     
     extern SBIconListView * STKListViewForIcon(SBIcon *icon);
 
-    extern inline SBIconCoordinate STKCoordinateFromDictionary(NSDictionary *dict);
-    extern inline NSDictionary * STKDictionaryFromCoordinate(SBIconCoordinate coordinate);
+    extern SBIconCoordinate STKCoordinateFromDictionary(NSDictionary *dict);
+    extern NSDictionary * STKDictionaryFromCoordinate(SBIconCoordinate coordinate);
 #ifdef __cplusplus 
 }
 #endif
