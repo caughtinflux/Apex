@@ -87,11 +87,14 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
 
 - (void)relayoutForNewCoordinate:(SBIconCoordinate)coordinate
 {
-    if (coordinate.row == _lastKnownCoordinate.row && coordinate.col == _lastKnownCoordinate.col) {
-        return;
+    if (!(coordinate.row == _lastKnownCoordinate.row && coordinate.col == _lastKnownCoordinate.col)) {
+        _lastKnownCoordinate = coordinate;
+        [self forceRelayout];
     }
-    _lastKnownCoordinate = coordinate;
-    [self forceRelayout];
+    // Notify observers irrespective of whether we needed to relayout    
+    [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
+        [obs groupDidRelayout:self];
+    } forSelector:@selector(groupDidRelayout:)];
 }
 
 - (void)forceRelayout
