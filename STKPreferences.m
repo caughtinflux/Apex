@@ -19,10 +19,6 @@ static NSString * const CentralIconKey      = @"centralIcon";
     NSMutableDictionary *_preferences;
     NSMutableDictionary *_groups;
     NSMutableDictionary *_subappToCentralMap;
-
-    STKActivationMode _activationMode;
-    BOOL _shouldLockLayouts;
-    BOOL _shouldShowPreviews;
 }
 
 + (instancetype)sharedPreferences
@@ -58,6 +54,21 @@ static NSString * const CentralIconKey      = @"centralIcon";
         }
     }
     [self _addOrUpdateGroups:groupArray];
+}
+
+- (STKActivationMode)activationMode
+{
+    return (STKActivationMode)[_preferences[ActivationModeKey] integerValue];
+}
+
+- (BOOL)shouldLockLayouts
+{
+    return GETBOOL(LockLayoutsKey, NO);
+}
+
+- (BOOL)shouldShowPreviews
+{
+    return GETBOOL(ShowPreviewKey, YES);
 }
 
 - (NSArray *)identifiersForSubappIcons

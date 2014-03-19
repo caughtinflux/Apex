@@ -1,9 +1,9 @@
 #import "STKGroup.h"
 
 typedef NS_ENUM(NSInteger, STKActivationMode) {
+	STKActivationModeSwipeUpAndDown,
 	STKActivationModeSwipeUp,
 	STKActivationModeSwipeDown,
-	STKActivationModeSwipeUpAndDown,
 	STKActivationModeDoubleTap
 };
 

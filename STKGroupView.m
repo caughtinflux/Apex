@@ -169,7 +169,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
         SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
-        iconView.frame = (CGRect){CGPointZero, iconView.frame.size};
+        iconView.frame = _centralIconView.bounds;
         iconView.icon = icon;
         iconView.delegate = self.delegate;
         [_subappLayout addIcon:iconView toIconsAtPosition:pos];
@@ -554,7 +554,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
 
     // Shrink-Grow animation for the central iconView's image
-    CGFloat scale = 1.f; //(_group.empty || !_showPreview ? 1.f : kCentralIconPreviewScale);
+    CGFloat scale = 1.f;
     [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
         [_centralIconView stk_setImageViewScale:(scale - 0.1f)];
     } completion:^(BOOL done) {

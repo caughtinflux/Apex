@@ -62,6 +62,7 @@
         groupView.delegate = self;
         [iconView setGroupView:groupView];
     }
+    groupView.showPreview = [STKPreferences sharedPreferences].shouldShowPreviews;
 }
 
 - (void)removeGroupViewFromIconView:(SBIconView *)iconView
