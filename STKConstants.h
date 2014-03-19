@@ -58,6 +58,8 @@ extern "C" {
 
     extern SBIconCoordinate STKCoordinateFromDictionary(NSDictionary *dict);
     extern NSDictionary * STKDictionaryFromCoordinate(SBIconCoordinate coordinate);
+
+    extern double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax);
 #ifdef __cplusplus 
 }
 #endif

@@ -29,3 +29,10 @@ NSDictionary * STKDictionaryFromCoordinate(SBIconCoordinate coordinate)
 {
     return @{@"row":[NSNumber numberWithInteger:coordinate.row], @"col":[NSNumber numberWithInteger:coordinate.col]};
 }
+
+double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax)
+{
+    double oldRange = (prevMax - prevMin);
+    double newRange = (newMax - newMin);
+    return (((numToScale - prevMin) * newRange) / oldRange) + newMin;
+}

@@ -15,6 +15,7 @@
 #define kCentralIconPreviewScale 0.95f
 
 #define KEYFRAME_DURATION() (1.0 + (kBandingAllowance / _targetDistance))
+#define CURRENTLY_SHOWS_PREVIEW (!_group.empty && _showPreview)
 
 typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     STKRecognizerDirectionNone,
@@ -177,6 +178,34 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self addSubview:iconView];
     }];
     [self _resetDisplacedIconLayout];
+    [self _setupPreview];
+    if (CURRENTLY_SHOWS_PREVIEW) {
+        [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
+    }
+}
+
+- (void)_setupPreview
+{
+    [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx, BOOL *stop) {
+        CGRect frame = self.bounds;
+        CGPoint newOrigin = frame.origin;
+        // Check if it's the last object, only if not empty
+        if (CURRENTLY_SHOWS_PREVIEW && idx == currentArray.count - 1) {
+            CGFloat *memberToModify = (STKPositionIsVertical(position) ? &newOrigin.y : &newOrigin.x);
+            CGFloat negator = (position == STKPositionTop || position == STKPositionLeft ? -1 : 1);
+            *memberToModify += kPopoutDistance * negator;
+        }
+        frame.origin = newOrigin; 
+        iconView.frame = frame;
+
+        if (CURRENTLY_SHOWS_PREVIEW) {
+            // Scale the icon back down to the smaller size
+            [iconView stk_setImageViewScale:kSubappPreviewScale];
+        }
+        // Hide the labels and shadows
+        [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
+        [iconView invalidateLabelLayoutGeometry];
+    }];
 }
 
 - (void)_resetDisplacedIconLayout
@@ -287,15 +316,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 [self _setAlphaForDisplacedIcons:(1.0 - offset)];   
             }
             [self _moveByDistance:change performingBlockOnSubApps:^(SBIconView *subappView, STKGroupSlot slot) {
-                [self _setAlpha:offset forBadgeAndLabelOfIconView:subappView];
-                if (slot.index == 0) {
-                    if (_hasVerticalIcons && STKPositionIsVertical(slot.position)) {
-                        _lastDistanceFromCenter = fabsf(subappView.frame.origin.y - _centralIconView.bounds.origin.y);
-                    }
-                    else if (!_hasVerticalIcons && STKPositionIsHorizontal(slot.position)) {
-                       _lastDistanceFromCenter = fabsf(subappView.frame.origin.x - _centralIconView.bounds.origin.x);
-                    }
-                }
+                [self _adjustScaleAndTransparencyOfSubapp:subappView inSlot:slot forOffset:offset];
             }];
             if (_delegateFlags.didMoveToOffset) {
                 [_delegate groupView:self didMoveToOffset:offset];
@@ -324,6 +345,35 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             _targetDistance = 0.f;
             _recognizerDirection = STKRecognizerDirectionNone;
             break;
+        }
+    }
+}
+
+- (void)_adjustScaleAndTransparencyOfSubapp:(SBIconView *)subappView inSlot:(STKGroupSlot)slot forOffset:(CGFloat)offset 
+{
+    CGFloat midWayDistance = _targetDistance / 2.f;
+    [self _setAlpha:offset forBadgeAndLabelOfIconView:subappView];
+    if (slot.index == 0) {
+        if (_hasVerticalIcons && STKPositionIsVertical(slot.position)) {
+            _lastDistanceFromCenter = fabsf(subappView.frame.origin.y - _centralIconView.bounds.origin.y);
+        }
+        else if (!_hasVerticalIcons && STKPositionIsHorizontal(slot.position)) {
+           _lastDistanceFromCenter = fabsf(subappView.frame.origin.x - _centralIconView.bounds.origin.x);
+        }
+    }
+    if (CURRENTLY_SHOWS_PREVIEW) {       
+        if (_lastDistanceFromCenter <= midWayDistance) {
+            // If the icons are past the halfway mark, start increasing/decreasing their scale.
+            // This looks beautiful. Yay me.
+            CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kSubappPreviewScale);
+            [subappView stk_setImageViewScale:stackIconTransformScale];
+            
+            CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
+            [_centralIconView stk_setImageViewScale:centralIconTransformScale];
+        }
+        else {      
+            [_centralIconView stk_setImageViewScale:1.f];
+            [subappView stk_setImageViewScale:1.f];
         }
     }
 }
@@ -430,7 +480,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_moveSubappsByDistance:(CGFloat)distance performingTask:(void(^)(SBIconView *iv, STKGroupSlot slot))task
 {
-    BOOL isShowingPreview = ((_group.state != STKGroupStateEmpty) && _showPreview);
+    BOOL isShowingPreview = CURRENTLY_SHOWS_PREVIEW;
     [_subappLayout enumerateIconsUsingBlockWithIndexes:
         ^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx, BOOL *stop) {
             STKGroupSlot slot = (STKGroupSlot){position, idx};
@@ -510,11 +560,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
         [self _setAlphaForOtherIcons:0.2f];
-
+        [_centralIconView stk_setImageViewScale:1.f];
         [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
             [self _setAlpha:1.0 forBadgeAndLabelOfIconView:iconView];
             CGPoint origin = [self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}];
             iconView.frame = (CGRect){origin, iconView.frame.size};
+            [iconView stk_setImageViewScale:1.f];
         }];
         [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
             SBIconView *iconView = [listView viewForIcon:icon];
@@ -554,7 +605,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
 
     // Shrink-Grow animation for the central iconView's image
-    CGFloat scale = 1.f;
+    CGFloat scale = CURRENTLY_SHOWS_PREVIEW ? kCentralIconPreviewScale : 1.f;
     [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
         [_centralIconView stk_setImageViewScale:(scale - 0.1f)];
     } completion:^(BOOL done) {
@@ -567,10 +618,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
     [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         [self _setAlphaForOtherIcons:1.f];
-        [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
-            [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
-            iconView.frame = (CGRect){CGPointZero, iconView.frame.size};
-        }];
+        [self _setupPreview];
         [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
             SBIconView *iconView = [self _iconViewForIcon:icon];
             if ([_centralIconView isInDock]) {

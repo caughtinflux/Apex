@@ -172,17 +172,11 @@
 {
     %orig(alpha);
 
-    // Number scaling.. There is probably an easier way to do this
-    CGFloat prevMax = 1.0f;
-    CGFloat prevMin = 0.2;
-    CGFloat newMax = 1.0f;
-    CGFloat newMin = 0.0f;
-
-    CGFloat oldRange = (prevMax - prevMin);
-    CGFloat newRange = (newMax - newMin);
-
-    CGFloat groupAlpha = (((alpha - prevMin) * newRange) / oldRange) + newMin;
-
+    static const CGFloat prevMax = 1.0f;
+    static const CGFloat prevMin = 0.2;
+    static const CGFloat newMax = 1.0f;
+    static const CGFloat newMin = 0.0f;
+    CGFloat groupAlpha = STKScaleNumber(alpha, prevMin, prevMax, newMin, newMax);
     [self.groupView setAlpha:groupAlpha];
 }
 
