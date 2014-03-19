@@ -152,7 +152,7 @@ static SBIconListView *_centralIconListView;
     SBIconListView *rootListView = [[CLASS(SBIconController) sharedInstance] currentRootIconList];
     STKGroupLayout *displacedLayout = [[[STKGroupLayout alloc] init] autorelease];
     NSUInteger idx = 0;
-    while (idx++ < [displacedLayout allIcons].count) {
+    while (idx < [layout allIcons].count) {
         CGRect targetFrame = provider(idx);
         for (SBIcon *icon in [rootListView icons]) {
             SBIconView *iv = [rootListView viewForIcon:icon];
