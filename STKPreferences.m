@@ -153,11 +153,6 @@ static NSString * const CentralIconKey      = @"centralIcon";
     }
 }
 
-- (void)_validateGroups
-{
-
-}
-
 - (NSDictionary *)_groupStateFromGroups
 {
     NSMutableDictionary *state = [NSMutableDictionary dictionary];
