@@ -63,7 +63,8 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:self.icon]
         && [self.superview isKindOfClass:%c(SBIconListView)]
         && STKListViewForIcon(self.icon)
-        && [self.icon isLeafIcon]) {
+        && [self.icon isLeafIcon]
+        && ![self.icon isDownloadingIcon]) {
         [[STKGroupController sharedController] addGroupViewToIconView:self];
     }
 }
