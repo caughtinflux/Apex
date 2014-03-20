@@ -178,8 +178,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self addSubview:iconView];
     }];
     [self _resetDisplacedIconLayout];
-    [self _setupPreview];
     if (CURRENTLY_SHOWS_PREVIEW) {
+        [self _setupPreview];
         [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
     }
 }
