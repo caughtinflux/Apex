@@ -74,7 +74,7 @@
 {
     BOOL handled = NO;
     if (event == STKClosingEventHomeButtonPress) {
-        handled = (_openGroupView || _selectionView);
+        handled = ((_openGroupView || _selectionView) && ![(SpringBoard *)[UIApplication sharedApplication] _accessibilityFrontMostApplication]);
         [self _closeOpenGroupOrSelectionView];
     }
     else if (!_selectionView) {
