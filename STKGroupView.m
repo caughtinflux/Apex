@@ -187,7 +187,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_setupPreview
 {
     [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx, BOOL *stop) {
-        CGRect frame = self.bounds;
+        CGRect frame = _centralIconView.bounds;
         CGPoint newOrigin = frame.origin;
         // Check if it's the last object, only if not empty
         if (CURRENTLY_SHOWS_PREVIEW && idx == currentArray.count - 1) {
@@ -197,14 +197,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         }
         frame.origin = newOrigin; 
         iconView.frame = frame;
-
+    
+        // Hide the label and badge
+        [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
         if (CURRENTLY_SHOWS_PREVIEW) {
             // Scale the icon back down to the smaller size
             [iconView stk_setImageViewScale:kSubappPreviewScale];
         }
-        // Hide the labels and shadows
-        [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
-        [iconView invalidateLabelLayoutGeometry];
     }];
 }
 
