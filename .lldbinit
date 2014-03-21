@@ -1,3 +1,2 @@
 platform select remote-ios
-process connect connect://flux-iPhone.local:1337
-continue
+process connect connect://flux5.local:1234

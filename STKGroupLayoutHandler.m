@@ -6,7 +6,7 @@
 
 
 #define kCurrentOrientation [UIApplication sharedApplication].statusBarOrientation
-
+#define COORD_IS_INVALID(_coord) (_coord.row == 0 || _coord.col == 0 || _coord.row == NSNotFound || _coord.col == NSNotFound)
 
 static SBIconListView *_centralIconListView;
 
@@ -120,11 +120,16 @@ static SBIconListView *_centralIconListView;
 
 + (STKGroupLayout *)layoutForIconsToDisplaceAroundIcon:(SBIcon *)centralIcon usingLayout:(STKGroupLayout *)layout
 {
+    if (COORD_IS_INVALID([self coordinateForIcon:centralIcon])) {
+        return nil;
+    }
     NSArray *displacedTopIcons    = nil;
     NSArray *displacedBottomIcons = nil;
     NSArray *displacedLeftIcons   = nil;
     NSArray *displacedRightIcons  = nil;
+
     _centralIconListView = STKListViewForIcon(centralIcon);
+
     if (layout.topIcons.count > 0) {
         displacedTopIcons = [self _iconsAboveIcon:centralIcon];
     }
@@ -138,6 +143,7 @@ static SBIconListView *_centralIconListView;
         displacedRightIcons = [self _iconsRightOfIcon:centralIcon];
     }
     _centralIconListView = nil;
+
     return [STKGroupLayout layoutWithIconsAtTop:displacedTopIcons bottom:displacedBottomIcons left:displacedLeftIcons right:displacedRightIcons]; 
 }
 
@@ -309,7 +315,7 @@ static SBIconListView *_centralIconListView;
 + (NSArray *)_iconsAboveIcon:(SBIcon *)icon
 {
     SBIconCoordinate coordinate = [self coordinateForIcon:icon];
-
+    
     NSRange range;
     range.location = 0;
     range.length = (coordinate.row - 1);
