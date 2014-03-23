@@ -20,7 +20,7 @@
         _titleLabel = [[[UILabel alloc] initWithFrame:self.bounds] autorelease];
         _titleLabel.text = @"";
         _titleLabel.autoresizingMask = _wallpaperEffectView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
-        _titleLabel.font = [UIFont fontWithName:@"Helvetica Neue" size:20.f];
+        _titleLabel.font = [UIFont fontWithName:@"Helvetica Neue" size:18.f];
         _titleLabel.textColor = [UIColor colorWithWhite:1.f alpha:0.7f];
         
         [self addSubview:_wallpaperEffectView];
