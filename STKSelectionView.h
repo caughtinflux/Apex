@@ -9,4 +9,6 @@
 @property (nonatomic, readonly) SBIcon *selectedIcon; // selectedIcon has to be in iconsForSelection
 @property (nonatomic, readonly) UIView *contentView;
 
+- (void)flashScrollIndicators;
+
 @end

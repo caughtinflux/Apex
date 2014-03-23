@@ -10,6 +10,7 @@
     UICollectionView *_collectionView;
     SBFolderBackgroundView *_backgroundView;
     SBIcon *_selectedIcon;
+    SBIcon *_centralIcon;
     SBIconView *_selectedIconView;
 }
 
@@ -41,9 +42,11 @@
     return self;
 }
 
-- (instancetype)initWithFrame:(CGRect)frame
+- (void)dealloc
 {
-    return [self initWithFrame:frame selectedIcon:nil];
+    [_selectedIcon release];
+    [_centralIcon release];
+    [super dealloc];
 }
 
 - (void)layoutSubviews
@@ -61,6 +64,11 @@
     NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
     _iconsForSelection = [[icons sortedArrayUsingDescriptors:@[sortDescriptor]] retain];
     [_collectionView reloadData];
+}
+
+- (void)flashScrollIndicators
+{
+    [_collectionView flashScrollIndicators];
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
