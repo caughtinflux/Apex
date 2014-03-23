@@ -30,6 +30,8 @@
         _collectionView.layer.cornerRadius = 35.f; // the default corner radius for folders, apparently.
         _collectionView.layer.masksToBounds = YES;
         _collectionView.allowsSelection = YES;
+        _collectionView.contentInset = (UIEdgeInsets){10.f, 0.f, 0.f, 0.f};
+        _collectionView.scrollIndicatorInsets = (UIEdgeInsets){25.f, 0.f, 25.f, 0.f};
         self.autoresizingMask = _collectionView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
         [_collectionView registerClass:[STKSelectionViewCell class] forCellWithReuseIdentifier:kCellReuseIdentifier];
 
