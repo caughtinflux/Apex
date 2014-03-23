@@ -155,7 +155,10 @@
 - (void)_showSelectionViewForIconView:(SBIconView *)selectedIconView
 {
     _selectionSlot = [_openGroupView.subappLayout slotForIcon:selectedIconView];
-    _selectionView = [[[STKSelectionView alloc] initWithFrame:CGRectZero selectedIcon:[selectedIconView.icon isLeafIcon] ? selectedIconView.icon : nil] autorelease];
+    _selectionView = [[[STKSelectionView alloc] initWithFrame:CGRectZero
+                                                 selectedIcon:([selectedIconView.icon isLeafIcon] ? selectedIconView.icon : nil)
+                                                  centralIcon:_openGroupView.group.centralIcon] autorelease];
+    
     SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
     NSMutableArray *visibleIconIdentifiers = [[[[[model visibleIconIdentifiers] objectEnumerator] allObjects] mutableCopy] autorelease];
     [visibleIconIdentifiers addObjectsFromArray:[STKPreferences sharedPreferences].identifiersForSubappIcons];

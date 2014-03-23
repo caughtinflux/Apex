@@ -13,10 +13,11 @@
     SBIconView *_selectedIconView;
 }
 
-- (instancetype)initWithFrame:(CGRect)frame selectedIcon:(SBIcon *)selectedIcon
+- (instancetype)initWithFrame:(CGRect)frame selectedIcon:(SBIcon *)selectedIcon centralIcon:(SBIcon *)centralIcon
 {   
     if ((self = [super initWithFrame:frame])) {
-        _selectedIcon = selectedIcon;
+        _selectedIcon = [selectedIcon retain];
+        _centralIcon = [centralIcon retain];
         UICollectionViewFlowLayout *flowLayout = [[[UICollectionViewFlowLayout alloc] init] autorelease];
         flowLayout.itemSize = [CLASS(SBIconView) defaultIconSize];
 
