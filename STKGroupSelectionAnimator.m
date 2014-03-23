@@ -33,6 +33,7 @@
 {
     SBIconContentView *contentView = [(SBIconController *)[CLASS(SBIconController) sharedInstance] contentView];
     [_selectionView.contentView.subviews[1] setAlpha:0.0f];
+    _selectionView.searchTextField.alpha = 0.f;
     _selectionView.layer.cornerRadius = 35.f;
     _selectionView.layer.masksToBounds = YES;
     [contentView addSubview:_selectionView];
@@ -62,6 +63,7 @@
         _selectionView.frame = _endFrame;
         [_selectionView.contentView.subviews[1] setAlpha:1.0f];
         _iconView.alpha = 0.f;
+        _selectionView.searchTextField.alpha = 1.f;
     } completion:nil];
     [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:^{
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (NSEC_PER_SEC * 0.1)), dispatch_get_main_queue(), ^{
