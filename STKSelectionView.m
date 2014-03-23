@@ -2,6 +2,7 @@
 #import "STKConstants.h"
 #import "STKSelectionViewCell.h"
 #import "STKSelectionHeaderView.h"
+#import "STKSelectionTitleTextField.h"
 #import <SpringBoard/SpringBoard.h>
 
 #define kCellReuseIdentifier @"STKSelectionViewCell"
@@ -15,6 +16,7 @@
     SBIcon *_selectedIcon;
     SBIcon *_centralIcon;
     SBIconView *_selectedIconView;
+    STKSelectionTitleTextField *_searchTextField;
 
     NSArray *_recommendedApps;
     NSArray *_allApps;
@@ -51,6 +53,7 @@
         [_contentView addSubview:_backgroundView];
         [_contentView addSubview:_collectionView];
         [self addSubview:_contentView];
+        [self _setupTextField];
     }
     return self;
 }
@@ -198,6 +201,41 @@
     STKSelectionViewCell *currentSelection = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:currentIndexPath];
     [currentSelection.iconView showApexOverlayOfType:STKOverlayTypeEditing];
     [_collectionView selectItemAtIndexPath:currentIndexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
+}
+
+- (void)_setupTextField
+{
+    _searchTextField = [[[STKSelectionTitleTextField alloc] initWithFrame:(CGRect){{15.f, 46.f}, {290.f, 40}}] autorelease];
+    _searchTextField.delegate = self;
+    _searchTextField.attributedPlaceholder = [self _attributedPlaceholderForTextField];
+    [self addSubview:_searchTextField];
+}
+
+- (BOOL)textFieldShouldReturn:(UITextField *)textField
+{
+    [textField resignFirstResponder];
+    return YES;
+}
+
+- (void)textFieldDidBeginEditing:(UITextField *)textField
+{
+    textField.textAlignment = NSTextAlignmentLeft;
+    textField.textColor = [UIColor whiteColor];
+    textField.attributedPlaceholder = nil;
+}
+
+- (void)textFieldDidEndEditing:(UITextField *)textField
+{
+    textField.textAlignment = NSTextAlignmentCenter;
+    textField.textColor = [UIColor whiteColor];
+    _searchTextField.attributedPlaceholder = [self _attributedPlaceholderForTextField];
+}
+
+- (NSAttributedString *)_attributedPlaceholderForTextField
+{
+    return [[[NSAttributedString alloc] initWithString:@"Select Sub-App"
+                                            attributes:@{NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Light" size:24.f],
+                                                         NSForegroundColorAttributeName: [UIColor colorWithWhite:1.f alpha:0.5f]}] autorelease];
 }
 
 @end
