@@ -47,17 +47,17 @@
     return (CGRect){{255, ceilf(CGRectGetMidY(bounds) - (size.height * 0.5))}, size};
 }
 
+- (CGRect)textRectForBounds:(CGRect)bounds
+{
+    CGRect rect = [super textRectForBounds:bounds];
+    rect.origin.x -= 11.f;
+    return rect;
+}
+
 - (CGRect)editingRectForBounds:(CGRect)bounds
 {
     CGRect rect = [super editingRectForBounds:bounds];
     rect.origin.x += 11.f;
-    return rect;
-}
-
-- (CGRect)placeholderRectForBounds:(CGRect)bounds
-{
-    CGRect rect = [super placeholderRectForBounds:bounds];
-    rect.origin.x -= 11.f;
     return rect;
 }
 
