@@ -22,6 +22,7 @@
 
         UIImageView *searchIconView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"Search@2x")] autorelease];
         UIButton *clearButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        clearButton.alpha = 0.5f;
         [clearButton addTarget:self action:@selector(_clearTextField) forControlEvents:UIControlEventTouchUpInside];
         UIImage *clearImage = UIIMAGE_NAMED(@"Clear@2x");
         [clearButton setImage:clearImage forState:UIControlStateNormal];
@@ -63,7 +64,9 @@
 
 - (void)_clearTextField
 {
-    self.text = @"";
+    if (!self.delegate || ([self.delegate respondsToSelector:@selector(textFieldShouldClear:)] && [self.delegate textFieldShouldClear:self])) {
+        self.text = @"";
+    }
 }
 
 @end

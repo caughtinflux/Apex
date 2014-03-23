@@ -20,7 +20,9 @@
 
     NSArray *_recommendedApps;
     NSArray *_allApps;
+    NSArray *_searchResults;
     BOOL _hasRecommendations;
+    BOOL _isSearching;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame selectedIcon:(SBIcon *)selectedIcon centralIcon:(SBIcon *)centralIcon
@@ -41,9 +43,10 @@
         _collectionView.layer.cornerRadius = 35.f; // the default corner radius for folders, apparently.
         _collectionView.layer.masksToBounds = YES;
         _collectionView.allowsSelection = YES;
-        _collectionView.contentInset = (UIEdgeInsets){10.f, 0.f, 0.f, 0.f};
         _collectionView.scrollIndicatorInsets = (UIEdgeInsets){25.f, 0.f, 25.f, 0.f};
         _collectionView.backgroundView = [[[UIView alloc] initWithFrame:CGRectZero] autorelease];
+        _collectionView.bounces = YES;
+        _collectionView.alwaysBounceVertical = YES;
         [_collectionView registerClass:[STKSelectionViewCell class] forCellWithReuseIdentifier:kCellReuseIdentifier];
         [_collectionView registerClass:[STKSelectionHeaderView class] forSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:kHeaderReuseIdentifier];
 
@@ -60,6 +63,9 @@
 
 - (void)dealloc
 {
+    [_searchResults release];
+    [_recommendedApps release];
+    [_allApps release];
     [_selectedIcon release];
     [_centralIcon release];
     [_contentView release];
@@ -116,7 +122,9 @@
 - (NSArray *)_iconsForSection:(NSInteger)section
 {
     if (section == 0) {
-        return (_hasRecommendations ? _recommendedApps : _allApps);
+        if (_isSearching) return _searchResults;
+        if (_hasRecommendations) return _recommendedApps;
+        return _allApps;
     }
     if (section == 1) {
         return _allApps;
@@ -126,7 +134,7 @@
 
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView
 {
-    return (_hasRecommendations ? 2 : 1);
+    return ((!_hasRecommendations || _isSearching) ? 1 : 2);
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
@@ -171,7 +179,15 @@
                                                                                                 withReuseIdentifier:kHeaderReuseIdentifier
                                                                                                        forIndexPath:indexPath];
     if (indexPath.section == 0) {
-        view.headerTitle = (_hasRecommendations ? @"Recommended" : @"All");
+        if (_isSearching) {
+            view.headerTitle = @"Search Results";
+        }
+        else if (_hasRecommendations) {
+            view.headerTitle = @"Recommendations";
+        }
+        else {
+            view.headerTitle = @"All";
+        }
     }
     else {
         view.headerTitle = @"All";
@@ -208,6 +224,7 @@
     _searchTextField = [[[STKSelectionTitleTextField alloc] initWithFrame:(CGRect){{15.f, 46.f}, {290.f, 40}}] autorelease];
     _searchTextField.delegate = self;
     _searchTextField.attributedPlaceholder = [self _attributedPlaceholderForTextField];
+    [_searchTextField addTarget:self action:@selector(_searchTextChanged) forControlEvents:UIControlEventEditingChanged];
     [self addSubview:_searchTextField];
 }
 
@@ -229,6 +246,39 @@
     textField.textAlignment = NSTextAlignmentCenter;
     textField.textColor = [UIColor whiteColor];
     _searchTextField.attributedPlaceholder = [self _attributedPlaceholderForTextField];
+}
+
+- (void)_searchTextChanged
+{
+    [_searchResults release];
+    if (_searchTextField.text.length == 0) {
+        _isSearching = NO;
+        _searchResults = nil;
+        [_collectionView reloadData];
+        return;
+    }
+    _isSearching = YES;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSMutableArray *searchResults = [NSMutableArray new];
+        for (SBIcon *icon in _allApps) {
+            if ([[icon displayName] rangeOfString:_searchTextField.text options:(NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch)].location != NSNotFound) {
+                [searchResults addObject:icon];
+            }
+        }
+        _searchResults = searchResults;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_collectionView reloadData];
+        });
+    });
+}
+
+- (BOOL)textFieldShouldClear:(UITextField *)textField
+{
+    _isSearching = NO;
+    [_searchResults release];
+    _searchResults = nil;
+    [_collectionView reloadData];
+    return YES;
 }
 
 - (NSAttributedString *)_attributedPlaceholderForTextField
