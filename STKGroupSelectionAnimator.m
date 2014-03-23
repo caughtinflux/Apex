@@ -32,7 +32,7 @@
 - (void)openSelectionViewAnimatedWithCompletion:(STKAnimatorCompletion)completion
 {
     SBIconContentView *contentView = [(SBIconController *)[CLASS(SBIconController) sharedInstance] contentView];
-    _selectionView.contentView.alpha = 0.0f;
+    [_selectionView.contentView.subviews[1] setAlpha:0.0f];
     _selectionView.layer.cornerRadius = 35.f;
     _selectionView.layer.masksToBounds = YES;
     [contentView addSubview:_selectionView];
@@ -43,20 +43,26 @@
     [_zoomAnimator prepare];
 
     _startFrame = [_iconView convertRect:[_iconView _iconImageView].frame toView:contentView];
+    
     CGSize endSize = [CLASS(SBFolderBackgroundView) folderBackgroundSize];
-    CGPoint endOrigin = {(CGRectGetMidX(contentView.bounds) - (endSize.width * 0.5f)),
-                        (CGRectGetMidY(contentView.bounds) - (endSize.height * 0.5f))};
-    _endFrame = (CGRect){endOrigin, [CLASS(SBFolderBackgroundView) folderBackgroundSize]};
+    CGPoint endOrigin = {(CGRectGetMidX(_selectionView.bounds) - (endSize.width * 0.5f)),
+                        (CGRectGetMidY(_selectionView.bounds) - (endSize.height * 0.5f))};
+    CGRect selectionContentEndFrame = (CGRect){endOrigin, endSize};
 
+    _endFrame = contentView.bounds;
     _selectionView.frame = _startFrame;
+    _selectionView.contentView.frame = _startFrame;
 
     double duration = _zoomAnimator.settings.outerFolderFadeSettings.duration;
-    [UIView animateWithDuration:duration animations:^{
+    [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 0.f;
+        _selectionView.contentView.center = (CGPoint){CGRectGetMidX(_selectionView.bounds), CGRectGetMidY(_selectionView.bounds)};
+        _selectionView.contentView.frame = selectionContentEndFrame;
+        _selectionView.center = (CGPoint){CGRectGetMidX(contentView.bounds), CGRectGetMidY(contentView.bounds)};
         _selectionView.frame = _endFrame;
-        _selectionView.contentView.alpha = 1.f;
+        [_selectionView.contentView.subviews[1] setAlpha:1.0f];
         _iconView.alpha = 0.f;
-    }];
+    } completion:nil];
     [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:^{
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (NSEC_PER_SEC * 0.1)), dispatch_get_main_queue(), ^{
             [_selectionView flashScrollIndicators];

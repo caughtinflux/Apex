@@ -9,6 +9,7 @@
 
 @implementation STKSelectionView
 {
+    UIView *_contentView;
     UICollectionView *_collectionView;
     SBFolderBackgroundView *_backgroundView;
     SBIcon *_selectedIcon;
@@ -25,10 +26,13 @@
     if ((self = [super initWithFrame:frame])) {
         _selectedIcon = [selectedIcon retain];
         _centralIcon = [centralIcon retain];
+
+        _contentView = [[UIView alloc] initWithFrame:self.bounds];
+
         UICollectionViewFlowLayout *flowLayout = [[[UICollectionViewFlowLayout alloc] init] autorelease];
         flowLayout.itemSize = [CLASS(SBIconView) defaultIconSize];
 
-        _collectionView = [[[UICollectionView alloc] initWithFrame:self.bounds collectionViewLayout:flowLayout] autorelease];
+        _collectionView = [[[UICollectionView alloc] initWithFrame:_contentView.bounds collectionViewLayout:flowLayout] autorelease];
         _collectionView.delegate = self;
         _collectionView.dataSource = self;
         _collectionView.backgroundColor = [UIColor clearColor];
@@ -37,15 +41,16 @@
         _collectionView.allowsSelection = YES;
         _collectionView.contentInset = (UIEdgeInsets){10.f, 0.f, 0.f, 0.f};
         _collectionView.scrollIndicatorInsets = (UIEdgeInsets){25.f, 0.f, 25.f, 0.f};
-        self.autoresizingMask = _collectionView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
+        _collectionView.backgroundView = [[[UIView alloc] initWithFrame:CGRectZero] autorelease];
         [_collectionView registerClass:[STKSelectionViewCell class] forCellWithReuseIdentifier:kCellReuseIdentifier];
         [_collectionView registerClass:[STKSelectionHeaderView class] forSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:kHeaderReuseIdentifier];
 
-        _backgroundView = [[CLASS(SBFolderBackgroundView) alloc] initWithFrame:self.bounds];
-        [self addSubview:_backgroundView];
-        _collectionView.backgroundView = [[[UIView alloc] initWithFrame:CGRectZero] autorelease];
+        _backgroundView = [[CLASS(SBFolderBackgroundView) alloc] initWithFrame:_contentView.frame];
+        _backgroundView.center = _collectionView.center;
 
-        [self addSubview:_collectionView];
+        [_contentView addSubview:_backgroundView];
+        [_contentView addSubview:_collectionView];
+        [self addSubview:_contentView];
     }
     return self;
 }
@@ -54,17 +59,19 @@
 {
     [_selectedIcon release];
     [_centralIcon release];
+    [_contentView release];
     [super dealloc];
 }
 
 - (void)layoutSubviews
 {
-    _backgroundView.frame = self.bounds;
+    _contentView.center = (CGPoint){CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds)};
+    _collectionView.frame = _backgroundView.frame = _contentView.bounds;
 }
 
 - (UIView *)contentView
 {
-    return _collectionView;
+    return _contentView;
 }
 
 - (void)setIconsForSelection:(NSArray *)icons
@@ -147,7 +154,7 @@
 
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout referenceSizeForHeaderInSection:(NSInteger)section
 {
-    return (CGSize){20.f, 20.f};
+    return (CGSize){0, 30.f};
 }
 
 - (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout insetForSectionAtIndex:(NSInteger)section
