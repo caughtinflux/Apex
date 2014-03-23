@@ -9,6 +9,7 @@
 @property (nonatomic, readonly) STKActivationMode activationMode;
 @property (nonatomic, readonly) BOOL shouldLockLayouts;
 @property (nonatomic, readonly) BOOL shouldShowPreviews;
+@property (nonatomic, readonly) BOOL shouldShowSummedBadges;
 @property (nonatomic, readonly) NSArray *identifiersForSubappIcons;
 
 - (void)addOrUpdateGroup:(STKGroup *)group;

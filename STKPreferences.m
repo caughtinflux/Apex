@@ -71,6 +71,11 @@ static NSString * const CentralIconKey      = @"centralIcon";
     return GETBOOL(ShowPreviewKey, YES);
 }
 
+- (BOOL)shouldShowSummedBadges
+{
+    return GETBOOL(ShowSummedBadgesKey, YES);
+}
+
 - (NSArray *)identifiersForSubappIcons
 {
     return [_subappToCentralMap allKeys];
