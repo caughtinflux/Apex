@@ -33,11 +33,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     UITapGestureRecognizer *_tapRecognizer;
     NSSet *_iconsHiddenForPlaceholders;
 
-    BOOL _needsCreation;
     BOOL _isOpen;
-    BOOL _showPreview;
     BOOL _isAnimating;
-
     BOOL _ignoreRecognizer;
     BOOL _hasVerticalIcons;
     BOOL _isUpwardSwipe;
@@ -107,6 +104,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _subappLayout = nil;
     [_displacedIconLayout release];
     _displacedIconLayout = nil;
+    [_centralIconView stk_setImageViewScale:1.f];
+    [self _configureSubappViews];
 }
 
 - (SBIconView *)subappIconViewForIcon:(SBIcon *)icon
@@ -156,7 +155,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_configureSubappViews
 {
-    if (_group.state == STKGroupStateEmpty) {
+    if (!CURRENTLY_SHOWS_PREVIEW) {
         return;
     }
     [self _reallyConfigureSubappViews];
@@ -164,8 +163,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_reallyConfigureSubappViews
 {
-    [self resetLayouts];
-
     _subappLayout = [[STKGroupLayout alloc] init];
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
