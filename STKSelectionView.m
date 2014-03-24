@@ -258,18 +258,15 @@
         return;
     }
     _isSearching = YES;
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-        NSMutableArray *searchResults = [NSMutableArray new];
-        for (SBIcon *icon in _allApps) {
-            if ([[icon displayName] rangeOfString:_searchTextField.text options:(NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch)].location != NSNotFound) {
-                [searchResults addObject:icon];
-            }
+
+    NSMutableArray *searchResults = [NSMutableArray new];
+    for (SBIcon *icon in _allApps) {
+        if ([[icon displayName] rangeOfString:_searchTextField.text options:(NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch)].location != NSNotFound) {
+            [searchResults addObject:icon];
         }
-        _searchResults = searchResults;
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [_collectionView reloadData];
-        });
-    });
+    }
+    _searchResults = searchResults;
+    [_collectionView reloadData];
 }
 
 - (BOOL)textFieldShouldClear:(UITextField *)textField
