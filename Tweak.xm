@@ -59,7 +59,11 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 %hook SBIconView
 - (void)setLocation:(SBIconLocation)location
 {
+    SBIconLocation previousLoc = self.location;
     %orig(location);
+    if ([self groupView] && previousLoc == location) {
+        return;
+    }
     if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:self.icon]
         && [self.superview isKindOfClass:%c(SBIconListView)]
         && STKListViewForIcon(self.icon)
@@ -98,7 +102,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 - (SBIconView *)mappedIconViewForIcon:(SBIcon *)icon
 {
     SBIconView *mappedView = %orig(icon);
-    if (!mappedView && [STKGroupController sharedController].openGroupView) {
+    if (!mappedView && (self == [[self class] homescreenMap]) && [STKGroupController sharedController].openGroupView) {
         mappedView = [[STKGroupController sharedController].openGroupView subappIconViewForIcon:icon];
     }
     return mappedView;
