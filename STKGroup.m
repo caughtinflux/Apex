@@ -180,6 +180,7 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     else {
         // If newLayout doesn't have any icons, it means the _layout is full of empty icons
         // So we transition to STKGroupStateEmpty!
+        [newLayout release];
         _state = STKGroupStateEmpty;
     }
     [_placeholderLayout release];
