@@ -106,7 +106,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 %end
 
 #pragma mark - SBIconZoomAnimator
-%hook SBIconZoomAnimator
+%hook SBScaleIconZoomAnimator
 - (SBIconView *)iconViewForIcon:(SBIcon *)icon
 {
     // SBIconZoomAnimator loves icon views, and can never let them go
@@ -114,9 +114,9 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     SBIconView *iconView = %orig(icon);
     STKGroupView *openGroupView = [STKGroupController sharedController].openGroupView;
     iconView = [openGroupView subappIconViewForIcon:icon] ?: iconView;
-    
     return iconView;
 }
+
 %end
 
 #pragma mark - SBIconListView 
@@ -145,6 +145,18 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     STKGroupView *groupView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon].containerGroupView;
     if (groupView) {
         icon = groupView.group.centralIcon;
+    }
+    return %orig(icon);
+}
+%end
+
+%hook SBFolder
+- (SBIconListModel *)listContainingIcon:(SBIcon *)icon
+{
+    // this hook is only necessary when the open group's status is dirty.
+    STKGroupView *groupView = [STKGroupController sharedController].openGroupView;
+    if ((groupView.group.state == STKGroupStateDirty) && [[groupView.group.layout allIcons] containsObject:icon]) {
+        return [self listContainingIcon:groupView.group.centralIcon];
     }
     return %orig(icon);
 }
