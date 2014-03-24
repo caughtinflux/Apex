@@ -99,6 +99,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)resetLayouts
 {
+    if (_isAnimating) {
+        return;
+    }
     [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];   
     [_subappLayout release];
     _subappLayout = nil;
@@ -127,6 +130,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [_group addObserver:self];
     [self resetLayouts];
     _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
+}
+
+- (void)setShowPreview:(BOOL)shouldShow
+{
+    _showPreview = shouldShow;
+    [self resetLayouts];
 }
 
 - (void)setDelegate:(id<STKGroupViewDelegate>)delegate
@@ -278,7 +287,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if (_delegateFlags.willOpen) {
                 [self.delegate groupViewWillOpen:self];
             }
-            if (_group.empty || !_subappLayout) {
+            if (!CURRENTLY_SHOWS_PREVIEW || !_subappLayout) {
                 [self _reallyConfigureSubappViews];
             }
             [self _updateTargetDistance];
@@ -621,10 +630,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 iconView.alpha = 1.f;
             }
         }];
+        
         SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
         [listView setIconsNeedLayout];
-
         [listView layoutIconsIfNeeded:0.0f domino:0.f];
+
         if (_delegateFlags.didMoveToOffset) {
             [_delegate groupView:self didMoveToOffset:0.f];
         }
@@ -634,7 +644,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 completion();
             }
             _isAnimating = NO;
-            if (_group.empty) {
+            if (!CURRENTLY_SHOWS_PREVIEW) {
                 [self resetLayouts];
             }
             if ([self.delegate respondsToSelector:@selector(groupViewDidClose:)]) {
