@@ -73,11 +73,34 @@ static BOOL _hasGridlock;
     return padding;
 }
 
+%new
+- (void)setStk_preventRelayout:(BOOL)prevent
+{
+    objc_setAssociatedObject(self, @selector(stk_preventRelayout), @(prevent), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+%new
+- (BOOL)stk_preventRelayout
+{
+    return [objc_getAssociatedObject(self, _cmd) boolValue];
+}
+
 - (void)layoutIconsNow
 {
+    if (self.stk_preventRelayout) {
+        return;
+    }
     self.stk_realHorizontalIconPadding = kInvalidIconPadding;
     self.stk_realHorizontalIconPadding = kInvalidIconPadding;
     %orig();
+}
+
+- (SBIcon *)layoutIconsIfNeeded:(NSTimeInterval)duration domino:(BOOL)domino
+{
+    if (self.stk_preventRelayout) {
+        return nil;
+    }
+    return %orig();
 }
 
 %new
