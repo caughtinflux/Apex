@@ -146,6 +146,11 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     if (_state != STKGroupStateDirty) {
         return;
     }
+    [self _forceUdpateState];
+    if (_state == STKGroupStateEmpty) {
+        [_placeholderLayout release];
+        _placeholderLayout = nil;
+    }
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
         [obs groupWillRemovePlaceholders:self];
     } forSelector:@selector(groupWillRemovePlaceholders:)];
@@ -154,6 +159,7 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     }
     [_placeholderLayout release];
     _placeholderLayout = nil;
+
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
         [obs groupDidRemovePlaceholders:self];
     } forSelector:@selector(groupDidRemovePlaceholders:)];
@@ -172,13 +178,13 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
         }
     }];
     if ([newLayout allIcons].count > 0) {
-        // move to newLayout only if it has any icons!
+        // move to newLayout only if it has any icons
         [_layout release];
         _layout = newLayout;
         _state = STKGroupStateNormal;
     }
     else {
-        // If newLayout doesn't have any icons, it means the _layout is full of empty icons
+        // If newLayout doesn't have any icons, it means _layout is full of empty icons
         // So we transition to STKGroupStateEmpty!
         [newLayout release];
         _state = STKGroupStateEmpty;
@@ -213,10 +219,15 @@ notifyObservers:
     if (_state == STKGroupStateDirty) {
         return;
     }
+    [self _forceUdpateState];
+}
+
+- (void)_forceUdpateState
+{
     NSUInteger emptyIconCount = 0;
     NSUInteger realIconCount = 0;
     for (SBIcon *icon in _layout) {
-        if ([icon isEmptyPlaceholder] || [icon isPlaceholder]) {
+        if (![icon isLeafIcon]) {
             emptyIconCount++;
         }
         else {
