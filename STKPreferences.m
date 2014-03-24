@@ -4,7 +4,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-const-variable"
 static NSString * const ActivationModeKey   = @"activationMode";
-static NSString * const ShowPreviewKey      = @"preview";
+static NSString * const ShowPreviewKey      = @"previewEnabled";
 static NSString * const GroupStateKey       = @"state";
 static NSString * const ClosesOnLaunchKey   = @"closeOnLaunch";
 static NSString * const LockLayoutsKey      = @"lockLayouts";
