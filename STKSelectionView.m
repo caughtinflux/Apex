@@ -251,9 +251,9 @@
 - (void)_searchTextChanged
 {
     [_searchResults release];
+    _searchResults = nil;
     if (_searchTextField.text.length == 0) {
         _isSearching = NO;
-        _searchResults = nil;
         [_collectionView reloadData];
         return;
     }
