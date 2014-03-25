@@ -183,7 +183,7 @@
             view.headerTitle = @"Search Results";
         }
         else if (_hasRecommendations) {
-            view.headerTitle = @"Recommendations";
+            view.headerTitle = @"Recommended";
         }
         else {
             view.headerTitle = @"All";
