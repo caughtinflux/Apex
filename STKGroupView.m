@@ -385,7 +385,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_doubleTapped:(UITapGestureRecognizer *)recog
 {
-    [self open];
+    if (!self.delegate || [self.delegate shouldGroupViewOpen:self]) {
+        [self open];
+    }
 }
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer
