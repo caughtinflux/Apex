@@ -172,6 +172,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_reallyConfigureSubappViews
 {
+    [_subappLayout release];
     _subappLayout = [[STKGroupLayout alloc] init];
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
