@@ -89,7 +89,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 #pragma mark - Public Methods
 - (void)open
 {
-    [self _animateOpenWithCompletion:nil];
+    [self _animateOpenWithVelocity:0.f completion:nil];
 }
 
 - (void)close
@@ -335,7 +335,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 if (   (_recognizerDirection == STKRecognizerDirectionUp   && velocity.y < 0)
                     || (_recognizerDirection == STKRecognizerDirectionDown && velocity.y > 0)
                     || (_lastDistanceFromCenter >= 25.f)) {
-                    [self _animateOpenWithCompletion:nil];
+                    [self _animateOpenWithVelocity:velocity.y completion:nil];
                 }
                 else {
                     [self _animateClosedWithCompletion:nil];
@@ -554,7 +554,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 }
 
 #pragma mark - Animate
-- (void)_animateOpenWithCompletion:(void(^)(void))completion
+- (void)_animateOpenWithVelocity:(CGFloat)verticalVelocity completion:(void(^)(void))completion
 {
     if (_isAnimating) {
         return;
@@ -567,10 +567,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if (!_subappLayout) {
         [self _reallyConfigureSubappViews];
     }
-    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
-        [self _setAlphaForOtherIcons:0.2f];
+
+    NSDictionary *prefs = [NSDictionary dictionaryWithContentsOfFile:kPrefPath];
+    SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
+    void (^animations)(void) = ^{
         [_centralIconView stk_setImageViewScale:1.f];
+        [self _setAlphaForOtherIcons:0.2f];
         [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
             [self _setAlpha:1.0 forBadgeAndLabelOfIconView:iconView];
             CGPoint origin = [self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}];
@@ -590,7 +592,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         if (_delegateFlags.didMoveToOffset) {
             [_delegate groupView:self didMoveToOffset:1.f];
         }
-    } completion:^(BOOL finished) {
+    };
+    void (^animationCompletion)(BOOL finished) = ^(BOOL finished) {
         if (finished) {
             if (completion) {
                 completion();
@@ -600,7 +603,23 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 [self.delegate groupViewDidOpen:self];
             }
         }
-    }];
+    };
+    if (_lastDistanceFromCenter >= _targetDistance) {
+        [UIView animateWithDuration:[prefs[@"duration"] doubleValue]
+                              delay:0.0
+             usingSpringWithDamping:[prefs[@"damping"] doubleValue]
+              initialSpringVelocity:[prefs[@"velocity"] doubleValue]
+                            options:0
+                         animations:animations
+                         completion:animationCompletion];
+    }
+    else {
+        [UIView animateWithDuration:0.25f
+                              delay:0.0
+                            options:0
+                         animations:animations
+                         completion:animationCompletion];
+    }
 }
 
 - (void)_animateClosedWithCompletion:(void(^)(void))completion
