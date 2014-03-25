@@ -273,7 +273,7 @@
 
 - (void)groupView:(STKGroupView *)groupView didMoveToOffset:(CGFloat)offset
 {
-    [self _setDimStrength:(offset * kFullDimStrength)];
+    [self _setDimStrength:MIN((offset * kFullDimStrength), kFullDimStrength)];
 }
 
 - (void)groupViewDidOpen:(STKGroupView *)groupView
