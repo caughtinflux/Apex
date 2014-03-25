@@ -1,16 +1,13 @@
 #import "STKPreferences.h"
 #import <notify.h>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-const-variable"
 static NSString * const ActivationModeKey   = @"activationMode";
 static NSString * const ShowPreviewKey      = @"previewEnabled";
 static NSString * const GroupStateKey       = @"state";
 static NSString * const ClosesOnLaunchKey   = @"closeOnLaunch";
 static NSString * const LockLayoutsKey      = @"lockLayouts";
 static NSString * const ShowSummedBadgesKey = @"summedBadges";
-static NSString * const CentralIconKey      = @"centralIcon";
-#pragma clang diagnostic pop
+static NSString * const UserWelcomedKey     = @"welcomed";
 
 #define GETBOOL(_key, _default) (_preferences[_key] ? [_preferences[_key] boolValue] : _default)
 
@@ -92,6 +89,22 @@ static void STKPrefsChanged (
 - (BOOL)shouldShowSummedBadges
 {
     return GETBOOL(ShowSummedBadgesKey, YES);
+}
+
+- (BOOL)shouldCloseOnLaunch
+{
+    return GETBOOL(ClosesOnLaunchKey, YES);
+}
+
+- (BOOL)welcomeAlertShown
+{
+    return GETBOOL(UserWelcomedKey, NO);
+}
+
+- (void)setWelcomeAlertShown:(BOOL)shown
+{
+    _preferences[UserWelcomedKey] = @(shown);
+    [self _synchronize];
 }
 
 - (NSArray *)identifiersForSubappIcons

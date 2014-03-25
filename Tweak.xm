@@ -5,11 +5,18 @@
 #import <Search/SPSearchResultSection.h>
 #import "STKConstants.h"
 
-/*
 
-static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags);
+#pragma mark - Wilkommen
+static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags)
+{
+    if ((responseFlags & 0x3) == kCFUserNotificationAlternateResponse) {
+        // Open settings to custom bundle
+        [(SpringBoard *)[UIApplication sharedApplication] applicationOpenURL:[NSURL URLWithString:@"prefs:root="kSTKTweakName] publicURLsOnly:NO];
+    }
+    CFRelease(userNotification);
+}
 
-#pragma mark - SpringBoard Hook
+%hook SpringBoard
 - (void)_reportAppLaunchFinished
 {
     %orig;
@@ -31,17 +38,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
 }
 %end
-
-static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags)
-{
-    if ((responseFlags & 0x3) == kCFUserNotificationAlternateResponse) {
-        // Open settings to custom bundle
-        [(SpringBoard *)[UIApplication sharedApplication] applicationOpenURL:[NSURL URLWithString:@"prefs:root="kSTKTweakName] publicURLsOnly:NO];
-    }
-    CFRelease(userNotification);
-}
-
-*/
 
 #pragma mark - SBIconController
 %hook SBIconController

@@ -10,6 +10,9 @@
 @property (nonatomic, readonly) BOOL shouldLockLayouts;
 @property (nonatomic, readonly) BOOL shouldShowPreviews;
 @property (nonatomic, readonly) BOOL shouldShowSummedBadges;
+@property (nonatomic, readonly) BOOL shouldCloseOnLaunch;
+@property (nonatomic, assign) BOOL welcomeAlertShown;
+
 @property (nonatomic, readonly) NSArray *identifiersForSubappIcons;
 
 - (void)addOrUpdateGroup:(STKGroup *)group;
