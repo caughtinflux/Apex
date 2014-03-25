@@ -7,7 +7,7 @@
 NSString * const STKTweakName = @"Apex";
 NSString * const STKEditingEndedNotificationName = @"STKEditingEnded";
 
-CFStringRef const STKPrefsChangedNotificationName = CFSTR("com.a3tweaks.apex.prefschanged");
+CFStringRef const STKPrefsChangedNotificationName = CFSTR("com.a3tweaks.apex2.prefschanged");
 
 SBIconListView * STKListViewForIcon(SBIcon *icon)
 {
