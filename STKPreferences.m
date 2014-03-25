@@ -14,12 +14,24 @@ static NSString * const CentralIconKey      = @"centralIcon";
 
 #define GETBOOL(_key, _default) (_preferences[_key] ? [_preferences[_key] boolValue] : _default)
 
-@implementation STKPreferences
+@interface STKPreferences ()
 {
     NSMutableDictionary *_preferences;
     NSMutableDictionary *_groups;
     NSMutableDictionary *_subappToCentralMap;
 }
+
+static void STKPrefsChanged (
+   CFNotificationCenterRef center,
+   void *observer,
+   CFStringRef name,
+   const void *object,
+   CFDictionaryRef userInfo
+);
+
+@end
+
+@implementation STKPreferences
 
 + (instancetype)sharedPreferences
 {
@@ -28,6 +40,12 @@ static NSString * const CentralIconKey      = @"centralIcon";
     dispatch_once(&pred, ^{
         _sharedInstance = [[self alloc] init];
         [_sharedInstance reloadPreferences];
+        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), 
+                                        NULL, 
+                                        (CFNotificationCallback)STKPrefsChanged, 
+                                        STKPrefsChangedNotificationName, 
+                                        NULL, 
+                                        0);
     });
     return _sharedInstance;
 }
@@ -213,6 +231,13 @@ static NSString * const CentralIconKey      = @"centralIcon";
 {
     [self addOrUpdateGroup:group];
     notify_post("com.a3tweaks.apex.iconstatechanged");
+}
+
+static void
+STKPrefsChanged (CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+    [[STKPreferences sharedPreferences] reloadPreferences];
+    [[NSNotificationCenter defaultCenter] postNotificationName:(NSString *)STKPrefsChangedNotificationName object:nil userInfo:nil];
 }
 
 @end

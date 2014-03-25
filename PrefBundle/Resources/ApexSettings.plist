@@ -31,7 +31,7 @@
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>PostNotification</key>
-			<string>com.a3tweaks.apex.prefschanged</string>
+			<string>com.a3tweaks.apex2.prefschanged</string>
 		</dict>
 
 		<dict>
@@ -56,7 +56,7 @@
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>PostNotification</key>
-			<string>com.a3tweaks.apex.prefschanged</string>
+			<string>com.a3tweaks.apex2.prefschanged</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -72,7 +72,7 @@
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>PostNotification</key>
-			<string>com.a3tweaks.apex.prefschanged</string>
+			<string>com.a3tweaks.apex2.prefschanged</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -88,7 +88,7 @@
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>PostNotification</key>
-			<string>com.a3tweaks.apex.prefschanged</string>
+			<string>com.a3tweaks.apex2.prefschanged</string>
 		</dict>
 		<dict>
             <key>cell</key>
@@ -110,7 +110,7 @@
             <key>defaults</key>
             <string>com.a3tweaks.Apex</string>
             <key>PostNotification</key>
-            <string>com.a3tweaks.apex.prefschanged</string>
+            <string>com.a3tweaks.apex2.prefschanged</string>
         </dict>
 
 		<dict>
