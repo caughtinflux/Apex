@@ -3,6 +3,8 @@
 #import <IconSupport/ISIconSupport.h>
 #import <SpringBoard/SpringBoard.h>
 #import <Search/SPSearchResultSection.h>
+#import <Search/SPSearchResult.h>
+
 #import "STKConstants.h"
 
 
@@ -80,6 +82,27 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         isVisible = NO;
     }
     return isVisible;
+}
+%end
+
+#pragma mark - Search Agent Hook
+%hook SPSearchAgent
+- (id)sectionAtIndex:(NSUInteger)idx
+{
+    %orig();
+    SPSearchResultSection *section = %orig();
+    if (section.hasDomain && section.domain == 4) {
+        SPSearchResult *result = [section.results firstObject];
+        NSString *appID = result.url;
+        SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:appID];
+        STKGroup *group = [[STKPreferences sharedPreferences] groupForSubappIcon:icon];
+        if (group) {
+            SBIcon *centralIcon = group.centralIcon;
+            [result setAuxiliaryTitle:centralIcon.displayName];
+            [result setAuxiliarySubtitle:centralIcon.displayName];
+        }
+    }
+    return section;
 }
 %end
 
