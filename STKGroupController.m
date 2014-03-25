@@ -381,7 +381,10 @@
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
     CGPoint point = [touch locationInView:_openGroupView];
-    return !([_openGroupView hitTest:point withEvent:nil]);   
+    if (_selectionView) {
+        return (CGRectContainsPoint(_selectionView.contentView.frame, [touch locationInView:_selectionView]) == false);
+    }
+    return !([_openGroupView hitTest:point withEvent:nil]);
 }
 
 @end
