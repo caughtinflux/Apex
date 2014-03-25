@@ -117,22 +117,37 @@ static NSString * const CentralIconKey      = @"centralIcon";
 
 - (void)_synchronize
 {
-    NSDictionary *groupState = [self _groupStateFromGroups];
-    _preferences[GroupStateKey] = groupState;
+    @synchronized(self) {
+        NSDictionary *groupState = [self _groupStateFromGroups];
+        _preferences[GroupStateKey] = groupState;
 
-    NSOutputStream *outputStream = [NSOutputStream outputStreamToFileAtPath:kPrefPath append:NO];
-    [outputStream open];
-    NSError *err = nil;
-    NSInteger bytesWritten = [NSPropertyListSerialization writePropertyList:_preferences
-                                                                   toStream:outputStream
-                                                                     format:NSPropertyListBinaryFormat_v1_0
-                                                                    options:0
-                                                                      error:&err];
-    if (bytesWritten > 0) {
-        DLog(@"Wrote %zd bytes to file", bytesWritten);
-    }
-    else {
-        DLog(@"Failed to write to stream. Error %zd: %@", err.code, err.localizedDescription);
+        // Write atomically.
+        NSString *tempPath = [NSTemporaryDirectory() stringByAppendingString:@"/com.a3tweaks.Apex.plist"];
+        NSOutputStream *outputStream = [NSOutputStream outputStreamToFileAtPath:tempPath append:NO];
+        [outputStream open];
+        NSError *err = nil;
+        [NSPropertyListSerialization writePropertyList:_preferences
+                                              toStream:outputStream
+                                                format:NSPropertyListBinaryFormat_v1_0
+                                               options:0
+                                                 error:&err];
+        if (err) {
+            STKLog(@"Failed to write preferences to to output stream. Error %zd: %@", err.code, err.localizedDescription);
+        }
+        else {
+            NSURL *tempURL = [NSURL fileURLWithPath:tempPath];
+            NSURL *prefsURL = [NSURL fileURLWithPath:kPrefPath];
+            [[NSFileManager defaultManager] replaceItemAtURL:prefsURL
+                                               withItemAtURL:tempURL
+                                              backupItemName:@"com.a3tweaks.Apex.last.plist"
+                                                     options:NSFileManagerItemReplacementUsingNewMetadataOnly
+                                            resultingItemURL:NULL
+                                                       error:&err];
+
+            if (err) {
+                STKLog(@"Failed to move preferences from temporary to primary path. Error Code %zd: %@", err.code, err.localizedDescription);
+            }
+        }
     }
 }
 
