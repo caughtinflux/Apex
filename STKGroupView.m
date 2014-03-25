@@ -568,9 +568,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self _reallyConfigureSubappViews];
     }
 
-    NSDictionary *prefs = [NSDictionary dictionaryWithContentsOfFile:kPrefPath];
     SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
-    void (^animations)(void) = ^{
+    [UIView animateWithDuration:0.25f delay:0.0 options:0 animations:^{
         [_centralIconView stk_setImageViewScale:1.f];
         [self _setAlphaForOtherIcons:0.2f];
         [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
@@ -592,8 +591,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         if (_delegateFlags.didMoveToOffset) {
             [_delegate groupView:self didMoveToOffset:1.f];
         }
-    };
-    void (^animationCompletion)(BOOL finished) = ^(BOOL finished) {
+    } completion:^(BOOL finished) {
         if (finished) {
             if (completion) {
                 completion();
@@ -603,23 +601,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 [self.delegate groupViewDidOpen:self];
             }
         }
-    };
-    if (_lastDistanceFromCenter >= _targetDistance) {
-        [UIView animateWithDuration:[prefs[@"duration"] doubleValue]
-                              delay:0.0
-             usingSpringWithDamping:[prefs[@"damping"] doubleValue]
-              initialSpringVelocity:[prefs[@"velocity"] doubleValue]
-                            options:0
-                         animations:animations
-                         completion:animationCompletion];
-    }
-    else {
-        [UIView animateWithDuration:0.25f
-                              delay:0.0
-                            options:0
-                         animations:animations
-                         completion:animationCompletion];
-    }
+    }];
 }
 
 - (void)_animateClosedWithCompletion:(void(^)(void))completion
