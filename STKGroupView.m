@@ -102,12 +102,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if (_isAnimating) {
         return;
     }
+    if (_subappLayout) [_centralIconView stk_setImageViewScale:1.f];
     [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];   
     [_subappLayout release];
     _subappLayout = nil;
     [_displacedIconLayout release];
     _displacedIconLayout = nil;
-    [_centralIconView stk_setImageViewScale:1.f];
     [self _configureSubappViews];
 }
 
@@ -126,10 +126,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     [_group removeObserver:self];
     [_group release];
+
     _group = [group retain];
     [_group addObserver:self];
-    [self resetLayouts];
     _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
+
+    [self resetLayouts];
 }
 
 - (void)setShowPreview:(BOOL)shouldShow
