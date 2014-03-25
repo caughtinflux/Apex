@@ -227,6 +227,7 @@ static void STKPrefsChanged (
 #pragma mark - STKGroupObserver
 - (void)groupDidFinalizeState:(STKGroup *)group
 {
+    NSMutableArray *groupsToUpdate = [NSMutableArray array];
     for (SBIcon *subappIcon in group.layout) {
         STKGroup *previousGroup = [self groupForSubappIcon:subappIcon];
         if (previousGroup && group != previousGroup) {
@@ -234,10 +235,11 @@ static void STKPrefsChanged (
             STKGroupSlot slotForRemovedIcon = [previousGroup.layout slotForIcon:subappIcon];
             [previousGroup replaceIconInSlot:slotForRemovedIcon withIcon:nil];
             [previousGroup forceRelayout];
-            [self addOrUpdateGroup:previousGroup];
+            [groupsToUpdate addObject:previousGroup];
         }
     }
-    [self addOrUpdateGroup:group];
+    [groupsToUpdate addObject:group];
+    [self _addOrUpdateGroups:groupsToUpdate];
 }
 
 - (void)groupDidRelayout:(STKGroup *)group
