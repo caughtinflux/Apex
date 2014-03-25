@@ -150,48 +150,6 @@
 			<key>footerText</key>
 			<string>© 2014 Aditya KD and Newar Choukeir</string>
 		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSSliderCell</string>
-			<key>default</key>
-			<true/>
-			<key>defaults</key>
-			<string>com.a3tweaks.Apex</string>
-			<key>key</key>
-			<string>duration</string>
-			<key>label</key>
-			<string>Duration</string>
-			<key>defaults</key>
-			<string>com.a3tweaks.Apex</string>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSSliderCell</string>
-			<key>default</key>
-			<true/>
-			<key>defaults</key>
-			<string>com.a3tweaks.Apex</string>
-			<key>key</key>
-			<string>damping</string>
-			<key>label</key>
-			<string>damping</string>
-			<key>defaults</key>
-			<string>com.a3tweaks.Apex</string>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSSliderCell</string>
-			<key>default</key>
-			<true/>
-			<key>defaults</key>
-			<string>com.a3tweaks.Apex</string>
-			<key>key</key>
-			<string>velocity</string>
-			<key>label</key>
-			<string>velocity</string>
-			<key>defaults</key>
-			<string>com.a3tweaks.Apex</string>
-		</dict>
 	</array>
 	<key>title</key>
 	<string>Apex</string>
