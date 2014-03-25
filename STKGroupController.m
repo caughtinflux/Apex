@@ -38,6 +38,10 @@
         _closeSwipeRecognizer.direction = (UISwipeGestureRecognizerDirectionUp | UISwipeGestureRecognizerDirectionDown);
         _closeSwipeRecognizer.delegate = self;
         _closeTapRecognizer.delegate = self;
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(_prefsChanged)
+                                                     name:(NSString *)STKPrefsChangedNotificationName
+                                                   object:nil];
     }
     return self;
 }
@@ -63,6 +67,7 @@
         [iconView setGroupView:groupView];
     }
     groupView.showPreview = [STKPreferences sharedPreferences].shouldShowPreviews;
+    groupView.activationMode = [STKPreferences sharedPreferences].activationMode;
 }
 
 - (void)removeGroupViewFromIconView:(SBIconView *)iconView
@@ -215,10 +220,31 @@
     }];
 }
 
+- (void)_prefsChanged
+{
+    SBIconController *iconController = [CLASS(SBIconController) sharedInstance];
+    NSMutableArray *listViews = [NSMutableArray array];
+    [listViews addObjectsFromArray:[iconController _rootFolderController].iconListViews];
+    [listViews addObject:[iconController dockListView]];
+    for (SBIconListView *listView in listViews) {
+        [listView enumerateIconViewsUsingBlock:^(SBIconView *iconView) {
+            [iconView groupView].showPreview = [STKPreferences sharedPreferences].shouldShowPreviews;
+            [iconView groupView].activationMode = [STKPreferences sharedPreferences].activationMode;
+        }];
+    }
+}
+
 #pragma mark - Group View Delegate
 - (BOOL)shouldGroupViewOpen:(STKGroupView *)groupView
 {
-    return !_openGroupView;
+    BOOL shouldOpen = YES;
+    if ((groupView.group.state == STKGroupStateEmpty) && [STKPreferences sharedPreferences].shouldLockLayouts) {
+        shouldOpen = NO;
+    }
+    else {
+        shouldOpen = (_openGroupView == nil);
+    }
+    return shouldOpen;
 }
 
 - (BOOL)groupView:(STKGroupView *)groupView shouldRecognizeGesturesSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)recognizer
