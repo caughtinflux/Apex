@@ -330,7 +330,7 @@
         [self _showSelectionViewForIconView:iconView];
     }
     else {
-        [iconView.icon launchFromLocation:SBIconLocationHomeScreen];        
+        [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
     }
 }
 
