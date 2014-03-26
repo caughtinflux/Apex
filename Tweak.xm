@@ -67,6 +67,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         return;
     }
     if ([self groupView] && previousLoc == location) {
+        self.delegate = [STKGroupController sharedController];
         return;
     }
     if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:self.icon]
