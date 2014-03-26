@@ -319,6 +319,10 @@
 
 - (void)iconTapped:(SBIconView *)iconView
 {
+    if (!self.openGroupView) {
+        [[CLASS(SBIconController) sharedInstance] iconTapped:iconView];
+        return;
+    }
     EXECUTE_BLOCK_AFTER_DELAY(0.2, ^{
         [iconView setHighlighted:NO];
     });
@@ -332,6 +336,9 @@
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
 {
+    if (!self.openGroupView) {
+        return [[CLASS(SBIconController) sharedInstance] iconShouldAllowTap:iconView];
+    }
     if (_wasLongPressed) {
         _wasLongPressed = NO;
         return NO;
@@ -341,6 +348,9 @@
 
 - (BOOL)iconViewDisplaysCloseBox:(SBIconView *)iconView
 {
+    if ([iconView groupView]) {
+        return [[CLASS(SBIconController) sharedInstance] iconViewDisplaysCloseBox:iconView];
+    }
     return NO;
 }
 
@@ -356,21 +366,31 @@
 
 - (void)iconHandleLongPress:(SBIconView *)iconView
 {
-    if ([iconView.icon isEmptyPlaceholder] || [iconView.icon isPlaceholder]) {
+    if (!self.openGroupView || ![iconView.icon isLeafIcon]) {
+        [[CLASS(SBIconController) sharedInstance] iconHandleLongPress:iconView];
         return;
     }
     _wasLongPressed = YES;
     [iconView setHighlighted:NO];
-    [[iconView containerGroupView].group addPlaceholders];
+
+    [([iconView containerGroupView] ?: [iconView groupView]).group addPlaceholders];
 }
 
 - (void)iconTouchBegan:(SBIconView *)iconView
 {
+    if (!self.openGroupView) {
+        [[CLASS(SBIconController) sharedInstance] iconTouchBegan:iconView];
+        return;
+    }
     [iconView setHighlighted:YES];   
 }
 
 - (void)icon:(SBIconView *)iconView touchMoved:(UITouch *)touch
 {
+    if (!self.openGroupView) {
+        [[CLASS(SBIconController) sharedInstance] icon:iconView touchMoved:touch];
+        return;
+    }
     if (_wasLongPressed) {
         CGPoint location = [touch locationInView:[iconView _iconImageView]];
         _wasLongPressed = [[iconView _iconImageView] pointInside:location withEvent:nil];
