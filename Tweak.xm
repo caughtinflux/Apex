@@ -43,6 +43,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 #pragma mark - SBIconController
 %hook SBIconController
+
 - (void)setIsEditing:(BOOL)editing
 {
     BOOL stoppedEditing = ([self isEditing] && editing == NO);
@@ -51,6 +52,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
     }
 }
+
 %end
 
 #pragma mark - SBIconView
