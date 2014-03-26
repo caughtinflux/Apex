@@ -100,14 +100,15 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     %orig();
     SPSearchResultSection *section = %orig();
     if (section.hasDomain && section.domain == 4) {
-        SPSearchResult *result = [section.results firstObject];
-        NSString *appID = result.url;
-        SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:appID];
-        STKGroup *group = [[STKPreferences sharedPreferences] groupForSubappIcon:icon];
-        if (group) {
-            SBIcon *centralIcon = group.centralIcon;
-            [result setAuxiliaryTitle:centralIcon.displayName];
-            [result setAuxiliarySubtitle:centralIcon.displayName];
+        for (SPSearchResult *result in section.results) {
+            NSString *appID = result.url;
+            SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:appID];
+            STKGroup *group = [[STKPreferences sharedPreferences] groupForSubappIcon:icon];
+            if (group) {
+                SBIcon *centralIcon = group.centralIcon;
+                [result setAuxiliaryTitle:centralIcon.displayName];
+                [result setAuxiliarySubtitle:centralIcon.displayName];
+            }
         }
     }
     return section;
