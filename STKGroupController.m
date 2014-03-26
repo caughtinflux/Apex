@@ -397,6 +397,20 @@
     }
 }
 
+- (void)icon:(SBIconView *)iconView touchEnded:(BOOL)ended
+{
+    if (self.openGroupView) {
+        // Nobody cares
+        return;
+    }
+    [[CLASS(SBIconController) sharedInstance] icon:iconView touchEnded:ended];
+}
+
+- (CGFloat)iconLabelWidth
+{
+    return [[CLASS(SBIconController) sharedInstance] iconLabelWidth];
+}
+
 #pragma mark - Gesture Recognizer Delegate
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
