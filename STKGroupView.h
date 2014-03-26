@@ -21,6 +21,7 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 @property (nonatomic, readonly) BOOL isOpen;
 @property (nonatomic, readonly) BOOL isAnimating;
 @property (nonatomic, readonly) STKGroupLayout *subappLayout;
+@property (nonatomic, readonly) STKGroupLayout *displacedIconLayout;
 
 - (void)open;
 - (void)close;
