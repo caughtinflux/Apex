@@ -359,9 +359,12 @@
     return [[CLASS(SBIconController) sharedInstance] iconViewDisplaysBadges:iconView];
 }
 
-- (BOOL)icon:(SBIconView *)iconView canReceiveGrabbedIcon:(SBIcon *)grabbedIcon
+- (BOOL)icon:(SBIconView *)iconView canReceiveGrabbedIcon:(SBIconView *)grabbedIconView
 {
-    return NO;
+    STKGroup *grabbedGroup = [grabbedIconView groupView].group;
+    STKGroup *group = [iconView groupView].group;
+    
+    return (group.state == STKGroupStateEmpty && grabbedGroup.state == STKGroupStateEmpty);
 }
 
 - (void)iconHandleLongPress:(SBIconView *)iconView

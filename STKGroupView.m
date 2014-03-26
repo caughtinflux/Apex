@@ -59,6 +59,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         _activationMode = STKActivationModeSwipeUpAndDown;
         _showPreview = YES;
         self.alpha = 0.f;
+        _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
     }
     return self;
 }
@@ -172,7 +173,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_configureSubappViews
 {
-    _centralIconView.delegate = _delegate;
     if (!CURRENTLY_SHOWS_PREVIEW) {
         return;
     }
@@ -575,7 +575,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     _isAnimating = YES;
     _isOpen = YES;
-    _centralIconView.delegate = _delegate;
     if ([self.delegate respondsToSelector:@selector(groupViewWillOpen:)]) {
         [self.delegate groupViewWillOpen:self];
     }
