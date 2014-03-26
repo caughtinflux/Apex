@@ -136,6 +136,17 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
+%hook SBCenterIconZoomAnimator
+- (void)_positionView:(SBIconView *)iconView forIcon:(SBIcon *)icon
+{
+    if ([STKGroupController sharedController].openGroupView) {
+        // Don't let the animator screw with the displaced icons
+        return;
+    }
+    %orig();
+}
+%end
+
 #pragma mark - SBIconZoomAnimator
 %hook SBScaleIconZoomAnimator
 - (SBIconView *)iconViewForIcon:(SBIcon *)icon
