@@ -155,7 +155,11 @@
 %new
 - (void)stk_setImageViewScale:(CGFloat)scale
 {
-    [self _iconImageView].layer.transform = CATransform3DMakeScale(scale, scale, scale);
+    CATransform3D transformToApply = CATransform3DMakeScale(scale, scale, scale);
+    if (CATransform3DEqualToTransform(transformToApply, [self _iconImageView].layer.transform) == false) {
+        // Only set the scale if it has changed, since this is computationally expensive.
+        [self _iconImageView].layer.transform = transformToApply;
+    }
 }
 
 - (void)setIcon:(SBIcon *)icon
