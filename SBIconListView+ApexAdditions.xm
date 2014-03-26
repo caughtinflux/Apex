@@ -82,7 +82,7 @@ static BOOL _hasGridlock;
 %new
 - (BOOL)stk_preventRelayout
 {
-    return [objc_getAssociatedObject(self, _cmd) boolValue];
+    return [objc_getAssociatedObject(self, @selector(stk_preventRelayout)) boolValue];
 }
 
 - (void)layoutIconsNow
@@ -94,13 +94,21 @@ static BOOL _hasGridlock;
     self.stk_realHorizontalIconPadding = kInvalidIconPadding;
     %orig();
 }
-
+ 
 - (SBIcon *)layoutIconsIfNeeded:(NSTimeInterval)duration domino:(BOOL)domino
 {
     if (self.stk_preventRelayout) {
         return nil;
     }
     return %orig();
+}
+
+- (void)setIconsNeedLayout
+{
+    if (self.stk_preventRelayout) {
+        return;
+    }
+    %orig();
 }
 
 %new
