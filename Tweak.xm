@@ -61,6 +61,11 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     SBIconLocation previousLoc = self.location;
     %orig(location);
+
+    if ([STKListViewForIcon(self.icon) isKindOfClass:CLASS(SBFolderIconListView)]) {
+        [[STKGroupController sharedController] removeGroupViewFromIconView:self];
+        return;
+    }
     if ([self groupView] && previousLoc == location) {
         return;
     }
