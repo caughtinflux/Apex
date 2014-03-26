@@ -80,6 +80,7 @@
 - (void)setGroupView:(STKGroupView *)groupView
 {
     [self removeGroupView];
+    groupView.frame = self.bounds;
     objc_setAssociatedObject(self, @selector(STKGroupView), groupView, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     [self addSubview:groupView];
     [self sendSubviewToBack:groupView];
