@@ -63,9 +63,9 @@
         }
         group.lastKnownCoordinate = [STKGroupLayoutHandler coordinateForIcon:group.centralIcon];
         groupView = [[[STKGroupView alloc] initWithGroup:group] autorelease];
-        groupView.delegate = self;
         [iconView setGroupView:groupView];
     }
+    groupView.delegate = self;
     groupView.showPreview = [STKPreferences sharedPreferences].shouldShowPreviews;
     groupView.activationMode = [STKPreferences sharedPreferences].activationMode;
 }

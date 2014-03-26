@@ -154,6 +154,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _delegateFlags.didOpen = [_delegate respondsToSelector:@selector(groupViewDidOpen:)];
     _delegateFlags.willClose = [_delegate respondsToSelector:@selector(groupViewWillClose:)];
     _delegateFlags.didClose = [_delegate respondsToSelector:@selector(groupViewDidClose:)];
+    _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
     _centralIconView.delegate = _delegate;
 }
 
