@@ -76,14 +76,15 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
-    if (_isOpen) {
-        for (SBIconView *iconView in _subappLayout) {
-            if ([iconView pointInside:[self convertPoint:point toView:iconView] withEvent:event]) {
-                return iconView;
-            }
+    if ([_centralIconView pointInside:[self convertPoint:point toView:_centralIconView] withEvent:event]) {
+        return _centralIconView;
+    }
+    for (SBIconView *iconView in _subappLayout) {
+        if ([iconView pointInside:[self convertPoint:point toView:iconView] withEvent:event]) {
+            return iconView;
         }
     }
-    return [super hitTest:point withEvent:event];
+    return nil;
 }
 
 #pragma mark - Public Methods
@@ -127,9 +128,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [_group removeObserver:self];
     [_group release];
 
+    _centralIconView.delegate = [CLASS(SBIconController) sharedInstance];
+
     _group = [group retain];
     [_group addObserver:self];
+
     _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
+    _centralIconView.delegate = self.delegate;
 
     [self resetLayouts];
 }
@@ -148,6 +153,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _delegateFlags.didOpen = [_delegate respondsToSelector:@selector(groupViewDidOpen:)];
     _delegateFlags.willClose = [_delegate respondsToSelector:@selector(groupViewWillClose:)];
     _delegateFlags.didClose = [_delegate respondsToSelector:@selector(groupViewDidClose:)];
+    _centralIconView.delegate = _delegate;
 }
 
 #pragma mark - Layout
@@ -166,6 +172,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_configureSubappViews
 {
+    _centralIconView.delegate = _delegate;
     if (!CURRENTLY_SHOWS_PREVIEW) {
         return;
     }
@@ -175,7 +182,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_reallyConfigureSubappViews
 {
     [_subappLayout release];
+
     _subappLayout = [[STKGroupLayout alloc] init];
+
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
         SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
@@ -186,7 +195,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
         [self addSubview:iconView];
     }];
+
     [self _resetDisplacedIconLayout];
+
     if (CURRENTLY_SHOWS_PREVIEW) {
         [self _setupPreview];
         [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
