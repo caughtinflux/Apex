@@ -575,6 +575,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     _isAnimating = YES;
     _isOpen = YES;
+    _centralIconView.delegate = _delegate;
     if ([self.delegate respondsToSelector:@selector(groupViewWillOpen:)]) {
         [self.delegate groupViewWillOpen:self];
     }
