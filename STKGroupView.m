@@ -218,7 +218,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         }
         frame.origin = newOrigin; 
         iconView.frame = frame;
-    
+        if (![iconView.icon isLeafIcon] && _group.state != STKGroupStateEmpty) {
+            iconView.alpha = 0.f;
+        }
         // Hide the label and badge
         [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
         if (CURRENTLY_SHOWS_PREVIEW) {
