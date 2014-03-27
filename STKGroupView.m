@@ -721,7 +721,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_setAlphaForOtherIcons:(CGFloat)alpha
 {
-    void(^setter)(id, id) = ^(SBIconListView *listView, SBIcon *icon){
+    void(^setter)(id, id) = ^(SBIconListView *listView, SBIcon *icon) {
         if ((icon == _group.centralIcon) || ([_centralIconView isInDock] &&[ _displacedIconLayout[STKPositionTop] containsObject:icon])) {
             return;
         }
