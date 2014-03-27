@@ -586,7 +586,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
 
     SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
-    [UIView animateWithDuration:0.25f delay:0.0 options:0 animations:^{
+    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         [_centralIconView stk_setImageViewScale:1.f];
         [self _setAlphaForOtherIcons:0.2f];
         [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
