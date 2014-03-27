@@ -18,6 +18,7 @@
 
     NSMutableArray *_iconsToShow;
     NSMutableArray *_iconsToHide;
+    BOOL _openGroupViewWasModified;
 }
 
 + (instancetype)sharedController
@@ -184,25 +185,45 @@
 
 - (void)_selectIconForCurrentSlot:(SBIcon *)iconToSelect
 {
+    _openGroupViewWasModified = YES;
+    Class emptyReplacementClass = (_openGroupView.group.state == STKGroupStateEmpty ? CLASS(STKEmptyIcon) : CLASS(STKPlaceholderIcon));
+    if (!iconToSelect) {
+        NSUInteger emptyCount = 0;
+        for (SBIcon *icon in _openGroupView.group.layout) {
+            if (![icon isLeafIcon]) {
+                emptyCount++;
+            }
+        }
+        if (emptyCount >= 3) {
+            emptyReplacementClass = CLASS(STKEmptyIcon);
+        }
+    }
     SBIcon *iconInSelectedSlot = [_openGroupView.group.layout iconInSlot:_selectionSlot];
+
     if (!_iconsToHide) _iconsToHide = [NSMutableArray new];
     if (!_iconsToShow) _iconsToShow = [NSMutableArray new];
+
     if ([iconInSelectedSlot isLeafIcon]) {
+        // The icon that is being replaced
         [_iconsToShow addObject:iconInSelectedSlot];
     }
     if (iconToSelect && iconToSelect != iconInSelectedSlot) {
         // The selected icon needs to be hidden from the home screen
         [_iconsToHide addObject:iconToSelect];
+
         STKGroupSlot slotForIconIfAlreadyInGroup = [_openGroupView.group.layout slotForIcon:iconToSelect];
         if (slotForIconIfAlreadyInGroup.index != NSNotFound) {
             // the group already contains this icon, so replace it with an empty icon
-            [_openGroupView.group replaceIconInSlot:slotForIconIfAlreadyInGroup withIcon:[[CLASS(STKEmptyIcon) new] autorelease]];
+            [_openGroupView.group replaceIconInSlot:slotForIconIfAlreadyInGroup withIcon:[[emptyReplacementClass new] autorelease]];
         }
     }
     else if (!iconToSelect) {
-        iconToSelect = [[CLASS(STKEmptyIcon) new] autorelease];
+        iconToSelect = [[emptyReplacementClass new] autorelease];
     }
     [_openGroupView.group replaceIconInSlot:_selectionSlot withIcon:iconToSelect];
+    if ([iconToSelect isKindOfClass:CLASS(STKPlaceholderIcon)]) {
+        [_openGroupView.group.placeholderLayout addIcon:iconToSelect toIconsAtPosition:_selectionSlot.position];
+    }
     if (_openGroupView.group.state != STKGroupStateEmpty) {
         [_openGroupView.group addPlaceholders];
     }
@@ -296,7 +317,8 @@
 
 - (void)groupViewDidClose:(STKGroupView *)groupView
 {
-    if (_openGroupView.group.state == STKGroupStateDirty) {
+    if (_openGroupViewWasModified) {
+        _openGroupView.group.state = STKGroupStateDirty;
         [_openGroupView.group finalizeState];
         if (_iconsToHide.count > 0 || _iconsToShow.count > 0) {
             SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
@@ -313,11 +335,12 @@
     [self _removeCloseGestureRecognizers];
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
     _openGroupView = nil;
+    _openGroupViewWasModified = NO;
 }
 
 - (void)groupViewWillBeDestroyed:(STKGroupView *)groupView
 {
-    if (groupView == _openGroupView){
+    if (groupView == _openGroupView) {
         _openGroupView = nil;
     }
 }
