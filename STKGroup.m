@@ -168,17 +168,20 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
 - (void)finalizeState
 {
     if (_state != STKGroupStateDirty) {
+        STKLog(@"Group state is not dirty, simply notifying observers.");
         goto notifyObservers;
     }
     STKGroupLayout *newLayout = [[STKGroupLayout alloc] init];
     // keep only the leaf icons
     [_layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition position, NSArray *currentArray, NSUInteger index, BOOL *stop) {
         if ([icon isLeafIcon]) {
+            CLog(@"Finalization: Adding %@ to new layout", icon);
             [newLayout addIcon:icon toIconsAtPosition:position];
         }
     }];
     if ([newLayout allIcons].count > 0) {
         // move to newLayout only if it has any icons
+        CLog(@"Finalization: Using new layout");
         [_layout release];
         _layout = newLayout;
         _state = STKGroupStateNormal;
@@ -186,6 +189,7 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     else {
         // If newLayout doesn't have any icons, it means _layout is full of empty icons
         // So we transition to STKGroupStateEmpty!
+        CLog(@"Finalization: New layout is empty, adjusting state to match");
         [newLayout release];
         _state = STKGroupStateEmpty;
     }
