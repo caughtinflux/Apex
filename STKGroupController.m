@@ -260,7 +260,10 @@
             NSArray *targets = [recognizer valueForKey:@"_targets"];
             id target = ((targets.count > 0) ? targets[0] : nil);
             target = [target valueForKey:@"_target"];
-            allow = (![target isKindOfClass:CLASS(SBSearchScrollView)] && [recognizer.view isKindOfClass:[UIScrollView class]]);
+            STKActivationMode activationMode = [STKPreferences sharedPreferences].activationMode;
+            BOOL activationModeConflictsWithSearch = (activationMode != STKActivationModeSwipeUp && activationMode != STKActivationModeDoubleTap);
+            allow = (!([target isKindOfClass:CLASS(SBSearchScrollView)] && activationModeConflictsWithSearch)
+                    && [recognizer.view isKindOfClass:[UIScrollView class]]);
         }
     }
     return allow;
