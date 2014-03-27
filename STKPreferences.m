@@ -231,6 +231,11 @@ static void STKPrefsChanged (
 #pragma mark - STKGroupObserver
 - (void)groupDidFinalizeState:(STKGroup *)group
 {
+    if (group.state == STKGroupStateEmpty) {
+        DLog(@"Removing group because state is empty");
+        [self removeGroup:group];
+        return;
+    }
     NSMutableArray *groupsToUpdate = [NSMutableArray array];
     for (SBIcon *subappIcon in group.layout) {
         STKGroup *previousGroup = [self groupForSubappIcon:subappIcon];
