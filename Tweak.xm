@@ -144,9 +144,22 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     %orig();
     self.iconListView.stk_modifyDisplacedIconOrigin = NO;
 }
+
+- (void)_cleanupAnimation
+{
+    STKGroupView *openGroupView = [STKGroupController sharedController].openGroupView;
+    SBIconListView *listView = STKListViewForIcon(openGroupView.group.centralIcon);
+    if (openGroupView) {
+        // If there is an open group view, the list view shouldn't reset the groups's displaced icons
+        // to their original positions
+        listView.stk_modifyDisplacedIconOrigin = YES;
+    }
+    %orig();
+    listView.stk_modifyDisplacedIconOrigin = NO;
+}
 %end
 
-%hook SBIconAnimator 
+%hook SBScaleIconZoomAnimator 
 - (void)_cleanupAnimation
 {
     STKGroupView *openGroupView = [STKGroupController sharedController].openGroupView;
