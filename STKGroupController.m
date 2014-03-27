@@ -385,6 +385,16 @@
     return NO;
 }
 
+- (void)iconCloseBoxTapped:(SBIconView *)iconView
+{
+    [[CLASS(SBIconController) sharedInstance] iconCloseBoxTapped:iconView];
+}
+
+- (void)icon:(SBIconView *)iconView openFolder:(SBFolder *)folder animated:(BOOL)animated
+{
+    [[CLASS(SBIconController) sharedInstance] icon:iconView openFolder:folder animated:animated];
+}
+
 - (BOOL)iconViewDisplaysBadges:(SBIconView *)iconView
 {
     return [[CLASS(SBIconController) sharedInstance] iconViewDisplaysBadges:iconView];
