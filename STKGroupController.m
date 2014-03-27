@@ -79,8 +79,10 @@
 {
     BOOL handled = NO;
     if (event == STKClosingEventHomeButtonPress) {
-        handled = ((_openGroupView || _selectionView) && ![(SpringBoard *)[UIApplication sharedApplication] _accessibilityFrontMostApplication]);
-        [self _closeOpenGroupOrSelectionView];
+        if (![(SpringBoard *)[UIApplication sharedApplication] _accessibilityFrontMostApplication] && (_openGroupView || _selectionView)) {
+            handled = YES;
+            [self _closeOpenGroupOrSelectionView];
+        }
     }
     else if (!_selectionView) {
         // scroll event 
