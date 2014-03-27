@@ -77,7 +77,8 @@ static BOOL _hasGridlock;
 {
     if (self.stk_modifyDisplacedIconOrigin) {
         SBIcon *icon = [[self model] iconAtIndex:[self indexForCoordinate:coordinate forOrientation:[UIApplication sharedApplication].statusBarOrientation]];
-        if ([[[STKGroupController sharedController].openGroupView.displacedIconLayout allIcons] containsObject:icon]) {
+        STKGroupView *groupView = [STKGroupController sharedController].openGroupView;
+        if (!groupView.isAnimating && [[groupView.displacedIconLayout allIcons] containsObject:icon]) {
             return [self viewForIcon:icon].frame.origin;
         }
     }

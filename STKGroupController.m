@@ -331,6 +331,9 @@
     }
     else {
         [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
+        if ([STKPreferences sharedPreferences].shouldCloseOnLaunch) {
+            [self.openGroupView close];
+        }
     }
 }
 
