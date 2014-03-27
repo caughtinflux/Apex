@@ -146,6 +146,17 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
     %orig();
 }
+
+- (void)_cleanupAnimation
+{
+    STKGroupView *openGroupView = [STKGroupController sharedController].openGroupView;
+    SBIconListView *listView = STKListViewForIcon(openGroupView.group.centralIcon);
+    if (openGroupView) {
+        listView.stk_modifyDisplacedIconOrigin = YES;
+    }
+    %orig();
+    listView.stk_modifyDisplacedIconOrigin = NO;
+}
 %end
 
 #pragma mark - SBIconZoomAnimator
@@ -159,12 +170,10 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     iconView = [openGroupView subappIconViewForIcon:icon] ?: iconView;
     return iconView;
 }
-
 %end
 
 #pragma mark - SBIconListView 
 %hook SBIconListView
-
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
     STKGroupView *openGroupView = [[STKGroupController sharedController] openGroupView];
@@ -176,7 +185,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
     return ret;
 }
-
 %end
 
 #pragma mark - SBFolderController
