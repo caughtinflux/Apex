@@ -177,6 +177,9 @@ static void STKPrefsChanged (
 
             if (err) {
                 STKLog(@"Failed to move preferences from temporary to primary path. Error Code %zd: %@", err.code, err.localizedDescription);
+                STKLog(@"Trying to save via simple write.");
+                BOOL success = [_preferences writeToFile:kPrefPath atomically:YES];
+                STKLog(@"%@ writing as plain text", (success ? @"Succeeded" : @"Failed"));
             }
         }
     }
