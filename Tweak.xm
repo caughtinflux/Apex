@@ -115,43 +115,45 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
-/***********************************************************************************************************
-************************************ (Mostly) Hooks For Zoom Animator **************************************
-************************************************************************************************************
-************************************************************************************************************/
 #pragma mark - SBIconViewMap
+#define IS_HS_MAP() (self == [[self class] homescreenMap])
 %hook SBIconViewMap
 - (void)_recycleIconView:(SBIconView *)iconView
 {
-    [[STKGroupController sharedController] removeGroupViewFromIconView:iconView];
+    if (IS_HS_MAP()) [[STKGroupController sharedController] removeGroupViewFromIconView:iconView];
     %orig();
 }
 
 - (SBIconView *)mappedIconViewForIcon:(SBIcon *)icon
 {
     SBIconView *mappedView = %orig(icon);
-    if (!mappedView && (self == [[self class] homescreenMap]) && [STKGroupController sharedController].openGroupView) {
+    if (!mappedView && IS_HS_MAP() && [STKGroupController sharedController].openGroupView) {
         mappedView = [[STKGroupController sharedController].openGroupView subappIconViewForIcon:icon];
     }
     return mappedView;
 }
 %end
 
+/************************************************************************************************************************************************
+ *********************************************************** Animator Hooks *********************************************************************
+ ************************************************************************************************************************************************/
 %hook SBCenterIconZoomAnimator
 - (void)_positionView:(SBIconView *)iconView forIcon:(SBIcon *)icon
 {
-    if ([STKGroupController sharedController].openGroupView) {
-        // Don't let the animator screw with the displaced icons
-        return;
-    }
+    self.iconListView.stk_modifyDisplacedIconOrigin = YES;
     %orig();
+    self.iconListView.stk_modifyDisplacedIconOrigin = NO;
 }
+%end
 
+%hook SBIconAnimator 
 - (void)_cleanupAnimation
 {
     STKGroupView *openGroupView = [STKGroupController sharedController].openGroupView;
     SBIconListView *listView = STKListViewForIcon(openGroupView.group.centralIcon);
     if (openGroupView) {
+        // If there is an open group view, the list view shouldn't reset the groups's displaced icons
+        // to their original positions
         listView.stk_modifyDisplacedIconOrigin = YES;
     }
     %orig();
@@ -159,7 +161,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
-#pragma mark - SBIconZoomAnimator
 %hook SBScaleIconZoomAnimator
 - (SBIconView *)iconViewForIcon:(SBIcon *)icon
 {
@@ -179,6 +180,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     STKGroupView *openGroupView = [[STKGroupController sharedController] openGroupView];
     UIView *ret = %orig();
     if (openGroupView) {
+        // Send touches to the subapps in a group (since they are not within their superview's bounds)
         UIView *superview = [openGroupView superview];
         CGPoint newPoint = [self convertPoint:point toView:superview];
         ret = [superview hitTest:newPoint withEvent:event];
