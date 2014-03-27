@@ -73,6 +73,29 @@ static BOOL _hasGridlock;
     return padding;
 }
 
+- (CGPoint)originForIconAtCoordinate:(SBIconCoordinate)coordinate
+{
+    if (self.stk_modifyDisplacedIconOrigin) {
+        SBIcon *icon = [[self model] iconAtIndex:[self indexForCoordinate:coordinate forOrientation:[UIApplication sharedApplication].statusBarOrientation]];
+        if ([[[STKGroupController sharedController].openGroupView.displacedIconLayout allIcons] containsObject:icon]) {
+            return [self viewForIcon:icon].frame.origin;
+        }
+    }
+    return %orig(coordinate);
+}
+
+%new
+- (void)setStk_modifyDisplacedIconOrigin:(BOOL)modify
+{
+    objc_setAssociatedObject(self, @selector(stk_modifyDisplacedIconOrigin), @(modify), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+%new
+- (BOOL)stk_modifyDisplacedIconOrigin
+{
+    return [objc_getAssociatedObject(self, @selector(stk_modifyDisplacedIconOrigin)) boolValue];
+}
+
 %new
 - (void)setStk_preventRelayout:(BOOL)prevent
 {
