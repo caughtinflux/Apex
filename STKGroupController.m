@@ -128,7 +128,8 @@
 {
     if (!_dimmingView) {
         SBWallpaperController *controller = [CLASS(SBWallpaperController) sharedInstance];
-        UIView *homescreenWallpaperView = [controller valueForKey:@"_homescreenWallpaperView"];
+        UIView *homescreenWallpaperView = [controller valueForKey:@"_homescreenWallpaperView"] ?: [controller valueForKey:@"_sharedWallpaperView"];
+        // if the same wallpaper is used for the home as well as lock screen, _homescreenWallpaperView is nil
         _dimmingView = [[UIView alloc] initWithFrame:homescreenWallpaperView.bounds];
         _dimmingView.backgroundColor = [UIColor colorWithWhite:0.f alpha:1.f];
         _dimmingView.alpha = 0.f;
