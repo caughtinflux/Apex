@@ -40,10 +40,10 @@
         _collectionView.delegate = self;
         _collectionView.dataSource = self;
         _collectionView.backgroundColor = [UIColor clearColor];
-        _collectionView.layer.cornerRadius = 35.f; // the default corner radius for folders, apparently.
+        _collectionView.layer.cornerRadius = (ISPAD() ? 58.f : 35.f);
         _collectionView.layer.masksToBounds = YES;
         _collectionView.allowsSelection = YES;
-        _collectionView.scrollIndicatorInsets = (UIEdgeInsets){25.f, 0.f, 25.f, 0.f};
+        _collectionView.scrollIndicatorInsets = ISPAD() ? (UIEdgeInsets){35.f, 0.f, 35.f, 0.f} : (UIEdgeInsets){28.f, 0.f, 28.f, 0.f};
         _collectionView.backgroundView = [[[UIView alloc] initWithFrame:CGRectZero] autorelease];
         _collectionView.bounces = YES;
         _collectionView.alwaysBounceVertical = YES;
@@ -104,8 +104,9 @@
     NSMutableArray *allIcons = [NSMutableArray array];
     NSSet *centralIconGenres = [NSSet setWithArray:[_centralIcon folderTitleOptions]];
     for (SBIcon *icon in icons) {
-        if (icon == _centralIcon) continue;
-
+        if (icon == _centralIcon || [icon iconAppearsInNewsstand] || [icon isNewsstandApplicationIcon] || [icon isNewsstandIcon]) {
+            continue;
+        }
         NSSet *iconGenres = [NSSet setWithArray:[icon folderTitleOptions]];
         if ([centralIconGenres intersectsSet:iconGenres]) {
             // icons with similar title options are to be grouped together
@@ -163,14 +164,36 @@
     return cell;
 }
 
-- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout referenceSizeForHeaderInSection:(NSInteger)section
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    return [CLASS(SBIconView) defaultIconSize];
+}
+
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout referenceSizeForHeaderInSection:(NSInteger)section
 {
     return (CGSize){0, 30.f};
 }
 
-- (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout insetForSectionAtIndex:(NSInteger)section
+- (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumInteritemSpacingForSectionAtIndex:(NSInteger)section
 {
-    return (UIEdgeInsets){10, 20, 25, 20};
+    UIEdgeInsets insets = [self collectionView:collectionView layout:collectionViewLayout insetForSectionAtIndex:section];
+    CGSize size = [CLASS(SBIconView) defaultIconSize];
+    CGFloat spacing = (collectionView.frame.size.width - ((size.width * 3) + insets.left + insets.right)) / 3.f;
+    return spacing;
+}
+
+- (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section
+{
+    CGSize size = [CLASS(SBIconView) defaultIconSize];
+    UIEdgeInsets insets = [self collectionView:collectionView layout:collectionViewLayout insetForSectionAtIndex:section];
+    CGFloat numItems = (ISPAD() ? 3.5 : 2.8f);
+    CGFloat height = (collectionView.frame.size.height - ((size.height * numItems) + insets.top + insets.bottom)) /  numItems;
+    return height;
+}
+
+- (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section
+{
+    return (ISPAD() ? (UIEdgeInsets){10.f, 35.f, 25.f, 35.f} : (UIEdgeInsets){10, 20.f, 30.f, 20.f});
 }
 
 - (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath
