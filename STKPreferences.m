@@ -258,7 +258,7 @@ static void STKPrefsChanged (
 }
 
 static void
-STKPrefsChanged (CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+STKPrefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
     [[STKPreferences sharedPreferences] reloadPreferences];
     [[NSNotificationCenter defaultCenter] postNotificationName:(NSString *)STKPrefsChangedNotificationName object:nil userInfo:nil];
