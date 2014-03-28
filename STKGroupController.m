@@ -21,6 +21,7 @@
     NSMutableArray *_iconsToHide;
     BOOL _openGroupViewWasModified;
     BOOL _hasInfiniBoard;
+    BOOL _hasInfinidock;
 }
 
 + (instancetype)sharedController
@@ -47,6 +48,9 @@
                                                    object:nil];
         void *handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Infiniboard.dylib", RTLD_LAZY);
         _hasInfiniBoard = !!handle;
+        dlclose(handle);
+        handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Infinidock.dylib", RTLD_LAZY);
+        _hasInfinidock = !!handle;
         dlclose(handle);
     }
     return self;
@@ -126,11 +130,16 @@
 - (void)_setAllowScrolling:(BOOL)allow
 {
     [self _currentScrollView].scrollEnabled = allow;
-    if (_hasInfiniBoard) {
-        UIScrollView *scrollView = [[CLASS(SBIconController) sharedInstance] currentRootIconList].subviews[0];
-        if ([scrollView isKindOfClass:CLASS(IFInfiniboardScrollView)]) {
-            scrollView.scrollEnabled = allow;
-        }
+    UIScrollView *scrollView = [[CLASS(SBIconController) sharedInstance] currentRootIconList].subviews[0];
+    if ([scrollView isKindOfClass:CLASS(IFInfiniboardScrollView)]) {
+        // Infiniboard
+        scrollView.scrollEnabled = allow;
+    }
+    scrollView = [[[CLASS(SBIconController) sharedInstance] dockListView].subviews firstObject];
+    if ([scrollView isKindOfClass:CLASS(UIScrollView)]) {
+        // Infinidock
+        VLog(@"%@", scrollView);
+        scrollView.scrollEnabled = allow;
     }
 }
 
