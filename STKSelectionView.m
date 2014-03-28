@@ -244,7 +244,16 @@
 
 - (void)_setupTextField
 {
-    _searchTextField = [[[STKSelectionTitleTextField alloc] initWithFrame:(CGRect){{15.f, 46.f}, {290.f, 40}}] autorelease];
+    _searchTextField = [[[STKSelectionTitleTextField alloc] initWithFrame:(CGRect){{15.f, 46.f}, {290.f, 40.f}}] autorelease];
+    CGRect frame = _searchTextField.frame;
+    frame.size.width = [CLASS(SBFolderBackgroundView) folderBackgroundSize].width;
+    if (ISPAD()) {
+        frame.size.height *= 1.5f;
+    }
+    _searchTextField.frame = frame;
+    UIScreen *screen = [UIScreen mainScreen];
+    CGFloat width = UIInterfaceOrientationIsPortrait([UIApplication sharedApplication].statusBarOrientation) ? screen.bounds.size.width : screen.bounds.size.height;
+    _searchTextField.center = (CGPoint){(width * 0.5f), (frame.origin.y + (frame.size.height * 0.5))};
     _searchTextField.delegate = self;
     _searchTextField.attributedPlaceholder = [self _attributedPlaceholderForTextField];
     [_searchTextField addTarget:self action:@selector(_searchTextChanged) forControlEvents:UIControlEventEditingChanged];
