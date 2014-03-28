@@ -133,6 +133,7 @@
         _dimmingView = [[UIView alloc] initWithFrame:homescreenWallpaperView.bounds];
         _dimmingView.backgroundColor = [UIColor colorWithWhite:0.f alpha:1.f];
         _dimmingView.alpha = 0.f;
+        _dimmingView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
         [homescreenWallpaperView addSubview:_dimmingView];
     }
     _dimmingView.alpha = strength;
