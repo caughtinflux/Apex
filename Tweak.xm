@@ -64,6 +64,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
     if ([STKListViewForIcon(self.icon) isKindOfClass:CLASS(SBFolderIconListView)]) {
         [[STKGroupController sharedController] removeGroupViewFromIconView:self];
+        STKLog(@"Superview is a folder, removing group view");
         return;
     }
     if ([self groupView] && previousLoc == location) {
@@ -71,7 +72,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         return;
     }
     if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:self.icon]
-        && [self.superview isKindOfClass:%c(SBIconListView)]
         && STKListViewForIcon(self.icon)
         && [self.icon isLeafIcon]
         && ![self.icon isDownloadingIcon]) {

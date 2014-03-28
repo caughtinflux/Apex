@@ -1,5 +1,6 @@
 #import "STKGroupController.h"
 #import "STKConstants.h"
+#import <dlfcn.h>
 
 #define kFullDimStrength 0.2f
 
@@ -19,6 +20,7 @@
     NSMutableArray *_iconsToShow;
     NSMutableArray *_iconsToHide;
     BOOL _openGroupViewWasModified;
+    BOOL _hasInfiniBoard;
 }
 
 + (instancetype)sharedController
@@ -43,6 +45,9 @@
                                                  selector:@selector(_prefsChanged)
                                                      name:(NSString *)STKPrefsChangedNotificationName
                                                    object:nil];
+        void *handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Infiniboard.dylib", RTLD_LAZY);
+        _hasInfiniBoard = !!handle;
+        dlclose(handle);
     }
     return self;
 }
@@ -116,6 +121,17 @@
     group.state = STKGroupStateEmpty;
     [group addObserver:[STKPreferences sharedPreferences]];
     return [group autorelease];
+}
+
+- (void)_setAllowScrolling:(BOOL)allow
+{
+    [self _currentScrollView].scrollEnabled = allow;
+    if (_hasInfiniBoard) {
+        UIScrollView *scrollView = [[CLASS(SBIconController) sharedInstance] currentRootIconList].subviews[0];
+        if ([scrollView isKindOfClass:CLASS(IFInfiniboardScrollView)]) {
+            scrollView.scrollEnabled = allow;
+        }
+    }
 }
 
 - (UIScrollView *)_currentScrollView
@@ -198,7 +214,7 @@
     _selectionView.iconsForSelection = availableIcons;
     _selectionAnimator = [[STKGroupSelectionAnimator alloc] initWithSelectionView:_selectionView iconView:selectedIconView];
     [_selectionAnimator openSelectionViewAnimatedWithCompletion:nil];
-    [self _currentScrollView].scrollEnabled = NO;
+    [self _setAllowScrolling:NO];
 }
 
 - (void)_selectIconForCurrentSlot:(SBIcon *)iconToSelect
@@ -257,7 +273,7 @@
         [_selectionAnimator release];
         _selectionAnimator = nil;
 
-        [self _currentScrollView].scrollEnabled = YES;
+        [self _setAllowScrolling:YES];
     }];
 }
 
@@ -311,7 +327,7 @@
 - (void)groupViewWillOpen:(STKGroupView *)groupView
 {
     if (groupView.activationMode != STKActivationModeDoubleTap) {
-        [self _currentScrollView].scrollEnabled = NO;
+        [self _setAllowScrolling:NO];
     }
 }
 
@@ -325,12 +341,12 @@
     _openGroupView = groupView;
     [self _addCloseGestureRecognizers];
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:NO];
-    [self _currentScrollView].scrollEnabled = YES;
+    [self _setAllowScrolling:YES];
 }
 
 - (void)groupViewWillClose:(STKGroupView *)groupView
 {
-    [self _currentScrollView].scrollEnabled = YES;
+    [self _setAllowScrolling:YES];
 }
 
 - (void)groupViewDidClose:(STKGroupView *)groupView
