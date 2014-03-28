@@ -24,7 +24,9 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 @property (nonatomic, readonly) STKGroupLayout *displacedIconLayout;
 
 - (void)open;
+- (void)openWithCompletionHandler:(void(^)(void))completion;
 - (void)close;
+- (void)closeWithCompletionHandler:(void(^)(void))completion;
 - (void)resetLayouts;
 - (SBIconView *)subappIconViewForIcon:(SBIcon *)icon;
 

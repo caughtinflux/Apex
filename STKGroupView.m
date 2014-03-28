@@ -91,12 +91,22 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 #pragma mark - Public Methods
 - (void)open
 {
-    [self _animateOpenWithVelocity:0.f completion:nil];
+    [self _animateOpenWithCompletion:nil];
+}
+
+- (void)openWithCompletionHandler:(void(^)(void))completion
+{
+    [self _animateOpenWithCompletion:completion];
 }
 
 - (void)close
 {
     [self _animateClosedWithCompletion:nil];
+}
+
+- (void)closeWithCompletionHandler:(void(^)(void))completion
+{
+    [self _animateClosedWithCompletion:completion];
 }
 
 - (void)resetLayouts
@@ -352,7 +362,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 if (   (_recognizerDirection == STKRecognizerDirectionUp   && velocity.y < 0)
                     || (_recognizerDirection == STKRecognizerDirectionDown && velocity.y > 0)
                     || (_lastDistanceFromCenter >= 25.f)) {
-                    [self _animateOpenWithVelocity:velocity.y completion:nil];
+                    [self _animateOpenWithCompletion:nil];
                 }
                 else {
                     [self _animateClosedWithCompletion:nil];
@@ -571,7 +581,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 }
 
 #pragma mark - Animate
-- (void)_animateOpenWithVelocity:(CGFloat)verticalVelocity completion:(void(^)(void))completion
+- (void)_animateOpenWithCompletion:(void(^)(void))completion
 {
     if (_isAnimating) {
         return;
