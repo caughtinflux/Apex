@@ -55,7 +55,12 @@
     STKGroupView *groupView = nil;
     if ((groupView = [iconView groupView])) {
         SBIconCoordinate currentCoordinate = [STKGroupLayoutHandler coordinateForIcon:iconView.icon];
-        [groupView.group relayoutForNewCoordinate:currentCoordinate];
+        if (ISPAD()) {
+            [groupView.group forceRelayout];
+        }
+        else {
+            [groupView.group relayoutForNewCoordinate:currentCoordinate];
+        }
     }
     else {
         STKGroup *group = [[STKPreferences sharedPreferences] groupForCentralIcon:iconView.icon];
