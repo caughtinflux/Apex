@@ -85,11 +85,16 @@
         _iconView.alpha = 1.f;
     } completion:nil];
     [_zoomAnimator animateToFraction:0.f afterDelay:0 withCompletion:^{
+        STKGroupView *groupView = [_iconView containerGroupView];
+        SBIconListView *listView = STKListViewForIcon(groupView.group.centralIcon);
+        listView.stk_modifyDisplacedIconOrigin = YES;
+        [_zoomAnimator cleanup];
+        listView.stk_modifyDisplacedIconOrigin = NO;
+        [_zoomAnimator release];
+        _zoomAnimator = nil;
         if (completion) {
             completion();
         }
-        [_zoomAnimator release];
-        _zoomAnimator = nil;
     }];
 }
 

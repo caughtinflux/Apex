@@ -138,7 +138,6 @@
     scrollView = [[[CLASS(SBIconController) sharedInstance] dockListView].subviews firstObject];
     if ([scrollView isKindOfClass:CLASS(UIScrollView)]) {
         // Infinidock
-        VLog(@"%@", scrollView);
         scrollView.scrollEnabled = allow;
     }
 }
