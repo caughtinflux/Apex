@@ -186,7 +186,7 @@
 {
     CGSize size = [CLASS(SBIconView) defaultIconSize];
     UIEdgeInsets insets = [self collectionView:collectionView layout:collectionViewLayout insetForSectionAtIndex:section];
-    CGFloat numItems = (ISPAD() ? 3.5 : 2.8f);
+    CGFloat numItems = (ISPAD() ? 3.5 : 3.1f);
     CGFloat height = (collectionView.frame.size.height - ((size.height * numItems) + insets.top + insets.bottom)) /  numItems;
     return height;
 }
