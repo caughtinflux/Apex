@@ -17,6 +17,8 @@ typedef NS_ENUM(NSUInteger, STKClosingEvent) {
 - (void)addGroupViewToIconView:(SBIconView *)iconView;
 - (void)removeGroupViewFromIconView:(SBIconView *)iconView;
 
+- (void)performRotationWithDuration:(NSTimeInterval)duration;
+
 // returns YES if we reacted to the event, NO if ignored
 - (BOOL)handleClosingEvent:(STKClosingEvent)event;
 

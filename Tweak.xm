@@ -200,6 +200,13 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
     return ret;
 }
+
+- (void)performRotationWithDuration:(NSTimeInterval)duration
+{
+    [[STKGroupController sharedController] performRotationWithDuration:duration];
+    %orig(duration);
+}
+
 %end
 
 #pragma mark - SBFolderController

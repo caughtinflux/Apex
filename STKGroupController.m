@@ -76,6 +76,17 @@
     iconView.groupView = nil;
 }
 
+- (void)performRotationWithDuration:(NSTimeInterval)duration
+{
+    STKGroupView *groupView = [STKGroupController sharedController].openGroupView;
+    [groupView closeWithCompletionHandler:^{
+        [groupView.group forceRelayout];
+    }];
+    EXECUTE_BLOCK_AFTER_DELAY((duration + 0.01), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
+    });
+}
+
 - (BOOL)handleClosingEvent:(STKClosingEvent)event
 {
     BOOL handled = NO;
