@@ -45,7 +45,9 @@
 - (CGRect)rightViewRectForBounds:(CGRect)bounds
 {
     CGSize size = self.rightView.frame.size;
-    return (CGRect){{255, ceilf(CGRectGetMidY(bounds) - (size.height * 0.5))}, size};
+    static const CGFloat leftPadding = 10.f;
+    return (CGRect){{(self.bounds.size.width - size.width - leftPadding), ceilf(CGRectGetMidY(bounds) - (size.height * 0.5))},
+                    size};
 }
 
 - (CGRect)textRectForBounds:(CGRect)bounds
