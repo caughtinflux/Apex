@@ -703,7 +703,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     if ([_centralIconView isInDock]) {
         SBDockIconListView *dock = (SBDockIconListView *)STKListViewForIcon(_centralIconView.icon);
-        target.y -= (dock.frame.origin.y + ([CLASS(SBIconView) defaultIconImageSize].height * 0.5f) - 10.f);
+        SBRootFolderView *rootView = [[CLASS(SBIconController) sharedInstance] _rootFolderController].contentView;
+        SBIconListPageControl *pageControl = [rootView valueForKey:@"_pageControl"];
+        target.y -= (pageControl.frame.size.height - [dock stk_realVerticalIconPadding]);
     }
     return target;
 }
