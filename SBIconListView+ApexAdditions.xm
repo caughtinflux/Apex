@@ -73,6 +73,13 @@ static BOOL _hasGridlock;
     return padding;
 }
 
+- (void)prepareToRotateToInterfaceOrientation:(UIInterfaceOrientation)orient
+{
+    self.stk_realVerticalIconPadding = kInvalidIconPadding;
+    self.stk_realHorizontalIconPadding = kInvalidIconPadding;
+    %orig(orient);
+}
+
 - (CGPoint)originForIconAtCoordinate:(SBIconCoordinate)coordinate
 {
     if (self.stk_modifyDisplacedIconOrigin) {
