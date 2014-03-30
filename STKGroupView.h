@@ -17,16 +17,21 @@ typedef NS_ENUM(NSInteger, STKActivationMode) {
 @property (nonatomic, assign) STKActivationMode activationMode;
 @property (nonatomic, assign) BOOL showPreview;
 @property (nonatomic, assign) id<STKGroupViewDelegate> delegate;
+@property (nonatomic, assign) BOOL showGrabbers;
 
 @property (nonatomic, readonly) BOOL isOpen;
 @property (nonatomic, readonly) BOOL isAnimating;
 @property (nonatomic, readonly) STKGroupLayout *subappLayout;
 @property (nonatomic, readonly) STKGroupLayout *displacedIconLayout;
+@property (nonatomic, readonly) UIView *topGrabberView;
+@property (nonatomic, readonly) UIView *bottomGrabberView;
 
 - (void)open;
 - (void)openWithCompletionHandler:(void(^)(void))completion;
+
 - (void)close;
 - (void)closeWithCompletionHandler:(void(^)(void))completion;
+
 - (void)resetLayouts;
 - (SBIconView *)subappIconViewForIcon:(SBIcon *)icon;
 
