@@ -8,8 +8,6 @@
     STKSelectionView *_selectionView;
     SBIconView *_iconView;
     SBScaleIconZoomAnimator *_zoomAnimator;
-    CGRect _startFrame;
-    CGRect _endFrame;
 }
 
 - (instancetype)initWithSelectionView:(STKSelectionView *)selectionView iconView:(SBIconView *)iconView
@@ -31,37 +29,38 @@
 
 - (void)openSelectionViewAnimatedWithCompletion:(STKAnimatorCompletion)completion
 {
-    SBIconContentView *contentView = [(SBIconController *)[CLASS(SBIconController) sharedInstance] contentView];
-    [_selectionView.contentView.subviews[1] setAlpha:0.0f];
+    SBIconContentView *iconContentView = [(SBIconController *)[CLASS(SBIconController) sharedInstance] contentView];
+    _selectionView.iconCollectionView.alpha = 0.0f;
     _selectionView.searchTextField.alpha = 0.f;
-    _selectionView.layer.cornerRadius = 35.f;
-    _selectionView.layer.masksToBounds = YES;
-    [contentView addSubview:_selectionView];
+    _selectionView.frame = iconContentView.bounds;
+    [iconContentView addSubview:_selectionView];
 
     SBRootFolderController *rootFolderController = [(SBIconController *)[CLASS(SBIconController) sharedInstance] _rootFolderController];
     _zoomAnimator = [[CLASS(SBScaleIconZoomAnimator) alloc] initWithFolderController:rootFolderController targetIcon:_iconView.icon];    
     _zoomAnimator.settings = [[CLASS(SBPrototypeController) sharedInstance] rootSettings].rootAnimationSettings.folderOpenSettings;
     [_zoomAnimator prepare];
-
-    _startFrame = [_iconView convertRect:[_iconView _iconImageView].frame toView:contentView];
     
     CGSize endSize = [CLASS(SBFolderBackgroundView) folderBackgroundSize];
     CGPoint endOrigin = {(CGRectGetMidX(_selectionView.bounds) - (endSize.width * 0.5f)),
-                        (CGRectGetMidY(_selectionView.bounds) - (endSize.height * 0.5f))};
+                         (CGRectGetMidY(_selectionView.bounds) - (endSize.height * 0.5f))};
     CGRect selectionContentEndFrame = (CGRect){endOrigin, endSize};
 
-    _endFrame = contentView.bounds;
-    _selectionView.frame = _startFrame;
-    _selectionView.contentView.frame = _startFrame;
+    CGRect startFrame = [_selectionView convertRect:[_iconView iconImageFrame] fromView:_iconView];
+    CGSize imageSize = [_iconView iconImageVisibleSize];
+    startFrame.origin.y -= (imageSize.height * 0.5);
+    startFrame.origin.x -= (imageSize.width * 0.5);
+    _selectionView.contentView.frame = startFrame;
+
+    [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 0.f;
+    CGFloat startScale = ([_iconView _iconImageView].frame.size.width / endSize.width);
+    _selectionView.contentView.transform = CGAffineTransformMakeScale(startScale, startScale);
 
     double duration = _zoomAnimator.settings.outerFolderFadeSettings.duration;
-    [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 0.f;
-        _selectionView.contentView.center = (CGPoint){CGRectGetMidX(_selectionView.bounds), CGRectGetMidY(_selectionView.bounds)};
+    [UIView animateWithDuration:duration delay:0 options:0 animations:^{
+        _selectionView.contentView.transform = CGAffineTransformMakeScale(1.0, 1.0);
         _selectionView.contentView.frame = selectionContentEndFrame;
-        _selectionView.center = (CGPoint){CGRectGetMidX(contentView.bounds), CGRectGetMidY(contentView.bounds)};
-        _selectionView.frame = _endFrame;
-        [_selectionView.contentView.subviews[1] setAlpha:1.0f];
+        [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 0.f;
+        _selectionView.iconCollectionView.alpha = 1.0f;
         _iconView.alpha = 0.f;
         _selectionView.searchTextField.alpha = 1.f;
     } completion:nil];
