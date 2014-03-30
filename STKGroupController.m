@@ -295,6 +295,7 @@
         [listView enumerateIconViewsUsingBlock:^(SBIconView *iconView) {
             [iconView groupView].showPreview = [STKPreferences sharedPreferences].shouldShowPreviews;
             [iconView groupView].activationMode = [STKPreferences sharedPreferences].activationMode;
+            [iconView.icon noteBadgeDidChange];
         }];
     }
 }
@@ -337,6 +338,8 @@
     if (groupView.activationMode != STKActivationModeDoubleTap) {
         [self _setAllowScrolling:NO];
     }
+    _openGroupView = groupView;
+    [groupView.group.centralIcon noteBadgeDidChange];
 }
 
 - (void)groupView:(STKGroupView *)groupView didMoveToOffset:(CGFloat)offset
@@ -346,7 +349,6 @@
 
 - (void)groupViewDidOpen:(STKGroupView *)groupView
 {
-    _openGroupView = groupView;
     [self _addCloseGestureRecognizers];
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:NO];
     [self _setAllowScrolling:YES];
@@ -378,6 +380,7 @@
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
     _openGroupView = nil;
     _openGroupViewWasModified = NO;
+    [groupView.group.centralIcon noteBadgeDidChange];
 }
 
 - (void)groupViewWillBeDestroyed:(STKGroupView *)groupView
