@@ -84,7 +84,7 @@
 			<key>key</key>
 			<string>summedBadges</string>
 			<key>label</key>
-			<string>SUMMED_BADGES</string>
+			<string>CUMULATIVE_BADGES</string>
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>PostNotification</key>

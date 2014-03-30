@@ -19,7 +19,7 @@
 	CLOSE_ON_LAUNCH = "Close on Launch";
 	LOCK_LAYOUTS = "Lock Layouts";
 	LOCK_LAYOUTS_DESCRIPTION = "You will not be able to create new stacks if layouts are locked.";
-	SUMMED_BADGES = "Summed Badges";
+	CUMULATIVE_BADGES = "Cumulative Badges";
 
 	ACTIVATION_MODE = "Activation Mode";
 	SWIPE_UP_AND_DOWN = "Swipe Up and Down";
