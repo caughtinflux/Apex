@@ -1,6 +1,6 @@
 #import "STKConstants.h"
 
-%hook SBIcon
+%hook SBLeafIcon
 
 - (id)badgeNumberOrString
 {
@@ -18,8 +18,33 @@
         if ([ret integerValue] <= 0) {
             ret = nil;
         }
+
     }
     return ret;
+}
+
+- (NSInteger)accessoryTypeForLocation:(SBIconLocation)location
+{
+    if ([self badgeNumberOrString]) {
+        return 1;
+    }
+    return %orig();
+}
+
+- (NSString *)accessoryTextForLocation:(SBIconLocation)location
+{
+    NSString *text = %orig();
+    if ([STKGroupController sharedController].openGroupView.group.centralIcon == self
+        || ![STKPreferences sharedPreferences].shouldShowSummedBadges) {
+        return text;
+    }
+    else {
+        id badgeNumberOrString = [self badgeNumberOrString];
+        if ([badgeNumberOrString isKindOfClass:[NSNumber class]] && [badgeNumberOrString integerValue] > 0) {
+            text = [badgeNumberOrString stringValue];
+        }
+    }
+    return text;
 }
 
 - (void)noteBadgeDidChange
@@ -32,3 +57,10 @@
 }
 
 %end 
+
+%ctor
+{
+    @autoreleasepool {
+        %init();
+    }   
+}
