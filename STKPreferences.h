@@ -11,6 +11,7 @@
 @property (nonatomic, readonly) BOOL shouldShowPreviews;
 @property (nonatomic, readonly) BOOL shouldShowSummedBadges;
 @property (nonatomic, readonly) BOOL shouldCloseOnLaunch;
+@property (nonatomic, readonly) BOOL shouldHideGrabbers;
 @property (nonatomic, assign) BOOL welcomeAlertShown;
 
 @property (nonatomic, readonly) NSArray *identifiersForSubappIcons;

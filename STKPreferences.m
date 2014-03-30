@@ -7,6 +7,7 @@ static NSString * const GroupStateKey       = @"state";
 static NSString * const ClosesOnLaunchKey   = @"closeOnLaunch";
 static NSString * const LockLayoutsKey      = @"lockLayouts";
 static NSString * const ShowSummedBadgesKey = @"summedBadges";
+static NSString * const HideGrabbersKey     = @"hideGrabbers";
 static NSString * const UserWelcomedKey     = @"welcomed";
 
 #define GETBOOL(_key, _default) (_preferences[_key] ? [_preferences[_key] boolValue] : _default)
@@ -94,6 +95,11 @@ static void STKPrefsChanged (
 - (BOOL)shouldCloseOnLaunch
 {
     return GETBOOL(ClosesOnLaunchKey, YES);
+}
+
+- (BOOL)shouldHideGrabbers
+{
+    return GETBOOL(HideGrabbersKey, NO);
 }
 
 - (BOOL)welcomeAlertShown
