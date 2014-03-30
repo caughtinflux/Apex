@@ -44,21 +44,18 @@
     CGPoint endOrigin = {(CGRectGetMidX(_selectionView.bounds) - (endSize.width * 0.5f)),
                          (CGRectGetMidY(_selectionView.bounds) - (endSize.height * 0.5f))};
     CGRect selectionContentEndFrame = (CGRect){endOrigin, endSize};
-
-    CGRect startFrame = [_selectionView convertRect:[_iconView iconImageFrame] fromView:_iconView];
-    CGSize imageSize = [_iconView iconImageVisibleSize];
-    startFrame.origin.y -= (imageSize.height * 0.5);
-    startFrame.origin.x -= (imageSize.width * 0.5);
-    _selectionView.contentView.frame = startFrame;
-
-    [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 0.f;
     CGFloat startScale = ([_iconView _iconImageView].frame.size.width / endSize.width);
     _selectionView.contentView.transform = CGAffineTransformMakeScale(startScale, startScale);
+
+    CGPoint startCenter = [_selectionView convertPoint:[_iconView iconImageFrame].origin fromView:_iconView];
+    startCenter.x -= 10.f;
+    _selectionView.contentView.center = startCenter;
 
     double duration = _zoomAnimator.settings.outerFolderFadeSettings.duration;
     [UIView animateWithDuration:duration delay:0 options:0 animations:^{
         _selectionView.contentView.transform = CGAffineTransformMakeScale(1.0, 1.0);
         _selectionView.contentView.frame = selectionContentEndFrame;
+
         [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 0.f;
         _selectionView.iconCollectionView.alpha = 1.0f;
         _iconView.alpha = 0.f;
