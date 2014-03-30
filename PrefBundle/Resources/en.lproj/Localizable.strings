@@ -11,7 +11,7 @@
 	/* Appearance */
 	APPEARANCE = "Appearance";
 	SHOW_PREVIEW = "Show Preview";
-	HIDE_NOTCHES = "Hide Notches";
+	HIDE_GRABBERS = "Hide Grabbers";
 	ALPHABETIC_SCROLL = "Alphabetic Scroll";
 
 	/* Behaviour */

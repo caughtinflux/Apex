@@ -17,7 +17,7 @@
 #define TEXT_SHADOW_COLOR [UIColor whiteColor]
 
 static NSString * const PreviewSpecifierID = @"SHOW_PREVIEW";
-static NSString * const NotchesSpecifierID = @"HIDE_NOTCHES";
+static NSString * const GrabbersSpecifierID = @"HIDE_GRABBERS";
 
 static BOOL __isPirato = NO;
 static BOOL __didShowAlert = NO;
@@ -83,7 +83,7 @@ static BOOL __didShowAlert = NO;
 
     if (shouldAdd) {
         result = [[result mutableCopy] autorelease];
-        [(NSMutableArray *)result insertObject:[self _notchSpecifier] atIndex:3];
+        [(NSMutableArray *)result insertObject:[self _grabberSpecifier] atIndex:3];
     }
 
     return result;
@@ -94,22 +94,22 @@ static BOOL __didShowAlert = NO;
     [super setPreferenceValue:value specifier:specifier];
 
     if ([[specifier identifier] isEqual:PreviewSpecifierID]) {
-        PSSpecifier *notchSpecifier = [self specifierForID:NotchesSpecifierID];
+        PSSpecifier *grabberSpecifier = [self specifierForID:GrabbersSpecifierID];
 
-        BOOL shouldAdd = (([[self readPreferenceValue:specifier] boolValue] == NO) && !notchSpecifier);
+        BOOL shouldAdd = (([[self readPreferenceValue:specifier] boolValue] == NO) && !grabberSpecifier);
         if (shouldAdd) {
-            PSSpecifier *hideGrabberSpecifier = [self _notchSpecifier];
+            PSSpecifier *hideGrabberSpecifier = [self _grabberSpecifier];
             [self insertSpecifier:hideGrabberSpecifier afterSpecifierID:PreviewSpecifierID animated:YES];
         }
-        else if ([[self readPreferenceValue:specifier] boolValue] && notchSpecifier) {
-            [self removeSpecifierID:[notchSpecifier identifier] animated:YES];
+        else if ([[self readPreferenceValue:specifier] boolValue] && grabberSpecifier) {
+            [self removeSpecifierID:[grabberSpecifier identifier] animated:YES];
         }
     }
 }
 
-- (PSSpecifier *)_notchSpecifier
+- (PSSpecifier *)_grabberSpecifier
 {
-    PSSpecifier *notchSpecifier = [PSSpecifier preferenceSpecifierNamed:LOCALIZE(HIDE_NOTCHES)
+    PSSpecifier *grabberSpecifier = [PSSpecifier preferenceSpecifierNamed:LOCALIZE(HIDE_GRABBERS)
                                                                  target:self
                                                                     set:@selector(setPreferenceValue:specifier:)
                                                                     get:@selector(readPreferenceValue:)
@@ -117,12 +117,13 @@ static BOOL __didShowAlert = NO;
                                                                    cell:PSSwitchCell
                                                                    edit:nil];
     
-    [notchSpecifier setProperty:@"STKHideGrabbers" forKey:@"key"];
-    [notchSpecifier setProperty:NotchesSpecifierID forKey:@"id"];
-    [notchSpecifier setProperty:@"com.a3tweaks.apex.prefschanged" forKey:@"PostNotification"];
-    [notchSpecifier setProperty:@"com.a3tweaks.Apex" forKey:@"defaults"];
+    [grabberSpecifier setProperty:@"hideGrabbers" forKey:@"key"];
+    [grabberSpecifier setProperty:GrabbersSpecifierID forKey:@"id"];
+    [grabberSpecifier setProperty:@(NO) forKey:@"default"];
+    [grabberSpecifier setProperty:@"com.a3tweaks.apex2.prefschanged" forKey:@"PostNotification"];
+    [grabberSpecifier setProperty:@"com.a3tweaks.Apex" forKey:@"defaults"];
 
-    return notchSpecifier;
+    return grabberSpecifier;
 }
 
 #ifdef DEBUG
