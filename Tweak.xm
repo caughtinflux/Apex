@@ -196,7 +196,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         UIView *superview = [openGroupView superview];
         CGPoint newPoint = [self convertPoint:point toView:superview];
         ret = [superview hitTest:newPoint withEvent:event];
-    }
+    }   
     return ret;
 }
 
