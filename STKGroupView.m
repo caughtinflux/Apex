@@ -638,7 +638,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         center.y -= distance;
         _topGrabberView.center = center;
     }
-    else {
+    if ([_subappLayout[STKPositionBottom] count] > 0) {
         CGPoint center = _bottomGrabberView.center;
         center.y += distance;
         _bottomGrabberView.center = center;
