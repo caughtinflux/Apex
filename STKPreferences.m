@@ -163,7 +163,7 @@ static void STKPrefsChanged (
                                                options:0
                                                  error:&err];
         if (err) {
-            STKLog(@"Failed to write preferences to to output stream. Error %zd: %@", err.code, err.localizedDescription);
+            STKLog(@"Failed to write preferences to to output stream. Error %@: %@", @(err.code), err.localizedDescription);
         }
         else {
             NSURL *tempURL = [NSURL fileURLWithPath:tempPath];
@@ -176,7 +176,7 @@ static void STKPrefsChanged (
                                                        error:&err];
 
             if (err) {
-                STKLog(@"Failed to move preferences from temporary to primary path. Error Code %zd: %@", err.code, err.localizedDescription);
+                STKLog(@"Failed to move preferences from temporary to primary path. Error Code %@: %@", @(err.code), err.localizedDescription);
                 STKLog(@"Trying to save via simple write.");
                 BOOL success = [_preferences writeToFile:kPrefPath atomically:YES];
                 STKLog(@"%@ writing as plain text", (success ? @"Succeeded" : @"Failed"));
