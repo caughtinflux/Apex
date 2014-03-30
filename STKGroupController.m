@@ -82,6 +82,7 @@
     }
     groupView.delegate = self;
     groupView.showPreview = [STKPreferences sharedPreferences].shouldShowPreviews;
+    groupView.showGrabbers = !([STKPreferences sharedPreferences].shouldHideGrabbers);
     groupView.activationMode = [STKPreferences sharedPreferences].activationMode;
 }
 
@@ -295,6 +296,7 @@
         [listView enumerateIconViewsUsingBlock:^(SBIconView *iconView) {
             [iconView groupView].showPreview = [STKPreferences sharedPreferences].shouldShowPreviews;
             [iconView groupView].activationMode = [STKPreferences sharedPreferences].activationMode;
+            [iconView groupView].showGrabbers = !([STKPreferences sharedPreferences].shouldHideGrabbers);
             [iconView.icon noteBadgeDidChange];
         }];
     }
