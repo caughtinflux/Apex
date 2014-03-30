@@ -83,6 +83,11 @@
     return _contentView;
 }
 
+- (UIView *)iconCollectionView
+{
+    return _collectionView;
+}
+
 - (void)setIconsForSelection:(NSArray *)icons
 {
     _iconsForSelection = [icons copy];
