@@ -64,7 +64,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
     if ([STKListViewForIcon(self.icon) isKindOfClass:CLASS(SBFolderIconListView)]) {
         [[STKGroupController sharedController] removeGroupViewFromIconView:self];
-        STKLog(@"Superview is a folder, removing group view");
         return;
     }
     if ([self groupView] && previousLoc == location) {
