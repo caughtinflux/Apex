@@ -28,4 +28,7 @@ before-all::
 include $(THEOS_MAKE_PATH)/aggregate.mk
 
 after-install::
+ifeq ($DEBUG, 1)
+	$(ECHO_NOTHING)python ./HashUpdate.py $(THEOS_PACKAGE_BASE_VERSION)$(ECHO_END)
+endif
 	@install.exec "killall backboardd"
