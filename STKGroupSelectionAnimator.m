@@ -41,20 +41,17 @@
     [_zoomAnimator prepare];
     
     CGSize endSize = [CLASS(SBFolderBackgroundView) folderBackgroundSize];
-    CGPoint endOrigin = {(CGRectGetMidX(_selectionView.bounds) - (endSize.width * 0.5f)),
-                         (CGRectGetMidY(_selectionView.bounds) - (endSize.height * 0.5f))};
-    CGRect selectionContentEndFrame = (CGRect){endOrigin, endSize};
     CGFloat startScale = ([_iconView _iconImageView].frame.size.width / endSize.width);
+    _selectionView.contentView.bounds = (CGRect){CGPointZero, endSize};
     _selectionView.contentView.transform = CGAffineTransformMakeScale(startScale, startScale);
 
-    CGPoint startCenter = [_selectionView convertPoint:[_iconView iconImageFrame].origin fromView:_iconView];
-    startCenter.x -= 10.f;
+    CGPoint startCenter = [_selectionView convertPoint:[_iconView iconImageCenter] fromView:_iconView];
     _selectionView.contentView.center = startCenter;
 
     double duration = _zoomAnimator.settings.outerFolderFadeSettings.duration;
     [UIView animateWithDuration:duration delay:0 options:0 animations:^{
         _selectionView.contentView.transform = CGAffineTransformMakeScale(1.0, 1.0);
-        _selectionView.contentView.frame = selectionContentEndFrame;
+        _selectionView.contentView.center = (CGPoint){CGRectGetMidX(_selectionView.bounds), CGRectGetMidY(_selectionView.bounds)};
 
         [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 0.f;
         _selectionView.iconCollectionView.alpha = 1.0f;
@@ -75,12 +72,15 @@
 {
     _zoomAnimator.settings = [[CLASS(SBPrototypeController) sharedInstance] rootSettings].rootAnimationSettings.folderCloseSettings;
     double duration = _zoomAnimator.settings.outerFolderFadeSettings.duration;
-    [UIView animateWithDuration:duration delay:0.0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
-        [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 1.f;
-        _selectionView.alpha = 0.f;
+
+    [UIView animateWithDuration:duration animations:^{
         _iconView.alpha = 1.f;
+        _selectionView.alpha = 0.f;
+    }];
+    [UIView animateWithDuration:duration delay:0.05 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+        [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 1.f;
     } completion:nil];
-    [_zoomAnimator animateToFraction:0.f afterDelay:0 withCompletion:^{
+    [_zoomAnimator animateToFraction:0.f afterDelay:0.05 withCompletion:^{
         STKGroupView *groupView = [_iconView containerGroupView];
         SBIconListView *listView = STKListViewForIcon(groupView.group.centralIcon);
         listView.stk_modifyDisplacedIconOrigin = YES;
