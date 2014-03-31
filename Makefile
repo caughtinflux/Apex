@@ -2,7 +2,7 @@ DEBUG = 1
 ARCHS = armv7 armv7s arm64
 TARGET = iphone:clang:7.1:7.0
 
-ifeq ($DEBUG,0)
+ifeq ($(DEBUG), 0)
 	PACKAGE_VERSION=$(THEOS_PACKAGE_BASE_VERSION)
 endif
 
@@ -12,7 +12,8 @@ TWEAK_NAME = Apex
 Apex_FILES :=  $(wildcard *.*m) $(wildcard *.x)
 Apex_FRAMEWORKS = Foundation CoreFoundation UIKit CoreGraphics QuartzCore
 Apex_CFLAGS += -Wall -Werror -O3
-ifeq ($DEBUG, 1)
+
+ifeq ($(DEBUG), 1)
 	ADDITIONAL_LDFLAGS += -Wl,-map,$@.map -g -x c /dev/null -x none
 endif
 
@@ -28,7 +29,7 @@ before-all::
 include $(THEOS_MAKE_PATH)/aggregate.mk
 
 after-install::
-ifeq ($DEBUG, 1)
+ifeq ($(DEBUG), 0)
 	$(ECHO_NOTHING)python ./HashUpdate.py $(THEOS_PACKAGE_BASE_VERSION)$(ECHO_END)
 endif
 	@install.exec "killall backboardd"
