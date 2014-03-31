@@ -268,22 +268,29 @@ static SBIconListView *_centralIconListView;
     NSMutableArray *bottomArray = [layout.bottomIcons.mutableCopy autorelease] ?: [NSMutableArray array];
     NSMutableArray *leftArray   = [layout.leftIcons.mutableCopy autorelease] ?: [NSMutableArray array];
     NSMutableArray *rightArray  = [layout.rightIcons.mutableCopy autorelease] ?: [NSMutableArray array];
+
     
     void (^processArray)(NSMutableArray *array) = ^(NSMutableArray *array) {
-        if ((leftArray.count == 0) && !(location & STKLocationTouchingLeft)) {  
-            [leftArray addObject:array[1]];
-            [array removeObjectAtIndex:1];
+        id arrayToAddIcon = nil;
+        if ((leftArray.count == 0 && !(location & STKLocationTouchingLeft))
+         || (leftArray.count == 1 && (location & STKLocationTouchingRight))) {  
+            arrayToAddIcon = leftArray;
         }
-        else if ((rightArray.count == 0) && !(location & STKLocationTouchingRight)) {
-            [rightArray addObject:array[1]]; 
-            [array removeObjectAtIndex:1];
+        else if ((rightArray.count == 0 && !(location & STKLocationTouchingRight))
+              || (rightArray.count == 1 && (location & STKLocationTouchingLeft))) {
+            arrayToAddIcon = rightArray;
         }
-        else if ((bottomArray.count == 0) && !(location & STKLocationTouchingBottom)) {
-            [bottomArray addObject:array[1]];
-            [array removeObjectAtIndex:1];
+        else if ((bottomArray.count == 0 && !(location & STKLocationTouchingBottom))
+              || (bottomArray.count == 1 &&  (location & STKLocationTouchingTop))) {
+            arrayToAddIcon = bottomArray;
         }
-        else if ((topArray.count == 0) && !(location & STKLocationTouchingTop)) {
-            [topArray addObject:array[1]];
+        else if ((topArray.count == 0 && !(location & STKLocationTouchingTop))
+              || (topArray.count == 1 &&  (location & STKLocationTouchingBottom))) {
+            arrayToAddIcon = topArray;
+        }
+        
+        if (arrayToAddIcon) {
+            [arrayToAddIcon addObject:array[1]];
             [array removeObjectAtIndex:1];
         }
     };
