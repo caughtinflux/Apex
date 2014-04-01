@@ -83,9 +83,6 @@
     [_zoomAnimator animateToFraction:0.f afterDelay:0.05 withCompletion:^{
         STKGroupView *groupView = [_iconView containerGroupView];
         SBIconListView *listView = STKListViewForIcon(groupView.group.centralIcon);
-        listView.stk_modifyDisplacedIconOrigin = YES;
-        [_zoomAnimator cleanup];
-        listView.stk_modifyDisplacedIconOrigin = NO;
         [_zoomAnimator release];
         _zoomAnimator = nil;
         if (completion) {

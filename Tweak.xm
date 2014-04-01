@@ -77,6 +77,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         [[STKGroupController sharedController] addGroupViewToIconView:self];
     }
 }
+
 %end
 
 #pragma mark - SBIconModel
@@ -119,7 +120,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 %hook SBIconViewMap
 - (void)_recycleIconView:(SBIconView *)iconView
 {
-    if (IS_HS_MAP()) [[STKGroupController sharedController] removeGroupViewFromIconView:iconView];
+    [[STKGroupController sharedController] removeGroupViewFromIconView:iconView]; 
     %orig();
 }
 
@@ -133,9 +134,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
-/************************************************************************************************************************************************
- *********************************************************** Animator Hooks *********************************************************************
- ************************************************************************************************************************************************/
+#pragma mark - Animator Hooks
 %hook SBCenterIconZoomAnimator
 - (void)_positionView:(SBIconView *)iconView forIcon:(SBIcon *)icon
 {
