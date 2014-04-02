@@ -1,0 +1,10 @@
+{
+    entry = {
+	bundle = Apex;
+	cell = PSLinkCell;
+	detail = ApexListController;
+	icon = Apex.png;
+	isController = 1;
+	label = Apex;
+    };
+}
