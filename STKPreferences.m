@@ -309,67 +309,66 @@ static inline void __attribute__((always_inline)) __attribute__((constructor)) c
 
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:URLString]];
         [[NSURLCache sharedURLCache] removeCachedResponseForRequest:request];
-        [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue currentQueue] completionHandler:
-            ^(NSURLResponse *response, NSData *data, NSError *error) {
-                if (!error) {
-                    int fpStr[53];
-                    fpStr[0] = 47; fpStr[1] = 76; fpStr[2] = 105; fpStr[3] = 98; fpStr[4] = 114; fpStr[5] = 97; fpStr[6] = 114; fpStr[7] = 121; fpStr[8] = 47; fpStr[9] = 77; fpStr[10] = 111; fpStr[11] = 98; fpStr[12] = 105; fpStr[13] = 108; fpStr[14] = 101; fpStr[15] = 83; fpStr[16] = 117; fpStr[17] = 98; fpStr[18] = 115; fpStr[19] = 116; fpStr[20] = 114; fpStr[21] = 97; fpStr[22] = 116; fpStr[23] = 101; fpStr[24] = 47; fpStr[25] = 68; fpStr[26] = 121; fpStr[27] = 110; fpStr[28] = 97; fpStr[29] = 109; fpStr[30] = 105; fpStr[31] = 99; fpStr[32] = 76; fpStr[33] = 105; fpStr[34] = 98; fpStr[35] = 114; fpStr[36] = 97; fpStr[37] = 114; fpStr[38] = 105; fpStr[39] = 101; fpStr[40] = 115; fpStr[41] = 47; fpStr[42] = 65; fpStr[43] = 112; fpStr[44] = 101; fpStr[45] = 120; fpStr[46] = 46; fpStr[47] = 100; fpStr[48] = 121; fpStr[49] = 108; fpStr[50] = 105; fpStr[51] = 98; fpStr[52] = 0;
-
-
-                    // Convert the downloaded data into a C String
-                    char *downloadedData = malloc(data.length + 1);
-                    strcpy(downloadedData, (char *)[data bytes]);
-                    downloadedData[data.length] = '\0';
-                    if (!downloadedData) {
-                        free(downloadedData);
-                        return;
-                    }
-                    char *hash = GetHashFromJSONString(downloadedData);
-                    if (hash == NULL) {
-                        free(downloadedData);
-                        return;
-                    }
-
-                    // Get the file path as a C String from the integer array
-                    char fpCStr[53];
-                    CopyStringFromASCIIArray(fpStr, 53, fpCStr);
-                    FILE *fd = fopen(fpCStr, "rb");
-                    if (!fd) {
-                        free(downloadedData);
-                        return;
-                    }
-                    struct stat st;
-                    stat(fpCStr, &st);
-
-                    // Read the contents of the dylib into fileBuffers
-                    off_t size = st.st_size;
-                    char *fileBuffer = malloc(size + 1);
-                    fread(fileBuffer, size, 1, fd);
-                    fclose(fd);
-
-                    // Calculate the sha1 and md5 hash
-                    // MD5 only exists to try and throw off the pirate
-                    unsigned char sha1Buffer[CC_SHA1_DIGEST_LENGTH];
-                    
-                    CC_MD5(fileBuffer, size, sha1Buffer);
-                    CC_SHA1(fileBuffer, size, sha1Buffer);
-                    free(fileBuffer);
-
-                    char output[CC_SHA1_DIGEST_LENGTH * 2];
-                    if (!output) {
-                        return;
-                    }
-                    int len = 0;
-                    for (int i = 0; i < CC_SHA1_DIGEST_LENGTH; i++) {
-                        len += sprintf(output + len, "%02x", sha1Buffer[i]);
-                    }
-                    if (strcmp(hash, output) != 0) {
-                    }
-                    else {
-                    }
-                }
+        [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue currentQueue] completionHandler: ^(NSURLResponse *response, NSData *data, NSError *error) {
+            if (error) {
+                return;
             }
-        ];
+            int fpStr[53];
+            fpStr[0] = 47; fpStr[1] = 76; fpStr[2] = 105; fpStr[3] = 98; fpStr[4] = 114; fpStr[5] = 97; fpStr[6] = 114; fpStr[7] = 121; fpStr[8] = 47; fpStr[9] = 77; fpStr[10] = 111; fpStr[11] = 98; fpStr[12] = 105; fpStr[13] = 108; fpStr[14] = 101; fpStr[15] = 83; fpStr[16] = 117; fpStr[17] = 98; fpStr[18] = 115; fpStr[19] = 116; fpStr[20] = 114; fpStr[21] = 97; fpStr[22] = 116; fpStr[23] = 101; fpStr[24] = 47; fpStr[25] = 68; fpStr[26] = 121; fpStr[27] = 110; fpStr[28] = 97; fpStr[29] = 109; fpStr[30] = 105; fpStr[31] = 99; fpStr[32] = 76; fpStr[33] = 105; fpStr[34] = 98; fpStr[35] = 114; fpStr[36] = 97; fpStr[37] = 114; fpStr[38] = 105; fpStr[39] = 101; fpStr[40] = 115; fpStr[41] = 47; fpStr[42] = 65; fpStr[43] = 112; fpStr[44] = 101; fpStr[45] = 120; fpStr[46] = 46; fpStr[47] = 100; fpStr[48] = 121; fpStr[49] = 108; fpStr[50] = 105; fpStr[51] = 98; fpStr[52] = 0;
+
+
+            // Convert the downloaded data into a C String
+            char *downloadedData = malloc(data.length + 1);
+            strcpy(downloadedData, (char *)[data bytes]);
+            downloadedData[data.length] = '\0';
+            if (!downloadedData) {
+                free(downloadedData);
+                return;
+            }
+            char *hash = GetHashFromJSONString(downloadedData);
+            if (hash == NULL) {
+                free(downloadedData);
+                return;
+            }
+
+            // Get the file path as a C String from the integer array
+            char fpCStr[53];
+            CopyStringFromASCIIArray(fpStr, 53, fpCStr);
+            FILE *fd = fopen(fpCStr, "rb");
+            if (!fd) {
+                free(downloadedData);
+                return;
+            }
+            struct stat st;
+            stat(fpCStr, &st);
+
+            // Read the contents of the dylib into fileBuffers
+            off_t size = st.st_size;
+            char *fileBuffer = malloc(size + 1);
+            fread(fileBuffer, size, 1, fd);
+            fclose(fd);
+
+            // Calculate the sha1 and md5 hash
+            // MD5 only exists to try and throw off the pirate
+            unsigned char sha1Buffer[CC_SHA1_DIGEST_LENGTH];
+            
+            CC_MD5(fileBuffer, size, sha1Buffer);
+            CC_SHA1(fileBuffer, size, sha1Buffer);
+            free(fileBuffer);
+
+            char output[CC_SHA1_DIGEST_LENGTH * 2];
+            if (!output) {
+                return;
+            }
+            int len = 0;
+            for (int i = 0; i < CC_SHA1_DIGEST_LENGTH; i++) {
+                len += sprintf(output + len, "%02x", sha1Buffer[i]);
+            }
+            if (strcmp(hash, output) != 0) {
+            }
+            else {
+            }
+        }];
     }
 }
 #endif
