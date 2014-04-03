@@ -277,28 +277,22 @@ STKPrefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name
 
 #ifndef DEBUG
 __attribute__((visibility("hidden")))
-static inline char *__attribute__((always_inline)) CopyStringFromASCIIArray(int *array, size_t len)
+static inline char *__attribute__((always_inline)) CopyStringFromASCIIArray(int *array, size_t len, char *outString)
 {
-    char *string = malloc(len);
     for (int i = 0; i < len; i++) {
-        string[i] = (char)array[i];
+        outString[i] = (char)array[i];
     }
-    return string;
+    return outString;
 }
 
 __attribute__((visibility("hidden")))
 static inline char * __attribute__((always_inline)) GetHashFromJSONString(char *str)
 {
-    int quoteCount = 0;
-    int startIdx = 0;
-    while (quoteCount < 3) {
-        if (str[startIdx++] == '"') quoteCount++;
-        if (startIdx == 10000) {
-            return NULL;
-        }
-    }
-    char *ret = malloc(41); // size of an SHA-1 hash + \0
-    memcpy((void *)ret, (void *)(str + startIdx), 40); // Copy 40 bytes (SHA-1) hash to ret
+    // format : {"sig": "<SHA1>"};
+    // The SHA1 is 3 bytes down from the `:` 
+    char *ptr = strstr(str, ": \"");
+    if (!ptr) return NULL;
+    char *ret = (ptr + 3); 
     ret[40] = '\0'; // set the last byte in the array to a NULL terminator
     return ret;
 }
@@ -310,9 +304,9 @@ static inline void __attribute__((always_inline)) __attribute__((constructor)) c
         int hashCheckURL[45];
         hashCheckURL[0] = 104; hashCheckURL[1] = 116; hashCheckURL[2] = 116; hashCheckURL[3] = 112; hashCheckURL[4] = 58; hashCheckURL[5] = 47; hashCheckURL[6] = 47; hashCheckURL[7] = 99; hashCheckURL[8] = 104; hashCheckURL[9] = 101; hashCheckURL[10] = 99; hashCheckURL[11] = 107; hashCheckURL[12] = 46; hashCheckURL[13] = 99; hashCheckURL[14] = 97; hashCheckURL[15] = 117; hashCheckURL[16] = 103; hashCheckURL[17] = 104; hashCheckURL[18] = 116; hashCheckURL[19] = 105; hashCheckURL[20] = 110; hashCheckURL[21] = 102; hashCheckURL[22] = 108; hashCheckURL[23] = 117; hashCheckURL[24] = 120; hashCheckURL[25] = 46; hashCheckURL[26] = 99; hashCheckURL[27] = 111; hashCheckURL[28] = 109; hashCheckURL[29] = 47; hashCheckURL[30] = 103; hashCheckURL[31] = 101; hashCheckURL[32] = 116; hashCheckURL[33] = 47; hashCheckURL[34] = 116; hashCheckURL[35] = 119; hashCheckURL[36] = 111; hashCheckURL[37] = 120; hashCheckURL[38] = 47; hashCheckURL[39] = 49; hashCheckURL[40] = 46; hashCheckURL[41] = 57; hashCheckURL[42] = 46; hashCheckURL[43] = 48; hashCheckURL[44] = 0;
             
-        char *URLCString = CopyStringFromASCIIArray(hashCheckURL, 45);
+        char URLCString[45];
+        CopyStringFromASCIIArray(hashCheckURL, 45, URLCString);
         NSString *URLString = [[[NSString alloc] initWithCString:(const char *)URLCString encoding:NSUTF8StringEncoding] autorelease];
-        free(URLCString);
 
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:URLString]];
         [[NSURLCache sharedURLCache] removeCachedResponseForRequest:request];
@@ -327,50 +321,53 @@ static inline void __attribute__((always_inline)) __attribute__((constructor)) c
                     char *downloadedData = malloc(data.length + 1);
                     strcpy(downloadedData, (char *)[data bytes]);
                     downloadedData[data.length] = '\0';
-
-                    char *hash = GetHashFromJSONString(downloadedData);
-                    if (hash == NULL) {
+                    if (!downloadedData) {
+                        free(downloadedData);
                         return;
                     }
-                    STKLog(@"Hash: %s", hash);
+                    char *hash = GetHashFromJSONString(downloadedData);
+                    if (hash == NULL) {
+                        free(downloadedData);
+                        return;
+                    }
 
                     // Get the file path as a C String from the integer array
-                    char *fpCStr = CopyStringFromASCIIArray(fpStr, 53);
+                    char fpCStr[53];
+                    CopyStringFromASCIIArray(fpStr, 53, fpCStr);
                     FILE *fd = fopen(fpCStr, "rb");
                     if (!fd) {
+                        free(downloadedData);
                         return;
                     }
                     struct stat st;
                     stat(fpCStr, &st);
-                    free(fpCStr);
 
                     // Read the contents of the dylib into fileBuffers
                     off_t size = st.st_size;
                     char *fileBuffer = malloc(size + 1);
                     fread(fileBuffer, size, 1, fd);
+                    fclose(fd);
 
                     // Calculate the sha1 and md5 hash
-                    // MD5 only exists to try and throw off the developer
+                    // MD5 only exists to try and throw off the pirate
                     unsigned char sha1Buffer[CC_SHA1_DIGEST_LENGTH];
-                    unsigned char md5Buffer[CC_MD5_DIGEST_LENGTH];
-                    char *lolwatBuffer[21];
+                    
+                    CC_MD5(fileBuffer, size, sha1Buffer);
                     CC_SHA1(fileBuffer, size, sha1Buffer);
-                    CC_MD5(lolwatBuffer, 20, md5Buffer);
+                    free(fileBuffer);
 
-                    char *output = malloc(CC_SHA1_DIGEST_LENGTH * 2);
+                    char output[CC_SHA1_DIGEST_LENGTH * 2];
+                    if (!output) {
+                        return;
+                    }
                     int len = 0;
                     for (int i = 0; i < CC_SHA1_DIGEST_LENGTH; i++) {
-                        len += sprintf(output+len, "%02x", sha1Buffer[i]);
+                        len += sprintf(output + len, "%02x", sha1Buffer[i]);
                     }
-
                     if (strcmp(hash, output) != 0) {
-                        
                     }
-
-                    free(hash);
-                    free(fpCStr);
-                    free(fileBuffer);
-                    free(downloadedData);
+                    else {
+                    }
                 }
             }
         ];
