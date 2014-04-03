@@ -216,7 +216,9 @@
     NSMutableArray *availableIcons = [NSMutableArray array];
     for (NSString *identifier in visibleIconIdentifiers) {
         SBIcon *icon = [model expectedIconForDisplayIdentifier:identifier];
-        if (![[STKPreferences sharedPreferences] groupForCentralIcon:icon]) {
+        if (![[STKPreferences sharedPreferences] groupForCentralIcon:icon]
+            && ![availableIcons containsObject:icon]) {
+
             [availableIcons addObject:icon];
         }
     }
