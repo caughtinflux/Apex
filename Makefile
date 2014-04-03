@@ -11,6 +11,7 @@ include theos/makefiles/common.mk
 TWEAK_NAME = Apex
 Apex_FILES :=  $(wildcard *.*m) $(wildcard *.x)
 Apex_FRAMEWORKS = Foundation CoreFoundation UIKit CoreGraphics QuartzCore
+Apex_LIBRARIES = mobilegestalt
 Apex_CFLAGS += -Wall -Werror -O3
 
 ifeq ($(DEBUG), 1)

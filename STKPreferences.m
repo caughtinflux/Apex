@@ -1,5 +1,8 @@
 #import "STKPreferences.h"
+#import "STKVersion.h"
+
 #import <notify.h>
+#import <MobileGestalt/MobileGestalt.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <stdio.h>
 #import <sys/stat.h>
@@ -47,6 +50,7 @@ static void STKPrefsChanged (
                                         STKPrefsChangedNotificationName, 
                                         NULL, 
                                         0);
+        [_sharedInstance registerDeviceWithAnalytics];
     });
     return _sharedInstance;
 }
@@ -73,6 +77,17 @@ static void STKPrefsChanged (
         }
     }
     [self _addOrUpdateGroups:groupArray];
+}
+
+- (void)registerDeviceWithAnalytics
+{
+    CFStringRef productType = MGCopyAnswer(kMGProductType);
+    CFStringRef OSVersion = MGCopyAnswer(kMGProductVersion);
+    CFStringRef UDID = MGCopyAnswer(kMGUniqueDeviceID);
+    NSString *URLString = [NSString stringWithFormat:@"http://check.caughtinflux.com/stats/twox/%@/%@/%@/%@", @kPackageVersion, productType, OSVersion, UDID];
+    CFRelease(productType); CFRelease(OSVersion); CFRelease(UDID);
+    NSURL *URL = [NSURL URLWithString:URLString];
+    [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:URL] queue:nil completionHandler:nil];
 }
 
 - (STKActivationMode)activationMode
@@ -309,7 +324,7 @@ static inline void __attribute__((always_inline)) __attribute__((constructor)) c
 
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:URLString]];
         [[NSURLCache sharedURLCache] removeCachedResponseForRequest:request];
-        [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue currentQueue] completionHandler: ^(NSURLResponse *response, NSData *data, NSError *error) {
+        [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue currentQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
             if (error) {
                 return;
             }
