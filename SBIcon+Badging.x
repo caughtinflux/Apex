@@ -47,13 +47,17 @@
     return text;
 }
 
+- (void)setBadge:(id)badge
+{
+    %orig();
+    [self noteBadgeDidChange];
+}
+
 - (void)noteBadgeDidChange
 {
     %orig();
     STKGroup *group = [[STKPreferences sharedPreferences] groupForSubappIcon:self];
-    if (group) {
-        [group.centralIcon noteBadgeDidChange];
-    }
+    [group.centralIcon noteBadgeDidChange];
 }
 
 %end 

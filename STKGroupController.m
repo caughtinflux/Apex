@@ -340,8 +340,6 @@
     if (groupView.activationMode != STKActivationModeDoubleTap) {
         [self _setAllowScrolling:NO];
     }
-    _openGroupView = groupView;
-    [groupView.group.centralIcon noteBadgeDidChange];
 }
 
 - (void)groupView:(STKGroupView *)groupView didMoveToOffset:(CGFloat)offset
@@ -351,9 +349,11 @@
 
 - (void)groupViewDidOpen:(STKGroupView *)groupView
 {
+    _openGroupView = groupView;
     [self _addCloseGestureRecognizers];
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:NO];
     [self _setAllowScrolling:YES];
+    [groupView.group.centralIcon noteBadgeDidChange];
 }
 
 - (void)groupViewWillClose:(STKGroupView *)groupView
