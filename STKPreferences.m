@@ -201,7 +201,6 @@ static void STKPrefsChanged (
     }
     for (STKGroup *group in groupArray) {
         _groups[group.centralIcon.leafIdentifier] = group;
-        [self _mapSubappsInGroup:group];
     }
     [self _resetSubappMap];
     [self _synchronize];   
