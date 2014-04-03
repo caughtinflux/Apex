@@ -186,17 +186,11 @@
 
 - (void)_closeOpenGroupOrSelectionView
 {
-    STKGroup *openGroup = _openGroupView.group;
     if (_selectionView) {
         [self _closeSelectionView];
     }
-    else if ([openGroup hasPlaceholders]) {
-        if ([openGroup.layout allIcons].count == [openGroup.placeholderLayout allIcons].count) {
-            [_openGroupView close];
-        }
-        else {
-            [openGroup removePlaceholders];
-        }
+    else if (_openGroupView.group.hasPlaceholders && !_openGroupViewWasModified) {
+        [_openGroupView.group removePlaceholders];
     }
     else {
         [_openGroupView close];

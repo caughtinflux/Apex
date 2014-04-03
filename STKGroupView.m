@@ -709,6 +709,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ([self.delegate respondsToSelector:@selector(groupViewWillClose:)]) {
         [self.delegate groupViewWillClose:self];
     }
+    for (SBIconView *iconView in _subappLayout) {
+        if ([iconView.icon isLeafIcon]) [iconView removeApexOverlay];
+    }
 
     // Shrink-Grow animation for the central iconView's image
     CGFloat scale = CURRENTLY_SHOWS_PREVIEW ? kCentralIconPreviewScale : 1.f;
