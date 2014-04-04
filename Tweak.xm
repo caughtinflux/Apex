@@ -41,6 +41,26 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
+%hook SBApplicationController
+- (void)applicationsUninstalled:(id)uninstalled
+{
+    %orig();
+    %log();
+}
+
+- (void)applicationsInstalled:(id)applications
+{
+    %orig();
+    %log();
+}
+
+- (void)uninstallApplication:(id)arg1
+{
+    %orig();
+    %log();
+}
+%end
+
 #pragma mark - SBIconController
 %hook SBIconController
 

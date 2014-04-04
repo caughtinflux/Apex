@@ -8,6 +8,7 @@ ApexSettings_FILES = STKPrefsController.m STKProfileController.m STKTableViewCel
 ApexSettings_INSTALL_PATH = /Library/PreferenceBundles
 ApexSettings_FRAMEWORKS = UIKit Foundation CoreFoundation CoreGraphics MessageUI Twitter Social QuartzCore
 ApexSettings_PRIVATE_FRAMEWORKS = Preferences
+ApexSettings_LIBRARIES = mobilegestalt
 
 include $(THEOS_MAKE_PATH)/bundle.mk
 

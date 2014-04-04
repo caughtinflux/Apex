@@ -10,7 +10,7 @@
 #import <MobileGestalt/MobileGestalt.h>
 
 #define TEXT_COLOR [UIColor colorWithRed:76/255.0f green:86/255.0f blue:106/255.0f alpha:1.0f]
-#define TEXT_LARGE_FONT [UIFont fontWithName:@"HelveticaNeue" size:72.0f]
+#define TEXT_LARGE_FONT [UIFont fontWithName:@"HelveticaNeue-Ultralight" size:50.0f]
 #define TEXT_FONT [UIFont fontWithName:@"HelveticaNeue" size:15.0f]
 
 #define TEXT_SHADOW_OFFSET CGSizeMake(0, 1)
@@ -129,7 +129,7 @@ static BOOL __didShowAlert = NO;
 #ifdef DEBUG
 - (void)__deletePreferences
 {
-    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:@"All preferences will be deleted, but layouts will be preserved." delegate:(id<UIActionSheetDelegate>)self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Confirm" otherButtonTitles:nil];
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:@"All layouts will be destroyed." delegate:(id<UIActionSheetDelegate>)self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Confirm" otherButtonTitles:nil];
     [actionSheet showInView:self.view];
 }
 
@@ -158,26 +158,48 @@ static BOOL __didShowAlert = NO;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, -6.0f, 320.0f, 84.0f)];
-    label.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    label.layer.contentsGravity = kCAGravityCenter;
-    label.backgroundColor = [UIColor clearColor];
-    label.textAlignment = NSTextAlignmentCenter;
-    label.numberOfLines = 0;
-    label.lineBreakMode = NSLineBreakByWordWrapping;
-    label.textColor = TEXT_COLOR;
-    label.font = [UIFont systemFontOfSize:72.0f];
-    label.shadowColor = [UIColor whiteColor];
-    label.shadowOffset = CGSizeMake(0, 1);
-    label.text = @"Apex";
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 320.0f, 54.0f)];
-    [header addSubview:label];
-    [label release];
-    [self table].tableHeaderView = header;
-    [header release];
+    [self _setupHeaderView];
     for (PSSpecifier *specifier in self.specifiers) {
         specifier.target = self;
     }
+}
+
+- (void)_setupHeaderView
+{
+    CGSize largeLabelSize = [@"Apex 2" sizeWithAttributes:@{NSFontAttributeName: TEXT_LARGE_FONT}];
+    UILabel *largeLabel = [[[UILabel alloc] initWithFrame:(CGRect){{0, 0}, {self.table.bounds.size.width, largeLabelSize.height}}] autorelease];
+    largeLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    largeLabel.layer.contentsGravity = kCAGravityCenter;
+    largeLabel.backgroundColor = [UIColor clearColor];
+    largeLabel.textAlignment = NSTextAlignmentCenter;
+    largeLabel.numberOfLines = 0;
+    largeLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    largeLabel.textColor = TEXT_COLOR;
+    largeLabel.font = TEXT_LARGE_FONT;
+    largeLabel.shadowColor = [UIColor whiteColor];
+    largeLabel.shadowOffset = CGSizeMake(0, 1);
+    largeLabel.text = @"Apex 2";
+
+    UILabel *thanksLabel = [[[UILabel alloc] initWithFrame:largeLabel.frame] autorelease];
+    thanksLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    thanksLabel.backgroundColor = [UIColor clearColor];
+    thanksLabel.textAlignment = NSTextAlignmentCenter;
+    thanksLabel.numberOfLines = 0;
+    thanksLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    thanksLabel.textColor = TEXT_COLOR;
+    thanksLabel.font = TEXT_FONT;
+    thanksLabel.text = LOCALIZE(AUTHORS_PURCHASED);
+    CGRect frame = thanksLabel.frame;
+    frame.origin.y += largeLabelSize.height;
+    frame.size.height = [thanksLabel.text sizeWithAttributes:@{NSFontAttributeName: thanksLabel.font}].height;
+    thanksLabel.frame = frame;
+
+    CGRect headerFrame = (CGRect){{0, 0}, {largeLabel.frame.size.width, (largeLabelSize.height + thanksLabel.bounds.size.height)}};
+    UIView *header = [[[UIView alloc] initWithFrame:headerFrame] autorelease];
+    [header addSubview:largeLabel];
+    [header addSubview:thanksLabel];
+    header.backgroundColor = [UIColor redColor];
+    [self table].tableHeaderView = header;
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -234,10 +256,9 @@ static BOOL __didShowAlert = NO;
 
 static inline void LoadDeviceKey(NSMutableDictionary *dict, NSString *key)
 {
-    id result = [[UIDevice currentDevice] deviceInfoForKey:key];
-    if (result) {
-        [dict setObject:result forKey:key];
-    }
+    CFTypeRef result = MGCopyAnswer((CFStringRef)key);
+    dict[key] = (id)result;
+    CFRelease(result);
 }
 
 - (void)showMailDialog
@@ -295,10 +316,7 @@ static inline void LoadDeviceKey(NSMutableDictionary *dict, NSString *key)
 
 static inline __attribute__((always_inline)) void STKAntiPiracy(void (^callback)(BOOL isPirated))
 {
-    CFPropertyListRef (*MGCopyAnswer)(CFStringRef);
-    MGCopyAnswer = (CFPropertyListRef (*)(CFStringRef))dlsym(RTLD_DEFAULT, "MGCopyAnswer");
-
-    NSString *linkString = @"http://check.caughtinflux.com/brisingr/";
+    NSString *linkString = @"http://check.caughtinflux.com/twox/";
     linkString = [linkString stringByAppendingString:[(NSString *)MGCopyAnswer(kMGUniqueDeviceID) autorelease]];
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
