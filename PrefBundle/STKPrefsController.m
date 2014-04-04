@@ -216,7 +216,7 @@ static BOOL __didShowAlert = NO;
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)idx
 {
     if (idx == alertView.firstOtherButtonIndex) {
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"cydia://package/com.a3tweaks.apex"]];
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"cydia://package/com.a3tweaks.apex2"]];
     }
 }
 
