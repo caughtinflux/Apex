@@ -26,11 +26,12 @@ static BOOL __didShowAlert = NO;
 
 - (id)initForContentSize:(CGSize)size
 {
-    if ([PSViewController instancesRespondToSelector:@selector(initForContentSize:)])
+    if ([PSViewController instancesRespondToSelector:@selector(initForContentSize:)]) {
         self = [super initForContentSize:size];
-    else
+    }
+    else {
         self = [super init];
-    
+    }
     if (self) {
         NSBundle *bundle = [NSBundle bundleWithPath:@"/Library/PreferenceBundles/ApexSettings.bundle"];
         UIImage *image = [UIImage imageNamed:@"GroupLogo.png" inBundle:bundle];
@@ -38,7 +39,7 @@ static BOOL __didShowAlert = NO;
         item.titleView = [[[UIImageView alloc] initWithImage:image] autorelease];
         
         UIImage *heart = [UIImage imageNamed:@"Heart.png" inBundle:bundle];
-        UIButton *buttonView = [[[UIButton alloc] initWithFrame:(CGRect){CGPointZero, {heart.size.width + 12, heart.size.height}}] autorelease];
+        UIButton *buttonView = [[[UIButton alloc] initWithFrame:(CGRect){CGPointZero, heart.size}] autorelease];
         [buttonView setImage:heart forState:UIControlStateNormal];
         [buttonView addTarget:self action:@selector(showHeartDialog) forControlEvents:UIControlEventTouchUpInside];
         UIBarButtonItem *button = [[[UIBarButtonItem alloc] initWithCustomView:buttonView] autorelease];
