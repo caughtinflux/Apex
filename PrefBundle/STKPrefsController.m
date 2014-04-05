@@ -58,35 +58,29 @@ static BOOL __didShowAlert = NO;
 - (NSArray *)loadSpecifiersFromPlistName:(NSString *)plistName target:(id)target
 {
     // Always make the target self so that things will resolve properly
-    NSArray *result = [super loadSpecifiersFromPlistName:plistName target:self];
+    NSMutableArray *specifiers = [[[super loadSpecifiersFromPlistName:plistName target:self] mutableCopy] autorelease];
 
 #ifdef DEBUG
-    NSMutableArray *newSpecs = [[result mutableCopy] autorelease];
     PSSpecifier *spec = [PSSpecifier preferenceSpecifierNamed:@"Delete Preferences" target:self set:NULL get:NULL detail:nil cell:PSButtonCell edit:nil];
     spec->action = @selector(__deletePreferences);
-    [newSpecs addObject:spec];
-    result = newSpecs;
+    [specifiers addObject:spec];
 #endif
 
     BOOL shouldAdd = NO;
-    for (PSSpecifier *specifier in result) {
+    for (PSSpecifier *specifier in specifiers) {
         [specifier setName:Localize([specifier name])];
         NSString *footerText = [specifier propertyForKey:@"footerText"];
         if ([footerText isKindOfClass:[NSString class]]) {
             [specifier setProperty:Localize(footerText) forKey:@"footerText"];
         }
-
         if (!shouldAdd) {
             shouldAdd = ([[specifier identifier] isEqualToString:PreviewSpecifierID] && ([[self readPreferenceValue:specifier] boolValue] == NO));
         }
     }
-
     if (shouldAdd) {
-        result = [[result mutableCopy] autorelease];
-        [(NSMutableArray *)result insertObject:[self _grabberSpecifier] atIndex:3];
+        [specifiers insertObject:[self _grabberSpecifier] atIndex:2];
     }
-
-    return result;
+    return specifiers;
 }
 
 - (void)setPreferenceValue:(id)value specifier:(PSSpecifier *)specifier
