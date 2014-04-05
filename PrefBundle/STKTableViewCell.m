@@ -58,29 +58,17 @@
     return self;
 }
 
-static inline CGRect CGRectRound(CGFloat x, CGFloat y, CGFloat width, CGFloat height)
-{
-    CGFloat scale = [UIScreen mainScreen].scale;
-    CGFloat inverseScale = 1.0f / scale;
-    CGRect result;
-    result.origin.x = roundf(x * scale) * inverseScale;
-    result.size.width = roundf((x + width) * scale) * inverseScale - result.origin.x;
-    result.origin.y = roundf(y * scale) * inverseScale;
-    result.size.height = roundf((y + height) * scale) * inverseScale - result.origin.y;
-    return result;
-}
-
 - (void) layoutSubviews
 {
     [super layoutSubviews];
     
-    profileView.frame = CGRectRound(PADDING, SELF_HEIGHT / 2.0f - (PROFILE_SIZE / 2.0f), PROFILE_SIZE, PROFILE_SIZE);
-    birdView.frame = CGRectRound(SELF_WIDTH - TWITTER_WIDTH - PADDING, SELF_HEIGHT / 2.0f - (TWITTER_HEIGHT / 2.0f), TWITTER_WIDTH, TWITTER_HEIGHT);
+    profileView.frame = CGRectMake(PADDING, SELF_HEIGHT / 2.0f - (PROFILE_SIZE / 2.0f), PROFILE_SIZE, PROFILE_SIZE);
+    birdView.frame = CGRectMake(SELF_WIDTH - TWITTER_WIDTH - PADDING, SELF_HEIGHT / 2.0f - (TWITTER_HEIGHT / 2.0f), TWITTER_WIDTH, TWITTER_HEIGHT);
 
-    nameLabel.frame = CGRectRound(profileView.frame.origin.x + PROFILE_SIZE + PADDING + 1, profileView.frame.origin.y, NAME_LABEL_WIDTH, NAME_LABEL_HEIGHT);
-    handleLabel.frame = CGRectRound(nameLabel.frame.origin.x + NAME_LABEL_WIDTH + PADDING - 4, nameLabel.frame.origin.y, HANDLE_LABEL_WIDTH, HANDLE_LABEL_HEIGHT);
+    nameLabel.frame = CGRectMake(profileView.frame.origin.x + PROFILE_SIZE + PADDING + 1, profileView.frame.origin.y, NAME_LABEL_WIDTH, NAME_LABEL_HEIGHT);
+    handleLabel.frame = CGRectMake(nameLabel.frame.origin.x + NAME_LABEL_WIDTH + PADDING - 4, nameLabel.frame.origin.y, HANDLE_LABEL_WIDTH, HANDLE_LABEL_HEIGHT);
     
-    infoLabel.frame = CGRectRound(nameLabel.frame.origin.x, nameLabel.frame.origin.y + NAME_LABEL_HEIGHT + 2, birdView.frame.origin.x - nameLabel.frame.origin.x + 2, 55);
+    infoLabel.frame = CGRectMake(nameLabel.frame.origin.x, nameLabel.frame.origin.y + NAME_LABEL_HEIGHT + 2, birdView.frame.origin.x - nameLabel.frame.origin.x + 2, 55);
 }
 
 - (void)loadImage:(NSString *)imageName nameText:(NSString *)nameText handleText:(NSString *)handleText infoText:(NSString *)infoText
