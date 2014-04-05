@@ -14,13 +14,13 @@
 
 - (id)initForContentSize:(CGSize)size
 {
-    if ([[PSViewController class] instancesRespondToSelector:@selector(initForContentSize:)])
+    if ([[PSViewController class] instancesRespondToSelector:@selector(initForContentSize:)]) {
         self = [super initForContentSize:size];
-    else
+    }
+    else {
         self = [super init];
-    
-    if (self)
-    {
+    }
+    if (self) {
         CGRect frame;
         frame.origin = (CGPoint){0, 0};
         frame.size = size;
@@ -29,6 +29,8 @@
         [_tableView setDataSource:self];
         [_tableView setDelegate:self];
         [_tableView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleTopMargin];
+        _tableView.contentInset = (UIEdgeInsets){self.navigationController.navigationBar.frame.size.height, 0, 0, 0};
+        self.automaticallyAdjustsScrollViewInsets = YES;
     }
     return self;
 }
@@ -39,6 +41,11 @@
     [_tableView setDataSource:nil];
     [_tableView release];
     [super dealloc];
+}
+
+- (UIRectEdge)edgesForExtendedLayout
+{
+    return UIRectEdgeNone;
 }
 
 - (UIView *)view
@@ -88,7 +95,6 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    DLog();
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     
     NSString *handleString;
@@ -109,20 +115,17 @@
 
     NSURL *twitterific = [NSURL URLWithString:[@"twitterrific:///profile?screen_name=" stringByAppendingString:handleString]];
     NSURL *tweetbot = [NSURL URLWithString:[@"tweetbot:///user_profile/" stringByAppendingString:handleString]];
-    if ([app canOpenURL:twitterific]) {
-        [app openURL:twitterific];
-    }
-    else if ([app canOpenURL:tweetbot]) {
+    NSURL *twitterApp = [NSURL URLWithString:[@"twitter:///user?screen_name=" stringByAppendingString:handleString]];
+    if ([app canOpenURL:tweetbot]) {
         [app openURL:tweetbot];
     }
+    else if ([app canOpenURL:twitterific]) {
+        [app openURL:twitterific];
+    }
+    else if ([app canOpenURL:twitterApp])
+            [app openURL:twitterApp];
     else {
-        NSURL *twitterapp = [NSURL URLWithString:[@"twitter:///user?screen_name=" stringByAppendingString:handleString]];
-        if ([app canOpenURL:twitterapp])
-            [app openURL:twitterapp];
-        else {
-            NSURL *twitterweb = [NSURL URLWithString:[@"http://twitter.com/" stringByAppendingString:handleString]];
-            [app openURL:twitterweb];
-        }
+        [app openURL:[NSURL URLWithString:[@"http://twitter.com/" stringByAppendingString:handleString]]];
     }
 }
 
