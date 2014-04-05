@@ -23,6 +23,9 @@ static BOOL __isPirato = NO;
 static BOOL __didShowAlert = NO;
 
 @implementation STKPrefsController
+{
+    long _year;
+}
 
 - (id)initForContentSize:(CGSize)size
 {
@@ -44,6 +47,11 @@ static BOOL __didShowAlert = NO;
         [buttonView addTarget:self action:@selector(showHeartDialog) forControlEvents:UIControlEventTouchUpInside];
         UIBarButtonItem *button = [[[UIBarButtonItem alloc] initWithCustomView:buttonView] autorelease];
         item.rightBarButtonItem = button;
+
+        NSDate *date = [NSDate date];
+        NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+        NSDateComponents *components = [gregorian components:NSYearCalendarUnit fromDate:date];
+        _year = (long)[components year];
     }
     return self;
 }
@@ -75,7 +83,11 @@ static BOOL __didShowAlert = NO;
             [specifier setProperty:Localize(footerText) forKey:@"footerText"];
         }
         if (!shouldAdd) {
-            shouldAdd = ([[specifier identifier] isEqualToString:PreviewSpecifierID] && ([[self readPreferenceValue:specifier] boolValue] == NO));
+            shouldAdd =
+            ([[specifier identifier] isEqualToString:PreviewSpecifierID] && ([[self readPreferenceValue:specifier] boolValue] == NO));
+        }
+        if ([[specifier identifier] isEqual:@"copyright"]) {
+            [specifier setProperty:[NSString stringWithFormat:LOCALIZE(COPYRIGHT_TEXT), _year] forKey:@"footerText"];        
         }
     }
     if (shouldAdd) {
@@ -310,7 +322,6 @@ static inline __attribute__((always_inline)) void STKAntiPiracy(void (^callback)
 {
     NSString *linkString = @"http://check.caughtinflux.com/twox/";
     linkString = [linkString stringByAppendingString:[(NSString *)MGCopyAnswer(kMGUniqueDeviceID) autorelease]];
-
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
         NSError *error = nil;
         NSURL *URL = [NSURL URLWithString:linkString];

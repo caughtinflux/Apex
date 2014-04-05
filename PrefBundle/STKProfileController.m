@@ -11,6 +11,9 @@
 #define TEXT_SHADOW_COLOR [UIColor whiteColor]
 
 @implementation STKProfileController
+{
+    long _year;
+}
 
 - (id)initForContentSize:(CGSize)size
 {
@@ -31,6 +34,11 @@
         [_tableView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleTopMargin];
         _tableView.contentInset = (UIEdgeInsets){self.navigationController.navigationBar.frame.size.height, 0, 0, 0};
         self.automaticallyAdjustsScrollViewInsets = YES;
+
+        NSDate *date = [NSDate date];
+        NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+        NSDateComponents *components = [gregorian components:NSYearCalendarUnit fromDate:date];
+        _year = (long)[components year];
     }
     return self;
 }
@@ -170,7 +178,7 @@
         default:
             return nil;
         case 2:
-            return @"© 2013 Aditya KD and Newar Choukeir";
+            return [NSString stringWithFormat:LOCALIZE(COPYRIGHT_TEXT), _year];
     }
 }
 

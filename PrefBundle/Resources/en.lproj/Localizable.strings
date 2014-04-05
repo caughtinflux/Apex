@@ -55,4 +55,5 @@
 
 	FOLLOW_A3TWEAKS = "Follow A³tweaks";
 
+	COPYRIGHT_TEXT = "© %ld Aditya KD and Newar Choukeir";
 }
