@@ -176,8 +176,6 @@ static BOOL __didShowAlert = NO;
     largeLabel.lineBreakMode = NSLineBreakByWordWrapping;
     largeLabel.textColor = TEXT_COLOR;
     largeLabel.font = TEXT_LARGE_FONT;
-    largeLabel.shadowColor = [UIColor whiteColor];
-    largeLabel.shadowOffset = CGSizeMake(0, 1);
     largeLabel.text = @"Apex 2";
 
     UILabel *thanksLabel = [[[UILabel alloc] initWithFrame:largeLabel.frame] autorelease];
@@ -198,7 +196,6 @@ static BOOL __didShowAlert = NO;
     UIView *header = [[[UIView alloc] initWithFrame:headerFrame] autorelease];
     [header addSubview:largeLabel];
     [header addSubview:thanksLabel];
-    header.backgroundColor = [UIColor redColor];
     [self table].tableHeaderView = header;
 }
 
