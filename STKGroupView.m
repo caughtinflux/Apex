@@ -163,7 +163,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)setShowPreview:(BOOL)shouldShow
 {
     _showPreview = shouldShow;
-    [self resetLayouts];
+    if (!_isOpen) [self resetLayouts];
 }
 
 - (void)setShowGrabbers:(BOOL)show
