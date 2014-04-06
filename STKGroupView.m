@@ -864,11 +864,18 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)group:(STKGroup *)group replacedIcon:(SBIcon *)replacedIcon inSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon
 {
-    SBIconView *iconView = (SBIconView *)_subappLayout[slot.position][slot.index];
+    SBIconView *iconView = (SBIconView *)[_subappLayout iconInSlot:slot];
     [iconView setIcon:icon];
     if (group.hasPlaceholders && [icon isLeafIcon]) {
         [iconView showApexOverlayOfType:STKOverlayTypeEditing];
     }
+}
+
+- (void)group:(STKGroup *)group removedIcon:(SBIcon *)icon inSlot:(STKGroupSlot)slot
+{
+    SBIconView *iconView = (SBIconView *)[_subappLayout iconInSlot:slot];
+    [iconView removeFromSuperview];
+    [_subappLayout removeIcon:iconView fromIconsAtPosition:slot.position];
 }
 
 - (void)groupDidAddPlaceholders:(STKGroupView *)groupView

@@ -126,6 +126,16 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     } forSelector:@selector(group:replacedIcon:inSlot:withIcon:)];
 }
 
+- (void)removeIconInSlot:(STKGroupSlot)slot
+{
+    SBIcon *removedIcon = [[[_layout iconInSlot:slot] retain] autorelease];
+    [_layout removeIcon:removedIcon fromIconsAtPosition:slot.position];
+    _state = STKGroupStateDirty;
+    [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
+        [obs group:self removedIcon:removedIcon inSlot:slot];
+    } forSelector:@selector(group:removedIcon:inSlot:)];
+}
+
 - (void)addPlaceholders
 {
     if (_placeholderLayout) {

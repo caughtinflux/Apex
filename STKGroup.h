@@ -44,6 +44,8 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
 - (void)replaceIconInSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
 // if `icon` is an empty placeholder, it is treated as such internally 
 
+- (void)removeIconInSlot:(STKGroupSlot)slot;
+
 - (void)addPlaceholders;
 - (void)removePlaceholders;
 - (void)finalizeState;
