@@ -71,8 +71,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)dealloc
 {
-    if ([_delegate respondsToSelector:@selector(groupViewWillBeDestroyed:)]) {
-        [_delegate groupViewWillBeDestroyed:self];
+    if ([self.delegate respondsToSelector:@selector(groupViewWillBeDestroyed:)]) {
+        [self.delegate groupViewWillBeDestroyed:self];
     }
     [self resetLayouts];
     [self _removeGestureRecognizers];
@@ -178,11 +178,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)setDelegate:(id<STKGroupViewDelegate>)delegate
 {
     _delegate = delegate;
-    _delegateFlags.didMoveToOffset = [_delegate respondsToSelector:@selector(groupView:didMoveToOffset:)];
-    _delegateFlags.willOpen = [_delegate respondsToSelector:@selector(groupViewWillOpen:)];
-    _delegateFlags.didOpen = [_delegate respondsToSelector:@selector(groupViewDidOpen:)];
-    _delegateFlags.willClose = [_delegate respondsToSelector:@selector(groupViewWillClose:)];
-    _delegateFlags.didClose = [_delegate respondsToSelector:@selector(groupViewDidClose:)];
+    _delegateFlags.didMoveToOffset = [self.delegate respondsToSelector:@selector(groupView:didMoveToOffset:)];
+    _delegateFlags.willOpen = [self.delegate respondsToSelector:@selector(groupViewWillOpen:)];
+    _delegateFlags.didOpen = [self.delegate respondsToSelector:@selector(groupViewDidOpen:)];
+    _delegateFlags.willClose = [self.delegate respondsToSelector:@selector(groupViewWillClose:)];
+    _delegateFlags.didClose = [self.delegate respondsToSelector:@selector(groupViewDidClose:)];
     _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
     _centralIconView.delegate = _delegate;
 }
@@ -399,7 +399,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 [self _adjustScaleAndTransparencyOfSubapp:subappView inSlot:slot forOffset:offset];
             }];
             if (_delegateFlags.didMoveToOffset) {
-                [_delegate groupView:self didMoveToOffset:offset];
+                [self.delegate groupView:self didMoveToOffset:offset];
             }
             [sender setTranslation:CGPointZero inView:self];
             break;
@@ -684,17 +684,15 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             };
         }];
         if (_delegateFlags.didMoveToOffset) {
-            [_delegate groupView:self didMoveToOffset:1.f];
+            [self.delegate groupView:self didMoveToOffset:1.f];
         }
     } completion:^(BOOL finished) {
-        if (finished) {
-            if (completion) {
-                completion();
-            }
-            _isAnimating = NO;
-            if ([self.delegate respondsToSelector:@selector(groupViewDidOpen:)]) {
-                [self.delegate groupViewDidOpen:self];
-            }
+        if (completion) {
+            completion();
+        }
+        _isAnimating = NO;
+        if ([self.delegate respondsToSelector:@selector(groupViewDidOpen:)]) {
+            [self.delegate groupViewDidOpen:self];
         }
     }];
 }
@@ -718,11 +716,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
         [_centralIconView stk_setImageViewScale:(scale - 0.1f)];
     } completion:^(BOOL done) {
-        if (done) {
-            [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                [_centralIconView stk_setImageViewScale:scale];
-            } completion:nil];
-        }
+        [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            [_centralIconView stk_setImageViewScale:scale];
+        } completion:nil];
     }];
 
     [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -749,20 +745,18 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [listView layoutIconsIfNeeded:0.0f domino:0.f];
 
         if (_delegateFlags.didMoveToOffset) {
-            [_delegate groupView:self didMoveToOffset:0.f];
+            [self.delegate groupView:self didMoveToOffset:0.f];
         }
     } completion:^(BOOL finished) {
-        if (finished) {
-            if (completion) {
-                completion();
-            }
-            _isAnimating = NO;
-            if (!CURRENTLY_SHOWS_PREVIEW) {
-                [self resetLayouts];
-            }
-            if ([self.delegate respondsToSelector:@selector(groupViewDidClose:)]) {
-                [self.delegate groupViewDidClose:self];
-            }
+        if (completion) {
+            completion();
+        }
+        _isAnimating = NO;
+        if (!CURRENTLY_SHOWS_PREVIEW) {
+            [self resetLayouts];
+        }
+        if ([self.delegate respondsToSelector:@selector(groupViewDidClose:)]) {
+            [self.delegate groupViewDidClose:self];
         }
     }];
 }
