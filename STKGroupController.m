@@ -475,10 +475,7 @@
         return;
     }
     _wasLongPressed = YES;
-    if ([iconView.icon isLeafIcon]) {
-        [iconView setHighlighted:NO];
-    }
-
+    [iconView setHighlighted:NO];
     [([iconView containerGroupView] ?: [iconView groupView]).group addPlaceholders];
 }
 
@@ -488,9 +485,7 @@
         [[CLASS(SBIconController) sharedInstance] iconTouchBegan:iconView];
         return;
     }
-    if ([iconView.icon isLeafIcon]) {
-        [iconView setHighlighted:YES];   
-    }
+    [iconView setHighlighted:YES];
 }
 
 - (void)icon:(SBIconView *)iconView touchMoved:(UITouch *)touch

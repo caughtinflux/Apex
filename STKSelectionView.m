@@ -153,6 +153,7 @@
     STKSelectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:kCellReuseIdentifier forIndexPath:indexPath];
     SBIcon *icon = [self _iconsForSection:indexPath.section][indexPath.item];
     cell.iconView.icon = icon;
+    cell.iconView.delegate = cell;
     if (cell.iconView.icon == _selectedIcon) {
         [cell.iconView showApexOverlayOfType:STKOverlayTypeEditing];
         [collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
@@ -163,6 +164,7 @@
         }
         [cell.iconView removeApexOverlay];
     }
+    [cell.iconView setHighlighted:NO];
     cell.tapHandler = ^(STKSelectionViewCell *tappedCell) {
         [self _selectedCell:[[tappedCell retain] autorelease]];
     };
