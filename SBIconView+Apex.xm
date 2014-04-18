@@ -2,15 +2,8 @@
 #import "STKConstants.h"
 
 @interface SBIconView (ApexPrivate)
-
-+ (UIBezierPath *)pathForApexCrossOverlayWithBounds:(CGRect)bounds;
-+ (CALayer *)maskForApexEmptyIconOverlayWithBounds:(CGRect)bounds;
-+ (CALayer *)maskForApexEditingOverlayWithBounds:(CGRect)bounds;
-
 @property (nonatomic, retain) UIView *apexOverlayView;
-
 - (void)removeGroupView;
-
 @end
 
 %hook SBIconView
@@ -115,7 +108,7 @@
 - (void)setApexOverlayView:(UIView *)overlayView
 {
     [self.apexOverlayView removeFromSuperview];
-    objc_setAssociatedObject(self, @selector(STKOverlayView), overlayView, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self, @selector(STKOverlayView), overlayView, OBJC_ASSOCIATION_ASSIGN);
     [self addSubview:overlayView];
 }
 
@@ -129,21 +122,22 @@
 - (void)showApexOverlayOfType:(STKOverlayType)type
 {
     UIView *overlayView = nil;
-
     CALayer *mask = nil;
-    if (type == STKOverlayTypeEditing) {
-        overlayView = [[[UIView alloc] initWithFrame:[self _iconImageView].bounds] autorelease];
+    BOOL isEditingOverlay = (type == STKOverlayTypeEditing);
+    if (isEditingOverlay) {
+        overlayView = [[[UIView alloc] initWithFrame:[self _iconImageView].frame] autorelease];
         mask = [[self class] maskForApexEditingOverlayWithBounds:overlayView.layer.bounds];
         overlayView.layer.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.6f].CGColor;
     }
     else {
-        overlayView = [[[CLASS(SBFolderBackgroundView) alloc] initWithFrame:[self _iconImageView].bounds] autorelease];
+        overlayView = [[[CLASS(SBFolderBackgroundView) alloc] initWithFrame:[self _iconImageView].frame] autorelease];
         mask = [[self class] maskForApexEmptyIconOverlayWithBounds:overlayView.layer.bounds];
     }
-    overlayView.layer.masksToBounds = YES;
-    overlayView.center = [self _iconImageView].center;
     overlayView.layer.mask = mask;
     self.apexOverlayView = overlayView;
+    if (!isEditingOverlay) {
+        [self bringSubviewToFront:[self _iconImageView]];
+    }
 }
 
 %new
