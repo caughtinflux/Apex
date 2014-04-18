@@ -348,6 +348,7 @@
 
 - (void)groupViewWillOpen:(STKGroupView *)groupView
 {
+    _openingGroupView = groupView;
     if (groupView.activationMode != STKActivationModeDoubleTap) {
         [self _setAllowScrolling:NO];
     }
@@ -360,6 +361,7 @@
 
 - (void)groupViewDidOpen:(STKGroupView *)groupView
 {
+    _openingGroupView = nil;
     _openGroupView = groupView;
     [self _addCloseGestureRecognizers];
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:NO];
@@ -392,15 +394,15 @@
     [self _removeCloseGestureRecognizers];
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
     _openGroupView = nil;
+    _openingGroupView = nil;
     _openGroupViewWasModified = NO;
     [groupView.group.centralIcon noteBadgeDidChange];
 }
 
 - (void)groupViewWillBeDestroyed:(STKGroupView *)groupView
 {
-    if (groupView == _openGroupView) {
-        _openGroupView = nil;
-    }
+    if (groupView == _openGroupView) _openGroupView = nil;
+    else if (groupView == _openingGroupView) _openingGroupView = nil;
 }
 
 - (void)iconTapped:(SBIconView *)iconView
@@ -482,7 +484,7 @@
 
 - (void)iconTouchBegan:(SBIconView *)iconView
 {
-    if (!self.openGroupView) {
+    if (!self.openGroupView && !_openingGroupView) {
         [[CLASS(SBIconController) sharedInstance] iconTouchBegan:iconView];
         return;
     }
