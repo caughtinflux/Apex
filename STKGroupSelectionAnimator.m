@@ -77,7 +77,7 @@
         _iconView.alpha = 1.f;
         _selectionView.alpha = 0.f;
     }];
-    [UIView animateWithDuration:duration delay:0.05 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+    [UIView animateWithDuration:duration delay:0.05 options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
         [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 1.f;
     } completion:nil];
     [_zoomAnimator animateToFraction:0.f afterDelay:0.05 withCompletion:^{
