@@ -92,7 +92,8 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         [mask renderInContext:UIGraphicsGetCurrentContext()];
         emptyIconDarkeningOverlay = [UIGraphicsGetImageFromCurrentImageContext() retain];
     });
-    return ([self.icon isKindOfClass:CLASS(STKEmptyIcon)] ? emptyIconDarkeningOverlay : %orig());
+    return ([self.icon isKindOfClass:CLASS(STKEmptyIcon)] || [self.icon isKindOfClass:CLASS(STKPlaceholderIcon)] 
+            ? emptyIconDarkeningOverlay : %orig());
 }
 %end
 
