@@ -272,6 +272,12 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     BOOL didReact = [[STKGroupController sharedController] handleClosingEvent:STKClosingEventHomeButtonPress];
     return (didReact ?: %orig());
 }
+
+- (BOOL)_activateAppSwitcherFromSide:(NSInteger)side
+{
+    [[STKGroupController sharedController] handleClosingEvent:STKClosingEventSwitcherActivation];
+    return %orig(side);
+}
 %end
 
 #pragma mark - Constructor
