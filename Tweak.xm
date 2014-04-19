@@ -280,6 +280,14 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
+%hook SBLockScreenManager
+- (void)lockUIFromSource:(NSInteger)source withOptions:(id)options
+{
+    [[STKGroupController sharedController] handleClosingEvent:STKClosingEventLock];
+    %orig();
+}
+%end
+
 #pragma mark - Constructor
 %ctor
 {

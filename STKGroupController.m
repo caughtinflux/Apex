@@ -112,7 +112,7 @@
         }
     }
     else if (!_selectionView) {
-        // scroll or switcher open event 
+        // scroll, switcher open, or lock
         handled = (_openGroupView != nil);
         [self _closeOpenGroupOrSelectionView];
     }
