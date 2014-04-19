@@ -110,6 +110,7 @@
     [self.apexOverlayView removeFromSuperview];
     objc_setAssociatedObject(self, @selector(STKOverlayView), overlayView, OBJC_ASSOCIATION_ASSIGN);
     [self addSubview:overlayView];
+    [self setNeedsLayout];
 }
 
 %new
@@ -135,6 +136,7 @@
     }
     overlayView.layer.mask = mask;
     self.apexOverlayView = overlayView;
+    self.apexOverlayView.center = [self _iconImageView].center;
     if (!isEditingOverlay) {
         [self bringSubviewToFront:[self _iconImageView]];
     }
@@ -150,6 +152,12 @@
 - (void)stk_setImageViewScale:(CGFloat)scale
 {
     [self _iconImageView].layer.transform = CATransform3DMakeScale(scale, scale, scale);
+}
+
+- (void)layoutSubviews
+{
+    self.apexOverlayView.frame = [self _iconImageView].frame;
+    %orig();
 }
 
 - (void)setIcon:(SBIcon *)icon

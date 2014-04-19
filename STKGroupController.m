@@ -486,6 +486,7 @@
         return;
     }
     [iconView setHighlighted:YES];
+    [iconView setNeedsLayout];
 }
 
 - (void)icon:(SBIconView *)iconView touchMoved:(UITouch *)touch
