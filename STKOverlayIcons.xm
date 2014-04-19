@@ -1,11 +1,18 @@
 #import "STKOverlayIcons.h"
 #import "STKConstants.h"
 
+static UIImage *_img = nil;
+
 %subclass STKEmptyIcon : SBIcon
+
++ (void)load
+{
+    _img = [[UIImage alloc] init];
+}
 
 - (id)getIconImage:(NSInteger)imgType
 {
-    return [[[UIImage alloc] init] autorelease];
+    return _img;
 }
 
 - (BOOL)isEmptyPlaceholder
@@ -29,7 +36,7 @@
 
 - (id)getIconImage:(NSInteger)imgType
 {
-    return [[[UIImage alloc] init] autorelease];
+    return _img;
 }
 
 - (BOOL)isPlaceholder
