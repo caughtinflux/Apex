@@ -150,24 +150,6 @@ static BOOL _hasGridlock;
 }
 %end
 
-#pragma mark - SBIconImageView
-%hook SBIconImageView
-- (UIImage *)darkeningOverlayImage
-{
-    static UIImage *emptyIconDarkeningOverlay;
-    static dispatch_once_t predicate;
-    dispatch_once(&predicate, ^{
-        CGRect bounds = self.bounds;
-        CALayer *mask = [CLASS(SBIconView) maskForApexEmptyIconOverlayWithBounds:bounds];
-        UIGraphicsBeginImageContextWithOptions(bounds.size, NO, 0);
-        [mask renderInContext:UIGraphicsGetCurrentContext()];
-        emptyIconDarkeningOverlay = [UIGraphicsGetImageFromCurrentImageContext() retain];
-    });
-    return ([self.icon isKindOfClass:CLASS(STKEmptyIcon)] || [self.icon isKindOfClass:CLASS(STKPlaceholderIcon)] 
-            ? emptyIconDarkeningOverlay : %orig());
-}
-%end
-
 %ctor
 {
     @autoreleasepool {
