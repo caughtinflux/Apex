@@ -73,26 +73,6 @@ static BOOL _hasGridlock;
     return padding;
 }
 
-- (void)prepareToRotateToInterfaceOrientation:(UIInterfaceOrientation)orient
-{
-    self.stk_realVerticalIconPadding = kInvalidIconPadding;
-    self.stk_realHorizontalIconPadding = kInvalidIconPadding;
-    %orig(orient);
-}
-
-- (CGPoint)originForIconAtCoordinate:(SBIconCoordinate)coordinate
-{
-    if (self.stk_modifyDisplacedIconOrigin) {
-        SBIcon *icon = [[self model] iconAtIndex:[self indexForCoordinate:coordinate forOrientation:[UIApplication sharedApplication].statusBarOrientation]];
-        STKGroupController *controller = [STKGroupController sharedController];
-        STKGroupView *groupView = controller.openGroupView ?: controller.openingGroupView;
-        if (!groupView.isAnimating && [[groupView.displacedIconLayout allIcons] containsObject:icon]) {
-            return [self viewForIcon:icon].frame.origin;
-        }
-    }
-    return %orig(coordinate);
-}
-
 %new
 - (void)setStk_modifyDisplacedIconOrigin:(BOOL)modify
 {
@@ -115,6 +95,32 @@ static BOOL _hasGridlock;
 - (BOOL)stk_preventRelayout
 {
     return [objc_getAssociatedObject(self, @selector(stk_preventRelayout)) boolValue];
+}
+
+%new
+- (void)stk_makeIconViewsPerformBlock:(void(^)(SBIconView *iv))block
+{
+    [self enumerateIconViewsUsingBlock:block];
+}
+
+- (void)prepareToRotateToInterfaceOrientation:(UIInterfaceOrientation)orient
+{
+    self.stk_realVerticalIconPadding = kInvalidIconPadding;
+    self.stk_realHorizontalIconPadding = kInvalidIconPadding;
+    %orig(orient);
+}
+
+- (CGPoint)originForIconAtCoordinate:(SBIconCoordinate)coordinate
+{
+    if (self.stk_modifyDisplacedIconOrigin) {
+        SBIcon *icon = [[self model] iconAtIndex:[self indexForCoordinate:coordinate forOrientation:[UIApplication sharedApplication].statusBarOrientation]];
+        STKGroupController *controller = [STKGroupController sharedController];
+        STKGroupView *groupView = controller.openGroupView ?: controller.openingGroupView;
+        if (!groupView.isAnimating && [[groupView.displacedIconLayout allIcons] containsObject:icon]) {
+            return [self viewForIcon:icon].frame.origin;
+        }
+    }
+    return %orig(coordinate);
 }
 
 - (void)layoutIconsNow
@@ -142,13 +148,24 @@ static BOOL _hasGridlock;
     }
     %orig();
 }
+%end
 
-%new
-- (void)stk_makeIconViewsPerformBlock:(void(^)(SBIconView *iv))block
+#pragma mark - SBIconImageView
+%hook SBIconImageView
+- (UIImage *)darkeningOverlayImage
 {
-    [self enumerateIconViewsUsingBlock:block];
+    static UIImage *emptyIconDarkeningOverlay;
+    static dispatch_once_t predicate;
+    dispatch_once(&predicate, ^{
+        CGRect bounds = self.bounds;
+        CALayer *mask = [CLASS(SBIconView) maskForApexEmptyIconOverlayWithBounds:bounds];
+        UIGraphicsBeginImageContextWithOptions(bounds.size, NO, 0);
+        [mask renderInContext:UIGraphicsGetCurrentContext()];
+        emptyIconDarkeningOverlay = [UIGraphicsGetImageFromCurrentImageContext() retain];
+    });
+    return ([self.icon isKindOfClass:CLASS(STKEmptyIcon)] || [self.icon isKindOfClass:CLASS(STKPlaceholderIcon)] 
+            ? emptyIconDarkeningOverlay : %orig());
 }
-
 %end
 
 %ctor
