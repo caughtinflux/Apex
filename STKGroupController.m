@@ -368,6 +368,9 @@
     [[CLASS(SBSearchGesture) sharedInstance] setEnabled:NO];
     [self _setAllowScrolling:YES];
     [groupView.group.centralIcon noteBadgeDidChange];
+    for (SBIcon *icon in groupView.group.layout) {
+        [icon noteBadgeDidChange];
+    }
 }
 
 - (void)groupViewWillClose:(STKGroupView *)groupView
