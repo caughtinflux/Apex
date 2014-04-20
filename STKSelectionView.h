@@ -11,6 +11,7 @@
 @property (nonatomic, readonly) UITextField *searchTextField;
 @property (nonatomic, readonly) UIView *iconCollectionView;
 
+- (void)scrollToSelectedIconAnimated:(BOOL)animated;
 - (void)flashScrollIndicators;
 
 @end

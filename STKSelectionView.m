@@ -95,6 +95,30 @@
     [_collectionView reloadData];
 }
 
+- (void)scrollToSelectedIconAnimated:(BOOL)animated
+{
+    if ([_selectedIcon isLeafIcon]) {
+        NSUInteger itemIndex = 0;
+        NSUInteger itemSection = 0;
+        if (_hasRecommendations) {
+            // If we have recommendations, then modify the section accordingly
+            if ((itemIndex = [_recommendedApps indexOfObject:_selectedIcon]) != NSNotFound) {
+                itemSection = 0;
+            }
+            else if ((itemIndex = [_allApps indexOfObject:_selectedIcon]) != NSNotFound) {
+                itemSection = 1;
+            }
+        }
+        else {
+            itemIndex = [_allApps indexOfObject:_selectedIcon];
+            itemSection = 0;
+        }
+        [_collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:itemIndex inSection:itemSection]
+                                atScrollPosition:UICollectionViewScrollPositionTop
+                                        animated:animated];
+    }
+}
+
 - (void)flashScrollIndicators
 {
     [_collectionView flashScrollIndicators];
@@ -156,6 +180,7 @@
     cell.iconView.delegate = cell;
     if (cell.iconView.icon == _selectedIcon) {
         [cell.iconView showApexOverlayOfType:STKOverlayTypeEditing];
+        [cell.iconView setNeedsLayout];
         [collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
     }
     else {

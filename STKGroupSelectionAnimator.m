@@ -61,6 +61,7 @@
     [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:^{
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (NSEC_PER_SEC * 0.1)), dispatch_get_main_queue(), ^{
             [_selectionView flashScrollIndicators];
+            [_selectionView scrollToSelectedIconAnimated:YES];
         });
         if (completion) {
             completion();
