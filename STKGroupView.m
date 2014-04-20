@@ -390,7 +390,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 change *= kBandingFactor;
             }
 
-            CGFloat offset = MIN((_lastDistanceFromCenter / _targetDistance), 1.f);
+            CGFloat offset = fminf((_lastDistanceFromCenter / _targetDistance), 1.f);
             [self _setAlphaForOtherIcons:(1.2 - offset)];
             if ([_centralIconView isInDock]) {
                 [self _setAlphaForDisplacedIcons:(1.0 - offset)];   
@@ -502,7 +502,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self _moveSubappsByDistance:distance performingTask:block];
     [self _moveGrabbersByDistance:distance];
     if (_delegateFlags.didMoveToOffset) {
-        [self.delegate groupView:self didMoveToOffset:MIN((_lastDistanceFromCenter / _targetDistance), 1.f)];   
+        [self.delegate groupView:self didMoveToOffset:fminf((_lastDistanceFromCenter / _targetDistance), 1.f)];   
     }
 }
 
