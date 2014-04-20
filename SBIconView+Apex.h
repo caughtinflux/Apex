@@ -8,10 +8,6 @@ typedef NS_ENUM(NSInteger, STKOverlayType) {
 @class STKGroupView;
 @interface SBIconView (Apex)
 
-+ (UIBezierPath *)pathForApexCrossOverlayWithBounds:(CGRect)bounds;
-+ (CALayer *)maskForApexEmptyIconOverlayWithBounds:(CGRect)bounds;
-+ (CALayer *)maskForApexEditingOverlayWithBounds:(CGRect)bounds;
-
 @property (nonatomic, retain) STKGroupView *groupView;
 @property (nonatomic, readonly) UIView *apexOverlayView;
 @property (nonatomic, readonly) STKGroupView *containerGroupView;

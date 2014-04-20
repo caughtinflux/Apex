@@ -2,6 +2,10 @@
 #import "STKConstants.h"
 
 @interface SBIconView (ApexPrivate)
++ (UIBezierPath *)pathForApexCrossOverlayWithBounds:(CGRect)bounds;
++ (CALayer *)maskForApexEmptyIconOverlayWithBounds:(CGRect)bounds;
++ (CALayer *)maskForApexEditingOverlayWithBounds:(CGRect)bounds;
+
 @property (nonatomic, retain) UIView *apexOverlayView;
 - (void)removeGroupView;
 @end
@@ -65,7 +69,6 @@
     [cross appendPath:[UIBezierPath bezierPathWithRoundedRect:bounds cornerRadius:[%c(SBIconImageView) cornerRadius]]];
     maskLayer.path = cross.CGPath;
     maskLayer.fillRule = kCAFillRuleEvenOdd;
-
     return maskLayer;
 }
 
@@ -214,6 +217,7 @@
         UIGraphicsBeginImageContextWithOptions(bounds.size, NO, 0);
         [mask renderInContext:UIGraphicsGetCurrentContext()];
         emptyIconDarkeningOverlay = [UIGraphicsGetImageFromCurrentImageContext() retain];
+        UIGraphicsEndImageContext();
     });
     return ([self.icon isKindOfClass:CLASS(STKEmptyIcon)] || [self.icon isKindOfClass:CLASS(STKPlaceholderIcon)] 
             ? emptyIconDarkeningOverlay : %orig());
