@@ -20,6 +20,7 @@
 	LOCK_LAYOUTS = "Lock Layouts";
 	LOCK_LAYOUTS_DESCRIPTION = "You will not be able to create new stacks if layouts are locked.";
 	CUMULATIVE_BADGES = "Cumulative Badges";
+	DISABLE_SPOTLIGHT_GESTURE = "Disable Spotlight Gesture";
 
 	ACTIVATION_MODE = "Activation Mode";
 	SWIPE_UP_AND_DOWN = "Swipe Up and Down";

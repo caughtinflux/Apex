@@ -280,11 +280,23 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
+#pragma mark - SBLockScreenManager
 %hook SBLockScreenManager
 - (void)lockUIFromSource:(NSInteger)source withOptions:(id)options
 {
     [[STKGroupController sharedController] handleClosingEvent:STKClosingEventLock];
     %orig();
+}
+%end
+
+#pragma mark - SBSearchGesture
+%hook SBSearchGesture
+- (void)setEnabled:(BOOL)enabled
+{
+    if (enabled && [STKPreferences sharedPreferences].shouldDisableSearchGesture) {
+        enabled = NO;
+    }
+    %orig(enabled);
 }
 %end
 
