@@ -10,7 +10,7 @@
 
 #define kApexIconPreviewScale    0.95f
 #define kSubappPreviewScale      0.81f
-#define kBandingAllowance        20.f
+#define kBandingAllowance        2000.f
 #define kPopoutDistance          9.f
 #define kCentralIconPreviewScale 0.95f
 #define kDistanceFromEdge        1.5f
