@@ -38,6 +38,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
     UIView *_topGrabberView;
     UIView *_bottomGrabberView;
+    CGRect _topGrabberOriginalFrame;
+    CGRect _bottomGrabberOriginalFrame;
 
     BOOL _isOpen;
     BOOL _isAnimating;
@@ -268,17 +270,19 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     CGFloat grabberWidth = floorf(iconImageFrame.size.width * 0.419354839);
 
     _topGrabberView = [[UIView new] autorelease];
-    _topGrabberView.frame = (CGRect){{0, self.bounds.origin.y - kDistanceFromEdge - kGrabberHeight}, {grabberWidth, kGrabberHeight}};
+    _topGrabberView.frame = (CGRect){{0, self.bounds.origin.y - kDistanceFromEdge - kGrabberHeight + 2.f}, {grabberWidth, kGrabberHeight}};
     _topGrabberView.center = (CGPoint){[_centralIconView iconImageCenter].x, _topGrabberView.center.y};
 
     _bottomGrabberView = ([_centralIconView isInDock] ? nil : [[UIView new] autorelease]);
-    _bottomGrabberView.frame = (CGRect){{0, iconImageFrame.size.height + kDistanceFromEdge - 2.f}, {grabberWidth, kGrabberHeight}};
+    _bottomGrabberView.frame = (CGRect){{0, iconImageFrame.size.height + kDistanceFromEdge - 4.f}, {grabberWidth, kGrabberHeight}};
     _bottomGrabberView.center = (CGPoint){[_centralIconView iconImageCenter].x, _bottomGrabberView.center.y};
 
     _topGrabberView.layer.cornerRadius = _bottomGrabberView.layer.cornerRadius = (kGrabberHeight * 0.5f);
     _topGrabberView.layer.masksToBounds = _bottomGrabberView.layer.masksToBounds = YES;
     _topGrabberView.backgroundColor = _bottomGrabberView.backgroundColor = [UIColor colorWithWhite:1.f alpha:0.6f];
 
+    _topGrabberOriginalFrame = _topGrabberView.frame;
+    _bottomGrabberOriginalFrame = _bottomGrabberView.frame;
     [self addSubview:_topGrabberView];
     [self addSubview:_bottomGrabberView];
 }
@@ -631,22 +635,22 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 }
 
 - (void)_moveGrabbersByDistance:(CGFloat)distance
-{
-    if (fabsf(_topGrabberView.frame.origin.y) >= _targetDistance) {
-        return;
-    }
+{    
+    CGFloat midWayDistance = (_targetDistance * 0.5);
+    CGFloat grabberAlpha = STKScaleNumber(_lastDistanceFromCenter, 0, midWayDistance + 10, 1.0, 0.0);
     if ([_subappLayout[STKPositionTop] count] > 0) {
-        CGPoint center = _topGrabberView.center;
-        center.y -= distance;
-        _topGrabberView.center = center;
+        if ((_topGrabberView.frame.origin.y - distance) < _topGrabberOriginalFrame.origin.y) {
+            _topGrabberView.frame = (CGRect){{_topGrabberView.frame.origin.x, _topGrabberView.frame.origin.y - distance},
+                                              _topGrabberView.frame.size};
+        }
     }
     if ([_subappLayout[STKPositionBottom] count] > 0) {
-        CGPoint center = _bottomGrabberView.center;
-        center.y += distance;
-        _bottomGrabberView.center = center;
+        if ((_bottomGrabberView.frame.origin.y + distance) > _bottomGrabberOriginalFrame.origin.y) {
+            _bottomGrabberView.frame = (CGRect){{_bottomGrabberView.frame.origin.x, _bottomGrabberView.frame.origin.y + distance},
+                                                 _bottomGrabberView.frame.size};
+        }
     }
-    CGFloat alpha = STKScaleNumber(_lastDistanceFromCenter, 0, _targetDistance, 1.0, 0.0);
-    _topGrabberView.alpha = _bottomGrabberView.alpha = alpha;
+    _topGrabberView.alpha = _bottomGrabberView.alpha = grabberAlpha;
 }
 
 #pragma mark - Animate
@@ -717,12 +721,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self _setAlphaForOtherIcons:1.f];
         [self _setupPreview];
 
-        CGRect grabberFrame = _topGrabberView.frame;
-        grabberFrame.origin.y = (self.bounds.origin.y - kDistanceFromEdge - kGrabberHeight);
-        _topGrabberView.frame = grabberFrame;
-        grabberFrame = _bottomGrabberView.frame;
-        grabberFrame.origin.y = ([_centralIconView iconImageFrame].size.height + kDistanceFromEdge - 2.f);
-        _bottomGrabberView.frame = grabberFrame;
+        _topGrabberView.frame = _topGrabberOriginalFrame;
+        _bottomGrabberView.frame = _bottomGrabberOriginalFrame;
         _topGrabberView.alpha = _bottomGrabberView.alpha = 1.f;
 
         [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
