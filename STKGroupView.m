@@ -18,6 +18,7 @@
 #define kGrabberHeight           3.f
 
 #define CURRENTLY_SHOWS_PREVIEW (!_group.empty && _showPreview)
+#define SCALE_CENTRAL_ICON (CURRENTLY_SHOWS_PREVIEW || (_topGrabberView && _bottomGrabberView))
 
 typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     STKRecognizerDirectionNone,
@@ -131,7 +132,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [_displacedIconLayout release];
     _displacedIconLayout = nil;
     [self _configureSubappViews];
-    [self setShowGrabbers:didShowGrabbers];
+    self.showGrabbers = didShowGrabbers;
 }
 
 - (SBIconView *)subappIconViewForIcon:(SBIcon *)icon
@@ -171,6 +172,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     if (show && !_showPreview && _group.state != STKGroupStateEmpty) {
         [self _addGrabbers];
+        [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
     }
     else [self _removeGrabbers];
     _showGrabbers = show;
@@ -229,7 +231,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
     [self _resetDisplacedIconLayout];
 
-    if (CURRENTLY_SHOWS_PREVIEW) {
+    if (SCALE_CENTRAL_ICON) {
         [self _setupPreview];
         [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
     }
@@ -253,7 +255,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         }
         // Hide the label and badge
         [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
-        if (CURRENTLY_SHOWS_PREVIEW) {
+        if (SCALE_CENTRAL_ICON) {
             // Scale the icon back down to the smaller size
             [iconView stk_setImageViewScale:kSubappPreviewScale];
         }
@@ -433,7 +435,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_adjustScaleAndTransparencyOfSubapp:(SBIconView *)subappView inSlot:(STKGroupSlot)slot forOffset:(CGFloat)offset 
 {
-    CGFloat midWayDistance = _targetDistance / 2.f;
+    CGFloat midWayDistance = (_targetDistance * 0.5f);
     [self _setAlpha:offset forBadgeAndLabelOfIconView:subappView];
     if (slot.index == 0) {
         if (_hasVerticalIcons && STKPositionIsVertical(slot.position)) {
@@ -443,13 +445,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
            _lastDistanceFromCenter = fabsf(subappView.frame.origin.x - _centralIconView.bounds.origin.x);
         }
     }
-    if (CURRENTLY_SHOWS_PREVIEW) {       
+    if (SCALE_CENTRAL_ICON) { 
         if (_lastDistanceFromCenter <= midWayDistance) {
             // If the icons are past the halfway mark, start increasing/decreasing their scale.
-            // This looks beautiful. Yay me.
             CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kSubappPreviewScale);
             [subappView stk_setImageViewScale:stackIconTransformScale];
-            
             CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
             [_centralIconView stk_setImageViewScale:centralIconTransformScale];
         }
@@ -756,7 +756,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_performScaleAnimationOnCentralIcon
 {
     // Shrink-Grow animation for the central iconView's image
-    CGFloat scale = CURRENTLY_SHOWS_PREVIEW ? kCentralIconPreviewScale : 1.f;
+    CGFloat scale = ((SCALE_CENTRAL_ICON) ? kCentralIconPreviewScale : 1.f);
     [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
         [_centralIconView stk_setImageViewScale:(scale - 0.1f)];
     } completion:^(BOOL done) {
