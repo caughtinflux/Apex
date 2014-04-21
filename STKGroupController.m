@@ -365,7 +365,6 @@
     _openingGroupView = nil;
     _openGroupView = groupView;
     [self _addCloseGestureRecognizers];
-    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:NO];
     [self _setAllowScrolling:YES];
     [groupView.group.centralIcon noteBadgeDidChange];
     for (SBIcon *icon in groupView.group.layout) {
@@ -396,7 +395,6 @@
     }
     [self _removeDimmingView];
     [self _removeCloseGestureRecognizers];
-    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
     _openGroupView = nil;
     _openingGroupView = nil;
     _openGroupViewWasModified = NO;
@@ -527,6 +525,11 @@
         return (CGRectContainsPoint(_selectionView.contentView.frame, [touch locationInView:_selectionView]) == false);
     }
     return !([_openGroupView hitTest:point withEvent:nil]);
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
+    return YES;
 }
 
 @end
