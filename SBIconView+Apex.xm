@@ -139,7 +139,6 @@
     }
     overlayView.layer.mask = mask;
     self.apexOverlayView = overlayView;
-    self.apexOverlayView.center = [self _iconImageView].center;
     if (!isEditingOverlay) {
         [self bringSubviewToFront:[self _iconImageView]];
     }
@@ -159,8 +158,8 @@
 
 - (void)layoutSubviews
 {
-    self.apexOverlayView.frame = [self _iconImageView].frame;
     %orig();
+    self.apexOverlayView.frame = (CGRect){{-1.f, -1.f}, self.apexOverlayView.frame.size};
 }
 
 - (void)setIcon:(SBIcon *)icon
