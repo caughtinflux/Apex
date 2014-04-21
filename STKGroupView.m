@@ -11,12 +11,12 @@
 #define kApexIconPreviewScale    0.95f
 #define kSubappPreviewScale      0.81f
 #define kBandingAllowance        2000.f
+#define kDockedBandingAllowance  20.f
 #define kPopoutDistance          9.f
 #define kCentralIconPreviewScale 0.95f
 #define kDistanceFromEdge        1.5f
 #define kGrabberHeight           3.f
 
-#define KEYFRAME_DURATION() (1.0 + (kBandingAllowance / _targetDistance))
 #define CURRENTLY_SHOWS_PREVIEW (!_group.empty && _showPreview)
 
 typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
@@ -46,6 +46,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     CGFloat _lastDistanceFromCenter;
     CGFloat _targetDistance;
     CGFloat _distanceRatio;
+    CGFloat _currentBandingAllowance;
     STKRecognizerDirection _recognizerDirection;
 
     struct {
@@ -371,9 +372,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             _hasVerticalIcons = ([_subappLayout[STKPositionTop] count] > 0) || ([_subappLayout[STKPositionBottom] count] > 0);
             _targetDistance *= (_hasVerticalIcons == NO ? _distanceRatio : 1.f);
             _lastDistanceFromCenter = 0.f;
+            _currentBandingAllowance = ([_centralIconView isInDock] ? kDockedBandingAllowance : kBandingAllowance);
             
             [self _resetDisplacedIconLayout];
-            
+            [self _performScaleAnimationOnCentralIcon];
             break;
         }
         case UIGestureRecognizerStateChanged: {
@@ -543,7 +545,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 // Now it has to move only as much as all the other icons
                 moveDistance /= appearingIconsCount;
             }
-            *targetCoord += kBandingAllowance * negator;
+            *targetCoord += (_currentBandingAllowance * negator);
             if (IS_GREATER(*currentCoord + moveDistance, *targetCoord, position)) {
                 // Do not go beyond target
                 *newCoord = *targetCoord;
@@ -598,8 +600,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 // Don't compensate for anything if the icon is moving past the target
                 moveDistance /= popComp;
             }
-            // Modify the target to allow for a `kBandingAllowance` distance extra for the rubber banding effect
-            *targetCoord += (kBandingAllowance * negator);
+            // Modify the target to allow for an extra distance specified by _currentBandingAllowance for the rubber banding effect
+            *targetCoord += (_currentBandingAllowance * negator);
             if (IS_LESSER((*currentCoord + moveDistance), *centralCoord, position)) {
                 // going past start point, don't move further
                 newFrame = centralFrame;
@@ -661,7 +663,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if (!_subappLayout) {
         [self _reallyConfigureSubappViews];
     }
-
     SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
     [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         [_centralIconView stk_setImageViewScale:1.f];
@@ -711,16 +712,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         if ([iconView.icon isLeafIcon]) [iconView removeApexOverlay];
     }
 
-    // Shrink-Grow animation for the central iconView's image
-    CGFloat scale = CURRENTLY_SHOWS_PREVIEW ? kCentralIconPreviewScale : 1.f;
-    [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
-        [_centralIconView stk_setImageViewScale:(scale - 0.1f)];
-    } completion:^(BOOL done) {
-        [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            [_centralIconView stk_setImageViewScale:scale];
-        } completion:nil];
-    }];
-
+    [self _performScaleAnimationOnCentralIcon];
     [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         [self _setAlphaForOtherIcons:1.f];
         [self _setupPreview];
@@ -758,6 +750,19 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         if ([self.delegate respondsToSelector:@selector(groupViewDidClose:)]) {
             [self.delegate groupViewDidClose:self];
         }
+    }];
+}
+
+- (void)_performScaleAnimationOnCentralIcon
+{
+    // Shrink-Grow animation for the central iconView's image
+    CGFloat scale = CURRENTLY_SHOWS_PREVIEW ? kCentralIconPreviewScale : 1.f;
+    [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+        [_centralIconView stk_setImageViewScale:(scale - 0.1f)];
+    } completion:^(BOOL done) {
+        [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            [_centralIconView stk_setImageViewScale:scale];
+        } completion:nil];
     }];
 }
 
