@@ -210,7 +210,7 @@
         [_openGroupView.group removePlaceholders];
     }
     else {
-        [_openGroupView close];
+        [(_openGroupView ?: _openingGroupView) close];
     }
 }
 
@@ -360,6 +360,7 @@
     for (SBIcon *icon in groupView.group.layout) {
         [icon noteBadgeDidChange];
     }
+    [self _addCloseGestureRecognizers];
 }
 
 - (void)groupView:(STKGroupView *)groupView didMoveToOffset:(CGFloat)offset
@@ -373,15 +374,12 @@
     _openGroupView = groupView;
     [self _addCloseGestureRecognizers];
     [self _setAllowScrolling:YES];
-    [groupView.group.centralIcon noteBadgeDidChange];
-    for (SBIcon *icon in groupView.group.layout) {
-        [icon noteBadgeDidChange];
-    }
 }
 
 - (void)groupViewWillClose:(STKGroupView *)groupView
 {
     [self _setAllowScrolling:YES];
+    _openingGroupView = nil;
     [groupView.group.centralIcon noteBadgeDidChange];
     for (SBIcon *icon in groupView.group.layout) {
         [icon noteBadgeDidChange];
@@ -407,14 +405,12 @@
     [self _removeDimmingView];
     [self _removeCloseGestureRecognizers];
     _openGroupView = nil;
-    _openingGroupView = nil;
     _openGroupViewWasModified = NO;
-    [groupView.group.centralIcon noteBadgeDidChange];
 }
 
 - (void)groupViewWillBeDestroyed:(STKGroupView *)groupView
 {
-    if (groupView == _openGroupView) _openGroupView = nil;
+    if (groupView == _openGroupView) [self groupViewDidClose:groupView];
     else if (groupView == _openingGroupView) _openingGroupView = nil;
 }
 
