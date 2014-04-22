@@ -353,6 +353,10 @@
     if (groupView.activationMode != STKActivationModeDoubleTap) {
         [self _setAllowScrolling:NO];
     }
+    [groupView.group.centralIcon noteBadgeDidChange];
+    for (SBIcon *icon in groupView.group.layout) {
+        [icon noteBadgeDidChange];
+    }
 }
 
 - (void)groupView:(STKGroupView *)groupView didMoveToOffset:(CGFloat)offset
@@ -375,6 +379,10 @@
 - (void)groupViewWillClose:(STKGroupView *)groupView
 {
     [self _setAllowScrolling:YES];
+    [groupView.group.centralIcon noteBadgeDidChange];
+    for (SBIcon *icon in groupView.group.layout) {
+        [icon noteBadgeDidChange];
+    }
 }
 
 - (void)groupViewDidClose:(STKGroupView *)groupView

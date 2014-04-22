@@ -34,7 +34,7 @@
 - (NSString *)accessoryTextForLocation:(SBIconLocation)location
 {
     NSString *text = %orig();
-    if ([STKGroupController sharedController].openGroupView.group.centralIcon == self
+    if ([STKGroupController sharedController].openingGroupView.group.centralIcon == self
         || ![STKPreferences sharedPreferences].shouldShowSummedBadges) {
         return text;
     }
