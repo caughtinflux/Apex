@@ -62,6 +62,7 @@
         return;
     }
     STKGroupView *groupView = nil;
+    STKPreferences *preferences = [STKPreferences sharedPreferences];
     if ((groupView = [iconView groupView])) {
         SBIconCoordinate currentCoordinate = [STKGroupLayoutHandler coordinateForIcon:iconView.icon];
         if (ISPAD()) {
@@ -72,7 +73,7 @@
         }
     }
     else {
-        STKGroup *group = [[STKPreferences sharedPreferences] groupForCentralIcon:iconView.icon];
+        STKGroup *group = [preferences groupForCentralIcon:iconView.icon];
         if (!group) {
             group = [self _groupWithEmptySlotsForIcon:iconView.icon];
         }
@@ -81,9 +82,10 @@
         [iconView setGroupView:groupView];
     }
     groupView.delegate = self;
-    groupView.showPreview = [STKPreferences sharedPreferences].shouldShowPreviews;
-    groupView.showGrabbers = !([STKPreferences sharedPreferences].shouldHideGrabbers);
-    groupView.activationMode = [STKPreferences sharedPreferences].activationMode;
+    groupView.showPreview = preferences.shouldShowPreviews;
+    groupView.showGrabbers = !(preferences.shouldHideGrabbers);
+    groupView.activationMode = preferences.activationMode;
+    [iconView.icon noteBadgeDidChange];
 }
 
 - (void)removeGroupViewFromIconView:(SBIconView *)iconView
@@ -300,18 +302,19 @@
 - (void)_prefsChanged
 {
     SBIconController *iconController = [CLASS(SBIconController) sharedInstance];
-    NSMutableArray *listViews = [NSMutableArray array];
+    STKPreferences *preferences = [STKPreferences sharedPreferences];
+    NSMutableArray *listViews = [NSMutableArray arrayWithObject:[iconController dockListView]];
     [listViews addObjectsFromArray:[iconController _rootFolderController].iconListViews];
-    [listViews addObject:[iconController dockListView]];
     for (SBIconListView *listView in listViews) {
         [listView enumerateIconViewsUsingBlock:^(SBIconView *iconView) {
-            [iconView groupView].showPreview = [STKPreferences sharedPreferences].shouldShowPreviews;
-            [iconView groupView].activationMode = [STKPreferences sharedPreferences].activationMode;
-            [iconView groupView].showGrabbers = !([STKPreferences sharedPreferences].shouldHideGrabbers);
+            STKGroupView *groupView = [iconView groupView];
+            groupView.showPreview = preferences.shouldShowPreviews;
+            groupView.activationMode = preferences.activationMode;
+            groupView.showGrabbers = !(preferences.shouldHideGrabbers);
             [iconView.icon noteBadgeDidChange];
         }];
     }
-    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:![STKPreferences sharedPreferences].shouldDisableSearchGesture];
+    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:!preferences.shouldDisableSearchGesture];
 }
 
 #pragma mark - Group View Delegate
