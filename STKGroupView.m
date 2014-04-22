@@ -412,7 +412,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             [sender setTranslation:CGPointZero inView:self];
             break;
         }
-        case UIGestureRecognizerStateEnded: {
+        default: {
             if (!_ignoreRecognizer) {
                 CGPoint velocity = [sender velocityInView:self];
                 if (   (_recognizerDirection == STKRecognizerDirectionUp   && velocity.y < 0)
@@ -425,8 +425,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 }
             }
             /* NOTE THE LACK OF A break; */
-        }
-        default: {
             _ignoreRecognizer = NO; 
             _isUpwardSwipe = NO; 
             _hasVerticalIcons = NO;
