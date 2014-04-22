@@ -529,7 +529,7 @@
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
-    return YES;
+    return (otherGestureRecognizer.view == [[[CLASS(SBIconController) sharedInstance] _currentFolderController].contentView scrollView]);
 }
 
 @end
