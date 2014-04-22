@@ -42,7 +42,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     CGRect _bottomGrabberOriginalFrame;
 
     BOOL _isOpen;
-    BOOL _isAnimating;
+    BOOL _isAnimatingOpen;
+    BOOL _isAnimatingClosed;
     BOOL _ignoreRecognizer;
     BOOL _hasVerticalIcons;
     BOOL _isUpwardSwipe;
@@ -120,7 +121,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)resetLayouts
 {
-    if (_isAnimating) {
+    if (_isAnimatingOpen || _isAnimatingClosed) {
         return;
     }
     if (_subappLayout) {
@@ -424,7 +425,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                     [self _animateClosedWithCompletion:nil];
                 }
             }
-            /* NOTE THE LACK OF A break; */
             _ignoreRecognizer = NO; 
             _isUpwardSwipe = NO; 
             _hasVerticalIcons = NO;
@@ -654,10 +654,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 #pragma mark - Animate
 - (void)_animateOpenWithCompletion:(void(^)(void))completion
 {
-    if (_isAnimating) {
+    if (_isAnimatingOpen) {
         return;
     }
-    _isAnimating = YES;
+    _isAnimatingOpen = YES;
     _isOpen = YES;
     if ([self.delegate respondsToSelector:@selector(groupViewWillOpen:)]) {
         [self.delegate groupViewWillOpen:self];
@@ -666,7 +666,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self _reallyConfigureSubappViews];
     }
     SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
-    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+    void(^animationBlock)(void) = ^{
         [_centralIconView stk_setImageViewScale:1.f];
         [self _setAlphaForOtherIcons:0.2f];
         _topGrabberView.alpha = _bottomGrabberView.alpha = 0.f;
@@ -689,23 +689,32 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         if (_delegateFlags.didMoveToOffset) {
             [self.delegate groupView:self didMoveToOffset:1.f];
         }
-    } completion:^(BOOL finished) {
+    };
+
+    void(^completionBlock)(BOOL finished) = ^(BOOL finished) {
         if (completion) {
             completion();
         }
-        _isAnimating = NO;
+        _isAnimatingOpen = NO;
         if ([self.delegate respondsToSelector:@selector(groupViewDidOpen:)]) {
             [self.delegate groupViewDidOpen:self];
         }
-    }];
+    };
+    [UIView animateWithDuration:0.8
+                          delay:0.0
+         usingSpringWithDamping:0.5f
+          initialSpringVelocity:0.5f
+                        options:UIViewAnimationOptionCurveEaseOut
+                     animations:animationBlock
+                     completion:completionBlock];
 }
 
 - (void)_animateClosedWithCompletion:(void(^)(void))completion
 {
-    if (_isAnimating) {
+    if (_isAnimatingClosed) {
         return;
     }
-    _isAnimating = YES;
+    _isAnimatingClosed = YES;
     _isOpen = NO;
     if ([self.delegate respondsToSelector:@selector(groupViewWillClose:)]) {
         [self.delegate groupViewWillClose:self];
@@ -715,40 +724,47 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
 
     [self _performScaleAnimationOnCentralIcon];
-    [UIView animateWithDuration:0.25f delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        [self _setAlphaForOtherIcons:1.f];
-        [self _setupPreview];
+    [UIView animateWithDuration:0.25f
+        delay:0.0
+        options:(UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState)
+        animations:^{
+            [self _setAlphaForOtherIcons:1.f];
+            [self _setupPreview];
 
-        _topGrabberView.frame = _topGrabberOriginalFrame;
-        _bottomGrabberView.frame = _bottomGrabberOriginalFrame;
-        _topGrabberView.alpha = _bottomGrabberView.alpha = 1.f;
+            _topGrabberView.frame = _topGrabberOriginalFrame;
+            _bottomGrabberView.frame = _bottomGrabberOriginalFrame;
+            _topGrabberView.alpha = _bottomGrabberView.alpha = 1.f;
 
-        [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
-            SBIconView *iconView = [self _iconViewForIcon:icon];
-            if ([_centralIconView isInDock]) {
-                iconView.alpha = 1.f;
+            [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:
+                ^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
+                    SBIconView *iconView = [self _iconViewForIcon:icon];
+                    if ([_centralIconView isInDock]) {
+                        iconView.alpha = 1.f;
+                    }
+                }
+            ];
+            
+            SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
+            [listView setIconsNeedLayout];
+            [listView layoutIconsIfNeeded:0.0f domino:0.f];
+
+            if (_delegateFlags.didMoveToOffset) {
+                [self.delegate groupView:self didMoveToOffset:0.f];
             }
-        }];
-        
-        SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
-        [listView setIconsNeedLayout];
-        [listView layoutIconsIfNeeded:0.0f domino:0.f];
-
-        if (_delegateFlags.didMoveToOffset) {
-            [self.delegate groupView:self didMoveToOffset:0.f];
         }
-    } completion:^(BOOL finished) {
-        if (completion) {
-            completion();
+        completion:^(BOOL finished) {
+            if (completion) {
+                completion();
+            }
+            _isAnimatingClosed = NO;
+            if (!CURRENTLY_SHOWS_PREVIEW) {
+                [self resetLayouts];
+            }
+            if ([self.delegate respondsToSelector:@selector(groupViewDidClose:)]) {
+                [self.delegate groupViewDidClose:self];
+            }
         }
-        _isAnimating = NO;
-        if (!CURRENTLY_SHOWS_PREVIEW) {
-            [self resetLayouts];
-        }
-        if ([self.delegate respondsToSelector:@selector(groupViewDidClose:)]) {
-            [self.delegate groupViewDidClose:self];
-        }
-    }];
+    ];
 }
 
 - (void)_performScaleAnimationOnCentralIcon
