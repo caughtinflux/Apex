@@ -30,8 +30,8 @@
 
 #ifdef DEBUG
     #define DLog(fmt, ...) NSLog((@"[%@] %s [Line %d] " fmt), kSTKTweakName, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
-    #define CLog(fmt, ...) NSLog((@"[%@] " fmt), kSTKTweakName, ##__VA_ARGS__)
-    #define VLog(_formatString, _param, ...) CLog(@"%s = "_formatString, #_param, _param, ##__VA_ARGS__)
+    #define CLog(fmt, ...) NSLog((@"["kSTKTweakName@"] " fmt), ##__VA_ARGS__)
+    #define VLog(_formatString, _param) CLog(@"%s = "_formatString, #_param, _param)
 #else
     #define DLog(...)
     #define CLog(...)
