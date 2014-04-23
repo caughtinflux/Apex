@@ -667,9 +667,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
     void(^animationBlock)(void) = ^{
-        [_centralIconView stk_setImageViewScale:1.f];
-        [self _setAlphaForOtherIcons:0.2f];
-        _topGrabberView.alpha = _bottomGrabberView.alpha = 0.f;
         [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
             [self _setAlpha:1.0 forBadgeAndLabelOfIconView:iconView];
             CGPoint origin = [self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}];
@@ -707,6 +704,16 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                         options:UIViewAnimationOptionCurveEaseOut
                      animations:animationBlock
                      completion:completionBlock];
+    [UIView animateWithDuration:0.25 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        if ([_centralIconView isInDock]) {
+            for (SBIcon *icon in _displacedIconLayout) {
+                [listView viewForIcon:icon].alpha = 0.f;
+            }
+        }
+        [_centralIconView stk_setImageViewScale:1.f];
+        [self _setAlphaForOtherIcons:0.2f];
+        _topGrabberView.alpha = _bottomGrabberView.alpha = 0.f;
+    } completion:nil];
 }
 
 - (void)_animateClosedWithCompletion:(void(^)(void))completion
