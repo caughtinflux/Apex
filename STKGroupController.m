@@ -372,7 +372,6 @@
 {
     _openingGroupView = nil;
     _openGroupView = groupView;
-    [self _addCloseGestureRecognizers];
     [self _setAllowScrolling:YES];
 }
 
@@ -529,7 +528,7 @@
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
     STKGroupView *openGroupView = (_openGroupView ?: _openingGroupView);
-    BOOL touchIsOutsideSelectionView = ([_selectionView.contentView hitTest:[touch locationInView:_selectionView] withEvent:nil] == nil);
+    BOOL touchIsOutsideSelectionView = ([_selectionView.contentView hitTest:[touch locationInView:_selectionView.contentView] withEvent:nil] == nil);
     BOOL touchIsOutsideOpenGroupView = ([openGroupView hitTest:[touch locationInView:openGroupView] withEvent:nil] == nil);
     return (touchIsOutsideSelectionView && touchIsOutsideOpenGroupView);
 }
