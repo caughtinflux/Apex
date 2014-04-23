@@ -416,7 +416,8 @@
 
 - (void)iconTapped:(SBIconView *)iconView
 {
-    if (!self.openGroupView) {
+    STKGroupView *openGroupView = (_openGroupView ?: _openingGroupView);
+    if (!openGroupView) {
         [[CLASS(SBIconController) sharedInstance] iconTapped:iconView];
         return;
     }
@@ -429,14 +430,14 @@
     else {
         [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
         if ([STKPreferences sharedPreferences].shouldCloseOnLaunch) {
-            [self.openGroupView close];
+            [openGroupView close];
         }
     }
 }
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
 {
-    if (!self.openGroupView) {
+    if (!_openGroupView) {
         return [[CLASS(SBIconController) sharedInstance] iconShouldAllowTap:iconView];
     }
     if (_wasLongPressed) {
@@ -479,7 +480,7 @@
 
 - (void)iconHandleLongPress:(SBIconView *)iconView
 {
-    if (!self.openGroupView || ![iconView.icon isLeafIcon]) {
+    if (!_openGroupView || ![iconView.icon isLeafIcon]) {
         [[CLASS(SBIconController) sharedInstance] iconHandleLongPress:iconView];
         return;
     }
@@ -490,7 +491,7 @@
 
 - (void)iconTouchBegan:(SBIconView *)iconView
 {
-    if (!self.openGroupView && !_openingGroupView) {
+    if (!_openGroupView && !_openingGroupView) {
         [[CLASS(SBIconController) sharedInstance] iconTouchBegan:iconView];
         return;
     }
@@ -500,7 +501,7 @@
 
 - (void)icon:(SBIconView *)iconView touchMoved:(UITouch *)touch
 {
-    if (!self.openGroupView) {
+    if (!_openGroupView) {
         [[CLASS(SBIconController) sharedInstance] icon:iconView touchMoved:touch];
         return;
     }
@@ -512,7 +513,7 @@
 
 - (void)icon:(SBIconView *)iconView touchEnded:(BOOL)ended
 {
-    if (self.openGroupView) {
+    if (_openGroupView) {
         // Nobody cares
         return;
     }
@@ -527,11 +528,10 @@
 #pragma mark - Gesture Recognizer Delegate
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
-    CGPoint point = [touch locationInView:_openGroupView];
-    if (_selectionView) {
-        return (CGRectContainsPoint(_selectionView.contentView.frame, [touch locationInView:_selectionView]) == false);
-    }
-    return !([_openGroupView hitTest:point withEvent:nil]);
+    STKGroupView *openGroupView = (_openGroupView ?: _openingGroupView);
+    BOOL touchIsOutsideSelectionView = ([_selectionView.contentView hitTest:[touch locationInView:_selectionView] withEvent:nil] == nil);
+    BOOL touchIsOutsideOpenGroupView = ([openGroupView hitTest:[touch locationInView:openGroupView] withEvent:nil] == nil);
+    return (touchIsOutsideSelectionView && touchIsOutsideOpenGroupView);
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer

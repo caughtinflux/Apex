@@ -183,7 +183,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     // SBIconZoomAnimator loves icon views, and can never let them go
     // let's make sure it doesn't feel heartbroken (i.e. failing assertions)
     SBIconView *iconView = %orig(icon);
-    STKGroupView *openGroupView = [STKGroupController sharedController].openGroupView;
+    STKGroupView *openGroupView = ([STKGroupController sharedController].openGroupView ?: [STKGroupController sharedController].openingGroupView);
     iconView = [openGroupView subappIconViewForIcon:icon] ?: iconView;
     return iconView;
 }
