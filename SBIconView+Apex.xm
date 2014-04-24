@@ -4,7 +4,6 @@
 @interface SBIconView (ApexPrivate)
 + (UIBezierPath *)pathForApexCrossOverlayWithBounds:(CGRect)bounds;
 + (CALayer *)maskForApexEmptyIconOverlayWithBounds:(CGRect)bounds;
-+ (CALayer *)maskForApexEditingOverlayWithBounds:(CGRect)bounds;
 
 @property (nonatomic, retain) UIView *apexOverlayView;
 - (void)removeGroupView;
@@ -48,31 +47,6 @@
 }
 
 %new
-+ (CALayer *)maskForApexEditingOverlayWithBounds:(CGRect)bounds
-{
-    bounds.size.width -= 2.0f;
-    bounds.size.height -= 2.0f;
-    bounds.origin.x += 0.5f;
-    bounds.origin.y += 0.5f;
-
-    CAShapeLayer *maskLayer = [CAShapeLayer layer];
-    maskLayer.frame = bounds;
-    maskLayer.strokeColor = [UIColor clearColor].CGColor;
-    maskLayer.fillColor = [UIColor blackColor].CGColor;
-    
-    UIBezierPath *cross = [[self class] pathForApexCrossOverlayWithBounds:bounds];
-    cross.lineWidth = 1.f;
-    [cross appendPath:[UIBezierPath bezierPathWithOvalInRect:CGRectInset(bounds, 8.f, 8.f)]];
-    UIBezierPath *outerCircle = [UIBezierPath bezierPathWithOvalInRect:CGRectInset(bounds, 6.f, 6.f)];
-    outerCircle.lineWidth = 1.f;
-    [cross appendPath:outerCircle];
-    [cross appendPath:[UIBezierPath bezierPathWithRoundedRect:bounds cornerRadius:[%c(SBIconImageView) cornerRadius]]];
-    maskLayer.path = cross.CGPath;
-    maskLayer.fillRule = kCAFillRuleEvenOdd;
-    return maskLayer;
-}
-
-%new
 - (void)setGroupView:(STKGroupView *)groupView
 {
     [self removeGroupView];
@@ -112,7 +86,7 @@
 {
     [self.apexOverlayView removeFromSuperview];
     objc_setAssociatedObject(self, @selector(STKOverlayView), overlayView, OBJC_ASSOCIATION_ASSIGN);
-    [self addSubview:overlayView];
+    [[self _iconImageView] addSubview:overlayView];
     [self setNeedsLayout];
 }
 
@@ -125,23 +99,26 @@
 %new
 - (void)showApexOverlayOfType:(STKOverlayType)type
 {
+    [CATransaction begin];
+    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+    // Disable implicit animations. ME NO LIKEY.
     UIView *overlayView = nil;
-    CALayer *mask = nil;
     BOOL isEditingOverlay = (type == STKOverlayTypeEditing);
     if (isEditingOverlay) {
-        overlayView = [[[UIView alloc] initWithFrame:[self _iconImageView].frame] autorelease];
-        mask = [[self class] maskForApexEditingOverlayWithBounds:overlayView.layer.bounds];
-        overlayView.layer.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.6f].CGColor;
+        overlayView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"Overlay@2x")] autorelease];
+        overlayView.frame = CGRectInset([self _iconImageView].bounds, 0.5, 0.5);
+        overlayView.alpha = 0.6f;
+        overlayView.backgroundColor = [UIColor clearColor];
     }
     else {
-        overlayView = [[[CLASS(SBFolderBackgroundView) alloc] initWithFrame:[self _iconImageView].frame] autorelease];
-        mask = [[self class] maskForApexEmptyIconOverlayWithBounds:overlayView.layer.bounds];
+        overlayView = [[[CLASS(SBFolderBackgroundView) alloc] initWithFrame:[self _iconImageView].bounds] autorelease];
+        overlayView.layer.mask = [[self class] maskForApexEmptyIconOverlayWithBounds:overlayView.layer.bounds];
     }
-    overlayView.layer.mask = mask;
     self.apexOverlayView = overlayView;
     if (!isEditingOverlay) {
         [self bringSubviewToFront:[self _iconImageView]];
     }
+    [CATransaction commit];
 }
 
 %new
@@ -159,7 +136,6 @@
 - (void)layoutSubviews
 {
     %orig();
-    self.apexOverlayView.frame = (CGRect){{-1.f, -1.f}, self.apexOverlayView.frame.size};
 }
 
 - (void)setIcon:(SBIcon *)icon
