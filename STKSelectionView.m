@@ -179,7 +179,7 @@
     cell.iconView.icon = icon;
     cell.iconView.delegate = cell;
     if (cell.iconView.icon == _selectedIcon) {
-        [cell.iconView showApexOverlayOfType:STKOverlayTypeEditing];
+        [cell.iconView showApexOverlayOfType:STKOverlayTypeCheck];
         [cell.iconView setNeedsLayout];
         [collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
     }
@@ -270,7 +270,7 @@
     
     NSIndexPath *currentIndexPath = [_collectionView indexPathForCell:cell];
     STKSelectionViewCell *currentSelection = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:currentIndexPath];
-    [currentSelection.iconView showApexOverlayOfType:STKOverlayTypeEditing];
+    [currentSelection.iconView showApexOverlayOfType:STKOverlayTypeCheck];
     [_collectionView selectItemAtIndexPath:currentIndexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
 }
 

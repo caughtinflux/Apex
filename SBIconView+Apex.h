@@ -2,7 +2,8 @@
 
 typedef NS_ENUM(NSInteger, STKOverlayType) {
     STKOverlayTypeEmpty,
-    STKOverlayTypeEditing
+    STKOverlayTypeEditing,
+    STKOverlayTypeCheck
 };
 
 @class STKGroupView;

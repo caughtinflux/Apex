@@ -1,6 +1,9 @@
 #import "SBIconView+Apex.h"
 #import "STKConstants.h"
 
+static NSString * const CheckOverlayImageName = @"OverlayCheck@2x";
+static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
+
 @interface SBIconView (ApexPrivate)
 + (UIBezierPath *)pathForApexCrossOverlayWithBounds:(CGRect)bounds;
 + (CALayer *)maskForApexEmptyIconOverlayWithBounds:(CGRect)bounds;
@@ -99,24 +102,21 @@
 %new
 - (void)showApexOverlayOfType:(STKOverlayType)type
 {
-    [CATransaction begin];
+    [CATransaction begin]; // Disable implicit animations. ME NO LIKEY.
     [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
-    // Disable implicit animations. ME NO LIKEY.
     UIView *overlayView = nil;
-    BOOL isEditingOverlay = (type == STKOverlayTypeEditing);
-    if (isEditingOverlay) {
-        overlayView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"Overlay@2x")] autorelease];
+    if (type == STKOverlayTypeEditing || type == STKOverlayTypeCheck) {
+        NSString *imageName = ((type == STKOverlayTypeEditing) ? AddOverlayImageName : CheckOverlayImageName);
+        overlayView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(imageName)] autorelease];
         overlayView.contentMode = UIViewContentModeCenter;
         overlayView.frame = [self _iconImageView].bounds;
-        overlayView.alpha = 0.6f;
-        overlayView.backgroundColor = [UIColor clearColor];
     }
     else {
         overlayView = [[[CLASS(SBFolderBackgroundView) alloc] initWithFrame:[self _iconImageView].bounds] autorelease];
         overlayView.layer.mask = [[self class] maskForApexEmptyIconOverlayWithBounds:overlayView.layer.bounds];
     }
     self.apexOverlayView = overlayView;
-    if (!isEditingOverlay) {
+    if (!(type == STKOverlayTypeEditing || type == STKOverlayTypeCheck)) {
         [self bringSubviewToFront:[self _iconImageView]];
     }
     [CATransaction commit];
