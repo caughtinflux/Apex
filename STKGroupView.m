@@ -382,7 +382,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             _currentBandingAllowance = ([_centralIconView isInDock] ? kDockedBandingAllowance : kBandingAllowance);
             
             [self _resetDisplacedIconLayout];
-            [self _performScaleAnimationOnCentralIcon];
+            CGFloat scale = ((SCALE_CENTRAL_ICON) ? kCentralIconPreviewScale : 1.f);
+            [self _performScaleAnimationOnCentralIconFromScale:(scale + 0.1f) toScale:scale];
             break;
         }
         case UIGestureRecognizerStateChanged: {
@@ -729,8 +730,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     for (SBIconView *iconView in _subappLayout) {
         if ([iconView.icon isLeafIcon]) [iconView removeApexOverlay];
     }
-
-    [self _performScaleAnimationOnCentralIcon];
+    CGFloat scale = ((SCALE_CENTRAL_ICON) ? kCentralIconPreviewScale : 1.f);
+    [self _performScaleAnimationOnCentralIconFromScale:(scale - 0.1f) toScale:scale];
     [UIView animateWithDuration:0.25f
         delay:0.0
         options:(UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState)
@@ -774,15 +775,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     ];
 }
 
-- (void)_performScaleAnimationOnCentralIcon
+- (void)_performScaleAnimationOnCentralIconFromScale:(CGFloat)fromScale toScale:(CGFloat)toScale
 {
-    // Shrink-Grow animation for the central iconView's image
-    CGFloat scale = ((SCALE_CENTRAL_ICON) ? kCentralIconPreviewScale : 1.f);
     [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
-        [_centralIconView stk_setImageViewScale:(scale - 0.1f)];
+        [_centralIconView stk_setImageViewScale:fromScale];
     } completion:^(BOOL done) {
         [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            [_centralIconView stk_setImageViewScale:scale];
+            [_centralIconView stk_setImageViewScale:toScale];
         } completion:nil];
     }];
 }
