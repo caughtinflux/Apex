@@ -106,7 +106,8 @@
     BOOL isEditingOverlay = (type == STKOverlayTypeEditing);
     if (isEditingOverlay) {
         overlayView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"Overlay@2x")] autorelease];
-        overlayView.frame = CGRectInset([self _iconImageView].bounds, 0.5, 0.5);
+        overlayView.contentMode = UIViewContentModeCenter;
+        overlayView.frame = [self _iconImageView].bounds;
         overlayView.alpha = 0.6f;
         overlayView.backgroundColor = [UIColor clearColor];
     }
@@ -136,6 +137,7 @@
 - (void)layoutSubviews
 {
     %orig();
+    [self sendSubviewToBack:[self groupView]];
 }
 
 - (void)setIcon:(SBIcon *)icon
