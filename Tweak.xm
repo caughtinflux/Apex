@@ -90,8 +90,23 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     return isVisible;
 }
 
-- (void)removeIcon:(SBIcon *)icon
+- (SBDownloadingIcon *)addDownloadingIconForDownload:(SBApplicationPlaceholder *)download
 {
+    SBDownloadingIcon *downloadingIcon = %orig();
+    SBIcon *icon = [self expectedIconForDisplayIdentifier:[downloadingIcon identifierForCorrespondingApplicationIcon]];
+    [[STKGroupController sharedController] handleIconRemoval:icon];
+    return downloadingIcon;
+}
+
+- (void)layout
+{
+    [[STKPreferences sharedPreferences] reloadPreferences];
+    %orig();
+}
+
+- (void)removeIconForIdentifier:(NSString *)identifier
+{
+    SBIcon *icon = [self expectedIconForDisplayIdentifier:identifier];
     [[STKGroupController sharedController] handleIconRemoval:icon];
     %orig();
 }

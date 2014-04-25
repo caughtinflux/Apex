@@ -71,7 +71,7 @@ static void STKPrefsChanged (
         @autoreleasepool {
             NSDictionary *groupRepr = iconState[iconID];
             STKGroup *group = [[[STKGroup alloc] initWithDictionary:groupRepr] autorelease];
-            if (group.centralIcon) {
+            if (group.centralIcon && ([group.layout allIcons].count > 0)) {
                 [groupArray addObject:group];
                 [group addObserver:self];
             }
