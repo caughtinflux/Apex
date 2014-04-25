@@ -221,6 +221,10 @@
 
 - (void)_showSelectionViewForIconView:(SBIconView *)selectedIconView
 {
+    // This method can be called before the open animation on the group has finished
+    // So, ensure that _openGroupView is not nil
+    _openGroupView = [self _activeGroupView];
+
     _selectionSlot = [_openGroupView.subappLayout slotForIcon:selectedIconView];
     _selectionView = [[[STKSelectionView alloc] initWithFrame:CGRectZero
                                                  selectedIcon:([selectedIconView.icon isLeafIcon] ? selectedIconView.icon : nil)
@@ -269,7 +273,7 @@
     if (!_iconsToShow) _iconsToShow = [NSMutableArray new];
 
     if ([iconInSelectedSlot isLeafIcon]) {
-        // The icon that is being replaced
+        // Show the icon that is being replaced
         [_iconsToShow addObject:iconInSelectedSlot];
     }
     if (iconToSelect && (iconToSelect != iconInSelectedSlot)) {
