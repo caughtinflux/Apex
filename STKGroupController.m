@@ -436,6 +436,10 @@
     EXECUTE_BLOCK_AFTER_DELAY(0.2, ^{
         [iconView setHighlighted:NO];
     });
+    if ((iconView.groupView == activeGroupView) && activeGroupView.group.hasPlaceholders) {
+        [self _closeOpenGroupOrSelectionView];
+        return;
+    }
     if (iconView.apexOverlayView) {
         [self _showSelectionViewForIconView:iconView];
     }
