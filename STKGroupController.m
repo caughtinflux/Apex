@@ -241,7 +241,7 @@
     for (NSString *identifier in visibleIconIdentifiers) {
         SBIcon *icon = [model expectedIconForDisplayIdentifier:identifier];
         BOOL iconIsWithoutGroup = ![[STKPreferences sharedPreferences] groupForCentralIcon:icon];
-        if (iconIsWithoutGroup) {
+        if (icon && iconIsWithoutGroup) {
             [availableIcons addObject:icon];
         }
     }
