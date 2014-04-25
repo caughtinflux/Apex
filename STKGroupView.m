@@ -173,7 +173,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)setShowGrabbers:(BOOL)show
 {
-    if (show && !_showPreview && _group.state != STKGroupStateEmpty) {
+    if (show && (_showPreview == NO) && (_group.state != STKGroupStateEmpty)) {
         [self _addGrabbers];
         [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
     }
@@ -361,7 +361,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             
             BOOL isHorizontalSwipe = !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0);
             BOOL isUpwardSwipeInSwipeDownMode = (_activationMode == STKActivationModeSwipeDown && _isUpwardSwipe);
-            BOOL isDownwardSwipeInSwipeUpMode = (_activationMode == STKActivationModeSwipeUp && !_isUpwardSwipe);
+            BOOL isDownwardSwipeInSwipeUpMode = (_activationMode == STKActivationModeSwipeUp && (_isUpwardSwipe == NO));
             BOOL delegateDeniedOpen = (self.delegate && ![self.delegate shouldGroupViewOpen:self]);
             if (delegateDeniedOpen || isHorizontalSwipe || isUpwardSwipeInSwipeDownMode || isDownwardSwipeInSwipeUpMode) {
                 _ignoreRecognizer = YES;

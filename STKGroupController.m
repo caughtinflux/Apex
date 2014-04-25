@@ -115,7 +115,7 @@
     }
     else if (!_selectionView) {
         // scroll, switcher open, or lock
-        handled = (_openGroupView != nil);
+        handled = ([self _activeGroupView] != nil);
         [self _closeOpenGroupOrSelectionView];
     }
     return handled;
@@ -211,7 +211,7 @@
     if (_selectionView) {
         [self _closeSelectionView];
     }
-    else if (_openGroupView.group.hasPlaceholders && !_openGroupViewWasModified) {
+    else if (_openGroupView.group.hasPlaceholders && (_openGroupViewWasModified == NO)) {
         [_openGroupView.group removePlaceholders];
     }
     else {
@@ -227,18 +227,22 @@
                                                   centralIcon:_openGroupView.group.centralIcon] autorelease];
     
     SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
+    
     NSMutableArray *visibleIconIdentifiers = [[[[[model visibleIconIdentifiers] objectEnumerator] allObjects] mutableCopy] autorelease];
     [visibleIconIdentifiers addObjectsFromArray:[STKPreferences sharedPreferences].identifiersForSubappIcons];
-    NSMutableArray *availableIcons = [NSMutableArray array];
+    [visibleIconIdentifiers removeObject:selectedIconView.icon.leafIdentifier];
+
+    // User a mutable set to prevent duplicates, if any.
+    NSMutableSet *availableIcons = [NSMutableSet orderedSetWithCapacity:visibleIconIdentifiers.count];
     for (NSString *identifier in visibleIconIdentifiers) {
         SBIcon *icon = [model expectedIconForDisplayIdentifier:identifier];
-        if (![[STKPreferences sharedPreferences] groupForCentralIcon:icon]
-            && ![availableIcons containsObject:icon]) {
-
+        BOOL iconIsWithoutGroup = ![[STKPreferences sharedPreferences] groupForCentralIcon:icon];
+        if (iconIsWithoutGroup && iconIsNotCentralIcon) {
             [availableIcons addObject:icon];
         }
     }
-    _selectionView.iconsForSelection = availableIcons;
+    
+    _selectionView.iconsForSelection = [[availableIcons objectEnumerator] allObjects];
     _selectionAnimator = [[STKGroupSelectionAnimator alloc] initWithSelectionView:_selectionView iconView:selectedIconView];
     [_selectionAnimator openSelectionViewAnimatedWithCompletion:nil];
     [self _setAllowScrolling:NO];
@@ -268,7 +272,7 @@
         // The icon that is being replaced
         [_iconsToShow addObject:iconInSelectedSlot];
     }
-    if (iconToSelect && iconToSelect != iconInSelectedSlot) {
+    if (iconToSelect && (iconToSelect != iconInSelectedSlot)) {
         // The selected icon needs to be hidden from the home screen
         [_iconsToHide addObject:iconToSelect];
 
@@ -478,13 +482,13 @@
 {
     STKGroup *grabbedGroup = [grabbedIconView groupView].group;
     STKGroup *group = [iconView groupView].group;
-    
-    return (group.state == STKGroupStateEmpty && grabbedGroup.state == STKGroupStateEmpty);
+    BOOL bothGroupsAreEmpty = (group.state == STKGroupStateEmpty && grabbedGroup.state == STKGroupStateEmpty);
+    return bothGroupsAreEmpty;
 }
 
 - (void)iconHandleLongPress:(SBIconView *)iconView
 {
-    if (!_openGroupView || ![iconView.icon isLeafIcon]) {
+    if (![self _activeGroupView] || ![iconView.icon isLeafIcon]) {
         [[CLASS(SBIconController) sharedInstance] iconHandleLongPress:iconView];
         return;
     }
@@ -495,7 +499,7 @@
 
 - (void)iconTouchBegan:(SBIconView *)iconView
 {
-    if (!_openGroupView && !_openingGroupView) {
+    if (![self _activeGroupView]) {
         [[CLASS(SBIconController) sharedInstance] iconTouchBegan:iconView];
         return;
     }
