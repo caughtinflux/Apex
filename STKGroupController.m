@@ -230,7 +230,7 @@
     
     NSMutableArray *visibleIconIdentifiers = [[[[[model visibleIconIdentifiers] objectEnumerator] allObjects] mutableCopy] autorelease];
     [visibleIconIdentifiers addObjectsFromArray:[STKPreferences sharedPreferences].identifiersForSubappIcons];
-    [visibleIconIdentifiers removeObject:selectedIconView.icon.leafIdentifier];
+    [visibleIconIdentifiers removeObject:_openGroupView.group.centralIcon.leafIdentifier];
 
     // User a mutable set to prevent duplicates, if any.
     NSMutableSet *availableIcons = [NSMutableSet setWithCapacity:visibleIconIdentifiers.count];
