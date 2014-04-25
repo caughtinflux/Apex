@@ -113,9 +113,12 @@
             itemIndex = [_allApps indexOfObject:_selectedIcon];
             itemSection = 0;
         }
-        [_collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:itemIndex inSection:itemSection]
-                                atScrollPosition:UICollectionViewScrollPositionTop
-                                        animated:animated];
+        NSIndexPath *indexPath = [NSIndexPath indexPathForItem:itemIndex inSection:itemSection];
+        if (![[_collectionView indexPathsForVisibleItems] containsObject:indexPath]) {
+            [_collectionView scrollToItemAtIndexPath:indexPath
+                                    atScrollPosition:UICollectionViewScrollPositionCenteredVertically
+                                            animated:animated];
+        }
     }
 }
 
