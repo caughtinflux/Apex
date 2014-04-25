@@ -166,12 +166,14 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
     UIView *view = nil;
-    if ([self groupView].isOpen == NO) {
+    STKGroupView *activeGroupView = 
+        ([STKGroupController sharedController].openGroupView ?: [STKGroupController sharedController].openingGroupView);
+
+    if ([self groupView] != activeGroupView) {
         return %orig(point, event);
     }
-    else {
-        view = [self.groupView hitTest:point withEvent:event] ?: %orig();
-    }
+    view = [self.groupView hitTest:point withEvent:event] ?: %orig();
+    
     return view;
 }
 

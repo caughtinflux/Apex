@@ -18,6 +18,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     CFRelease(userNotification);
 }
 
+#pragma mark - SpringBoard
 %hook SpringBoard
 - (void)_reportAppLaunchFinished
 {
@@ -43,7 +44,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 #pragma mark - SBIconController
 %hook SBIconController
-
 - (void)setIsEditing:(BOOL)editing
 {
     BOOL stoppedEditing = ([self isEditing] && editing == NO);
@@ -52,7 +52,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
     }
 }
-
 %end
 
 #pragma mark - SBIconView
@@ -175,9 +174,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     %orig();
     listView.stk_modifyDisplacedIconOrigin = NO;
 }
-%end
 
-%hook SBScaleIconZoomAnimator
 - (SBIconView *)iconViewForIcon:(SBIcon *)icon
 {
     // SBIconZoomAnimator loves icon views, and can never let them go
@@ -189,15 +186,17 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
-#pragma mark - SBIconListView 
+#pragma mark - SBIconListView
 %hook SBIconListView
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
-    STKGroupView *openGroupView = [[STKGroupController sharedController] openGroupView];
+    STKGroupController *controller = [STKGroupController sharedController];
+    STKGroupView *activeGroupView = (controller.openGroupView ?: controller.openingGroupView);
     UIView *ret = %orig();
-    if (openGroupView) {
+
+    if (activeGroupView) {
         // Send touches to the subapps in a group (since they are not within their superview's bounds)
-        UIView *superview = [openGroupView superview];
+        UIView *superview = [activeGroupView superview];
         CGPoint newPoint = [self convertPoint:point toView:superview];
         ret = [superview hitTest:newPoint withEvent:event];
     }   
@@ -209,7 +208,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     [[STKGroupController sharedController] performRotationWithDuration:duration];
     %orig(duration);
 }
-
 %end
 
 #pragma mark - SBFolderController
@@ -226,6 +224,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
+#pragma mark - SBFolder
 %hook SBFolder
 - (SBIconListModel *)listContainingIcon:(SBIcon *)icon
 {
