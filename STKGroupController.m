@@ -350,6 +350,10 @@
         if (recognizer == _closeSwipeRecognizer || recognizer == _closeTapRecognizer) {
             allow = NO;
         }
+        else if ([recognizer.delegate isKindOfClass:CLASS(LAIconViewGestureRecognizerDelegate)]
+              || [recognizer.delegate isKindOfClass:CLASS(IconToolSwipeHelper)]) {
+            allow = YES;
+        }
         else {
             NSArray *targets = [recognizer valueForKey:@"_targets"];
             id target = ((targets.count > 0) ? targets[0] : nil);
