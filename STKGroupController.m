@@ -233,11 +233,11 @@
     [visibleIconIdentifiers removeObject:selectedIconView.icon.leafIdentifier];
 
     // User a mutable set to prevent duplicates, if any.
-    NSMutableSet *availableIcons = [NSMutableSet orderedSetWithCapacity:visibleIconIdentifiers.count];
+    NSMutableSet *availableIcons = [NSMutableSet setWithCapacity:visibleIconIdentifiers.count];
     for (NSString *identifier in visibleIconIdentifiers) {
         SBIcon *icon = [model expectedIconForDisplayIdentifier:identifier];
         BOOL iconIsWithoutGroup = ![[STKPreferences sharedPreferences] groupForCentralIcon:icon];
-        if (iconIsWithoutGroup && iconIsNotCentralIcon) {
+        if (iconIsWithoutGroup) {
             [availableIcons addObject:icon];
         }
     }
