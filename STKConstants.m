@@ -36,3 +36,9 @@ double STKScaleNumber(double numToScale, double prevMin, double prevMax, double 
     double newRange = (newMax - newMin);
     return (((numToScale - prevMin) * newRange) / oldRange) + newMin;
 }
+
+NSString * NSStringFromSTKGroupSlot(STKGroupSlot slot)
+{
+    return [NSString stringWithFormat:@"%@, index: %@", NSStringFromLayoutPosition(slot.position), @(slot.index)];
+}
+

@@ -60,6 +60,8 @@ extern "C" {
     extern NSDictionary * STKDictionaryFromCoordinate(SBIconCoordinate coordinate);
 
     extern double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax);
+
+    extern NSString * NSStringFromSTKGroupSlot(STKGroupSlot slot);
 #ifdef __cplusplus 
 }
 #endif
