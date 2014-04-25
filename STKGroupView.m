@@ -178,7 +178,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self _addGrabbers];
         [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
     }
-    else [self _removeGrabbers];
+    else {
+        [self _removeGrabbers];
+        [_centralIconView stk_setImageViewScale:1.0f];
+    }
     _showGrabbers = show;
 }
 
