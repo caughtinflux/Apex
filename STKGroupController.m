@@ -321,9 +321,9 @@
     for (SBIconListView *listView in listViews) {
         [listView enumerateIconViewsUsingBlock:^(SBIconView *iconView) {
             STKGroupView *groupView = [iconView groupView];
-            groupView.showPreview = preferences.shouldShowPreviews;
             groupView.activationMode = preferences.activationMode;
             groupView.showGrabbers = !(preferences.shouldHideGrabbers);
+            groupView.showPreview = preferences.shouldShowPreviews;
             [iconView.icon noteBadgeDidChange];
         }];
     }
