@@ -55,6 +55,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
     struct {
         NSUInteger didMoveToOffset:1;
+        NSUInteger shouldOpen:1;
         NSUInteger willOpen:1;
         NSUInteger didOpen:1;
         NSUInteger willClose:1;
@@ -185,6 +186,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     _delegate = delegate;
     _delegateFlags.didMoveToOffset = [self.delegate respondsToSelector:@selector(groupView:didMoveToOffset:)];
+    _delegateFlags.shouldOpen = [self.delegate respondsToSelector:@selector(shouldGroupViewOpen:)];
     _delegateFlags.willOpen = [self.delegate respondsToSelector:@selector(groupViewWillOpen:)];
     _delegateFlags.didOpen = [self.delegate respondsToSelector:@selector(groupViewDidOpen:)];
     _delegateFlags.willClose = [self.delegate respondsToSelector:@selector(groupViewWillClose:)];
@@ -472,15 +474,18 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer
 {
-    BOOL shouldReceive = YES;
+    BOOL shouldBegin = YES;
     SBIconController *controller = [CLASS(SBIconController) sharedInstance];
     if ([controller isEditing] || ([controller grabbedIcon] == _group.centralIcon)) {
-        shouldReceive = NO;
+        shouldBegin = NO;
     }
     else if ([recognizer isKindOfClass:[UITapGestureRecognizer class]]) {
-        shouldReceive = (_activationMode == STKActivationModeDoubleTap);
+        shouldBegin = (_activationMode == STKActivationModeDoubleTap);
+        if (_delegateFlags.shouldOpen) {
+            shouldBegin = (shouldBegin && [self.delegate shouldGroupViewOpen:self]);
+        }
     }
-    return shouldReceive;
+    return shouldBegin;
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recog shouldReceiveTouch:(UITouch *)touch
