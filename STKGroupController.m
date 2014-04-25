@@ -145,6 +145,11 @@
     return [group autorelease];
 }
 
+- (STKGroupView *)_activeGroupView
+{
+    return (_openGroupView ?: _openingGroupView);
+}
+
 - (void)_setAllowScrolling:(BOOL)allow
 {
     [self _currentScrollView].scrollEnabled = allow;
@@ -210,7 +215,7 @@
         [_openGroupView.group removePlaceholders];
     }
     else {
-        [(_openGroupView ?: _openingGroupView) close];
+        [[self _activeGroupView] close];
     }
 }
 
@@ -415,8 +420,8 @@
 
 - (void)iconTapped:(SBIconView *)iconView
 {
-    STKGroupView *openGroupView = (_openGroupView ?: _openingGroupView);
-    if (!openGroupView) {
+    STKGroupView *activeGroupView = [self _activeGroupView];
+    if (!activeGroupView) {
         [[CLASS(SBIconController) sharedInstance] iconTapped:iconView];
         return;
     }
@@ -429,7 +434,7 @@
     else {
         [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
         if ([STKPreferences sharedPreferences].shouldCloseOnLaunch) {
-            [openGroupView close];
+            [activeGroupView close];
         }
     }
 }
@@ -527,10 +532,20 @@
 #pragma mark - Gesture Recognizer Delegate
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
-    STKGroupView *openGroupView = (_openGroupView ?: _openingGroupView);
-    BOOL touchIsOutsideSelectionView = ([_selectionView.contentView hitTest:[touch locationInView:_selectionView.contentView] withEvent:nil] == nil);
-    BOOL touchIsOutsideOpenGroupView = ([openGroupView hitTest:[touch locationInView:openGroupView] withEvent:nil] == nil);
-    return (touchIsOutsideSelectionView && touchIsOutsideOpenGroupView);
+    STKGroupView *activeGroupView = [self _activeGroupView];
+    BOOL shouldReceiveTouch = NO;
+    if (_selectionView) {
+        // If a selection view is active, then we only need to ensure that the touch is not on the it.
+        BOOL touchIsOutsideSelectionView = !([_selectionView.contentView hitTest:[touch locationInView:_selectionView.contentView]
+                                                                       withEvent:nil]);
+        shouldReceiveTouch = touchIsOutsideSelectionView;
+    }
+    else {
+        // Since there's not selection view, we can receive the touch as long as it isn't on the active group view
+        BOOL touchIsOutsideActiveGroupView = !([activeGroupView hitTest:[touch locationInView:activeGroupView] withEvent:nil]);
+        shouldReceiveTouch = touchIsOutsideActiveGroupView;
+    }
+    return shouldReceiveTouch;
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
