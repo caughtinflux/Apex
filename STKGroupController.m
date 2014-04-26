@@ -2,7 +2,7 @@
 #import "STKConstants.h"
 #import <dlfcn.h>
 
-#define kFullDimStrength 0.2f
+#define kFullDimStrength 0.3f
 
 @implementation STKGroupController
 {
@@ -382,7 +382,7 @@
 
 - (void)groupView:(STKGroupView *)groupView didMoveToOffset:(CGFloat)offset
 {
-    [self _setDimStrength:fmin((offset * kFullDimStrength), kFullDimStrength)];
+    [self _setDimStrength:fminf((offset * kFullDimStrength), kFullDimStrength)];
 }
 
 - (void)groupViewDidOpen:(STKGroupView *)groupView
