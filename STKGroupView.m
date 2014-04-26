@@ -8,13 +8,14 @@
 #undef CLASS
 #define CLASS(cls) NSClassFromString(@#cls)
 
-#define kApexIconPreviewScale    0.95f
-#define kSubappPreviewScale      0.81f
 #define kBandingAllowance        2000.f
 #define kDockedBandingAllowance  20.f
+
 #define kPopoutDistance          9.f
 #define kCentralIconPreviewScale 0.95f
-#define kDistanceFromEdge        1.5f
+#define kSubappPreviewScale      0.81f
+
+#define kGrabberDistanceFromEdge 1.5f
 #define kGrabberHeight           3.f
 
 #define CURRENTLY_SHOWS_PREVIEW (!_group.empty && _showPreview)
@@ -276,11 +277,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     CGFloat grabberWidth = floorf(iconImageFrame.size.width * 0.419354839);
 
     _topGrabberView = [[UIView new] autorelease];
-    _topGrabberView.frame = (CGRect){{0, self.bounds.origin.y - kDistanceFromEdge - kGrabberHeight + 2.f}, {grabberWidth, kGrabberHeight}};
+    _topGrabberView.frame = (CGRect){{0, self.bounds.origin.y - kGrabberDistanceFromEdge - kGrabberHeight + 2.f}, {grabberWidth, kGrabberHeight}};
     _topGrabberView.center = (CGPoint){[_centralIconView iconImageCenter].x, _topGrabberView.center.y};
 
     _bottomGrabberView = ([_centralIconView isInDock] ? nil : [[UIView new] autorelease]);
-    _bottomGrabberView.frame = (CGRect){{0, iconImageFrame.size.height + kDistanceFromEdge - 4.f}, {grabberWidth, kGrabberHeight}};
+    _bottomGrabberView.frame = (CGRect){{0, iconImageFrame.size.height + kGrabberDistanceFromEdge - 4.f}, {grabberWidth, kGrabberHeight}};
     _bottomGrabberView.center = (CGPoint){[_centralIconView iconImageCenter].x, _bottomGrabberView.center.y};
 
     _topGrabberView.layer.cornerRadius = _bottomGrabberView.layer.cornerRadius = (kGrabberHeight * 0.5f);
