@@ -11,9 +11,9 @@
 #define kBandingAllowance        2000.f
 #define kDockedBandingAllowance  20.f
 
-#define kPopoutDistance          9.f
+#define kPopoutDistance          12.f
 #define kCentralIconPreviewScale 0.95f
-#define kSubappPreviewScale      0.81f
+#define kSubappPreviewScale      0.66f
 
 #define kGrabberDistanceFromEdge 1.5f
 #define kGrabberHeight           3.f
