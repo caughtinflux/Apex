@@ -173,7 +173,8 @@ static void STKPrefsChanged (
 
 - (STKGroup *)groupForSubappIcon:(SBIcon *)icon
 {
-    return _groups[_subappToCentralMap[icon.leafIdentifier]];
+    NSString *centralIconIdentifier = _subappToCentralMap[icon.leafIdentifier];
+    return _groups[centralIconIdentifier];
 }
 
 - (void)_synchronize
@@ -267,7 +268,7 @@ static void STKPrefsChanged (
     }
     NSMutableArray *groupsToUpdate = [NSMutableArray array];
     for (SBIcon *subappIcon in group.layout) {
-        STKGroup *previousGroup = [self groupForSubappIcon:subappIcon];
+        STKGroup *previousGroup = [[[self groupForSubappIcon:subappIcon] retain] autorelease];
         if (previousGroup && group != previousGroup) {
             // Another group has `subappIcon`, so remove subappIcon from it
             STKGroupSlot slotForRemovedIcon = [previousGroup.layout slotForIcon:subappIcon];
