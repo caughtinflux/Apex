@@ -136,8 +136,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _subappLayout = nil;
     [_displacedIconLayout release];
     _displacedIconLayout = nil;
-    [self _configureSubappViews];
     self.showGrabbers = didShowGrabbers;
+    [self _configureSubappViews];
 }
 
 - (SBIconView *)subappIconViewForIcon:(SBIcon *)icon
