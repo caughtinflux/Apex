@@ -15,8 +15,8 @@
 #define kCentralIconPreviewScale 0.95f
 #define kSubappPreviewScale      0.66f
 
-#define kGrabberDistanceFromEdge 1.5f
-#define kGrabberHeight           3.f
+#define kGrabberDistanceFromEdge -2.f
+#define kGrabberHeight           5.f
 
 #define CURRENTLY_SHOWS_PREVIEW (!_group.empty && _showPreview)
 #define SCALE_CENTRAL_ICON (CURRENTLY_SHOWS_PREVIEW || (_topGrabberView && _bottomGrabberView))
@@ -274,7 +274,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_addGrabbers
 {
     CGRect iconImageFrame = [_centralIconView iconImageFrame];
-    CGFloat grabberWidth = floorf(iconImageFrame.size.width * 0.419354839);
+    CGFloat grabberWidth = (floorf(iconImageFrame.size.width * 0.419354839) + 1.f);
 
     _topGrabberView = [[UIView new] autorelease];
     _topGrabberView.frame = (CGRect){{0, self.bounds.origin.y - kGrabberDistanceFromEdge - kGrabberHeight + 2.f}, {grabberWidth, kGrabberHeight}};
