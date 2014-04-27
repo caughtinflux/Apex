@@ -183,7 +183,7 @@
     // The list dimming view should cover itself, the list view before, and the one after it.
     CGRect frame = [UIScreen mainScreen].bounds;
     frame.origin.x -= frame.size.width;
-    frame.origin.y -= [UIApplication sharedApplication].statusBarFrame.size.height;
+    frame.origin.y -= dock.frame.size.height;
     frame.size.width *= 3.f;
     _listDimmingView = [[UIView alloc] initWithFrame:frame];
     _dockDimmingView = [[UIView alloc] initWithFrame:dock.bounds];
