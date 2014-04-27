@@ -21,6 +21,8 @@
 #define CURRENTLY_SHOWS_PREVIEW (!_group.empty && _showPreview)
 #define SCALE_CENTRAL_ICON (CURRENTLY_SHOWS_PREVIEW || (_topGrabberView && _bottomGrabberView))
 
+#define kDefaultAnimationOptions (UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState)
+
 typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     STKRecognizerDirectionNone,
     STKRecognizerDirectionUp,
@@ -693,9 +695,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 iconView.frame = (CGRect){destination, iconView.frame.size};
             };
         }];
-        if (_delegateFlags.didMoveToOffset) {
-            [self.delegate groupView:self didMoveToOffset:1.f];
-        }
     };
 
     void(^completionBlock)(BOOL finished) = ^(BOOL finished) {
@@ -711,10 +710,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                           delay:0.0
          usingSpringWithDamping:0.5f
           initialSpringVelocity:0.5f
-                        options:UIViewAnimationOptionCurveEaseOut
+                        options:kDefaultAnimationOptions
                      animations:animationBlock
                      completion:completionBlock];
-    [UIView animateWithDuration:0.25 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+    [UIView animateWithDuration:0.25 delay:0.0 options:kDefaultAnimationOptions animations:^{
         if ([_centralIconView isInDock]) {
             for (SBIcon *icon in _displacedIconLayout) {
                 [listView viewForIcon:icon].alpha = 0.f;
@@ -723,6 +722,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [_centralIconView stk_setImageViewScale:1.f];
         [self _setAlphaForOtherIcons:0.2f];
         _topGrabberView.alpha = _bottomGrabberView.alpha = 0.f;
+        if (_delegateFlags.didMoveToOffset) {
+            [self.delegate groupView:self didMoveToOffset:1.f];
+        }
     } completion:nil];
 }
 
@@ -743,7 +745,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self _performScaleAnimationOnCentralIconFromScale:(scale - 0.1f) toScale:scale];
     [UIView animateWithDuration:0.25f
         delay:0.0
-        options:(UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState)
+        options:kDefaultAnimationOptions
         animations:^{
             [self _setAlphaForOtherIcons:1.f];
             [self _setupPreview];
@@ -786,10 +788,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_performScaleAnimationOnCentralIconFromScale:(CGFloat)fromScale toScale:(CGFloat)toScale
 {
-    [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+    [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:(UIViewAnimationOptionCurveEaseIn | UIViewAnimationOptionBeginFromCurrentState) animations:^{
         [_centralIconView stk_setImageViewScale:fromScale];
     } completion:^(BOOL done) {
-        [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:(UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState) animations:^{
             [_centralIconView stk_setImageViewScale:toScale];
         } completion:nil];
     }];
