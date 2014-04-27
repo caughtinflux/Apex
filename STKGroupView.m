@@ -390,8 +390,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             _currentBandingAllowance = ([_centralIconView isInDock] ? kDockedBandingAllowance : kBandingAllowance);
             
             [self _resetDisplacedIconLayout];
-            CGFloat scale = ((SCALE_CENTRAL_ICON) ? kCentralIconPreviewScale : 1.f);
-            [self _performScaleAnimationOnCentralIconFromScale:(scale + 0.1f) toScale:scale];
+            [self _performScaleAnimationOnCentralIconFromScale:1.1f toScale:1.f];
             break;
         }
         case UIGestureRecognizerStateChanged: {
