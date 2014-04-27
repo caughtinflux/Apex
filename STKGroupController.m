@@ -2,12 +2,13 @@
 #import "STKConstants.h"
 #import <dlfcn.h>
 
-#define kFullDimStrength 0.3f
+#define kFullDimStrength 0.4f
 
 @implementation STKGroupController
 {
     STKGroupView *_openGroupView;
-    UIView *_dimmingView;
+    UIView *_listDimmingView;
+    UIView *_dockDimmingView;
     UISwipeGestureRecognizer *_closeSwipeRecognizer;
     UITapGestureRecognizer *_closeTapRecognizer;
     
@@ -171,26 +172,45 @@
     return [currentFolderController.contentView scrollView];
 }
 
-- (void)_setDimStrength:(CGFloat)strength
+- (void)_setupDimmingViews
 {
-    if (!_dimmingView) {
-        SBWallpaperController *controller = [CLASS(SBWallpaperController) sharedInstance];
-        UIView *homescreenWallpaperView = [controller valueForKey:@"_homescreenWallpaperView"] ?: [controller valueForKey:@"_sharedWallpaperView"];
-        // if the same wallpaper is used for the home as well as lock screen, _homescreenWallpaperView is nil
-        _dimmingView = [[UIView alloc] initWithFrame:homescreenWallpaperView.bounds];
-        _dimmingView.backgroundColor = [UIColor colorWithWhite:0.f alpha:1.f];
-        _dimmingView.alpha = 0.f;
-        _dimmingView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
-        [homescreenWallpaperView addSubview:_dimmingView];
-    }
-    _dimmingView.alpha = strength;
+    [self _removeDimmingViews];
+
+    SBIconController *controller = [CLASS(SBIconController) sharedInstance];
+    SBIconListView *listView = [controller currentRootIconList];
+    SBDockIconListView *dock = [controller dockListView];
+    SBIconContentView *contentView = [controller contentView];
+
+    _listDimmingView = [[UIView alloc] initWithFrame:[contentView convertRect:contentView.bounds toView:listView]];
+    _dockDimmingView = [[UIView alloc] initWithFrame:dock.bounds];
+
+    _listDimmingView.backgroundColor = _dockDimmingView.backgroundColor = [UIColor colorWithWhite:0.f alpha:1.f];
+    _listDimmingView.alpha = _dockDimmingView.alpha = 0.f;
+    _listDimmingView.autoresizingMask = _dockDimmingView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
+
+    [listView addSubview:_listDimmingView];
+    [dock addSubview:_dockDimmingView];
+
+    STKGroupView *activeGroupView = [self _activeGroupView];
+    [activeGroupView.superview.superview bringSubviewToFront:activeGroupView.superview];
 }
 
-- (void)_removeDimmingView
+- (void)_removeDimmingViews
 {
-    [_dimmingView removeFromSuperview];
-    [_dimmingView release];
-    _dimmingView = nil;
+    [_listDimmingView removeFromSuperview];
+    [_dockDimmingView removeFromSuperview];
+    [_listDimmingView release];
+    [_dockDimmingView release];
+    _listDimmingView = nil;
+    _dockDimmingView = nil;
+}
+
+- (void)_setDimStrength:(CGFloat)strength
+{
+    if (!(_listDimmingView && _dockDimmingView)) {
+        [self _setupDimmingViews];
+    }
+    _listDimmingView.alpha = _dockDimmingView.alpha = strength;
 }
 
 - (void)_addCloseGestureRecognizers
@@ -418,7 +438,7 @@
             [groupView resetLayouts];
         }
     }
-    [self _removeDimmingView];
+    [self _removeDimmingViews];
     [self _removeCloseGestureRecognizers];
     _openGroupView = nil;
     _openGroupViewWasModified = NO;
