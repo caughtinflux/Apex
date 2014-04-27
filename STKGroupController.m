@@ -179,9 +179,13 @@
     SBIconController *controller = [CLASS(SBIconController) sharedInstance];
     SBIconListView *listView = [controller currentRootIconList];
     SBDockIconListView *dock = [controller dockListView];
-    SBIconContentView *contentView = [controller contentView];
 
-    _listDimmingView = [[UIView alloc] initWithFrame:[contentView convertRect:contentView.bounds toView:listView]];
+    // The list dimming view should cover itself, the list view before, and the one after it.
+    CGRect frame = [UIScreen mainScreen].bounds;
+    frame.origin.x -= frame.size.width;
+    frame.origin.y -= [UIApplication sharedApplication].statusBarFrame.size.height;
+    frame.size.width *= 3.f;
+    _listDimmingView = [[UIView alloc] initWithFrame:frame];
     _dockDimmingView = [[UIView alloc] initWithFrame:dock.bounds];
 
     _listDimmingView.backgroundColor = _dockDimmingView.backgroundColor = [UIColor colorWithWhite:0.f alpha:1.f];
