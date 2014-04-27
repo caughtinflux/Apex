@@ -460,11 +460,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             // If the icons are past the halfway mark, start increasing/decreasing their scale.
             CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kSubappPreviewScale);
             [subappView stk_setImageViewScale:stackIconTransformScale];
-            CGFloat centralIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kCentralIconPreviewScale);
-            [_centralIconView stk_setImageViewScale:centralIconTransformScale];
         }
-        else {      
-            [_centralIconView stk_setImageViewScale:1.f];
+        else {
             [subappView stk_setImageViewScale:1.f];
         }
     }
