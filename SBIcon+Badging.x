@@ -4,11 +4,12 @@
 
 - (id)badgeNumberOrString
 {
-    NSNumber *ret = %orig() ?: @(0);
+    NSNumber *ret = %orig();
     STKGroup *group = [[STKPreferences sharedPreferences] groupForCentralIcon:self];
-    if (!group || ![STKPreferences sharedPreferences].shouldShowSummedBadges) {
+    if (!group || ![STKPreferences sharedPreferences].shouldShowSummedBadges || [[CLASS(SBUIController) sharedInstance] isAppSwitcherShowing]) {
         return ret;
     }
+    ret = ret ?: @0;
     if ([ret isKindOfClass:[NSNumber class]]) {
         NSInteger subAppTotal = 0;
         for (SBIcon *icon in [[STKPreferences sharedPreferences] groupForCentralIcon:self].layout) {
@@ -25,7 +26,7 @@
 
 - (NSInteger)accessoryTypeForLocation:(SBIconLocation)location
 {
-    if ([self badgeNumberOrString]) {
+    if (![[%c(SBUIController) sharedInstance] isAppSwitcherShowing] && [self badgeNumberOrString]) {
         return 1;
     }
     return %orig();
@@ -35,7 +36,8 @@
 {
     NSString *text = %orig();
     if ([STKGroupController sharedController].openingGroupView.group.centralIcon == self
-        || ![STKPreferences sharedPreferences].shouldShowSummedBadges) {
+        || ![STKPreferences sharedPreferences].shouldShowSummedBadges
+        || [[%c(SBUIController) sharedInstance] isAppSwitcherShowing]) {
         return text;
     }
     else {
