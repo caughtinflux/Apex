@@ -269,8 +269,14 @@
             [availableIcons addObject:icon];
         }
     }
-    
+
     _selectionView.iconsForSelection = [[availableIcons objectEnumerator] allObjects];
+    _selectionView.selectionHandler = ^{
+        if (![selectedIconView.icon isLeafIcon]) {
+            [self _closeSelectionView];
+        }
+    };
+
     _selectionAnimator = [[STKGroupSelectionAnimator alloc] initWithSelectionView:_selectionView iconView:selectedIconView];
     [_selectionAnimator openSelectionViewAnimatedWithCompletion:nil];
     [self _setAllowScrolling:NO];

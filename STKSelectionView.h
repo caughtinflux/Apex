@@ -1,5 +1,7 @@
 #import <UIKit/UIKit.h>
 
+typedef void(^STKSelectionViewSelectionHandler)(void);
+
 @class SBIcon, SBIconView;
 @interface STKSelectionView : UIView <UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UITextFieldDelegate>
 
@@ -10,8 +12,10 @@
 @property (nonatomic, readonly) UIView *contentView;
 @property (nonatomic, readonly) UITextField *searchTextField;
 @property (nonatomic, readonly) UIView *iconCollectionView;
+@property (nonatomic, copy) STKSelectionViewSelectionHandler selectionHandler;
 
 - (void)scrollToSelectedIconAnimated:(BOOL)animated;
 - (void)flashScrollIndicators;
+
 
 @end
