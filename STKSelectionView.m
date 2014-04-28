@@ -258,6 +258,19 @@
     return NO;
 }
 
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    [_searchTextField resignFirstResponder];
+    STKSelectionViewCell *selectedCell = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:[[_collectionView indexPathsForSelectedItems] firstObject]];
+    [selectedCell.iconView setHighlighted:NO];
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+    STKSelectionViewCell *selectedCell = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:[[_collectionView indexPathsForSelectedItems] firstObject]];
+    [selectedCell.iconView setHighlighted:NO];   
+}
+
 - (void)_selectedCell:(STKSelectionViewCell *)cell
 {
     NSIndexPath *previousIndexPath = [[_collectionView indexPathsForSelectedItems] firstObject];
