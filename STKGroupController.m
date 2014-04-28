@@ -497,31 +497,6 @@
     return !_selectionView;
 }
 
-- (BOOL)iconViewDisplaysCloseBox:(SBIconView *)iconView
-{
-    return [[CLASS(SBIconController) sharedInstance] iconViewDisplaysCloseBox:iconView];
-}
-
-- (void)iconCloseBoxTapped:(SBIconView *)iconView
-{
-    [[CLASS(SBIconController) sharedInstance] iconCloseBoxTapped:iconView];
-}
-
-- (void)icon:(SBIconView *)iconView openFolder:(SBFolder *)folder animated:(BOOL)animated
-{
-    [[CLASS(SBIconController) sharedInstance] icon:iconView openFolder:folder animated:animated];
-}
-
-- (BOOL)iconViewDisplaysBadges:(SBIconView *)iconView
-{
-    return [[CLASS(SBIconController) sharedInstance] iconViewDisplaysBadges:iconView];
-}
-
-- (BOOL)icon:(SBIconView *)iconView canReceiveGrabbedIcon:(SBIconView *)grabbedIconView
-{
-    return [[CLASS(SBIconController) sharedInstance] icon:iconView canReceiveGrabbedIcon:grabbedIconView];
-}
-
 - (void)iconHandleLongPress:(SBIconView *)iconView
 {
     if (![self _activeGroupView] || ![iconView.icon isLeafIcon]) {
@@ -588,16 +563,39 @@
     return (otherGestureRecognizer.view == [[[CLASS(SBIconController) sharedInstance] _currentFolderController].contentView scrollView]);
 }
 
-#pragma mark - SUPER HAXXX 
-- (void)forwardInvocation:(NSInvocation *)invocation
+#pragma mark - SUPER HAXXX
+/*
+    Instead of implementing (and forwarding) each method of SBIconViewDelegate to SBIconController, we only implement those which we require.
+    We then implement -forwardInvocation and forward the requisite methods to SBIconController.
+    However, SBIconView checks (using -respondsToSelector:) whether we implement any given method in SBIconViewDelegate.
+    SO, we override -respondsToSelector: too! H4XX
+*/
+- (BOOL)__selectorIsPartOfIconViewDelegateProtocol:(SEL)selector
 {
-    Protocol *iconViewDelegateProtocol = @protocol(SBIconViewDelegate);
+    Protocol *iconViewDelegateProtocol = @protocol(SBIconViewDelegate);   
     struct objc_method_description methodDescription = protocol_getMethodDescription(iconViewDelegateProtocol,
-                                                                                     [invocation selector],
+                                                                                     selector,
                                                                                      NO,
                                                                                      YES);
-    if (methodDescription.name != NULL && methodDescription.types != NULL && [[CLASS(SBIconController) sharedInstance] respondsToSelector:[invocation selector]])  {
+    return (methodDescription.name != NULL && methodDescription.types != NULL);
+}
+
+- (BOOL)respondsToSelector:(SEL)selector
+{
+    if ([self __selectorIsPartOfIconViewDelegateProtocol:selector]) {
+        return YES;
+    }
+    return [super respondsToSelector:selector];
+}
+
+- (void)forwardInvocation:(NSInvocation *)invocation
+{
+    SEL selector = [invocation selector];
+    if ([self __selectorIsPartOfIconViewDelegateProtocol:selector] && [[CLASS(SBIconController) sharedInstance] respondsToSelector:selector])  {
         [invocation invokeWithTarget:[CLASS(SBIconController) sharedInstance]];
+    }
+    else {
+        [super forwardInvocation:invocation];
     }
 }
 
