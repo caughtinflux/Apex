@@ -19,9 +19,18 @@
 #define kGrabberHeight           5.f
 
 #define CURRENTLY_SHOWS_PREVIEW (!_group.empty && _showPreview)
-#define SCALE_CENTRAL_ICON (CURRENTLY_SHOWS_PREVIEW || (_topGrabberView && _bottomGrabberView))
+#define SCALE_CENTRAL_ICON (CURRENTLY_SHOWS_PREVIEW || (_showGrabbers && !_group.empty))
 
 #define kDefaultAnimationOptions (UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction)
+#define kOpenAnimationDuration     0.8
+#define kOpenAnimationFadeDuration 0.25
+#define kOpenAnimationDamping      0.5
+#define kOpenAnimationVelocity     0.5
+#define kCloseAnimationDuration    0.25
+#define kPlaceholderAddDuration    0.7
+#define kPlaceholderAddDamping     0.4
+#define kPlaceholderAddVelocity    0.3
+#define kPlaceholderRemoveDuration 0.15
 
 typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     STKRecognizerDirectionNone,
@@ -702,14 +711,14 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             [self.delegate groupViewDidOpen:self];
         }
     };
-    [UIView animateWithDuration:0.8
+    [UIView animateWithDuration:kOpenAnimationDuration
                           delay:0.0
-         usingSpringWithDamping:0.5f
-          initialSpringVelocity:0.5f
+         usingSpringWithDamping:kOpenAnimationDamping
+          initialSpringVelocity:kOpenAnimationVelocity
                         options:kDefaultAnimationOptions
                      animations:animationBlock
                      completion:completionBlock];
-    [UIView animateWithDuration:0.25 delay:0.0 options:kDefaultAnimationOptions animations:^{
+    [UIView animateWithDuration:kOpenAnimationFadeDuration delay:0.0 options:kDefaultAnimationOptions animations:^{
         if ([_centralIconView isInDock]) {
             for (SBIcon *icon in _displacedIconLayout) {
                 [listView viewForIcon:icon].alpha = 0.f;
@@ -739,10 +748,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     CGFloat scale = ((SCALE_CENTRAL_ICON) ? kCentralIconPreviewScale : 1.f);
     [self _performScaleAnimationOnCentralIconFromScale:(scale - 0.1f) toScale:scale];
-    [UIView animateWithDuration:0.25f
-        delay:0.0
-        options:kDefaultAnimationOptions
-        animations:^{
+    [UIView animateWithDuration:kCloseAnimationDuration delay:0.0 options:kDefaultAnimationOptions animations:^{
             [self _setAlphaForOtherIcons:1.f];
             [self _setupPreview];
 
@@ -784,10 +790,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_performScaleAnimationOnCentralIconFromScale:(CGFloat)fromScale toScale:(CGFloat)toScale
 {
-    [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:(UIViewAnimationOptionCurveEaseIn | UIViewAnimationOptionBeginFromCurrentState) animations:^{
+    [UIView animateWithDuration:(kCloseAnimationDuration * 0.6) delay:0 options:(UIViewAnimationOptionCurveEaseIn | UIViewAnimationOptionBeginFromCurrentState) animations:^{
         [_centralIconView stk_setImageViewScale:fromScale];
     } completion:^(BOOL done) {
-        [UIView animateWithDuration:(0.25 * 0.6) delay:0 options:(UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState) animations:^{
+        [UIView animateWithDuration:(kCloseAnimationDuration * 0.6) delay:0 options:(UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState) animations:^{
             [_centralIconView stk_setImageViewScale:toScale];
         } completion:nil];
     }];
@@ -906,31 +912,32 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)groupDidAddPlaceholders:(STKGroupView *)groupView
 {
-    [UIView animateWithDuration:0.15 animations:^{
-        [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
-            if ([icon isPlaceholder]) {
-                Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
-                SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
-                iconView.frame = (CGRect){[self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}], iconView.frame.size};
-                iconView.icon = icon;
-                iconView.delegate = self.delegate;
-                [_subappLayout addIcon:iconView toIconsAtPosition:pos];
-                [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
-                [self addSubview:iconView];
-            }
-            else if ([icon isLeafIcon]) {
-                SBIconView *iconView = _subappLayout[pos][idx];
-                [iconView showApexOverlayOfType:STKOverlayTypeEditing];
-            }
-        }];
-        [self _hideIconsForPlaceholders];
-    }];
+    [UIView animateWithDuration:kPlaceholderAddDuration delay:0.0 usingSpringWithDamping:0.6f initialSpringVelocity:0.3f options:kDefaultAnimationOptions
+        animations:^{
+            [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
+                if ([icon isPlaceholder]) {
+                    Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
+                    SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
+                    iconView.frame = (CGRect){[self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}], iconView.frame.size};
+                    iconView.icon = icon;
+                    iconView.delegate = self.delegate;
+                    [_subappLayout addIcon:iconView toIconsAtPosition:pos];
+                    [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
+                    [self addSubview:iconView];
+                }
+                else if ([icon isLeafIcon]) {
+                    SBIconView *iconView = _subappLayout[pos][idx];
+                    [iconView showApexOverlayOfType:STKOverlayTypeEditing];
+                }
+            }];
+            [self _hideIconsForPlaceholders];
+    } completion:nil];
 }
 
 - (void)groupWillRemovePlaceholders:(STKGroup *)group
 {
     NSMutableArray *viewsToRemove = [NSMutableArray array];
-    [UIView animateWithDuration:0.15 animations:^{
+    [UIView animateWithDuration:kPlaceholderRemoveDuration delay:0 options:kDefaultAnimationOptions animations:^{
         [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
             // we cannot mutate _subappLayout during iteration, so iterate over _group.layout
             // and store the views to be removed in a separate array
