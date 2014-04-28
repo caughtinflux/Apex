@@ -176,6 +176,11 @@
     [self _removeDimmingViews];
 
     SBIconController *controller = [CLASS(SBIconController) sharedInstance];
+    if ([controller hasOpenFolder]) {
+        // Don't add the dimming view
+        return;
+    }
+
     SBIconListView *listView = STKCurrentListView();
     SBDockIconListView *dock = [controller dockListView];
 
