@@ -52,13 +52,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
     }
 }
-
-- (BOOL)icon:(SBIconView *)iconView canReceiveGrabbedIcon:(SBIconView *)grabbedIconView
-{
-    DLog();
-    return %orig();
-}
-
 %end
 
 #pragma mark - SBIconView
