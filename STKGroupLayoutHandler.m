@@ -173,9 +173,9 @@ static SBIconListView *_centralIconListView;
 
 + (SBIconCoordinate)coordinateForIcon:(SBIcon *)icon
 {
-    _centralIconListView = STKListViewForIcon(icon);
-    NSUInteger idx = [[_centralIconListView model] indexForIcon:icon];
-    return [_centralIconListView coordinateForIconAtIndex:idx];
+    SBIconListView *iconListView = STKListViewForIcon(icon);
+    NSUInteger idx = [[iconListView model] indexForIcon:icon];
+    return [iconListView coordinateForIconAtIndex:idx];
 }
 
 + (STKLocation)locationForIcon:(SBIcon *)icon

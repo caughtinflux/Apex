@@ -854,7 +854,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self _setAlpha:alpha forBadgeAndLabelOfIconView:[listView viewForIcon:icon]];
     };
     SBIconController *controller = [CLASS(SBIconController) sharedInstance];
-    SBIconListView *currentListView = [controller currentRootIconList];
+    SBIconListView *currentListView = STKCurrentListView();
     SBIconListView *dock = [controller dockListView];
     for (SBIcon *icon in [currentListView icons]) {
         setter(currentListView, icon);
@@ -968,7 +968,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_hideIconsForPlaceholders
 {
     _iconsHiddenForPlaceholders = [[NSMutableSet alloc] initWithCapacity:4];
-    SBIconListView *listView = [[CLASS(SBIconController) sharedInstance] currentRootIconList];
+    SBIconListView *listView = [[[CLASS(SBIconController) sharedInstance] _currentFolderController] currentIconListView];
     for (SBIconView *iconView in _subappLayout) {
         if (![iconView.icon isPlaceholder]) {
             continue;

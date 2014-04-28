@@ -62,23 +62,13 @@
     if (iconView.icon == [[CLASS(SBIconController) sharedInstance] grabbedIcon]) {
         return;
     }
-    STKGroupView *groupView = nil;
+    STKGroupView *groupView = [iconView groupView];
     STKPreferences *preferences = [STKPreferences sharedPreferences];
-    if ((groupView = [iconView groupView])) {
-        SBIconCoordinate currentCoordinate = [STKGroupLayoutHandler coordinateForIcon:iconView.icon];
-        if (ISPAD()) {
-            [groupView.group forceRelayout];
-        }
-        else {
-            [groupView.group relayoutForNewCoordinate:currentCoordinate];
-        }
-    }
-    else {
+    if (!groupView) {
         STKGroup *group = [preferences groupForCentralIcon:iconView.icon];
         if (!group) {
             group = [self _groupWithEmptySlotsForIcon:iconView.icon];
         }
-        group.lastKnownCoordinate = [STKGroupLayoutHandler coordinateForIcon:group.centralIcon];
         groupView = [[[STKGroupView alloc] initWithGroup:group] autorelease];
         [iconView setGroupView:groupView];
     }
@@ -87,6 +77,15 @@
     groupView.showGrabbers = !(preferences.shouldHideGrabbers);
     groupView.activationMode = preferences.activationMode;
     [iconView.icon noteBadgeDidChange];
+
+    SBIconCoordinate currentCoordinate = [STKGroupLayoutHandler coordinateForIcon:iconView.icon];
+    if (ISPAD()) {
+        [groupView.group forceRelayout];
+    }
+    else {
+        [groupView.group relayoutForNewCoordinate:currentCoordinate];
+    }
+    groupView.group.lastKnownCoordinate = currentCoordinate;
 }
 
 - (void)removeGroupViewFromIconView:(SBIconView *)iconView
@@ -177,7 +176,7 @@
     [self _removeDimmingViews];
 
     SBIconController *controller = [CLASS(SBIconController) sharedInstance];
-    SBIconListView *listView = [controller currentRootIconList];
+    SBIconListView *listView = STKCurrentListView();
     SBDockIconListView *dock = [controller dockListView];
 
     // The list dimming view should cover itself, the list view before, and the one after it.
@@ -348,6 +347,9 @@
     STKPreferences *preferences = [STKPreferences sharedPreferences];
     NSMutableArray *listViews = [NSMutableArray arrayWithObject:[iconController dockListView]];
     [listViews addObjectsFromArray:[iconController _rootFolderController].iconListViews];
+    if ([iconController _currentFolderController] != [iconController _rootFolderController]) {
+        [listViews addObjectsFromArray:[iconController _currentFolderController].iconListViews];
+    }
     for (SBIconListView *listView in listViews) {
         [listView enumerateIconViewsUsingBlock:^(SBIconView *iconView) {
             STKGroupView *groupView = [iconView groupView];

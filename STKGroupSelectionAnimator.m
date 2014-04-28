@@ -53,7 +53,7 @@
         _selectionView.contentView.transform = CGAffineTransformMakeScale(1.0, 1.0);
         _selectionView.contentView.center = (CGPoint){CGRectGetMidX(_selectionView.bounds), CGRectGetMidY(_selectionView.bounds)};
 
-        [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 0.f;
+        STKCurrentListView().alpha = 0.f;
         [[CLASS(SBIconController) sharedInstance] dockListView].alpha = 0.f;
         _selectionView.iconCollectionView.alpha = 1.0f;
         _iconView.alpha = 0.f;
@@ -80,7 +80,7 @@
         _selectionView.alpha = 0.f;
     }];
     [UIView animateWithDuration:duration delay:0.05 options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
-        [[CLASS(SBIconController) sharedInstance] currentRootIconList].alpha = 1.f;
+        STKCurrentListView().alpha = 1.f;
         [[CLASS(SBIconController) sharedInstance] dockListView].alpha = 1.f;
     } completion:nil];
     [_zoomAnimator animateToFraction:0.f afterDelay:0.05 withCompletion:^{
