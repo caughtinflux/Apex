@@ -862,6 +862,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     for (SBIcon *icon in [dock icons]) {
         setter(dock, icon);
     }
+    SBIconListPageControl *pageControl = [[controller _currentFolderController].contentView valueForKey:@"pageControl"];
+    pageControl.alpha = alpha;
 }
 
 - (void)_setAlpha:(CGFloat)alpha forBadgeAndLabelOfIconView:(SBIconView *)iconView
