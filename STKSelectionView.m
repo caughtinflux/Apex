@@ -275,7 +275,10 @@
     STKSelectionViewCell *currentSelection = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:currentIndexPath];
     [currentSelection.iconView showApexOverlayOfType:STKOverlayTypeCheck];
     [_collectionView selectItemAtIndexPath:currentIndexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
-    if (self.selectionHandler) self.selectionHandler();
+    [_searchTextField resignFirstResponder];
+    if (self.selectionHandler) {
+        self.selectionHandler();
+    }
 }
 
 - (void)_setupTextField
