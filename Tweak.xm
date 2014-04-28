@@ -52,6 +52,15 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
     }
 }
+
+- (void)_closeFolderController:(SBFolderController *)folderController animated:(BOOL)animated withCompletion:(id)completion
+{
+    BOOL handled = [[STKGroupController sharedController] handleClosingEvent:STKClosingEventHomeButtonPress];
+    if (!handled) {
+        %orig();
+    }
+}
+
 %end
 
 #pragma mark - SBIconView
