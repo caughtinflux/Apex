@@ -112,7 +112,9 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
         overlayView.frame = [self _iconImageView].bounds;
     }
     else {
-        overlayView = [[[CLASS(SBFolderBackgroundView) alloc] initWithFrame:[self _iconImageView].bounds] autorelease];
+        overlayView = [[[CLASS(SBWallpaperEffectView) alloc] initWithWallpaperVariant:SBWallpaperVariantHomeScreen] autorelease];
+        overlayView.frame = [self _iconImageView].bounds;
+        [(SBWallpaperEffectView *)overlayView setStyle:7];
         overlayView.layer.mask = [[self class] maskForApexEmptyIconOverlayWithBounds:overlayView.layer.bounds];
     }
     self.apexOverlayView = overlayView;
