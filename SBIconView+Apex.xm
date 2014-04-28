@@ -89,8 +89,10 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
 {
     [self.apexOverlayView removeFromSuperview];
     objc_setAssociatedObject(self, @selector(STKOverlayView), overlayView, OBJC_ASSOCIATION_ASSIGN);
+    overlayView.alpha = 0;
     [[self _iconImageView] addSubview:overlayView];
     [self setNeedsLayout];
+    overlayView.alpha = 1.f;
 }
 
 %new
@@ -102,8 +104,6 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
 %new
 - (void)showApexOverlayOfType:(STKOverlayType)type
 {
-    [CATransaction begin]; // Disable implicit animations. ME NO LIKEY.
-    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
     UIView *overlayView = nil;
     if (type == STKOverlayTypeEditing || type == STKOverlayTypeCheck) {
         NSString *imageName = ((type == STKOverlayTypeEditing) ? AddOverlayImageName : CheckOverlayImageName);
@@ -119,7 +119,6 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
     if (!(type == STKOverlayTypeEditing || type == STKOverlayTypeCheck)) {
         [self bringSubviewToFront:[self _iconImageView]];
     }
-    [CATransaction commit];
 }
 
 %new
