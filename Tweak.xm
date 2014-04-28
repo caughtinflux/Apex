@@ -52,6 +52,13 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
     }
 }
+
+- (BOOL)icon:(SBIconView *)iconView canReceiveGrabbedIcon:(SBIconView *)grabbedIconView
+{
+    DLog();
+    return %orig();
+}
+
 %end
 
 #pragma mark - SBIconView
@@ -61,10 +68,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     SBIconLocation previousLoc = self.location;
     %orig(location);
 
-    if ([STKListViewForIcon(self.icon) isKindOfClass:CLASS(SBFolderIconListView)]) {
-        [[STKGroupController sharedController] removeGroupViewFromIconView:self];
-        return;
-    }
     if ([self groupView] && previousLoc == location) {
         self.delegate = [STKGroupController sharedController];
         return;
@@ -73,7 +76,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         && STKListViewForIcon(self.icon)
         && [self.icon isLeafIcon]
         && ![self.icon isDownloadingIcon]) {
-        [[STKGroupController sharedController] addGroupViewToIconView:self];
+        [[STKGroupController sharedController] addOrUpdateGroupViewForIconView:self];
     }
 }
 %end

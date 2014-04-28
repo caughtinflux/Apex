@@ -57,7 +57,7 @@
     return self;
 }
 
-- (void)addGroupViewToIconView:(SBIconView *)iconView
+- (void)addOrUpdateGroupViewForIconView:(SBIconView *)iconView
 {
     if (iconView.icon == [[CLASS(SBIconController) sharedInstance] grabbedIcon]) {
         return;
@@ -499,10 +499,7 @@
 
 - (BOOL)iconViewDisplaysCloseBox:(SBIconView *)iconView
 {
-    if ([iconView groupView]) {
-        return [[CLASS(SBIconController) sharedInstance] iconViewDisplaysCloseBox:iconView];
-    }
-    return NO;
+    return [[CLASS(SBIconController) sharedInstance] iconViewDisplaysCloseBox:iconView];
 }
 
 - (void)iconCloseBoxTapped:(SBIconView *)iconView
@@ -522,10 +519,7 @@
 
 - (BOOL)icon:(SBIconView *)iconView canReceiveGrabbedIcon:(SBIconView *)grabbedIconView
 {
-    STKGroup *grabbedGroup = [grabbedIconView groupView].group;
-    STKGroup *group = [iconView groupView].group;
-    BOOL bothGroupsAreEmpty = (group.state == STKGroupStateEmpty && grabbedGroup.state == STKGroupStateEmpty);
-    return bothGroupsAreEmpty;
+    return [[CLASS(SBIconController) sharedInstance] icon:iconView canReceiveGrabbedIcon:grabbedIconView];
 }
 
 - (void)iconHandleLongPress:(SBIconView *)iconView
@@ -564,15 +558,10 @@
 - (void)icon:(SBIconView *)iconView touchEnded:(BOOL)ended
 {
     if (_openGroupView) {
-        // Nobody cares
+        // I don't care about this method on open group views.
         return;
     }
     [[CLASS(SBIconController) sharedInstance] icon:iconView touchEnded:ended];
-}
-
-- (CGFloat)iconLabelWidth
-{
-    return [[CLASS(SBIconController) sharedInstance] iconLabelWidth];
 }
 
 #pragma mark - Gesture Recognizer Delegate
@@ -597,6 +586,19 @@
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
     return (otherGestureRecognizer.view == [[[CLASS(SBIconController) sharedInstance] _currentFolderController].contentView scrollView]);
+}
+
+#pragma mark - SUPER HAXXX 
+- (void)forwardInvocation:(NSInvocation *)invocation
+{
+    Protocol *iconViewDelegateProtocol = @protocol(SBIconViewDelegate);
+    struct objc_method_description methodDescription = protocol_getMethodDescription(iconViewDelegateProtocol,
+                                                                                     [invocation selector],
+                                                                                     NO,
+                                                                                     YES);
+    if (methodDescription.name != NULL && methodDescription.types != NULL && [[CLASS(SBIconController) sharedInstance] respondsToSelector:[invocation selector]])  {
+        [invocation invokeWithTarget:[CLASS(SBIconController) sharedInstance]];
+    }
 }
 
 @end

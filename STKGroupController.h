@@ -16,7 +16,7 @@ typedef NS_ENUM(NSUInteger, STKClosingEvent) {
 @property (nonatomic, readonly) STKGroupView *openGroupView;
 @property (nonatomic, readonly) STKGroupView *openingGroupView;
 
-- (void)addGroupViewToIconView:(SBIconView *)iconView;
+- (void)addOrUpdateGroupViewForIconView:(SBIconView *)iconView;
 - (void)removeGroupViewFromIconView:(SBIconView *)iconView;
 
 - (void)performRotationWithDuration:(NSTimeInterval)duration;
