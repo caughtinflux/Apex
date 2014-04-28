@@ -29,7 +29,7 @@
 #define kCloseAnimationDuration    0.25
 #define kPlaceholderAddDuration    0.7
 #define kPlaceholderAddDamping     0.4
-#define kPlaceholderAddVelocity    0.3
+#define kPlaceholderAddVelocity    0.5
 #define kPlaceholderRemoveDuration 0.15
 
 typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
