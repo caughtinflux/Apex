@@ -20,6 +20,11 @@ SBIconListView * STKListViewForIcon(SBIcon *icon)
     return listView;
 }
 
+SBIconListView * STKCurrentListView(void)
+{
+    return [[[CLASS(SBIconController) sharedInstance] _currentFolderController] currentIconListView];
+}
+
 SBIconCoordinate STKCoordinateFromDictionary(NSDictionary *dict)
 {
     return (SBIconCoordinate){[dict[@"row"] integerValue], [dict[@"col"] integerValue]};

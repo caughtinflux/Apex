@@ -55,6 +55,7 @@ extern "C" {
     extern CFStringRef const STKPrefsChangedNotificationName;
     
     extern SBIconListView * STKListViewForIcon(SBIcon *icon);
+    extern SBIconListView * STKCurrentListView(void);
 
     extern SBIconCoordinate STKCoordinateFromDictionary(NSDictionary *dict);
     extern NSDictionary * STKDictionaryFromCoordinate(SBIconCoordinate coordinate);
