@@ -308,6 +308,7 @@
     _searchTextField.center = (CGPoint){(width * 0.5f), (frame.origin.y + (frame.size.height * 0.5))};
     _searchTextField.delegate = self;
     _searchTextField.attributedPlaceholder = [self _attributedPlaceholderForTextField];
+    _searchTextField.autocorrectionType = UITextAutocorrectionTypeNo;
     [_searchTextField addTarget:self action:@selector(_searchTextChanged) forControlEvents:UIControlEventEditingChanged];
     [self addSubview:_searchTextField];
 }
