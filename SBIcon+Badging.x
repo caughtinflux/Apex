@@ -19,7 +19,6 @@
         if ([ret integerValue] <= 0) {
             ret = nil;
         }
-
     }
     return ret;
 }
