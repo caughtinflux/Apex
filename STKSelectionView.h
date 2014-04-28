@@ -12,10 +12,12 @@ typedef void(^STKSelectionViewSelectionHandler)(void);
 @property (nonatomic, readonly) UIView *contentView;
 @property (nonatomic, readonly) UITextField *searchTextField;
 @property (nonatomic, readonly) UIView *iconCollectionView;
+@property (nonatomic, readonly) BOOL isKeyboardVisible;
 @property (nonatomic, copy) STKSelectionViewSelectionHandler selectionHandler;
 
 - (void)scrollToSelectedIconAnimated:(BOOL)animated;
 - (void)flashScrollIndicators;
 
+- (void)dismissKeyboard;
 
 @end

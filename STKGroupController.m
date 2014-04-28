@@ -237,7 +237,12 @@
 - (void)_closeOpenGroupOrSelectionView
 {
     if (_selectionView) {
-        [self _closeSelectionView];
+        if (_selectionView.isKeyboardVisible) {
+            [_selectionView dismissKeyboard];
+        }
+        else {
+            [self _closeSelectionView];
+        }
     }
     else if (_openGroupView.group.hasPlaceholders && (_openGroupViewWasModified == NO)) {
         [_openGroupView.group removePlaceholders];

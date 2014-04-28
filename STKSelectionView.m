@@ -95,6 +95,11 @@
     [_collectionView reloadData];
 }
 
+- (BOOL)isKeyboardVisible
+{
+    return [_searchTextField isFirstResponder];
+}
+
 - (void)scrollToSelectedIconAnimated:(BOOL)animated
 {
     if ([_selectedIcon isLeafIcon]) {
@@ -125,6 +130,11 @@
 - (void)flashScrollIndicators
 {
     [_collectionView flashScrollIndicators];
+}
+
+- (void)dismissKeyboard
+{
+    [_searchTextField resignFirstResponder];
 }
 
 - (void)_processIcons:(NSArray *)icons
