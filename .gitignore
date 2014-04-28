@@ -12,3 +12,5 @@ debs/
 *.sublime-workspace
 
 build/
+
+.theos/fakeroot
