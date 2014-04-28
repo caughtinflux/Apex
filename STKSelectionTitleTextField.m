@@ -29,7 +29,7 @@
         clearButton.frame = (CGRect){CGPointZero, clearImage.size};
 
         self.leftViewMode = UITextFieldViewModeAlways;
-        self.rightViewMode = UITextFieldViewModeWhileEditing;
+        self.rightViewMode = UITextFieldViewModeAlways;
         self.leftView = searchIconView;
         self.rightView = clearButton;
     }
