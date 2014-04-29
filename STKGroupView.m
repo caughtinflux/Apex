@@ -1,5 +1,6 @@
 #import <SpringBoard/SpringBoard.h>
 #import <UIKit/UIKit.h>
+#import <UIKit/_UILegibilitySettings.h>
 #import <QuartzCore/QuartzCore.h>
 
 #import "STKGroupView.h"
@@ -17,6 +18,8 @@
 
 #define kGrabberDistanceFromEdge -2.f
 #define kGrabberHeight           6.f
+#define kGrabberLightColour      [UIColor colorWithWhite:1.f alpha:0.44f]      
+#define kGrabberDarkColour       [UIColor colorWithWhite:0.f alpha:0.44f]
 
 #define CURRENTLY_SHOWS_PREVIEW (!_group.empty && _showPreview)
 #define SCALE_CENTRAL_ICON (CURRENTLY_SHOWS_PREVIEW || (_showGrabbers && !_group.empty))
@@ -82,7 +85,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         _activationMode = STKActivationModeSwipeUpAndDown;
         _showPreview = YES;
         self.alpha = 0.f;
-        _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
     }
     return self;
 }
@@ -171,10 +173,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
     _group = [group retain];
     [_group addObserver:self];
-
-    _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
-    _centralIconView.delegate = self.delegate;
-
+    [self _setDelegateOnCentralIconView];
     [self resetLayouts];
 }
 
@@ -206,8 +205,26 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _delegateFlags.didOpen = [self.delegate respondsToSelector:@selector(groupViewDidOpen:)];
     _delegateFlags.willClose = [self.delegate respondsToSelector:@selector(groupViewWillClose:)];
     _delegateFlags.didClose = [self.delegate respondsToSelector:@selector(groupViewDidClose:)];
+    [self _setDelegateOnCentralIconView];
+}
+
+- (void)_setDelegateOnCentralIconView
+{
+    [_centralIconView removeObserver:self forKeyPath:@"legibilitySettings"];
     _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
-    _centralIconView.delegate = _delegate;
+    _centralIconView.delegate = self.delegate;
+    [_centralIconView addObserver:self forKeyPath:@"legibilitySettings" options:0 context:NULL];
+}
+
+- (void)observeValueForKeyPath:(NSString *)kp ofObject:(SBIconView *)iconView change:(NSDictionary *)cd context:(void *)ctx
+{
+    _UILegibilitySettings *legibilitySettings = [iconView legibilitySettings];
+    if (legibilitySettings.style == 1) {
+        _topGrabberView.backgroundColor = _bottomGrabberView.backgroundColor = kGrabberLightColour;
+    }
+    else {
+        _topGrabberView.backgroundColor = _bottomGrabberView.backgroundColor = kGrabberDarkColour;
+    }
 }
 
 #pragma mark - Layout
@@ -297,7 +314,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
     _topGrabberView.layer.cornerRadius = _bottomGrabberView.layer.cornerRadius = (kGrabberHeight * 0.5f);
     _topGrabberView.layer.masksToBounds = _bottomGrabberView.layer.masksToBounds = YES;
-    _topGrabberView.backgroundColor = _bottomGrabberView.backgroundColor = [UIColor colorWithWhite:1.f alpha:0.44f];
+
+    _UILegibilitySettings *legibilitySettings = [_centralIconView legibilitySettings];
+    UIColor *color = ((legibilitySettings.style == 1) ? kGrabberLightColour : kGrabberDarkColour);
+    _topGrabberView.backgroundColor = _bottomGrabberView.backgroundColor = color;
 
     _topGrabberOriginalFrame = _topGrabberView.frame;
     _bottomGrabberOriginalFrame = _bottomGrabberView.frame;
