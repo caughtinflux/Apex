@@ -15,11 +15,14 @@
 #define kPopoutDistance          12.f
 #define kCentralIconPreviewScale 0.95f
 #define kSubappPreviewScale      0.66f
+#define kSubappPreviewAlpha      0.88f
 
 #define kGrabberDistanceFromEdge -2.f
 #define kGrabberHeight           6.f
 #define kGrabberLightColour      [UIColor colorWithWhite:1.f alpha:0.44f]      
 #define kGrabberDarkColour       [UIColor colorWithWhite:0.f alpha:0.44f]
+
+#define kBackgroundFadeAlpha       0.2f
 
 #define CURRENTLY_SHOWS_PREVIEW (!_group.empty && _showPreview)
 #define SCALE_CENTRAL_ICON (CURRENTLY_SHOWS_PREVIEW || (_showGrabbers && !_group.empty))
@@ -284,6 +287,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             CGFloat *memberToModify = (STKPositionIsVertical(position) ? &newOrigin.y : &newOrigin.x);
             CGFloat negator = (position == STKPositionTop || position == STKPositionLeft ? -1 : 1);
             *memberToModify += kPopoutDistance * negator;
+            iconView.alpha = kSubappPreviewAlpha;
         }
         frame.origin = newOrigin; 
         iconView.frame = frame;
@@ -486,12 +490,17 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     if (SCALE_CENTRAL_ICON) { 
         if (_lastDistanceFromCenter <= midWayDistance) {
-            // If the icons are past the halfway mark, start increasing/decreasing their scale.
+            // If the icons have not passed the halfway mark, modify their scale as necessary
             CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kSubappPreviewScale);
             [subappView stk_setImageViewScale:stackIconTransformScale];
         }
         else {
             [subappView stk_setImageViewScale:1.f];
+        }
+    }
+    if (CURRENTLY_SHOWS_PREVIEW) {
+        if (slot.index == ([_subappLayout[slot.position] count] - 1)) {
+            subappView.alpha = STKScaleNumber(_lastDistanceFromCenter, 0, midWayDistance, kSubappPreviewAlpha, 1.0);
         }
     }
 }
@@ -709,6 +718,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             CGPoint origin = [self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}];
             iconView.frame = (CGRect){origin, iconView.frame.size};
             [iconView stk_setImageViewScale:1.f];
+            iconView.alpha = 1.f;
         }];
         [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
             SBIconView *iconView = [listView viewForIcon:icon];
@@ -745,7 +755,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             }
         }
         [_centralIconView stk_setImageViewScale:1.f];
-        [self _setAlphaForOtherIcons:0.2f];
+        [self _setAlphaForOtherIcons:kBackgroundFadeAlpha];
         _topGrabberView.alpha = _bottomGrabberView.alpha = 0.f;
         if (_delegateFlags.didMoveToOffset) {
             [self.delegate groupView:self didMoveToOffset:1.f];
@@ -776,14 +786,16 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             _bottomGrabberView.frame = _bottomGrabberOriginalFrame;
             _topGrabberView.alpha = _bottomGrabberView.alpha = 1.f;
 
-            [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:
-                ^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
-                    SBIconView *iconView = [self _iconViewForIcon:icon];
-                    if ([_centralIconView isInDock]) {
-                        iconView.alpha = 1.f;
+            if ([_centralIconView isInDock]) {
+                [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:
+                    ^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
+                        SBIconView *iconView = [self _iconViewForIcon:icon];
+                        if ([_centralIconView isInDock]) {
+                            iconView.alpha = 1.f;
+                        }
                     }
-                }
-            ];
+                ];
+            }
             
             SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
             [listView setIconsNeedLayout];
@@ -1013,7 +1025,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_unhideIconsForPlaceholders
 {
     for (SBIconView *iconView in _iconsHiddenForPlaceholders) {
-        iconView.alpha = 0.2f;
+        iconView.alpha = kBackgroundFadeAlpha;
     }
     [_iconsHiddenForPlaceholders release];
     _iconsHiddenForPlaceholders = nil;
