@@ -490,7 +490,7 @@
         [self _showSelectionViewForIconView:iconView];
     }
     else {
-        [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
+        [iconView.icon launchFromLocation:(iconView.groupView ? SBIconLocationHomeScreen : SBIconLocationSwitcher)];
         if ([STKPreferences sharedPreferences].shouldCloseOnLaunch) {
             [activeGroupView close];
         }
