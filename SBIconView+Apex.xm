@@ -4,12 +4,16 @@
 static NSString * const CheckOverlayImageName = @"OverlayCheck@2x";
 static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
 
+#define kHomeScreenOverlayBlurStyle 7
+#define kFolderOverlayBlurStyle     2
+
 @interface SBIconView (ApexPrivate)
 + (UIBezierPath *)pathForApexCrossOverlayWithBounds:(CGRect)bounds;
 + (CALayer *)maskForApexEmptyIconOverlayWithBounds:(CGRect)bounds;
 
 @property (nonatomic, retain) UIView *apexOverlayView;
 - (void)removeGroupView;
+- (void)stk_modifyOverlayViewForFolderIfNecessary;
 @end
 
 %hook SBIconView
@@ -114,13 +118,14 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
     else {
         overlayView = [[[CLASS(STKWallpaperBlurView) alloc] initWithWallpaperVariant:SBWallpaperVariantHomeScreen] autorelease];
         overlayView.frame = [self _iconImageView].bounds;
-        [(STKWallpaperBlurView *)overlayView setStyle:2];
+        [(STKWallpaperBlurView *)overlayView setStyle:kHomeScreenOverlayBlurStyle];
         ((STKWallpaperBlurView *)overlayView).mask = [[self class] maskForApexEmptyIconOverlayWithBounds:overlayView.layer.bounds];
     }
     self.apexOverlayView = overlayView;
     if (!(type == STKOverlayTypeEditing || type == STKOverlayTypeCheck)) {
         [self bringSubviewToFront:[self _iconImageView]];
     }
+    [self stk_modifyOverlayViewForFolderIfNecessary];
 }
 
 %new
@@ -135,6 +140,19 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
     [self _iconImageView].layer.transform = CATransform3DMakeScale(scale, scale, scale);
 }
 
+%new
+- (void)stk_modifyOverlayViewForFolderIfNecessary
+{
+    BOOL isEmptyOrPlaceholderIcon = ([self.icon isKindOfClass:CLASS(STKEmptyIcon)]
+                                  || [self.icon isKindOfClass:CLASS(STKPlaceholderIcon)]);
+    if (self.containerGroupView && isEmptyOrPlaceholderIcon) {
+        BOOL isInFolder = (((SBIconView *)self.containerGroupView.superview).location == SBIconLocationFolder);
+        if (isInFolder) {
+            [(STKWallpaperBlurView *)self.apexOverlayView setStyle:kFolderOverlayBlurStyle];
+        }
+    }
+}
+
 - (void)layoutSubviews
 {
     %orig();
@@ -144,12 +162,21 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
 - (void)setIcon:(SBIcon *)icon
 {
     %orig(icon);
-    if ([icon isKindOfClass:CLASS(STKEmptyIcon)] || [icon isKindOfClass:CLASS(STKPlaceholderIcon)]) {
-        [self showApexOverlayOfType:STKOverlayTypeEmpty];   
+    BOOL isEmptyOrPlaceholderIcon = ([self.icon isKindOfClass:CLASS(STKEmptyIcon)]
+                                  || [self.icon isKindOfClass:CLASS(STKPlaceholderIcon)]);
+    if (isEmptyOrPlaceholderIcon) {
+        [self showApexOverlayOfType:STKOverlayTypeEmpty];
+        [self stk_modifyOverlayViewForFolderIfNecessary];
     }
     else {
         [self removeApexOverlay];
     }
+}
+
+- (void)didMoveToSuperview
+{
+    [self stk_modifyOverlayViewForFolderIfNecessary];
+    %orig();
 }
 
 - (void)setAlpha:(CGFloat)alpha

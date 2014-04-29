@@ -2,7 +2,6 @@
 
 typedef NS_ENUM(NSInteger, STKOverlayType) {
     STKOverlayTypeEmpty,
-    STKOverlayTypeEmptyInFolder,
     STKOverlayTypeEditing,
     STKOverlayTypeCheck
 };
