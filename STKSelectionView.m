@@ -341,6 +341,12 @@
     textField.textAlignment = NSTextAlignmentCenter;
     textField.textColor = [UIColor whiteColor];
     _searchTextField.attributedPlaceholder = [self _attributedPlaceholderForTextField];
+    if (_searchTextField.text.length > 0) {
+        _searchTextField.rightViewMode = UITextFieldViewModeAlways;
+    }
+    else {
+        _searchTextField.rightViewMode = UITextFieldViewModeWhileEditing;
+    }
 }
 
 - (void)_searchTextChanged
