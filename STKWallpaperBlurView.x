@@ -9,6 +9,12 @@
 	self.layer.mask = self.mask;
 }
 
+- (void)setStyle:(NSInteger)style
+{
+	%orig(style);
+	self.mask = self.mask;
+}
+
 %new
 - (void)setMask:(CALayer *)mask
 {
