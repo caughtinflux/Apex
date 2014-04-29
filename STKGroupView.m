@@ -22,7 +22,7 @@
 #define kGrabberLightColour      [UIColor colorWithWhite:1.f alpha:0.44f]      
 #define kGrabberDarkColour       [UIColor colorWithWhite:0.f alpha:0.44f]
 
-#define kBackgroundFadeAlpha       0.2f
+#define kBackgroundFadeAlpha     0.2f
 
 #define CURRENTLY_SHOWS_PREVIEW (!_group.empty && _showPreview)
 #define SCALE_CENTRAL_ICON (CURRENTLY_SHOWS_PREVIEW || (_showGrabbers && !_group.empty))
@@ -194,7 +194,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     else {
         [self _removeGrabbers];
-        [_centralIconView stk_setImageViewScale:1.0f];
+        if (!SCALE_CENTRAL_ICON) [_centralIconView stk_setImageViewScale:1.0f];
     }
     _showGrabbers = show;
 }
@@ -270,7 +270,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }];
 
     [self _resetDisplacedIconLayout];
-
     if (SCALE_CENTRAL_ICON) {
         [self _setupPreview];
         [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
