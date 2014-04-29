@@ -16,7 +16,7 @@
 #define kSubappPreviewScale      0.66f
 
 #define kGrabberDistanceFromEdge -2.f
-#define kGrabberHeight           5.f
+#define kGrabberHeight           6.f
 
 #define CURRENTLY_SHOWS_PREVIEW (!_group.empty && _showPreview)
 #define SCALE_CENTRAL_ICON (CURRENTLY_SHOWS_PREVIEW || (_showGrabbers && !_group.empty))
@@ -297,7 +297,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
     _topGrabberView.layer.cornerRadius = _bottomGrabberView.layer.cornerRadius = (kGrabberHeight * 0.5f);
     _topGrabberView.layer.masksToBounds = _bottomGrabberView.layer.masksToBounds = YES;
-    _topGrabberView.backgroundColor = _bottomGrabberView.backgroundColor = [UIColor colorWithWhite:1.f alpha:0.6f];
+    _topGrabberView.backgroundColor = _bottomGrabberView.backgroundColor = [UIColor colorWithWhite:1.f alpha:0.44f];
 
     _topGrabberOriginalFrame = _topGrabberView.frame;
     _bottomGrabberOriginalFrame = _bottomGrabberView.frame;
