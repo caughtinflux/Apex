@@ -949,12 +949,15 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                 iconView.frame = (CGRect){CGPointZero, iconView.frame.size};
                 [viewsToRemove addObject:iconView];
             }
-            else if ([iconView.icon isLeafIcon]) {
-                [iconView removeApexOverlay];
-            }
+            iconView.apexOverlayView.alpha = 0.f;
         }];
         [self _unhideIconsForPlaceholders];
     } completion:^(BOOL finished) {
+        for (SBIconView *iconView in _subappLayout) {
+            if ([iconView.icon isLeafIcon]) {
+                [iconView removeApexOverlay];
+            }
+        }
         for (SBIconView *view in viewsToRemove) {
             [view removeFromSuperview];
             [_subappLayout removeIcon:view fromIconsAtPosition:[_subappLayout slotForIcon:view].position];
