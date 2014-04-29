@@ -186,7 +186,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)setShowGrabbers:(BOOL)show
 {
-    if (show && (_showPreview == NO) && (_group.state != STKGroupStateEmpty)) {
+    if (show && (_showPreview == NO) && (_group.empty == NO)) {
         [self _addGrabbers];
         [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
     }
@@ -237,9 +237,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [_subappLayout release];
 
     _subappLayout = [[STKGroupLayout alloc] init];
-
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
-        Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
+        Class viewClass = [icon iconViewClassForLocation:_centralIconView.location];
         SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
         iconView.frame = _centralIconView.bounds;
         iconView.icon = icon;
@@ -247,6 +246,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [_subappLayout addIcon:iconView toIconsAtPosition:pos];
         [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
         [self addSubview:iconView];
+
     }];
 
     [self _resetDisplacedIconLayout];
@@ -270,7 +270,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         }
         frame.origin = newOrigin; 
         iconView.frame = frame;
-        if (![iconView.icon isLeafIcon] && _group.state != STKGroupStateEmpty) {
+        if (![iconView.icon isLeafIcon] && (_group.empty == NO)) {
             iconView.alpha = 0.f;
         }
         // Hide the label and badge
@@ -918,7 +918,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         animations:^{
             [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
                 if ([icon isPlaceholder]) {
-                    Class viewClass = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
+                    Class viewClass = [icon iconViewClassForLocation:_centralIconView.location];
                     SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
                     iconView.frame = (CGRect){[self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}], iconView.frame.size};
                     iconView.icon = icon;
