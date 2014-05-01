@@ -603,7 +603,8 @@
 - (void)forwardInvocation:(NSInvocation *)invocation
 {
     SEL selector = [invocation selector];
-    if ([self __selectorIsPartOfIconViewDelegateProtocol:selector] && [[CLASS(SBIconController) sharedInstance] respondsToSelector:selector])  {
+    if ([self __selectorIsPartOfIconViewDelegateProtocol:selector]
+     && [[CLASS(SBIconController) sharedInstance] respondsToSelector:selector])  {
         [invocation invokeWithTarget:[CLASS(SBIconController) sharedInstance]];
     }
     else {
