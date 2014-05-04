@@ -259,17 +259,17 @@ static void STKPrefsChanged (
 }
 
 #pragma mark - STKGroupObserver
-- (void)groupDidFinalizeState:(STKGroup *)group
+- (void)groupDidFinalizeState:(STKGroup *)finalizedGroup
 {
-    if (group.state == STKGroupStateEmpty) {
+    if (finalizedGroup.state == STKGroupStateEmpty) {
         DLog(@"Removing group because state is empty");
-        [self removeGroup:group];
+        [self removeGroup:finalizedGroup];
         return;
     }
     NSMutableArray *groupsToUpdate = [NSMutableArray array];
-    for (SBIcon *subappIcon in group.layout) {
+    for (SBIcon *subappIcon in finalizedGroup.layout) {
         STKGroup *previousGroup = [[[self groupForSubappIcon:subappIcon] retain] autorelease];
-        if (previousGroup && group != previousGroup) {
+        if (previousGroup && finalizedGroup != previousGroup) {
             // Another group has `subappIcon`, so remove subappIcon from it
             STKGroupSlot slotForRemovedIcon = [previousGroup.layout slotForIcon:subappIcon];
             [previousGroup replaceIconInSlot:slotForRemovedIcon withIcon:nil];
@@ -277,7 +277,7 @@ static void STKPrefsChanged (
             [groupsToUpdate addObject:previousGroup];
         }
     }
-    [groupsToUpdate addObject:group];
+    [groupsToUpdate addObject:finalizedGroup];
     [self _addOrUpdateGroups:groupsToUpdate];
 }
 
