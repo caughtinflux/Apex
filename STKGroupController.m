@@ -424,6 +424,7 @@
         [icon noteBadgeDidChange];
     }
     [self _addCloseGestureRecognizers];
+    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:NO];
 }
 
 - (void)groupView:(STKGroupView *)groupView didMoveToOffset:(CGFloat)offset
@@ -446,6 +447,7 @@
     for (SBIcon *icon in groupView.group.layout) {
         [icon noteBadgeDidChange];
     }
+    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
 }
 
 - (void)groupViewDidClose:(STKGroupView *)groupView
@@ -472,8 +474,13 @@
 
 - (void)groupViewWillBeDestroyed:(STKGroupView *)groupView
 {
-    if (groupView == _openGroupView) [self groupViewDidClose:groupView];
-    else if (groupView == _openingGroupView) _openingGroupView = nil;
+    if (groupView == _openGroupView) {
+        [self groupViewDidClose:groupView];
+        [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
+    }
+    else if (groupView == _openingGroupView) {
+        _openingGroupView = nil;
+    }
 }
 
 - (void)iconTapped:(SBIconView *)iconView
