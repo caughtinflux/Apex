@@ -447,9 +447,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             [self _moveByDistance:change performingBlockOnSubApps:^(SBIconView *subappView, STKGroupSlot slot) {
                 [self _adjustScaleAndTransparencyOfSubapp:subappView inSlot:slot forOffset:offset];
             }];
-            if (_delegateFlags.didMoveToOffset) {
-                [self.delegate groupView:self didMoveToOffset:offset];
-            }
+            
             [sender setTranslation:CGPointZero inView:self];
             break;
         }
