@@ -23,6 +23,7 @@
     BOOL _openGroupViewWasModified;
     BOOL _hasInfiniBoard;
     BOOL _hasInfinidock;
+    BOOL _hasClassicDock;
 }
 
 + (instancetype)sharedController
@@ -47,12 +48,12 @@
                                                  selector:@selector(_prefsChanged)
                                                      name:(NSString *)STKPrefsChangedNotificationName
                                                    object:nil];
-        void *handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Infiniboard.dylib", RTLD_LAZY);
+        void *handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Infiniboard.dylib", RTLD_NOW);
         _hasInfiniBoard = !!handle;
-        dlclose(handle);
-        handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Infinidock.dylib", RTLD_LAZY);
+        handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Infinidock.dylib", RTLD_NOW);
         _hasInfinidock = !!handle;
-        dlclose(handle);
+        handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/ClassicDock.dylib", RTLD_NOW);
+        _hasClassicDock = !!handle;
     }
     return self;
 }
@@ -189,8 +190,9 @@
     frame.origin.x -= frame.size.width;
     frame.origin.y -= dock.frame.size.height;
     frame.size.width *= 3.f;
+    frame.size.height += dock.frame.size.height;
     _listDimmingView = [[UIView alloc] initWithFrame:frame];
-    _dockDimmingView = [[UIView alloc] initWithFrame:dock.bounds];
+    _dockDimmingView = (_hasClassicDock ? nil : [[UIView alloc] initWithFrame:dock.bounds]);
 
     _listDimmingView.backgroundColor = _dockDimmingView.backgroundColor = [UIColor colorWithWhite:0.f alpha:1.f];
     _listDimmingView.alpha = _dockDimmingView.alpha = 0.f;
@@ -215,9 +217,11 @@
 
 - (void)_setDimStrength:(CGFloat)strength
 {
-    if (!(_listDimmingView && _dockDimmingView)) {
+    if (!(_listDimmingView || _dockDimmingView)) {
+        // At least one dimming view should be set up.
         [self _setupDimmingViews];
     }
+
     _listDimmingView.alpha = _dockDimmingView.alpha = strength;
 }
 
