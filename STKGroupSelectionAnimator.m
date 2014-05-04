@@ -44,6 +44,8 @@
     CGFloat startScale = ([_iconView _iconImageView].frame.size.width / endSize.width);
     _selectionView.contentView.bounds = (CGRect){CGPointZero, endSize};
     _selectionView.contentView.transform = CGAffineTransformMakeScale(startScale, startScale);
+    _selectionView.iconCollectionView.frame = _selectionView.contentView.bounds;
+    [_selectionView scrollToSelectedIconAnimated:NO];
 
     CGPoint startCenter = [_selectionView convertPoint:[_iconView iconImageCenter] fromView:_iconView];
     _selectionView.contentView.center = startCenter;
@@ -60,10 +62,7 @@
         _selectionView.searchTextField.alpha = 1.f;
     } completion:nil];
     [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:^{
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (NSEC_PER_SEC * 0.1)), dispatch_get_main_queue(), ^{
-            [_selectionView flashScrollIndicators];
-            [_selectionView scrollToSelectedIconAnimated:YES];
-        });
+        [_selectionView flashScrollIndicators];
         if (completion) {
             completion();
         }
