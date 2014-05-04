@@ -103,22 +103,6 @@
             <key>PostNotification</key>
             <string>com.a3tweaks.apex2.prefschanged</string>
         </dict>
-        <dict>
-			<key>cell</key>
-			<string>PSSwitchCell</string>
-			<key>default</key>
-			<false/>
-			<key>defaults</key>
-			<string>com.a3tweaks.Apex</string>
-			<key>key</key>
-			<string>disableSearchGesture</string>
-			<key>label</key>
-			<string>DISABLE_SPOTLIGHT_GESTURE</string>
-			<key>defaults</key>
-			<string>com.a3tweaks.Apex</string>
-			<key>PostNotification</key>
-			<string>com.a3tweaks.apex2.prefschanged</string>
-		</dict>
 
 		<dict>
 			<key>cell</key>

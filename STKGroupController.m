@@ -373,7 +373,6 @@
             [iconView.icon noteBadgeDidChange];
         }];
     }
-    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:!preferences.shouldDisableSearchGesture];
 }
 
 #pragma mark - Group View Delegate

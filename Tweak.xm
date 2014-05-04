@@ -290,17 +290,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
-#pragma mark - SBSearchGesture
-%hook SBSearchGesture
-- (void)setEnabled:(BOOL)enabled
-{
-    if (enabled && [STKPreferences sharedPreferences].shouldDisableSearchGesture) {
-        enabled = NO;
-    }
-    %orig(enabled);
-}
-%end
-
 #pragma mark - Constructor
 %ctor
 {
