@@ -125,7 +125,8 @@
 			<key>action</key>
 			<string>changeAccessModes:</string>
 		</dict>
-
+	
+		<!--
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
@@ -168,7 +169,7 @@
 			<key>action</key>
 			<string>changeSpotlightAccessModes:</string>
 		</dict>
-
+		-->
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
@@ -216,6 +217,22 @@
 			<string>allowNew</string>
 			<key>label</key>
 			<string>ALLOW_NEW</string>
+			<key>defaults</key>
+			<string>com.a3tweaks.Apex</string>
+			<key>PostNotification</key>
+			<string>com.a3tweaks.apex2.prefschanged</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.a3tweaks.Apex</string>
+			<key>key</key>
+			<string>disableSearchGesture</string>
+			<key>label</key>
+			<string>DISABLE_SEARCH</string>
 			<key>defaults</key>
 			<string>com.a3tweaks.Apex</string>
 			<key>PostNotification</key>

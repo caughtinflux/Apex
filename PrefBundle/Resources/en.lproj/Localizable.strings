@@ -17,6 +17,7 @@
 	SWIPE_DOWN = "Swipe Down";
 	DOUBLE_TAP = "Double Tap";
 
+	DISABLE_SEARCH = "Disable Search Gesture";
 	SPOTLIGHT_ACCESS = "Spotlight Access";
 	TAP_SB = "Tap Status Bar";
 
@@ -25,8 +26,7 @@
 
 	AGGREGATE_BADGES = "Aggregate Badge Count";
 	
-	
-	LOVE_GAMES = "I'm loving #Apex from @A3tweaks!";
+	LOVE_GAMES = "I'm loving #Apex 2 from @A3Tweaks!";
 	CANNOT_SEND_TWEET = "Cannot send tweet";
 	CANNOT_SEND_TWEET_DETAILS = "As you don't have any Twitter accounts setup, you can't send a love tweet";
 
