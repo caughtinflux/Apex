@@ -380,7 +380,8 @@
 - (BOOL)shouldGroupViewOpen:(STKGroupView *)groupView
 {
     BOOL shouldOpen = YES;
-    if ((groupView.group.state == STKGroupStateEmpty) && [STKPreferences sharedPreferences].shouldLockLayouts) {
+    if (([STKPreferences sharedPreferences].activationMode == STKActivationModeNone)
+     || ((groupView.group.state == STKGroupStateEmpty) && [STKPreferences sharedPreferences].shouldLockLayouts)) {
         shouldOpen = NO;
     }
     else {
