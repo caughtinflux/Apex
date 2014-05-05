@@ -1,7 +1,7 @@
 Package: com.a3tweaks.apex2
 Name: Apex 2
 Depends: mobilesubstrate, com.chpwn.iconsupport, firmware (>= 7.0)
-Version: 1.9.0.2
+Version: 1.9.0.3
 Architecture: iphoneos-arm
 Description: Group your icons in a fun, beautiful way.
 Maintainer: A3Tweaks
