@@ -34,9 +34,9 @@ static NSString * const SwipeToSpotlightID   = @"SWIPE_DOWN_SPOTLIGHT";
     return specifiers;
 }
 
-- (void)setPreferenceValue:(id)value specifier:(PSSpecifier *)specifier
+- (BOOL)canBeShownFromSuspendedState
 {
-    [super setPreferenceValue:value specifier:specifier];
+    return NO;
 }
 
 - (void)setVisualIndicator:(PSSpecifier *)selectedSpecifier
