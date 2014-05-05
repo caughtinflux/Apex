@@ -33,4 +33,9 @@ after-install::
 ifeq ($(DEBUG), 0)
 	$(ECHO_NOTHING)python ./HashUpdate.py $(THEOS_PACKAGE_BASE_VERSION)$(ECHO_END)
 endif
+
+ifeq ($(KILLPREFS), 1)
+	@install.exec "killall Preferences"
+else
 	@install.exec "killall backboardd"
+endif

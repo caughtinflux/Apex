@@ -7,26 +7,24 @@
 	AUTHORS_PURCHASED = "by Sentry and Aditya KD.\nThank you for your purchase.";
 
 	CONFIGURATION = "Configuration";
+	VISUAL_INDICATOR = "Visual Indicator";
+	SUBAPP_PREVIEWS = "Sub-App Previews";
+	GRABBERS = "Grabbers";
+	NONE = "None";
 
-	/* Appearance */
-	APPEARANCE = "Appearance";
-	SHOW_PREVIEW = "Show Preview";
-	HIDE_GRABBERS = "Hide Grabbers";
-	ALPHABETIC_SCROLL = "Alphabetic Scroll";
-
-	/* Behaviour */
-	BEHAVIOUR = Behavior;
-	CLOSE_ON_LAUNCH = "Close on Launch";
-	LOCK_LAYOUTS = "Lock Layouts";
-	LOCK_LAYOUTS_DESCRIPTION = "You will not be able to create new stacks if layouts are locked.";
-	CUMULATIVE_BADGES = "Cumulative Badges";
-	DISABLE_SPOTLIGHT_GESTURE = "Disable Spotlight Gesture";
-
-	ACTIVATION_MODE = "Activation Mode";
-	SWIPE_UP_AND_DOWN = "Swipe Up and Down";
+	SUBAPP_ACCESS = "Sub-App Access";
 	SWIPE_UP = "Swipe Up";
 	SWIPE_DOWN = "Swipe Down";
 	DOUBLE_TAP = "Double Tap";
+
+	SPOTLIGHT_ACCESS = "Spotlight Access";
+	TAP_SB = "Tap Status Bar";
+
+	CLOSE_ON_LAUNCH = "Close on App Launch";
+	ALLOW_NEW = "Allow Creation of New";
+
+	AGGREGATE_BADGES = "Aggregate Badge Count";
+	
 	
 	LOVE_GAMES = "I'm loving #Apex from @A3tweaks!";
 	CANNOT_SEND_TWEET = "Cannot send tweet";

@@ -16,8 +16,6 @@
 #define TEXT_SHADOW_OFFSET CGSizeMake(0, 1)
 #define TEXT_SHADOW_COLOR [UIColor whiteColor]
 
-static NSString * const PreviewSpecifierID = @"SHOW_PREVIEW";
-static NSString * const GrabbersSpecifierID = @"HIDE_GRABBERS";
 
 static BOOL __isPirato = NO;
 static BOOL __didShowAlert = NO;
@@ -71,66 +69,20 @@ static BOOL __didShowAlert = NO;
 
 #ifdef DEBUG
     PSSpecifier *spec = [PSSpecifier preferenceSpecifierNamed:@"Delete Preferences" target:self set:NULL get:NULL detail:nil cell:PSButtonCell edit:nil];
-    spec->action = @selector(__deletePreferences);
+    spec.buttonAction = @selector(__deletePreferences);
     [specifiers addObject:spec];
 #endif
-
-    BOOL shouldAdd = NO;
     for (PSSpecifier *specifier in specifiers) {
         [specifier setName:Localize([specifier name])];
         NSString *footerText = [specifier propertyForKey:@"footerText"];
         if ([footerText isKindOfClass:[NSString class]]) {
             [specifier setProperty:Localize(footerText) forKey:@"footerText"];
         }
-        if (!shouldAdd) {
-            shouldAdd =
-            ([[specifier identifier] isEqualToString:PreviewSpecifierID] && ([[self readPreferenceValue:specifier] boolValue] == NO));
-        }
         if ([[specifier identifier] isEqual:@"copyright"]) {
             [specifier setProperty:[NSString stringWithFormat:LOCALIZE(COPYRIGHT_TEXT), _year] forKey:@"footerText"];        
         }
     }
-    if (shouldAdd) {
-        [specifiers insertObject:[self _grabberSpecifier] atIndex:2];
-    }
     return specifiers;
-}
-
-- (void)setPreferenceValue:(id)value specifier:(PSSpecifier *)specifier
-{
-    [super setPreferenceValue:value specifier:specifier];
-
-    if ([[specifier identifier] isEqual:PreviewSpecifierID]) {
-        PSSpecifier *grabberSpecifier = [self specifierForID:GrabbersSpecifierID];
-
-        BOOL shouldAdd = (([[self readPreferenceValue:specifier] boolValue] == NO) && !grabberSpecifier);
-        if (shouldAdd) {
-            PSSpecifier *hideGrabberSpecifier = [self _grabberSpecifier];
-            [self insertSpecifier:hideGrabberSpecifier afterSpecifierID:PreviewSpecifierID animated:YES];
-        }
-        else if ([[self readPreferenceValue:specifier] boolValue] && grabberSpecifier) {
-            [self removeSpecifierID:[grabberSpecifier identifier] animated:YES];
-        }
-    }
-}
-
-- (PSSpecifier *)_grabberSpecifier
-{
-    PSSpecifier *grabberSpecifier = [PSSpecifier preferenceSpecifierNamed:LOCALIZE(HIDE_GRABBERS)
-                                                                 target:self
-                                                                    set:@selector(setPreferenceValue:specifier:)
-                                                                    get:@selector(readPreferenceValue:)
-                                                                 detail:nil
-                                                                   cell:PSSwitchCell
-                                                                   edit:nil];
-    
-    [grabberSpecifier setProperty:@"hideGrabbers" forKey:@"key"];
-    [grabberSpecifier setProperty:GrabbersSpecifierID forKey:@"id"];
-    [grabberSpecifier setProperty:@(NO) forKey:@"default"];
-    [grabberSpecifier setProperty:@"com.a3tweaks.apex2.prefschanged" forKey:@"PostNotification"];
-    [grabberSpecifier setProperty:@"com.a3tweaks.Apex" forKey:@"defaults"];
-
-    return grabberSpecifier;
 }
 
 #ifdef DEBUG

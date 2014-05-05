@@ -7,14 +7,16 @@
 #import <stdio.h>
 #import <sys/stat.h>
 
-static NSString * const ActivationModeKey   = @"activationMode";
 static NSString * const ShowPreviewKey      = @"previewEnabled";
 static NSString * const GroupStateKey       = @"state";
 static NSString * const ClosesOnLaunchKey   = @"closeOnLaunch";
-static NSString * const LockLayoutsKey      = @"lockLayouts";
 static NSString * const ShowSummedBadgesKey = @"summedBadges";
-static NSString * const HideGrabbersKey     = @"hideGrabbers";
+static NSString * const ShowGrabbersKey     = @"showGrabbers";
+static NSString * const AllowNewKey         = @"allowNew";
 static NSString * const DisableSearchKey    = @"disableSearchGesture";
+static NSString * const SwipeUpEnabledKey   = @"swipeUpEnabled";
+static NSString * const SwipeDownEnabledKey = @"swipeDownEnabled";
+static NSString * const DoubleTapEnabledKey = @"doubleTapEnabled";
 static NSString * const UserWelcomedKey     = @"welcomed";
 
 #define GETBOOL(_key, _default) (_preferences[_key] ? [_preferences[_key] boolValue] : _default)
@@ -91,14 +93,33 @@ static void STKPrefsChanged (
     [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:URL] queue:nil completionHandler:nil];
 }
 
+- (BOOL)swipeUpEnabled
+{
+    return GETBOOL(SwipeUpEnabledKey, YES);
+}
+
+- (BOOL)swipeDownEnabled
+{
+    return GETBOOL(SwipeDownEnabledKey, YES);
+}
+
+- (BOOL)doubleTapEnabled
+{
+    return GETBOOL(DoubleTapEnabledKey, NO);
+}
+
 - (STKActivationMode)activationMode
 {
-    return (STKActivationMode)[_preferences[ActivationModeKey] integerValue];
+    STKActivationMode mode = STKActivationModeNone;
+    if ([self swipeUpEnabled]) mode |= STKActivationModeSwipeUp;
+    if ([self swipeDownEnabled]) mode |= STKActivationModeSwipeDown;
+    if ([self doubleTapEnabled]) mode |= STKActivationModeDoubleTap;
+    return mode;
 }
 
 - (BOOL)shouldLockLayouts
 {
-    return GETBOOL(LockLayoutsKey, NO);
+    return !(GETBOOL(AllowNewKey, YES));
 }
 
 - (BOOL)shouldShowPreviews
@@ -118,7 +139,7 @@ static void STKPrefsChanged (
 
 - (BOOL)shouldHideGrabbers
 {
-    return GETBOOL(HideGrabbersKey, NO);
+    return !(GETBOOL(ShowGrabbersKey, NO));
 }
 
 - (BOOL)shouldDisableSearchGesture
@@ -262,7 +283,6 @@ static void STKPrefsChanged (
 - (void)groupDidFinalizeState:(STKGroup *)finalizedGroup
 {
     if (finalizedGroup.state == STKGroupStateEmpty) {
-        DLog(@"Removing group because state is empty");
         [self removeGroup:finalizedGroup];
         return;
     }

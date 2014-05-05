@@ -405,7 +405,7 @@
             id target = ((targets.count > 0) ? targets[0] : nil);
             target = [target valueForKey:@"_target"];
             STKActivationMode activationMode = [STKPreferences sharedPreferences].activationMode;
-            BOOL activationModeConflictsWithSearch = (activationMode != STKActivationModeSwipeUp && activationMode != STKActivationModeDoubleTap);
+            BOOL activationModeConflictsWithSearch = ((activationMode & STKActivationModeSwipeUp) || (activationMode & STKActivationModeSwipeDown));
             allow = (!([target isKindOfClass:CLASS(SBSearchScrollView)] && activationModeConflictsWithSearch)
                     && [recognizer.view isKindOfClass:[UIScrollView class]]);
         }
@@ -416,9 +416,8 @@
 - (void)groupViewWillOpen:(STKGroupView *)groupView
 {
     _openingGroupView = groupView;
-    if (groupView.activationMode != STKActivationModeDoubleTap) {
-        [self _setAllowScrolling:NO];
-    }
+
+    [self _setAllowScrolling:NO];
     [groupView.group.centralIcon noteBadgeDidChange];
     for (SBIcon *icon in groupView.group.layout) {
         [icon noteBadgeDidChange];

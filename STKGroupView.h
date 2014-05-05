@@ -1,11 +1,13 @@
 #import "STKGroup.h"
 
-typedef NS_ENUM(NSInteger, STKActivationMode) {
-    STKActivationModeSwipeUpAndDown,
-    STKActivationModeSwipeUp,
-    STKActivationModeSwipeDown,
-    STKActivationModeDoubleTap
+typedef NS_OPTIONS(NSUInteger, STKActivationMode) {
+	STKActivationModeNone	   = 0,
+	STKActivationModeSwipeUp   = 1 << 1,
+	STKActivationModeSwipeDown = 1 << 2,
+	STKActivationModeDoubleTap = 1 << 3
 };
+
+#define STKActivationModeIsUpAndDown(_mode) ((_mode & STKActivationModeSwipeUp) && (_mode & STKActivationModeSwipeDown))
 
 @protocol STKGroupViewDelegate;
 @class SBIconView, STKGroup;

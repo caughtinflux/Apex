@@ -85,7 +85,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     if ((self = [super initWithFrame:CGRectZero])) {
         self.group = group;
-        _activationMode = STKActivationModeSwipeUpAndDown;
+        _activationMode = (STKActivationModeSwipeUp | STKActivationModeSwipeDown);
         _showPreview = YES;
         self.alpha = 0.f;
     }
@@ -400,10 +400,16 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             _isUpwardSwipe = ([sender velocityInView:self].y < 0);
             
             BOOL isHorizontalSwipe = !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0);
-            BOOL isUpwardSwipeInSwipeDownMode = (_activationMode == STKActivationModeSwipeDown && _isUpwardSwipe);
-            BOOL isDownwardSwipeInSwipeUpMode = (_activationMode == STKActivationModeSwipeUp && (_isUpwardSwipe == NO));
+
+            BOOL denyForConflictingActivation = NO;
+            if (!STKActivationModeIsUpAndDown(_activationMode)) {
+                BOOL isUpwardSwipeInSwipeDownMode = (_activationMode & STKActivationModeSwipeDown && _isUpwardSwipe);
+                BOOL isDownwardSwipeInSwipeUpMode = (_activationMode & STKActivationModeSwipeUp && (_isUpwardSwipe == NO));
+                denyForConflictingActivation = (isUpwardSwipeInSwipeDownMode || isDownwardSwipeInSwipeUpMode);
+            }
+
             BOOL delegateDeniedOpen = (self.delegate && ![self.delegate shouldGroupViewOpen:self]);
-            if (delegateDeniedOpen || isHorizontalSwipe || isUpwardSwipeInSwipeDownMode || isDownwardSwipeInSwipeUpMode) {
+            if (delegateDeniedOpen || isHorizontalSwipe || denyForConflictingActivation) {
                 _ignoreRecognizer = YES;
                 return;
             }
@@ -517,7 +523,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         shouldBegin = NO;
     }
     else if ([recognizer isKindOfClass:[UITapGestureRecognizer class]]) {
-        shouldBegin = (_activationMode == STKActivationModeDoubleTap);
+        shouldBegin = (_activationMode & STKActivationModeDoubleTap);
         if (_delegateFlags.shouldOpen) {
             shouldBegin = (shouldBegin && [self.delegate shouldGroupViewOpen:self]);
         }
@@ -527,8 +533,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recog shouldReceiveTouch:(UITouch *)touch
 {
-    return (([recog isKindOfClass:[UITapGestureRecognizer class]] && _activationMode == STKActivationModeDoubleTap)
-           || ([recog isKindOfClass:[UIPanGestureRecognizer class]] && _activationMode != STKActivationModeDoubleTap));
+    if ([recog isKindOfClass:[UITapGestureRecognizer class]]) {
+        return (_activationMode & STKActivationModeDoubleTap);
+    }
+    return YES;
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gr shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)ogr

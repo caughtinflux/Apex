@@ -4,7 +4,7 @@ TARGET = iphone:clang:7.1:7.0
 include theos/makefiles/common.mk
 
 BUNDLE_NAME = ApexSettings
-ApexSettings_FILES = STKPrefsController.m STKProfileController.m STKTableViewCell.m PrefsHelper.m
+ApexSettings_FILES = STKConfigurationController.m STKPrefsController.m STKProfileController.m STKTableViewCell.m PrefsHelper.m
 ApexSettings_INSTALL_PATH = /Library/PreferenceBundles
 ApexSettings_FRAMEWORKS = UIKit Foundation CoreFoundation CoreGraphics MessageUI Twitter Social QuartzCore
 ApexSettings_PRIVATE_FRAMEWORKS = Preferences
