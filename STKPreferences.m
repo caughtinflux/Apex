@@ -13,10 +13,11 @@ static NSString * const ClosesOnLaunchKey   = @"closeOnLaunch";
 static NSString * const ShowSummedBadgesKey = @"summedBadges";
 static NSString * const ShowGrabbersKey     = @"showGrabbers";
 static NSString * const AllowNewKey         = @"allowNew";
-static NSString * const DisableSearchKey    = @"disableSearchGesture";
 static NSString * const SwipeUpEnabledKey   = @"swipeUpEnabled";
 static NSString * const SwipeDownEnabledKey = @"swipeDownEnabled";
 static NSString * const DoubleTapEnabledKey = @"doubleTapEnabled";
+static NSString * const SwipeToSpotlightKey = @"swipeToSpotlight";
+static NSString * const TapToSpotlightKey   = @"tapToSpotlight";
 static NSString * const UserWelcomedKey     = @"welcomed";
 
 #define GETBOOL(_key, _default) (_preferences[_key] ? [_preferences[_key] boolValue] : _default)
@@ -144,7 +145,12 @@ static void STKPrefsChanged (
 
 - (BOOL)shouldDisableSearchGesture
 {
-    return GETBOOL(DisableSearchKey, NO);
+    return !(GETBOOL(SwipeToSpotlightKey, YES));
+}
+
+- (BOOL)shouldOpenSpotlightFromStatusBarTap
+{
+    return GETBOOL(TapToSpotlightKey, NO);
 }
 
 - (BOOL)welcomeAlertShown

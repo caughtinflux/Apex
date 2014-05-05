@@ -122,6 +122,13 @@
     return handled;
 }
 
+- (void)handleStatusBarTap
+{
+    if ([STKPreferences sharedPreferences].shouldOpenSpotlightFromStatusBarTap) {
+        [[CLASS(SBSearchGesture) sharedInstance] revealAnimated:YES];
+    }
+}
+
 - (void)handleIconRemoval:(SBIcon *)removedIcon
 {
     STKGroup *group = nil;

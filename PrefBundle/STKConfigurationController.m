@@ -12,6 +12,8 @@ static NSString * const NoneSpecifierID      = @"NONE";
 static NSString * const SwipeUpSpecifierID   = @"SWIPE_UP";
 static NSString * const SwipeDownSpecifierID = @"SWIPE_DOWN_ACCESS";
 static NSString * const DoubleTapSpecifierID = @"DOUBLE_TAP";
+static NSString * const TapToSpotlightID     = @"TAP_SB";
+static NSString * const SwipeToSpotlightID   = @"SWIPE_DOWN_SPOTLIGHT";
 
 @implementation STKConfigurationController
 
@@ -55,18 +57,13 @@ static NSString * const DoubleTapSpecifierID = @"DOUBLE_TAP";
     [[[self rootController] class] writePreference:selectedSpecifier];
 }
 
-- (void)changeAccessModes:(PSSpecifier *)specifier
+- (void)updateSpecifier:(PSSpecifier *)specifier
 {
-    BOOL newSetting = ![[self readPreferenceValue:specifier] boolValue];;
+    BOOL newSetting = ![[self readPreferenceValue:specifier] boolValue];
     PSTableCell *cell = [self cellForSpecifier:specifier];
     [cell setChecked:newSetting];
     [self setPreferenceValue:@(newSetting) specifier:specifier];
     [[[self rootController] class] writePreference:specifier];
-}
-
-- (void)changeSpotlightAccessModes:(PSSpecifier *)specifier
-{
-    
 }
 
 - (PSTableCell *)cellForSpecifier:(PSSpecifier *)specifier
@@ -82,7 +79,9 @@ static NSString * const DoubleTapSpecifierID = @"DOUBLE_TAP";
         [self specifierForID:NoneSpecifierID],
         [self specifierForID:SwipeUpSpecifierID],
         [self specifierForID:SwipeDownSpecifierID],
-        [self specifierForID:DoubleTapSpecifierID]
+        [self specifierForID:DoubleTapSpecifierID],
+        [self specifierForID:TapToSpotlightID],
+        [self specifierForID:SwipeToSpotlightID]
     ];
 
     PSTableCell *cell = [super tableView:tableView cellForRowAtIndexPath:indexPath];

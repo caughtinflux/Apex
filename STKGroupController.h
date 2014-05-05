@@ -24,6 +24,7 @@ typedef NS_ENUM(NSUInteger, STKClosingEvent) {
 // returns YES if we reacted to the event, NO if ignored
 - (BOOL)handleClosingEvent:(STKClosingEvent)event;
 
+- (void)handleStatusBarTap;
 - (void)handleIconRemoval:(SBIcon *)removedIcon;
 
 @end

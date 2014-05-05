@@ -13,6 +13,7 @@
 @property (nonatomic, readonly) BOOL shouldCloseOnLaunch;
 @property (nonatomic, readonly) BOOL shouldHideGrabbers;
 @property (nonatomic, readonly) BOOL shouldDisableSearchGesture;
+@property (nonatomic, readonly) BOOL shouldOpenSpotlightFromStatusBarTap;
 @property (nonatomic, assign) BOOL welcomeAlertShown;
 
 @property (nonatomic, readonly) NSArray *identifiersForSubappIcons;
