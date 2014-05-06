@@ -6,6 +6,8 @@
 
 @implementation STKGroupController
 {
+    NSCache *_emptyGroupCache;
+
     STKGroupView *_openGroupView;
     UIView *_listDimmingView;
     UIView *_dockDimmingView;
@@ -60,31 +62,34 @@
 
 - (void)addOrUpdateGroupViewForIconView:(SBIconView *)iconView
 {
-    if (iconView.icon == [[CLASS(SBIconController) sharedInstance] grabbedIcon]) {
+    SBIcon *icon = iconView.icon;
+    if (icon == [[CLASS(SBIconController) sharedInstance] grabbedIcon]) {
         return;
     }
     STKGroupView *groupView = [iconView groupView];
     STKPreferences *preferences = [STKPreferences sharedPreferences];
     if (!groupView) {
-        STKGroup *group = [preferences groupForCentralIcon:iconView.icon];
+        STKGroup *group = [preferences groupForCentralIcon:icon];
         if (!group) {
-            group = [self _groupWithEmptySlotsForIcon:iconView.icon];
+            group = [self _groupWithEmptySlotsForIcon:icon];
         }
         groupView = [[[STKGroupView alloc] initWithGroup:group] autorelease];
         [iconView setGroupView:groupView];
+        groupView.delegate = self;
+        groupView.showPreview = preferences.shouldShowPreviews;
+        groupView.showGrabbers = !(preferences.shouldHideGrabbers);
+        groupView.activationMode = preferences.activationMode;
+        [icon noteBadgeDidChange];
     }
-    groupView.delegate = self;
-    groupView.showPreview = preferences.shouldShowPreviews;
-    groupView.showGrabbers = !(preferences.shouldHideGrabbers);
-    groupView.activationMode = preferences.activationMode;
-    [iconView.icon noteBadgeDidChange];
 
-    SBIconCoordinate currentCoordinate = [STKGroupLayoutHandler coordinateForIcon:iconView.icon];
-    if (ISPAD()) {
-        [groupView.group forceRelayout];
-    }
-    else {
-        [groupView.group relayoutForNewCoordinate:currentCoordinate];
+    SBIconCoordinate currentCoordinate = [STKGroupLayoutHandler coordinateForIcon:icon];
+    if (groupView.group.state != STKGroupStateEmpty) {
+        if (ISPAD()) {
+            [groupView.group forceRelayout];
+        }
+        else {
+            [groupView.group relayoutForNewCoordinate:currentCoordinate];
+        }
     }
     groupView.group.lastKnownCoordinate = currentCoordinate;
 }
@@ -146,8 +151,7 @@
 
 - (STKGroup *)_groupWithEmptySlotsForIcon:(SBIcon *)icon
 {
-    STKGroupLayout *slotLayout = [STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:icon]];
-    STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icon layout:slotLayout];
+    STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icon layout:nil];
     group.state = STKGroupStateEmpty;
     [group addObserver:[STKPreferences sharedPreferences]];
     return [group autorelease];

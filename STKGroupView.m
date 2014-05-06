@@ -255,7 +255,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_reallyConfigureSubappViews
 {
     [_subappLayout release];
-
+    if (_group.state == STKGroupStateEmpty) {
+        [_group forceRelayout];
+    }
     _subappLayout = [[STKGroupLayout alloc] init];
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         Class viewClass = [icon iconViewClassForLocation:_centralIconView.location];
@@ -448,7 +450,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             CGFloat offset = fminf((_lastDistanceFromCenter / _targetDistance), 1.f);
             [self _setAlphaForOtherIcons:(1.2 - offset)];
             if ([_centralIconView isInDock]) {
-                [self _setAlphaForDisplacedIcons:(1.0 - offset)];   
+                [self _setAlphaForDisplacedIcons:(1.0 - offset)];
             }
             [self _moveByDistance:change performingBlockOnSubApps:^(SBIconView *subappView, STKGroupSlot slot) {
                 [self _adjustScaleAndTransparencyOfSubapp:subappView inSlot:slot forOffset:offset];

@@ -61,11 +61,6 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
     return [NSString stringWithFormat:@"<%@ %p centralIcon: %@ layout: %@ observers: %zd>", [self class], self, _centralIcon.leafIdentifier, _layout, _observers.count];
 }
 
-- (STKGroupLayout *)layout
-{
-    return _layout;
-}
-
 - (NSDictionary *)dictionaryRepresentation
 {
     return @{
