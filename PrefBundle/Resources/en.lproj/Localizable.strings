@@ -7,12 +7,12 @@
 	AUTHORS_PURCHASED = "by Sentry and Aditya KD.\nThank you for your purchase.";
 
 	CONFIGURATION = "Configuration";
-	VISUAL_INDICATOR = "Visual Indicator";
+	VISUAL_INDICATOR = "Visual Indicator:";
 	SUBAPP_PREVIEWS = "Sub-App Previews";
 	GRABBERS = "Grabbers";
 	NONE = "None";
 
-	SUBAPP_ACCESS = "Sub-App Access";
+	SUBAPP_ACCESS = "Sub-App Access:";
 	SWIPE_UP = "Swipe Up";
 	SWIPE_DOWN = "Swipe Down";
 	DOUBLE_TAP = "Double Tap";
