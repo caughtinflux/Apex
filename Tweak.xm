@@ -159,6 +159,32 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 %end
 
 #pragma mark - Animator Hooks
+%hook SBIconZoomAnimator
+- (void)_prepareAnimation
+{
+    %orig();
+    for (SBIcon *icon in self.iconListView.icons) {
+        SBIconView *iconView = [self.iconListView viewForIcon:icon];
+        objc_setAssociatedObject(iconView,
+                                 @selector(prevTransform),
+                                 [NSValue valueWithCATransform3D:iconView._iconImageView.layer.transform],
+                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        [iconView stk_setImageViewScale:1.f];
+    }
+}
+
+- (void)_cleanupAnimation
+{
+    for (SBIcon *icon in self.iconListView.icons) {
+        SBIconView *iconView = [self.iconListView viewForIcon:icon];
+        CATransform3D prevTransform = [objc_getAssociatedObject(iconView, @selector(prevTransform)) CATransform3DValue];
+        iconView._iconImageView.layer.transform = prevTransform;
+    }
+    %orig();
+}
+%end
+
+
 %hook SBCenterIconZoomAnimator
 - (void)_positionView:(SBIconView *)iconView forIcon:(SBIcon *)icon
 {
@@ -307,6 +333,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     if ((self = %orig())) {
         UITapGestureRecognizer *recognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(stk_tapped:)];
+        recognizer.cancelsTouchesInView = NO;
         [self addGestureRecognizer:[recognizer autorelease]];
     }
     return self;
@@ -332,6 +359,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         dlopen("/Library/MobileSubstrate/DynamicLibraries/Springtomize3.dylib", RTLD_NOW);
         dlopen("/Library/MobileSubstrate/DynamicLibraries/Infinidock.dylib", RTLD_NOW);
         dlopen("/Library/MobileSubstrate/DynamicLibraries/Infiniboard.dylib", RTLD_NOW);
+        dlopen("/Library/MobileSubstrate/DynamicLibraries/shrink.dylib", RTLD_NOW);
         [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName@"DEBUG"];
     }
 }
