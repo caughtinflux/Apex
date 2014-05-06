@@ -182,6 +182,14 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 %end
 
 %hook SBScaleIconZoomAnimator 
+- (void)_prepareAnimation
+{
+    %orig();
+    CGFloat previousScale = [self.targetIconView stk_imageViewScale];
+    objc_setAssociatedObject(self, @selector(stk_previousScale), @(previousScale), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [self.targetIconView stk_setImageViewScale:1.0];
+}
+
 - (void)_cleanupAnimation
 {
     STKGroupView *openGroupView = [STKGroupController sharedController].openGroupView;
@@ -193,6 +201,10 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
     %orig();
     listView.stk_modifyDisplacedIconOrigin = NO;
+    CGFloat previousScale = (CGFloat)[objc_getAssociatedObject(self, @selector(stk_previousScale)) doubleValue];
+    if (previousScale > 0.f) {
+        [self.targetIconView stk_setImageViewScale:previousScale];
+    }
 }
 
 - (SBIconView *)iconViewForIcon:(SBIcon *)icon

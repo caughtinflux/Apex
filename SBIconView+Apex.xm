@@ -143,6 +143,13 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
     [self _iconImageView].layer.transform = CATransform3DMakeScale(scale, scale, 0.f);
     [self _iconImageView].layer.contentsScale = [UIScreen mainScreen].scale;
     [self _iconImageView].layer.rasterizationScale = [self _iconImageView].layer.contentsScale;
+    objc_setAssociatedObject(self, @selector(stk_imageViewScale), @(scale), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+%new
+- (CGFloat)stk_imageViewScale
+{
+    return (CGFloat)[objc_getAssociatedObject(self, @selector(stk_imageViewScale)) doubleValue];
 }
 
 %new

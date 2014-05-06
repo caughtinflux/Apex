@@ -17,5 +17,6 @@ typedef NS_ENUM(NSInteger, STKOverlayType) {
 - (void)removeApexOverlay;
 
 - (void)stk_setImageViewScale:(CGFloat)scale;
+- (CGFloat)stk_imageViewScale;
 
 @end
