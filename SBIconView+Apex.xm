@@ -137,13 +137,13 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
 %new
 - (void)stk_setImageViewScale:(CGFloat)scale
 {
-    if (self.apexOverlayView) {
-        return;
-    }
-    [self _iconImageView].layer.transform = CATransform3DMakeScale(scale, scale, 0.f);
-    [self _iconImageView].layer.contentsScale = [UIScreen mainScreen].scale;
-    [self _iconImageView].layer.rasterizationScale = [self _iconImageView].layer.contentsScale;
+    SBIconImageView *imageView = [self _iconImageView]; 
+    imageView.layer.transform = CATransform3DMakeScale(scale, scale, scale);
     objc_setAssociatedObject(self, @selector(stk_imageViewScale), @(scale), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if (![self containerGroupView]) {
+        imageView.layer.contentsScale = [UIScreen mainScreen].scale;
+        imageView.layer.rasterizationScale = imageView.layer.contentsScale;
+    }
 }
 
 %new
