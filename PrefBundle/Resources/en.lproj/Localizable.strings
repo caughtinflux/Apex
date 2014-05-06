@@ -17,8 +17,7 @@
 	SWIPE_DOWN = "Swipe Down";
 	DOUBLE_TAP = "Double Tap";
 
-	DISABLE_SEARCH = "Disable Search Gesture";
-	SPOTLIGHT_ACCESS = "Spotlight Access";
+	SPOTLIGHT_ACCESS = "Spotlight Access:";
 	TAP_SB = "Tap Status Bar";
 
 	CLOSE_ON_LAUNCH = "Close on App Launch";
