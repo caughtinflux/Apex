@@ -137,7 +137,12 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
 %new
 - (void)stk_setImageViewScale:(CGFloat)scale
 {
-    [self _iconImageView].layer.transform = CATransform3DMakeScale(scale, scale, scale);
+    if (self.apexOverlayView) {
+        return;
+    }
+    [self _iconImageView].layer.transform = CATransform3DMakeScale(scale, scale, 0.f);
+    [self _iconImageView].layer.contentsScale = [UIScreen mainScreen].scale;
+    [self _iconImageView].layer.rasterizationScale = [self _iconImageView].layer.contentsScale;
 }
 
 %new
