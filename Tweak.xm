@@ -273,7 +273,9 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 %hook SBFolderView
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {    
-    [[STKGroupController sharedController] handleClosingEvent:STKClosingEventListViewScroll];   
+    if (![STKGroupController sharedController].openingGroupView) {
+        [[STKGroupController sharedController] handleClosingEvent:STKClosingEventListViewScroll];
+    }
     %orig();
 }
 %end
