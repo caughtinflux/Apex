@@ -69,8 +69,8 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     SBIconLocation previousLoc = self.location;
     %orig(location);
-
-    if ([self groupView] && previousLoc == location) {
+    STKGroupController *groupController = [STKGroupController sharedController];
+    if ([self groupView] && previousLoc == location && self.delegate != groupController) {
         self.delegate = [STKGroupController sharedController];
         return;
     }

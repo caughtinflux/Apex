@@ -97,9 +97,20 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ([self.delegate respondsToSelector:@selector(groupViewWillBeDestroyed:)]) {
         [self.delegate groupViewWillBeDestroyed:self];
     }
-    [self resetLayouts];
+    if (_subappLayout) {
+        [_centralIconView stk_setImageViewScale:1.f];
+    }
+    [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];   
+    [self _removeGrabbers];
     [self _removeGestureRecognizers];
-    self.group = nil;
+    [_group removeObserver:self];
+
+    _centralIconView.delegate = [CLASS(SBIconController) sharedInstance];
+    [_centralIconView removeObserver:self forKeyPath:@"legibilitySettings"];
+
+    [_subappLayout release];
+    [_displacedIconLayout release];
+    [_group release];
     [super dealloc];
 }
 
@@ -255,6 +266,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_reallyConfigureSubappViews
 {
     [_subappLayout release];
+    _subappLayout = nil;
     if (_group.state == STKGroupStateEmpty) {
         [_group forceRelayout];
     }
@@ -712,7 +724,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     _isAnimatingOpen = YES;
     _isOpen = YES;
-    if ([self.delegate respondsToSelector:@selector(groupViewWillOpen:)]) {
+    if (_delegateFlags.willOpen) {
         [self.delegate groupViewWillOpen:self];
     }
     if (!_subappLayout) {
@@ -744,7 +756,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             completion();
         }
         _isAnimatingOpen = NO;
-        if ([self.delegate respondsToSelector:@selector(groupViewDidOpen:)]) {
+        if (_delegateFlags.didOpen) {
             [self.delegate groupViewDidOpen:self];
         }
     };
@@ -777,7 +789,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     _isAnimatingClosed = YES;
     _isOpen = NO;
-    if ([self.delegate respondsToSelector:@selector(groupViewWillClose:)]) {
+    if (_delegateFlags.willClose) {
         [self.delegate groupViewWillClose:self];
     }
     for (SBIconView *iconView in _subappLayout) {
@@ -820,7 +832,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             if (!CURRENTLY_SHOWS_PREVIEW) {
                 [self resetLayouts];
             }
-            if ([self.delegate respondsToSelector:@selector(groupViewDidClose:)]) {
+            if (_delegateFlags.didClose) {
                 [self.delegate groupViewDidClose:self];
             }
         }

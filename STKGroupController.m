@@ -164,8 +164,9 @@
 
 - (void)_setAllowScrolling:(BOOL)allow
 {
+    SBIconController *controller = [CLASS(SBIconController) sharedInstance];
     [self _currentScrollView].scrollEnabled = allow;
-    UIScrollView *scrollView = [[CLASS(SBIconController) sharedInstance] currentRootIconList].subviews[0];
+    UIScrollView *scrollView = [controller currentRootIconList].subviews[0];
     if ([scrollView isKindOfClass:CLASS(IFInfiniboardScrollView)]) {
         // Infiniboard
         scrollView.scrollEnabled = allow;
@@ -175,6 +176,8 @@
         // Infinidock
         scrollView.scrollEnabled = allow;
     }
+    SBIconListPageControl *pageControl = [[controller _currentFolderController].contentView valueForKey:@"pageControl"];
+    pageControl.userInteractionEnabled = allow;
 }
 
 - (UIScrollView *)_currentScrollView
@@ -446,8 +449,10 @@
 - (void)groupViewDidOpen:(STKGroupView *)groupView
 {
     _openingGroupView = nil;
-    _openGroupView = groupView;
-    [self _setAllowScrolling:YES];
+    if (groupView.isOpen) {
+        _openGroupView = groupView;
+        [self _setAllowScrolling:YES];
+    }
 }
 
 - (void)groupViewWillClose:(STKGroupView *)groupView
