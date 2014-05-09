@@ -83,13 +83,11 @@
     }
 
     SBIconCoordinate currentCoordinate = [STKGroupLayoutHandler coordinateForIcon:icon];
-    if (groupView.group.state != STKGroupStateEmpty) {
-        if (ISPAD()) {
-            [groupView.group forceRelayout];
-        }
-        else {
-            [groupView.group relayoutForNewCoordinate:currentCoordinate];
-        }
+    if (ISPAD()) {
+        [groupView.group forceRelayout];
+    }
+    else {
+        [groupView.group relayoutForNewCoordinate:currentCoordinate];
     }
     groupView.group.lastKnownCoordinate = currentCoordinate;
 }
