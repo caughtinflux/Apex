@@ -163,8 +163,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _subappLayout = nil;
     [_displacedIconLayout release];
     _displacedIconLayout = nil;
-    self.showGrabbers = didShowGrabbers;
     [self _configureSubappViews];
+    self.showGrabbers = didShowGrabbers;
 }
 
 - (SBIconView *)subappIconViewForIcon:(SBIcon *)icon
@@ -209,10 +209,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)setShowGrabbers:(BOOL)show
 {
-    if (show == _showGrabbers) {
-        return;
-    }
+    _showGrabbers = show;
     if (show && !_showPreview && !_group.empty) {
+        [_centralIconView stk_setImageViewScale:1.0];
         [self _addGrabbers];
         [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
     }
@@ -220,7 +219,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self _removeGrabbers];
         if (!SCALE_CENTRAL_ICON) [_centralIconView stk_setImageViewScale:1.0f];
     }
-    _showGrabbers = show;
 }
 
 - (void)setDelegate:(id<STKGroupViewDelegate>)delegate
@@ -331,6 +329,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_addGrabbers
 {
+    [self _removeGrabbers];
+
     CGRect iconImageFrame = [self _iconImageFrame];
     CGFloat grabberWidth = (floorf(iconImageFrame.size.width * 0.419354839) + 1.f);
 
