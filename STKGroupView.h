@@ -37,6 +37,8 @@ typedef NS_OPTIONS(NSUInteger, STKActivationMode) {
 - (void)resetLayouts;
 - (SBIconView *)subappIconViewForIcon:(SBIcon *)icon;
 
+- (void)resetImageViewScale;
+
 @end
 
 @protocol STKGroupViewDelegate <SBIconViewDelegate>

@@ -178,6 +178,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     return iconView;
 }
 
+- (void)resetImageViewScale
+{
+    if (SCALE_CENTRAL_ICON) {
+        [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
+    }
+}
+
 - (void)setGroup:(STKGroup *)group
 {
     [_group removeObserver:self];
