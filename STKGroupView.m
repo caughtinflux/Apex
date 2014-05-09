@@ -81,9 +81,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     } _delegateFlags;
 }
 
-- (instancetype)initWithGroup:(STKGroup *)group
+- (instancetype)initWithGroup:(STKGroup *)group iconViewSource:(id<STKIconViewSource>)iconViewSource;
 {
+    NSParameterAssert(group);
+    NSParameterAssert(iconViewSource);
     if ((self = [super initWithFrame:CGRectZero])) {
+        self.iconViewSource = iconViewSource;
         self.group = group;
         _activationMode = (STKActivationModeSwipeUp | STKActivationModeSwipeDown);
         _showPreview = YES;
@@ -155,10 +158,13 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     if (_subappLayout) {
         [_centralIconView stk_setImageViewScale:1.f];
+        for (SBIconView *iconView in _subappLayout) {
+            [self.iconViewSource groupView:self willRelinquishIconView:iconView];
+        }
     }
     BOOL didShowGrabbers = self.showGrabbers;
     self.showGrabbers = NO;
-    [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];   
+    [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     [_subappLayout release];
     _subappLayout = nil;
     [_displacedIconLayout release];
@@ -231,6 +237,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _delegateFlags.willClose = [self.delegate respondsToSelector:@selector(groupViewWillClose:)];
     _delegateFlags.didClose = [self.delegate respondsToSelector:@selector(groupViewDidClose:)];
     [self _setDelegateOnCentralIconView];
+    for (SBIconView *iconView in _subappLayout) {
+        iconView.delegate = delegate;
+    }
 }
 
 - (void)_setDelegateOnCentralIconView
@@ -283,10 +292,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     _subappLayout = [[STKGroupLayout alloc] init];
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
-        Class viewClass = [icon iconViewClassForLocation:_centralIconView.location];
-        SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
+        SBIconView *iconView = [self.iconViewSource groupView:self wantsIconViewForIcon:icon];
         iconView.frame = _centralIconView.bounds;
-        iconView.icon = icon;
         iconView.delegate = self.delegate;
         [[iconView valueForKey:@"updatedMark"] setHidden:YES];
         [_subappLayout addIcon:iconView toIconsAtPosition:pos];
@@ -988,10 +995,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         animations:^{
             [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
                 if ([icon isPlaceholder]) {
-                    Class viewClass = [icon iconViewClassForLocation:_centralIconView.location];
-                    SBIconView *iconView = [[[viewClass alloc] initWithDefaultSize] autorelease];
+                    SBIconView *iconView = [self.iconViewSource groupView:self wantsIconViewForIcon:icon];
                     iconView.frame = (CGRect){[self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}], iconView.frame.size};
-                    iconView.icon = icon;
                     iconView.delegate = self.delegate;
                     [_subappLayout addIcon:iconView toIconsAtPosition:pos];
                     [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
@@ -1029,6 +1034,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             }
         }
         for (SBIconView *view in viewsToRemove) {
+            [self.iconViewSource groupView:self willRelinquishIconView:view];
             [view removeFromSuperview];
             [_subappLayout removeIcon:view fromIconsAtPosition:[_subappLayout slotForIcon:view].position];
         }

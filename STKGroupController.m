@@ -6,15 +6,11 @@
 
 @implementation STKGroupController
 {
-    NSCache *_emptyGroupCache;
-
     STKGroupView *_openGroupView;
     UIView *_listDimmingView;
     UIView *_dockDimmingView;
     UISwipeGestureRecognizer *_closeSwipeRecognizer;
     UITapGestureRecognizer *_closeTapRecognizer;
-    
-    BOOL _wasLongPressed;
 
     STKGroupSelectionAnimator *_selectionAnimator;
     STKSelectionView *_selectionView;
@@ -22,10 +18,14 @@
 
     NSMutableArray *_iconsToShow;
     NSMutableArray *_iconsToHide;
+    
     BOOL _openGroupViewWasModified;
+    BOOL _wasLongPressed;
     BOOL _hasInfiniBoard;
     BOOL _hasInfinidock;
     BOOL _hasClassicDock;
+
+    STKIconViewRecycler *_recycler;
 }
 
 + (instancetype)sharedController
@@ -46,6 +46,9 @@
         _closeSwipeRecognizer.direction = (UISwipeGestureRecognizerDirectionUp | UISwipeGestureRecognizerDirectionDown);
         _closeSwipeRecognizer.delegate = self;
         _closeTapRecognizer.delegate = self;
+
+        _recycler = [[STKIconViewRecycler alloc] init];
+
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(_prefsChanged)
                                                      name:(NSString *)STKPrefsChangedNotificationName
@@ -73,7 +76,7 @@
         if (!group) {
             group = [self _groupWithEmptySlotsForIcon:icon];
         }
-        groupView = [[[STKGroupView alloc] initWithGroup:group] autorelease];
+        groupView = [[[STKGroupView alloc] initWithGroup:group iconViewSource:_recycler] autorelease];
         [iconView setGroupView:groupView];
         groupView.delegate = self;
         groupView.showPreview = preferences.shouldShowPreviews;

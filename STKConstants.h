@@ -16,6 +16,7 @@
 #import "STKGroupLayout.h"
 #import "STKGroupLayoutHandler.h"
 #import "STKGroupController.h"
+#import "STKIconViewRecycler.h"
 
 #import "STKOverlayIcons.h"
 #import "STKWallpaperBlurView.h"

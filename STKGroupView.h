@@ -10,16 +10,20 @@ typedef NS_OPTIONS(NSUInteger, STKActivationMode) {
 #define STKActivationModeIsUpAndDown(_mode) ((_mode & STKActivationModeSwipeUp) && (_mode & STKActivationModeSwipeDown))
 
 @protocol STKGroupViewDelegate;
+@protocol STKIconViewSource;
+
 @class SBIconView, STKGroup;
 @interface STKGroupView : UIView <STKGroupObserver, UIGestureRecognizerDelegate>
 
-- (instancetype)initWithGroup:(STKGroup *)group;
+- (instancetype)initWithGroup:(STKGroup *)group iconViewSource:(id<STKIconViewSource>)iconViewSource;
 
 @property (nonatomic, retain) STKGroup *group;
 @property (nonatomic, assign) STKActivationMode activationMode;
 @property (nonatomic, assign) BOOL showPreview;
-@property (nonatomic, assign) id<STKGroupViewDelegate> delegate;
 @property (nonatomic, assign) BOOL showGrabbers;
+
+@property (nonatomic, assign) id<STKGroupViewDelegate> delegate;
+@property (nonatomic, assign) id<STKIconViewSource> iconViewSource;
 
 @property (nonatomic, readonly) BOOL isOpen;
 @property (nonatomic, readonly) BOOL isAnimating;
@@ -54,4 +58,10 @@ typedef NS_OPTIONS(NSUInteger, STKActivationMode) {
 - (void)groupViewWillClose:(STKGroupView *)groupView;
 - (void)groupViewDidClose:(STKGroupView *)groupView;
 - (void)groupViewWillBeDestroyed:(STKGroupView *)groupView;
+@end
+
+@protocol STKIconViewSource <NSObject>
+@required
+- (SBIconView *)groupView:(STKGroupView *)groupView wantsIconViewForIcon:(SBIcon *)icon;
+- (void)groupView:(STKGroupView *)groupView willRelinquishIconView:(SBIconView *)iconView;
 @end
