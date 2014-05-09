@@ -200,13 +200,19 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)setShowPreview:(BOOL)shouldShow
 {
-    _showPreview = shouldShow;
-    if (!_isOpen) [self resetLayouts];
+    BOOL didChange = (_showPreview != shouldShow);
+    if (!_isOpen && didChange) {
+        _showPreview = shouldShow;
+        [self resetLayouts];
+    }
 }
 
 - (void)setShowGrabbers:(BOOL)show
 {
-    if (show && (_showPreview == NO) && (_group.empty == NO)) {
+    if (show == _showGrabbers) {
+        return;
+    }
+    if (show && !_showPreview && !_group.empty) {
         [self _addGrabbers];
         [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
     }
@@ -325,7 +331,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_addGrabbers
 {
-    CGRect iconImageFrame = [_centralIconView iconImageFrame];
+    CGRect iconImageFrame = [self _iconImageFrame];
     CGFloat grabberWidth = (floorf(iconImageFrame.size.width * 0.419354839) + 1.f);
 
     _topGrabberView = [[UIView new] autorelease];
@@ -347,6 +353,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _bottomGrabberOriginalFrame = _bottomGrabberView.frame;
     [self addSubview:_topGrabberView];
     [self addSubview:_bottomGrabberView];
+}
+
+- (CGRect)_iconImageFrame
+{
+    return [_centralIconView convertRect:[_centralIconView iconImageFrame] toView:self];
 }
 
 - (void)_removeGrabbers
