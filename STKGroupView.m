@@ -284,12 +284,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         iconView.frame = _centralIconView.bounds;
         iconView.icon = icon;
         iconView.delegate = self.delegate;
+        [[iconView valueForKey:@"updatedMark"] setHidden:YES];
         [_subappLayout addIcon:iconView toIconsAtPosition:pos];
         [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
         [self addSubview:iconView];
-
     }];
-
     [self _resetDisplacedIconLayout];
     if (SCALE_CENTRAL_ICON) {
         [self _setupPreview];
@@ -320,6 +319,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             // Scale the icon back down to the smaller size
             [iconView stk_setImageViewScale:kSubappPreviewScale];
         }
+        [[iconView valueForKey:@"updatedMark"] setHidden:YES];
     }];
 }
 
@@ -744,6 +744,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             CGPoint origin = [self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}];
             iconView.frame = (CGRect){origin, iconView.frame.size};
             [iconView stk_setImageViewScale:1.f];
+            [[iconView valueForKey:@"updatedMark"] setHidden:NO];
             iconView.alpha = 1.f;
         }];
         [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
