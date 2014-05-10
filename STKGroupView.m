@@ -88,8 +88,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ((self = [super initWithFrame:CGRectZero])) {
         self.iconViewSource = iconViewSource;
         self.group = group;
-        _activationMode = (STKActivationModeSwipeUp | STKActivationModeSwipeDown);
-        _showPreview = YES;
         self.alpha = 0.f;
     }
     return self;
@@ -201,7 +199,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _group = [group retain];
     [_group addObserver:self];
     [self _setDelegateOnCentralIconView];
-    [self resetLayouts];
 }
 
 - (void)setShowPreview:(BOOL)shouldShow
@@ -269,9 +266,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     [self _configureSubappViews];
     [self layoutSubviews];
-
     [self _addGestureRecognizers];
-
     self.alpha = 1.f;
 }
 
@@ -286,10 +281,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_reallyConfigureSubappViews
 {
     [_subappLayout release];
-    _subappLayout = nil;
-    if (_group.state == STKGroupStateEmpty) {
-        [_group forceRelayout];
-    }
     _subappLayout = [[STKGroupLayout alloc] init];
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         SBIconView *iconView = [self.iconViewSource groupView:self wantsIconViewForIcon:icon];

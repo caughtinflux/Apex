@@ -26,6 +26,7 @@
     BOOL _hasClassicDock;
 
     STKIconViewRecycler *_recycler;
+    NSCache *_groupCache;
 }
 
 + (instancetype)sharedController
@@ -48,6 +49,8 @@
         _closeTapRecognizer.delegate = self;
 
         _recycler = [[STKIconViewRecycler alloc] init];
+        _groupCache = [[NSCache alloc] init];
+        [_groupCache setCountLimit:200];
 
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(_prefsChanged)
@@ -71,27 +74,24 @@
     }
     STKGroupView *groupView = [iconView groupView];
     STKPreferences *preferences = [STKPreferences sharedPreferences];
+    SBIconCoordinate currentCoordinate = [STKGroupLayoutHandler coordinateForIcon:icon];
+
     if (!groupView) {
         STKGroup *group = [preferences groupForCentralIcon:icon];
         if (!group) {
-            group = [self _groupWithEmptySlotsForIcon:icon];
+            group = [_groupCache objectForKey:icon.leafIdentifier] ?: [self _groupWithEmptySlotsForIcon:icon];
+            group.lastKnownCoordinate = currentCoordinate;
+            [_groupCache setObject:group forKey:icon.leafIdentifier];
         }
         groupView = [[[STKGroupView alloc] initWithGroup:group iconViewSource:_recycler] autorelease];
-        [iconView setGroupView:groupView];
+        iconView.groupView = groupView;
         groupView.delegate = self;
         groupView.showPreview = preferences.shouldShowPreviews;
         groupView.showGrabbers = !(preferences.shouldHideGrabbers);
         groupView.activationMode = preferences.activationMode;
         [icon noteBadgeDidChange];
     }
-
-    SBIconCoordinate currentCoordinate = [STKGroupLayoutHandler coordinateForIcon:icon];
-    if (ISPAD()) {
-        [groupView.group forceRelayout];
-    }
-    else {
-        [groupView.group relayoutForNewCoordinate:currentCoordinate];
-    }
+    [groupView.group relayoutForNewCoordinate:currentCoordinate];
     groupView.group.lastKnownCoordinate = currentCoordinate;
 }
 
@@ -153,7 +153,8 @@
 
 - (STKGroup *)_groupWithEmptySlotsForIcon:(SBIcon *)icon
 {
-    STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icon layout:nil];
+    STKGroupLayout *slotLayout = [STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:icon]];
+    STKGroup *group = [[STKGroup alloc] initWithCentralIcon:icon layout:slotLayout];
     group.state = STKGroupStateEmpty;
     [group addObserver:[STKPreferences sharedPreferences]];
     return [group autorelease];
