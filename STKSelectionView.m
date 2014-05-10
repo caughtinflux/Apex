@@ -119,9 +119,7 @@
             itemSection = 0;
         }
         NSIndexPath *indexPath = [NSIndexPath indexPathForItem:itemIndex inSection:itemSection];
-        if (![[_collectionView indexPathsForVisibleItems] containsObject:indexPath]) {
-            [_collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionCenteredVertically];
-        }
+        [_collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionCenteredVertically];
     }
 }
 
