@@ -266,7 +266,7 @@
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    [_searchTextField resignFirstResponder];
+    [self dismissKeyboard];
     STKSelectionViewCell *selectedCell = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:[[_collectionView indexPathsForSelectedItems] firstObject]];
     [selectedCell.iconView setHighlighted:NO];
 }
@@ -294,7 +294,7 @@
     STKSelectionViewCell *currentSelection = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:currentIndexPath];
     [currentSelection.iconView showApexOverlayOfType:STKOverlayTypeCheck];
     [_collectionView selectItemAtIndexPath:currentIndexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
-    [_searchTextField resignFirstResponder];
+    [self dismissKeyboard];
     if (self.selectionHandler) {
         self.selectionHandler();
     }
@@ -321,7 +321,7 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    [textField resignFirstResponder];
+    [self dismissKeyboard];
     return YES;
 }
 
