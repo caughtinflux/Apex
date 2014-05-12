@@ -29,25 +29,14 @@
 - (SBIconView *)iconViewForIcon:(SBIcon *)icon
 {
     Class classForIconView = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
-    NSMutableSet *set = [_recycledIconViews objectForKey:classForIconView];
-    SBIconView *iconView = [set anyObject] ?: [[[classForIconView alloc] initWithDefaultSize] autorelease];
+    SBIconView *iconView = [[[classForIconView alloc] initWithDefaultSize] autorelease];
     iconView.icon = icon;
-    [set removeObject:iconView];
     return iconView;
 }
 
 - (void)recycleIconView:(SBIconView *)iconView
 {
-    [iconView prepareForRecycling];
-    NSMutableSet *set = [_recycledIconViews objectForKey:[iconView class]];
-    if (!set) {
-        set = [NSMutableSet new];
-        [_recycledIconViews setObject:set forKey:[iconView class]];
-    }
-    if (set.count < _maxRecycledIconViews) {
-        [set addObject:iconView];   
-    }
-    [iconView removeFromSuperview];
+    return;
 }
 
 - (SBIconView *)groupView:(STKGroupView *)groupView wantsIconViewForIcon:(SBIcon *)icon
