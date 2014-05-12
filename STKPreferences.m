@@ -27,6 +27,8 @@ static NSString * const UserWelcomedKey     = @"welcomed";
     NSMutableDictionary *_preferences;
     NSMutableDictionary *_groups;
     NSMutableDictionary *_subappToCentralMap;
+
+    STKActivationMode _activationMode;
 }
 
 static void STKPrefsChanged (
@@ -81,6 +83,11 @@ static void STKPrefsChanged (
         }
     }
     [self _addOrUpdateGroups:groupArray];
+
+    _activationMode = STKActivationModeNone;
+    if ([self swipeUpEnabled]) _activationMode |= STKActivationModeSwipeUp;
+    if ([self swipeDownEnabled]) _activationMode |= STKActivationModeSwipeDown;
+    if ([self doubleTapEnabled]) _activationMode |= STKActivationModeDoubleTap;
 }
 
 - (void)registerDeviceWithAnalytics
@@ -107,15 +114,6 @@ static void STKPrefsChanged (
 - (BOOL)doubleTapEnabled
 {
     return GETBOOL(DoubleTapEnabledKey, NO);
-}
-
-- (STKActivationMode)activationMode
-{
-    STKActivationMode mode = STKActivationModeNone;
-    if ([self swipeUpEnabled]) mode |= STKActivationModeSwipeUp;
-    if ([self swipeDownEnabled]) mode |= STKActivationModeSwipeDown;
-    if ([self doubleTapEnabled]) mode |= STKActivationModeDoubleTap;
-    return mode;
 }
 
 - (BOOL)shouldLockLayouts

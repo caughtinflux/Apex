@@ -67,7 +67,6 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
 - (void)removeGroupView
 {
     STKGroupView *view = [self groupView];
-    [view resetLayouts];
     [view removeFromSuperview];
     view.frame = self.bounds;
     objc_setAssociatedObject(self, @selector(STKGroupView), nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -202,6 +201,13 @@ static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
     static const CGFloat newMin = 0.0f;
     CGFloat groupAlpha = STKScaleNumber(alpha, prevMin, prevMax, newMin, newMax);
     [self.groupView setAlpha:groupAlpha];
+}
+
+- (void)prepareForRecycling
+{
+    %orig();
+    [self stk_setImageViewScale:1.0f];
+    [self removeGroupView];
 }
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event

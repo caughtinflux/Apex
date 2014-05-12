@@ -65,13 +65,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 #pragma mark - SBIconView
 %hook SBIconView
-- (void)prepareForRecycling
-{
-    %orig();
-    [self stk_setImageViewScale:1.0f];
-    self.groupView = nil;
-}
-
 - (void)setLocation:(SBIconLocation)location
 {
     SBIconLocation previousLoc = self.location;
