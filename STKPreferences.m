@@ -169,20 +169,7 @@ static void STKPrefsChanged (
 
 - (void)addOrUpdateGroup:(STKGroup *)group
 {
-    if (!group.centralIcon.leafIdentifier) {
-        return;
-    }
-    if (!_groups) {
-        _groups = [NSMutableDictionary new];
-    }
-    if (group.state == STKGroupStateEmpty) {
-        [_groups removeObjectForKey:group.centralIcon.leafIdentifier];
-    }
-    else {
-        _groups[group.centralIcon.leafIdentifier] = group;
-    }
-    [self _resetSubappMap];
-    [self _synchronize];
+    [self _addOrUpdateGroups:@[group]];
 }
 
 - (void)removeGroup:(STKGroup *)group
@@ -227,7 +214,7 @@ static void STKPrefsChanged (
             [[NSFileManager defaultManager] replaceItemAtURL:prefsURL
                                                withItemAtURL:tempURL
                                               backupItemName:@"com.a3tweaks.Apex.last.plist"
-                                                     options:NSFileManagerItemReplacementUsingNewMetadataOnly
+                                                     options:(NSFileManagerItemReplacementUsingNewMetadataOnly | NSFileManagerItemReplacementWithoutDeletingBackupItem)
                                             resultingItemURL:NULL
                                                        error:&err];
 
@@ -247,6 +234,15 @@ static void STKPrefsChanged (
         _groups = [NSMutableDictionary new];
     }
     for (STKGroup *group in groupArray) {
+        if (!group.centralIcon.leafIdentifier) {
+            return;
+        }
+        if (group.state == STKGroupStateEmpty) {
+            [_groups removeObjectForKey:group.centralIcon.leafIdentifier];
+        }
+        else {
+            _groups[group.centralIcon.leafIdentifier] = group;
+        }
         _groups[group.centralIcon.leafIdentifier] = group;
     }
     [self _resetSubappMap];
