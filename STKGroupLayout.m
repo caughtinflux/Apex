@@ -136,7 +136,11 @@ static STKLayoutPosition _PositionFromString(NSString *string)
     for (STKLayoutPosition pos = STKPositionUnknown; pos <= STKPositionRight; pos++) {
         NSString *key = NSStringFromLayoutPosition(pos);
         if (icons[pos].count > 0) {
-            dictionary[key] = [icons[pos] valueForKey:@"leafIdentifier"];
+            NSMutableArray *identifiersAtCurrentPosition = [icons[pos] valueForKey:@"leafIdentifier"];
+            [identifiersAtCurrentPosition removeObjectIdenticalTo:[NSNull null]];
+            if (identifiersAtCurrentPosition.count > 0) {
+                dictionary[key] = identifiersAtCurrentPosition;
+            }
         }
     }
     return dictionary;
