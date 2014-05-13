@@ -8,7 +8,6 @@
 {
     STKGroupView *_openGroupView;
     UIView *_listDimmingView;
-    UIView *_dockDimmingView;
     UISwipeGestureRecognizer *_closeSwipeRecognizer;
     UITapGestureRecognizer *_closeTapRecognizer;
 
@@ -209,14 +208,12 @@
     frame.size.width *= 3.f;
     frame.size.height += dock.frame.size.height;
     _listDimmingView = [[UIView alloc] initWithFrame:frame];
-    _dockDimmingView = (_hasClassicDock ? nil : [[UIView alloc] initWithFrame:dock.bounds]);
 
-    _listDimmingView.backgroundColor = _dockDimmingView.backgroundColor = [UIColor colorWithWhite:0.f alpha:1.f];
-    _listDimmingView.alpha = _dockDimmingView.alpha = 0.f;
-    _listDimmingView.autoresizingMask = _dockDimmingView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
+    _listDimmingView.backgroundColor = [UIColor colorWithWhite:0.f alpha:1.f];
+    _listDimmingView.alpha = 0.f;
+    _listDimmingView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
 
     [listView addSubview:_listDimmingView];
-    [dock addSubview:_dockDimmingView];
 
     STKGroupView *activeGroupView = [self _activeGroupView];
     [activeGroupView.superview.superview bringSubviewToFront:activeGroupView.superview];
@@ -225,21 +222,16 @@
 - (void)_removeDimmingViews
 {
     [_listDimmingView removeFromSuperview];
-    [_dockDimmingView removeFromSuperview];
     [_listDimmingView release];
-    [_dockDimmingView release];
     _listDimmingView = nil;
-    _dockDimmingView = nil;
 }
 
 - (void)_setDimStrength:(CGFloat)strength
 {
-    if (!(_listDimmingView || _dockDimmingView)) {
-        // At least one dimming view should be set up.
+    if (!_listDimmingView) {
         [self _setupDimmingViews];
     }
-
-    _listDimmingView.alpha = _dockDimmingView.alpha = strength;
+    _listDimmingView.alpha = strength;
 }
 
 - (void)_addCloseGestureRecognizers
