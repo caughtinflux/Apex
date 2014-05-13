@@ -74,11 +74,9 @@
     _zoomAnimator.settings = [[CLASS(SBPrototypeController) sharedInstance] rootSettings].rootAnimationSettings.folderCloseSettings;
     double duration = _zoomAnimator.settings.outerFolderFadeSettings.duration;
 
-    [UIView animateWithDuration:duration animations:^{
+    [UIView animateWithDuration:duration delay:0.0 options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
         _iconView.alpha = 1.f;
         _selectionView.alpha = 0.f;
-    }];
-    [UIView animateWithDuration:duration delay:0.05 options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
         STKCurrentListView().alpha = 1.f;
         [[CLASS(SBIconController) sharedInstance] dockListView].alpha = 1.f;
     } completion:nil];
