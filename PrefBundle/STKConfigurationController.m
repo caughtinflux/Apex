@@ -39,22 +39,26 @@ static NSString * const SwipeToSpotlightID   = @"SWIPE_DOWN_SPOTLIGHT";
     return NO;
 }
 
+- (void)_setValue:(NSNumber *)value forMultiSelectionSpecifiers:(NSArray *)specifiers
+{
+    for (PSSpecifier *spec in specifiers) {
+        [[self cellForSpecifier:spec] setChecked:[value boolValue]];
+        [self setPreferenceValue:value specifier:spec];
+        [self setPreferenceValue:value specifier:spec];
+        [[[self rootController] class] writePreference:spec];
+    }
+}
+
 - (void)setVisualIndicator:(PSSpecifier *)selectedSpecifier
 {
     PSSpecifier *previewSpecifier = [self specifierForID:PreviewSpecifierID];
     PSSpecifier *grabberSpecifier = [self specifierForID:GrabberSpecifierID];
     PSSpecifier *noneSpecifier = [self specifierForID:NoneSpecifierID];
 
-    [[self cellForSpecifier:noneSpecifier] setChecked:NO];
-    [[self cellForSpecifier:previewSpecifier] setChecked:NO];
-    [[self cellForSpecifier:grabberSpecifier] setChecked:NO];
-    [self setPreferenceValue:@NO specifier:grabberSpecifier];
-    [self setPreferenceValue:@NO specifier:previewSpecifier];
-    [self setPreferenceValue:@NO specifier:noneSpecifier];
-
-    [[self cellForSpecifier:selectedSpecifier] setChecked:YES];
-    [self setPreferenceValue:@YES specifier:selectedSpecifier];
-    [[[self rootController] class] writePreference:selectedSpecifier];
+    NSMutableArray *specifiersToTurnOff = [[@[grabberSpecifier, previewSpecifier, noneSpecifier] mutableCopy] autorelease];
+    [specifiersToTurnOff removeObject:selectedSpecifier];
+    [self _setValue:@NO forMultiSelectionSpecifiers:specifiersToTurnOff];
+    [self _setValue:@YES forMultiSelectionSpecifiers:@[selectedSpecifier]];
 }
 
 - (void)updateSpecifier:(PSSpecifier *)specifier
