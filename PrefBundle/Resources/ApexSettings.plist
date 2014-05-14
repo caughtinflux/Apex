@@ -64,8 +64,10 @@
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
+			<key>id</key>
+			<string>copyright</string>
 			<key>footerText</key>
-			<string>LOCALIZATION_ABOUT</string>
+			<string>COPYRIGHT_TEXT</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -76,15 +78,6 @@
 			<string>SUPPORT_EMAIL_LINK</string>
 			<key>action</key>
 			<string>showMailDialog</string>
-		</dict>
-
-		<dict>
-			<key>cell</key>
-			<string>PSGroupCell</string>
-			<key>id</key>
-			<string>copyright</string>
-			<key>footerText</key>
-			<string>COPYRIGHT_TEXT</string>
 		</dict>
 	</array>
 	<key>title</key>

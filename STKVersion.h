@@ -1,1 +1,1 @@
-#define kPackageVersion "1.9.0.5"
+#define kPackageVersion "1.9.0.6"
