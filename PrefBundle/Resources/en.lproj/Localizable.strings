@@ -6,6 +6,8 @@
 	AUTHORS = "by Sentry and Aditya KD.";
 	AUTHORS_PURCHASED = "by Sentry and Aditya KD.\nThank you for your purchase.";
 
+	USER_GUIDE = "User Guide";
+
 	CONFIGURATION = "Configuration";
 	VISUAL_INDICATOR = "Visual Indicator:";
 	SUBAPP_PREVIEWS = "Sub-App Previews";

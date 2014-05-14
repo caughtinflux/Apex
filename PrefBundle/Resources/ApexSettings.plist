@@ -20,14 +20,30 @@
 			<string></string>
 		</dict>
 		<dict>
-		    <key>cell</key>
-		    <string>PSLinkCell</string>
-		    <key>label</key>
-		    <string>CONFIGURATION</string>
-		    <key>icon</key>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>label</key>
+			<string>USER_GUIDE</string>
+			<key>icon</key>
+			<string>UserGuide.png</string>
+			<key>detail</key>
+			<string>STKUserGuideController</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string></string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>label</key>
+			<string>CONFIGURATION</string>
+			<key>icon</key>
 			<string>Configuration.png</string>
-		    <key>detail</key>
-		    <string>STKConfigurationController</string>
+			<key>detail</key>
+			<string>STKConfigurationController</string>
 		</dict>
 		
 		<dict>
