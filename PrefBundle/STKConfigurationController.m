@@ -17,6 +17,12 @@ static NSString * const SwipeToSpotlightID   = @"SWIPE_DOWN_SPOTLIGHT";
 
 @implementation STKConfigurationController
 
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    self.title = LOCALIZE(CONFIGURATION);
+}
+
 - (id)specifiers
 {
     if (!_specifiers) {

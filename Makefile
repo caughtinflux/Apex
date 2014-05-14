@@ -36,6 +36,7 @@ endif
 
 ifeq ($(KILLPREFS), 1)
 	@install.exec "killall Preferences"
+	@install.exec "cycript -p SpringBoard /var/root/apexsettings.cy"
 else
 	@install.exec "killall backboardd"
 endif

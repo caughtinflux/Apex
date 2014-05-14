@@ -6,8 +6,6 @@
 	AUTHORS = "by Sentry and Aditya KD.";
 	AUTHORS_PURCHASED = "by Sentry and Aditya KD.\nThank you for your purchase.";
 
-	USER_GUIDE = "User Guide";
-
 	CONFIGURATION = "Configuration";
 	VISUAL_INDICATOR = "Visual Indicator:";
 	SUBAPP_PREVIEWS = "Sub-App Previews";
@@ -56,4 +54,11 @@
 	FOLLOW_A3TWEAKS = "Follow A³tweaks";
 
 	COPYRIGHT_TEXT = "© %ld Aditya KD and Newar Choukeir";
+
+	/* User Guide */
+	USER_GUIDE = "User Guide";
+	GETTING_STARTED = "Getting Started";
+	GET_STARTED_TEXT = "To create a new stack, swipe up or down on any app icon on your home screen to reveal the sub-app slots available. Tap on the slot in which you want to place an app to open the selection folder. You can scroll through the available applications or search for a particular application, and tap to select.\nClose the stack with a swipe or a tap outside, and you're done!";
+	EDITING = "Editing";
+	EDITING_TEXT = "Press and hold any one of the sub-apps in a stack to enter edit mode. Tap on the slot you wish to edit (or add an app to), and navigate the selection folder to select the icon you want.\nSelection is indicated by a ✓ overlay on the icon.\n\nTo remove a sub-app, find it in the selection folder, and deselect it.";
 }

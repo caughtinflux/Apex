@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>GETTING_STARTED</string>
+		</dict>
+		<dict>
+			<key>cellClass</key>
+			<string>STKMultiLineTextCell</string>
+			<key>label</key>
+			<string>GET_STARTED_TEXT</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>EDITING</string>
+		</dict>
+		<dict>
+			<key>cellClass</key>
+			<string>STKMultiLineTextCell</string>
+			<key>label</key>
+			<string>EDITING_TEXT</string>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>USER_GUIDE</string>
+</dict>
+</plist>
