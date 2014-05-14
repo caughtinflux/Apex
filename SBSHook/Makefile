@@ -1,6 +1,3 @@
-ARCHS = armv7 armv7s arm64
-TARGET = iphone:clang:7.1:7.0
-
 include theos/makefiles/common.mk
 
 TWEAK_NAME = ApexSBSHook

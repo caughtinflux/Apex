@@ -1,6 +1,6 @@
-DEBUG = 1
-ARCHS = armv7 armv7s arm64
-TARGET = iphone:clang:7.1:7.0
+export DEBUG = 1
+export ARCHS = armv7 armv7s arm64
+export TARGET = iphone:clang:7.1:7.0
 
 ifeq ($(DEBUG), 0)
 	PACKAGE_VERSION=$(THEOS_PACKAGE_BASE_VERSION)
