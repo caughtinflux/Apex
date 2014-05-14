@@ -31,7 +31,17 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(id)indexPath
 {
     NSString *text = Localize([[self specifierAtIndex:[self indexForIndexPath:indexPath]] propertyForKey:@"label"]);
-    CGFloat cellWidth = CGRectInset(self.view.bounds, kLabelInset, kLabelInset).size.width;
+    CGFloat cellWidth = ({
+        CGFloat width = 0.f;
+        if (ISPAD()) {
+            width = CGRectInset(self.view.bounds, kLabelInset, kLabelInset).size.width;
+            width -= 50.f;;
+        }
+        else {
+            width = CGRectInset(self.view.bounds, kLabelInset, kLabelInset).size.width;
+        }
+        width;
+    });
     CGRect bounds = [text boundingRectWithSize:CGSizeMake(cellWidth, CGFLOAT_MAX)
                                        options:NSStringDrawingUsesLineFragmentOrigin
                                     attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:16.f]}
