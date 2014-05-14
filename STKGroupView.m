@@ -286,7 +286,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         SBIconView *iconView = [self.iconViewSource groupView:self wantsIconViewForIcon:icon];
         iconView.frame = _centralIconView.bounds;
         iconView.delegate = self.delegate;
-        [[iconView valueForKey:@"updatedMark"] setHidden:YES];
         [_subappLayout addIcon:iconView toIconsAtPosition:pos];
         [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
         [self addSubview:iconView];

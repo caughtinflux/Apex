@@ -40,6 +40,9 @@
     #define VLog(...)
 #endif
 
+#define LogTimeStart() CFTimeInterval ____start = CACurrentMediaTime()
+#define LogTimeEnd() CLog(@"time: %f", CACurrentMediaTime() - ____start)
+
 #define STKLog(fmt, ...) NSLog((@"[" kSTKTweakName @"] " fmt), ##__VA_ARGS__)
 #define kPrefPath [NSString stringWithFormat:@"%@/Library/Preferences/com.a3tweaks."kSTKTweakName@".plist", NSHomeDirectory()]
 #define PATH_TO_IMAGE(_name) [[NSBundle bundleWithPath:@"/Library/Application Support/Apex.bundle"] pathForResource:_name ofType:@"png"]

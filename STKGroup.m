@@ -43,6 +43,12 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
 {
     _observers = [[NSHashTable alloc] initWithOptions:NSHashTableWeakMemory capacity:0];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_editingEnded:) name:STKEditingEndedNotificationName object:nil];
+    if (!self.empty) {
+        // Ensure icon images are cached
+        for (SBIcon *icon in _layout) {
+            [icon getIconImage:2];
+        }
+    }
 }
 
 - (void)dealloc
