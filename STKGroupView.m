@@ -320,7 +320,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             // Scale the icon back down to the smaller size
             [iconView stk_setImageViewScale:kSubappPreviewScale];
         }
-        [[iconView valueForKey:@"updatedMark"] setHidden:YES];
     }];
 }
 
@@ -752,7 +751,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             CGPoint origin = [self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}];
             iconView.frame = (CGRect){origin, iconView.frame.size};
             [iconView stk_setImageViewScale:1.f];
-            [[iconView valueForKey:@"updatedMark"] setHidden:NO];
             iconView.alpha = 1.f;
         }];
         [_displacedIconLayout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
@@ -938,6 +936,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     UIView *view = [iconView valueForKey:@"_labelView"];
     iconView.iconAccessoryAlpha = alpha;
     view.alpha = alpha;
+    [[iconView valueForKey:@"updatedMark"] setAlpha:alpha];
 }
 
 - (void)_setAlphaForDisplacedIcons:(CGFloat)alpha
@@ -969,6 +968,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [iconView setIcon:icon];
     if (group.hasPlaceholders && [icon isLeafIcon]) {
         [iconView showApexOverlayOfType:STKOverlayTypeEditing];
+        [self _setAlpha:1.f forBadgeAndLabelOfIconView:iconView];
     }
 }
 
