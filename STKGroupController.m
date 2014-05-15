@@ -137,16 +137,26 @@
 
 - (void)handleIconRemoval:(SBIcon *)removedIcon
 {
+    if (!removedIcon || [removedIcon isDownloadingIcon]) {
+        return;
+    }
+    SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
     STKGroup *group = nil;
     if ((group = [[[[STKPreferences sharedPreferences] groupForCentralIcon:removedIcon] retain] autorelease])) {
+        NSArray *icons = [group.layout allIcons];
+        for (SBIcon *icon in icons) {
+            STKGroupSlot slot = [group.layout slotForIcon:icon];
+            [group removeIconInSlot:slot];    
+        }
+        [group finalizeState];
         [[STKPreferences sharedPreferences] removeGroup:group];
-        SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
-        [model _postIconVisibilityChangedNotificationShowing:[group.layout allIcons] hiding:nil];
+        [model _postIconVisibilityChangedNotificationShowing:icons hiding:nil];
     }
     else if ((group = [[STKPreferences sharedPreferences] groupForSubappIcon:removedIcon])) {
         STKGroupSlot slot = [group.layout slotForIcon:removedIcon];
         [group removeIconInSlot:slot];
         [group finalizeState];
+        [model _postIconVisibilityChangedNotificationShowing:@[removedIcon] hiding:nil];
     }
 }
 
@@ -635,3 +645,4 @@
 }
 
 @end
+

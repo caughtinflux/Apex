@@ -98,7 +98,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 - (SBDownloadingIcon *)addDownloadingIconForDownload:(SBApplicationPlaceholder *)download
 {
     SBDownloadingIcon *downloadingIcon = %orig();
-    SBIcon *icon = [self expectedIconForDisplayIdentifier:[downloadingIcon identifierForCorrespondingApplicationIcon]];
+    SBIcon *icon = [self applicationIconForDisplayIdentifier:[download applicationBundleID]];
     [[STKGroupController sharedController] handleIconRemoval:icon];
     return downloadingIcon;
 }
