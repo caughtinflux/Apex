@@ -266,15 +266,19 @@
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    [self dismissKeyboard];
     STKSelectionViewCell *selectedCell = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:[[_collectionView indexPathsForSelectedItems] firstObject]];
     [selectedCell.iconView setHighlighted:NO];
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    [self dismissKeyboard];
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
     STKSelectionViewCell *selectedCell = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:[[_collectionView indexPathsForSelectedItems] firstObject]];
-    [selectedCell.iconView setHighlighted:NO];   
+    [selectedCell.iconView setHighlighted:NO];
 }
 
 - (void)_selectedCell:(STKSelectionViewCell *)cell

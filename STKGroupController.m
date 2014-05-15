@@ -278,7 +278,7 @@
     
     SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
     
-    NSMutableArray *visibleIconIdentifiers = [[[[[model visibleIconIdentifiers] objectEnumerator] allObjects] mutableCopy] autorelease];
+    NSMutableSet *visibleIconIdentifiers = [[[model visibleIconIdentifiers] mutableCopy] autorelease];
     [visibleIconIdentifiers addObjectsFromArray:[STKPreferences sharedPreferences].identifiersForSubappIcons];
     [visibleIconIdentifiers removeObject:_openGroupView.group.centralIcon.leafIdentifier];
 
