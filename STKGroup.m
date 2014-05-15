@@ -199,11 +199,11 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
         _state = STKGroupStateNormal;
     }
     else {
-        // If newLayout doesn't have any icons, it means _layout is full of empty icons
-        // So we transition to STKGroupStateEmpty!
+        // If newLayout doesn't have any icons, we transition to STKGroupStateEmpty!
         CLog(@"Finalization: New layout is empty, adjusting state to match");
         [newLayout release];
         _state = STKGroupStateEmpty;
+        [self forceRelayout];
     }
     [_placeholderLayout release];
     _placeholderLayout = nil;
