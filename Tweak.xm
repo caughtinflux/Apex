@@ -313,11 +313,17 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 #pragma mark - UIStatusBar
 %hook UIStatusBar
+static STKStatusBarRecognizerDelegate *_recognizerDelegate;
 - (id)initWithFrame:(CGRect)frame
 {
     if ((self = %orig())) {
         UITapGestureRecognizer *recognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(stk_tapped:)];
         [self addGestureRecognizer:[recognizer autorelease]];
+        if (!_recognizerDelegate) {
+            _recognizerDelegate = [[STKStatusBarRecognizerDelegate alloc] init];
+            recognizer.cancelsTouchesInView = NO;
+        }
+        recognizer.delegate = _recognizerDelegate;
     }
     return self;
 }

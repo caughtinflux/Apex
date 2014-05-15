@@ -26,6 +26,8 @@
 #import "SBIconView+Apex.h"
 #import "SBIconListView+ApexAdditions.h"
 
+#import "STKStatusBarRecognizerDelegate.h"
+
 #import "STKPreferences.h"
 
 #define kSTKTweakName @"Apex"
