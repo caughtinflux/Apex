@@ -99,6 +99,7 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
 {
     if (_state == STKGroupStateEmpty) {
         [_layout release];
+        _layout = nil;
         _layout = [[STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:_centralIcon]] retain];
     } 
     else {
