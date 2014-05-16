@@ -265,7 +265,7 @@ notifyObservers:
 
 - (void)_enumerateObserversUsingBlock:(void(^)(id<STKGroupObserver>))block forSelector:(SEL)sel
 {
-    for (id<STKGroupObserver> obs in [[_observers objectEnumerator] allObjects]) {
+    for (id<STKGroupObserver> obs in [_observers allObjects]) {
         if ([obs respondsToSelector:sel]) {
             block(obs);
         }

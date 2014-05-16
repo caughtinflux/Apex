@@ -301,8 +301,7 @@
             [availableIcons addObject:icon];
         }
     }
-
-    _selectionView.iconsForSelection = [[availableIcons objectEnumerator] allObjects];
+    _selectionView.iconsForSelection = [availableIcons allObjects];
     _selectionView.selectionHandler = ^{
         if (![selectedIconView.icon isLeafIcon]) {
             [self _closeSelectionView];
