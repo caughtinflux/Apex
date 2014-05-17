@@ -25,15 +25,9 @@ static BOOL __didShowAlert = NO;
     long _year;
 }
 
-- (id)initForContentSize:(CGSize)size
+- (id)init
 {
-    if ([PSViewController instancesRespondToSelector:@selector(initForContentSize:)]) {
-        self = [super initForContentSize:size];
-    }
-    else {
-        self = [super init];
-    }
-    if (self) {
+    if ((self = [super init])) {
         NSBundle *bundle = [NSBundle bundleWithPath:@"/Library/PreferenceBundles/ApexSettings.bundle"];
         UIImage *image = [UIImage imageNamed:@"GroupLogo.png" inBundle:bundle];
         UINavigationItem *item = self.navigationItem;

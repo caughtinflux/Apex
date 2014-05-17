@@ -15,12 +15,6 @@
 		</dict>
 		<dict>
 			<key>cell</key>
-			<string>PSGroupCell</string>
-			<key>footerText</key>
-			<string></string>
-		</dict>
-		<dict>
-			<key>cell</key>
 			<string>PSLinkCell</string>
 			<key>label</key>
 			<string>USER_GUIDE</string>
@@ -81,6 +75,6 @@
 		</dict>
 	</array>
 	<key>title</key>
-	<string>Apex</string>
+	<string>Apex 2</string>
 </dict>
 </plist>

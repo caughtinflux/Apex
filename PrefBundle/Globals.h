@@ -1,6 +1,7 @@
 #import <UIKit/UIKit.h>
 #import <Preferences/PSSpecifier.h>
 #import <Preferences/PSRootController.h>
+#import <Preferences/PSViewController.h>
 #import "../STKConstants.h"
 
 @interface UIImage(Extras)
@@ -9,14 +10,6 @@
 
 @interface UIDevice (iOS5)
 - (id)deviceInfoForKey:(NSString *)key;
-@end
-
-@interface PSViewController : UIViewController
-@property (nonatomic, retain) PSRootController *rootController;
-@property (nonatomic, retain) PSViewController *parentController;
-- (id)initForContentSize:(CGSize)size;
-- (void)pushController:(PSViewController *)controller;
-- (id)readPreferenceValue:(PSSpecifier *)specifier;
 @end
 
 @class PSSpecifier;

@@ -10,30 +10,24 @@
 #define TEXT_SHADOW_OFFSET CGSizeMake(0, 1)
 #define TEXT_SHADOW_COLOR [UIColor whiteColor]
 
+static NSString * const ProfileCellReuseIdentifier = @"Profile";
+static NSString * const RegularCellReuseIdentifier = @"Cell";
+
 @implementation STKProfileController
 {
     long _year;
 }
 
 - (id)initForContentSize:(CGSize)size
-{
-    if ([[PSViewController class] instancesRespondToSelector:@selector(initForContentSize:)]) {
-        self = [super initForContentSize:size];
-    }
-    else {
-        self = [super init];
-    }
-    if (self) {
-        CGRect frame;
-        frame.origin = (CGPoint){0, 0};
-        frame.size = size;
-        
-        _tableView = [[UITableView alloc] initWithFrame:frame style:UITableViewStyleGrouped];
+{    
+    if ((self = [super init])) {   
+        _tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
         [_tableView setDataSource:self];
         [_tableView setDelegate:self];
         [_tableView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleTopMargin];
-        _tableView.contentInset = (UIEdgeInsets){self.navigationController.navigationBar.frame.size.height, 0, 0, 0};
-        self.automaticallyAdjustsScrollViewInsets = YES;
+        [self.view addSubview:_tableView];
+        [_tableView registerClass:[STKTableViewCellProfile class] forCellReuseIdentifier:ProfileCellReuseIdentifier];
+        [_tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:RegularCellReuseIdentifier];
 
         NSDate *date = [NSDate date];
         NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
@@ -49,16 +43,6 @@
     [_tableView setDataSource:nil];
     [_tableView release];
     [super dealloc];
-}
-
-- (UIRectEdge)edgesForExtendedLayout
-{
-    return UIRectEdgeNone;
-}
-
-- (UIView *)view
-{
-    return _tableView;
 }
 
 - (UITableView *)table
@@ -140,14 +124,8 @@
 - (id)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSInteger section = indexPath.section;
-    NSString *reuseIdentifier = section < 2 ? @"Profile" : @"Cell";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
-    
-    if (cell == nil) {
-        Class cellClass = section < 2 ? [STKTableViewCellProfile class] : [UITableViewCell class];
-        cell = [[[cellClass alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier] autorelease];
-    }
-    
+    NSString *reuseIdentifier = section < 2 ? ProfileCellReuseIdentifier : RegularCellReuseIdentifier;
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier forIndexPath:indexPath];    
     switch (section) {
         case 0:
             [((STKTableViewCellProfile *)cell) loadImage:@"Sentry" nameText:LOCALIZE(SENTRY) handleText:LOCALIZE(SENTRY_HANDLE) infoText:LOCALIZE(SENTRY_INFO)];
@@ -157,18 +135,16 @@
             break;
         case 2:
             cell.textLabel.text = LOCALIZE(FOLLOW_A3TWEAKS);
-            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
             cell.imageView.image = [[STKPrefsHelper sharedHelper] ownImageNamed:@"GroupLogo"];
-            cell.accessoryView = [[[UIImageView alloc] initWithImage:[[STKPrefsHelper sharedHelper] ownImageNamed:@"Twitter.png"]] autorelease];
             break;
     }
-
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     return cell;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.section < 2) return 104.0f;
+    if (indexPath.section < 2) return 106.0f;
     else return 44.0f;
 }
 

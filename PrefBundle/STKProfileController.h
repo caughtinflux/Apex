@@ -9,10 +9,5 @@
 @private
     UITableView *_tableView;
 }
-- (id)initForContentSize:(CGSize)size;
-- (UIView *)view;
-- (CGSize)contentSize;
-- (id)navigationTitle;
-- (NSMutableDictionary *)preferences;
 
 @end

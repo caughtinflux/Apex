@@ -8,9 +8,6 @@
 #import "STKProfileController.h"
 
 @interface STKPrefsController : PSListController <MFMailComposeViewControllerDelegate, UIAlertViewDelegate>
-- (id)initForContentSize:(CGSize)size;
-- (id)navigationTitle;
-
 - (void)showHeartDialog;
 - (void)showMailDialog;
 @end
