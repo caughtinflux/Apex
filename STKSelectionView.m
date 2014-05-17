@@ -5,8 +5,11 @@
 #import "STKSelectionTitleTextField.h"
 #import <SpringBoard/SpringBoard.h>
 
-#define kCellReuseIdentifier @"STKSelectionViewCell"
-#define kHeaderReuseIdentifier @"OMEMGEE!"
+static NSString * const kCellReuseIdentifier   = @"STKSelectionViewCell";
+static NSString * const kHeaderReuseIdentifier = @"OMEMGEE!";
+
+static const CGFloat kMinimumInteritemSpacing = 36;
+static const CGFloat kMinimumLineSpacing      = 15;
 
 @implementation STKSelectionView
 {
@@ -218,24 +221,36 @@
 
 - (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumInteritemSpacingForSectionAtIndex:(NSInteger)section
 {
-    UIEdgeInsets insets = [self collectionView:collectionView layout:collectionViewLayout insetForSectionAtIndex:section];
-    CGSize size = [CLASS(SBIconView) defaultIconSize];
-    CGFloat spacing = (collectionView.frame.size.width - ((size.width * 3) + insets.left + insets.right)) / 3.f;
+    CGFloat spacing;
+    if (ISPAD()) {
+        UIEdgeInsets insets = [self collectionView:collectionView layout:collectionViewLayout insetForSectionAtIndex:section];
+        CGSize size = [CLASS(SBIconView) defaultIconSize];
+        spacing = (collectionView.frame.size.width - ((size.width * 3) + insets.left + insets.right)) / 3.f;
+    }
+    else {
+        spacing = kMinimumInteritemSpacing;
+    }
     return spacing;
 }
 
 - (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section
 {
-    CGSize size = [CLASS(SBIconView) defaultIconSize];
-    UIEdgeInsets insets = [self collectionView:collectionView layout:collectionViewLayout insetForSectionAtIndex:section];
-    CGFloat numItems = (ISPAD() ? 3.5 : 3.1f);
-    CGFloat height = (collectionView.frame.size.height - ((size.height * numItems) + insets.top + insets.bottom)) /  numItems;
+    CGFloat height;
+    if (ISPAD()) {
+        CGSize size = [CLASS(SBIconView) defaultIconSize];
+        UIEdgeInsets insets = [self collectionView:collectionView layout:collectionViewLayout insetForSectionAtIndex:section];
+        CGFloat numItems = 3.1f;
+        height = (collectionView.frame.size.height - ((size.height * numItems) + insets.top + insets.bottom)) /  numItems;
+    }
+    else {
+        height = kMinimumLineSpacing;
+    }
     return height;
 }
 
 - (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section
 {
-    return (ISPAD() ? (UIEdgeInsets){10.f, 35.f, 25.f, 35.f} : (UIEdgeInsets){10, 20.f, 30.f, 20.f});
+    return (ISPAD() ? (UIEdgeInsets){14.f, 35.f, 25.f, 35.f} : (UIEdgeInsets){14.f, 26.f, 30.f, 26.f});
 }
 
 - (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath
