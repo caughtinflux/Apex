@@ -14,7 +14,7 @@
         self.textAlignment = NSTextAlignmentCenter;
         self.textColor = [UIColor colorWithWhite:1.0 alpha:0.5f];
         self.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:24.f];
-        self.backgroundColor = [UIColor colorWithWhite:0.f alpha:0.3f];
+        self.backgroundColor = [UIColor colorWithWhite:0.f alpha:0.2f];
         self.typingAttributes = @{
             NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Light" size:24.f],
             NSForegroundColorAttributeName: [UIColor whiteColor]

@@ -131,6 +131,7 @@
 - (void)dismissKeyboard
 {
     [_searchTextField resignFirstResponder];
+    [self _adjustTextFieldBackground];
 }
 
 - (void)_processIcons:(NSArray *)icons
@@ -247,14 +248,14 @@
             view.headerTitle = @"Search Results";
         }
         else if (_hasRecommendations) {
-            view.headerTitle = @"Recommended";
+            view.headerTitle = @"Suggested";
         }
         else {
-            view.headerTitle = @"All";
+            view.headerTitle = @"All Apps";
         }
     }
     else {
-        view.headerTitle = @"All";
+        view.headerTitle = @"All Apps";
     }
     return view;
 }
@@ -308,8 +309,8 @@
 {
     _searchTextField = [[[STKSelectionTitleTextField alloc] initWithFrame:(CGRect){{15.f, 46.f}, {290.f, 40.f}}] autorelease];
     CGRect frame = _searchTextField.frame;
-    frame.size.width = [CLASS(SBFolderBackgroundView) folderBackgroundSize].width;
     if (ISPAD()) {
+        frame.size.width = [CLASS(SBFolderBackgroundView) folderBackgroundSize].width;
         frame.size.height *= 1.5f;
     }
     _searchTextField.frame = frame;
@@ -334,6 +335,7 @@
     textField.textAlignment = NSTextAlignmentLeft;
     textField.textColor = [UIColor whiteColor];
     textField.attributedPlaceholder = nil;
+    [self _adjustTextFieldBackground];
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField
@@ -347,6 +349,7 @@
     else {
         _searchTextField.rightViewMode = UITextFieldViewModeWhileEditing;
     }
+    [self _adjustTextFieldBackground];
 }
 
 - (void)_searchTextChanged
@@ -356,18 +359,20 @@
     if (_searchTextField.text.length == 0) {
         _isSearching = NO;
         [_collectionView reloadData];
-        return;
     }
-    _isSearching = YES;
-
-    NSMutableArray *searchResults = [NSMutableArray new];
-    for (SBIcon *icon in _allApps) {
-        if ([[icon displayName] rangeOfString:_searchTextField.text options:(NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch)].location != NSNotFound) {
-            [searchResults addObject:icon];
+    else {
+        _isSearching = YES;
+        NSMutableArray *searchResults = [NSMutableArray new];
+        for (SBIcon *icon in _allApps) {
+            if ([[icon displayName] rangeOfString:_searchTextField.text
+                                          options:(NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch)].location != NSNotFound) {
+                [searchResults addObject:icon];
+            }
         }
+        _searchResults = searchResults;
+        [_collectionView reloadData];
     }
-    _searchResults = searchResults;
-    [_collectionView reloadData];
+    [self _adjustTextFieldBackground];
 }
 
 - (BOOL)textFieldShouldClear:(UITextField *)textField
@@ -376,14 +381,25 @@
     [_searchResults release];
     _searchResults = nil;
     [_collectionView reloadData];
+    [self _adjustTextFieldBackground];
     return YES;
+}
+
+- (void)_adjustTextFieldBackground
+{
+    if (_searchTextField.isEditing || (_searchTextField.text.length > 0)) {
+        _searchTextField.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.3];
+    }
+    else {
+        _searchTextField.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.2];
+    }
 }
 
 - (NSAttributedString *)_attributedPlaceholderForTextField
 {
     return [[[NSAttributedString alloc] initWithString:@"Select Sub-App"
                                             attributes:@{NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Light" size:24.f],
-                                                         NSForegroundColorAttributeName: [UIColor colorWithWhite:1.f alpha:0.5f]}] autorelease];
+                                                         NSForegroundColorAttributeName: [UIColor colorWithWhite:1.f alpha:1.0f]}] autorelease];
 }
 
 @end
