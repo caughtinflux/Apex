@@ -2,7 +2,7 @@
 #import "STKConstants.h"
 #import <dlfcn.h>
 
-#define kFullDimStrength 0.4f
+#define kFullDimStrength 0.3f
 
 @implementation STKGroupController
 {
