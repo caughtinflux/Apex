@@ -145,7 +145,7 @@ static BOOL __didShowAlert = NO;
     frame.size.height = [thanksLabel.text sizeWithAttributes:@{NSFontAttributeName: thanksLabel.font}].height;
     thanksLabel.frame = frame;
 
-    CGRect headerFrame = (CGRect){{0, 0}, {largeLabel.frame.size.width, (largeLabelSize.height + thanksLabel.bounds.size.height)}};
+    CGRect headerFrame = (CGRect){{0, 0}, {largeLabel.frame.size.width, (largeLabelSize.height + thanksLabel.bounds.size.height + 21.0f)}};
     UIView *header = [[[UIView alloc] initWithFrame:headerFrame] autorelease];
     [header addSubview:largeLabel];
     [header addSubview:thanksLabel];
