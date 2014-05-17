@@ -106,12 +106,12 @@ static BOOL __didShowAlert = NO;
 
 - (id)navigationTitle
 {
-    return @"Apex";
+    return @"Apex 2";
 }
 
 - (NSString *)title
 {    
-    return @"Apex";
+    return @"Apex 2";
 }
 
 - (void)viewDidLoad
