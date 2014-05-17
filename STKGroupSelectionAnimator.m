@@ -2,6 +2,7 @@
 #import "STKConstants.h"
 #import <SpringBoard/SpringBoard.h>
 #import <SpringBoardFoundation/SBFAnimationSettings.h>
+#import <SpringBoardFoundation/SBFWallpaperView.h>
 
 @implementation STKGroupSelectionAnimator
 {
@@ -60,6 +61,10 @@
         _selectionView.iconCollectionView.alpha = 1.0f;
         _iconView.alpha = 0.f;
         _selectionView.searchTextField.alpha = 1.f;
+
+        SBWallpaperController *wallpaperController = [CLASS(SBWallpaperController) sharedInstance];
+        SBFWallpaperView *wallpaperView = [wallpaperController valueForKey:@"homescreenWallpaperView"] ?: [wallpaperController valueForKey:@"sharedWallpaperView"];
+        wallpaperView.zoomFactor = 1.2;
     } completion:nil];
     [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:^{
         [_selectionView flashScrollIndicators];
@@ -79,6 +84,9 @@
         _selectionView.alpha = 0.f;
         STKCurrentListView().alpha = 1.f;
         [[CLASS(SBIconController) sharedInstance] dockListView].alpha = 1.f;
+        SBWallpaperController *wallpaperController = [CLASS(SBWallpaperController) sharedInstance];
+        SBFWallpaperView *wallpaperView = [wallpaperController valueForKey:@"homescreenWallpaperView"] ?: [wallpaperController valueForKey:@"sharedWallpaperView"];
+        wallpaperView.zoomFactor = 1.0;
     } completion:nil];
     [_zoomAnimator animateToFraction:0.f afterDelay:0.05 withCompletion:^{
         [_zoomAnimator release];
