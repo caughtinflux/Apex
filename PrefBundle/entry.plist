@@ -5,6 +5,6 @@
 	detail = STKPrefsController;
 	icon = ApexSettings.png;
 	isController = 1;
-	label = Apex;
+	label = "Apex 2";
     };
 }

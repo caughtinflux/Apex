@@ -73,12 +73,12 @@
 
 - (id)navigationTitle
 {
-    return LOCALIZE(CREATORS);
+    return LOCALIZE(THE_CREATORS);
 }
 
 - (NSString *)title
 {
-    return LOCALIZE(CREATORS);
+    return LOCALIZE(THE_CREATORS);
 }
 
 - (NSMutableDictionary *)preferences
@@ -158,7 +158,7 @@
         case 2:
             cell.textLabel.text = LOCALIZE(FOLLOW_A3TWEAKS);
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-            cell.imageView.image = [[STKPrefsHelper sharedHelper] ownImageNamed:@"ApexIcon.png"];
+            cell.imageView.image = [[STKPrefsHelper sharedHelper] ownImageNamed:@"GroupLogo"];
             cell.accessoryView = [[[UIImageView alloc] initWithImage:[[STKPrefsHelper sharedHelper] ownImageNamed:@"Twitter.png"]] autorelease];
             break;
     }
