@@ -58,11 +58,14 @@
     return self;
 }
 
-- (void) layoutSubviews
+- (void)layoutSubviews
 {
     [super layoutSubviews];
     
     profileView.frame = CGRectMake(PADDING, SELF_HEIGHT / 2.0f - (PROFILE_SIZE / 2.0f), PROFILE_SIZE, PROFILE_SIZE);
+    profileView.layer.cornerRadius = (CGRectGetHeight(profileView.bounds) * 0.5);
+    profileView.layer.masksToBounds = YES;
+    
     birdView.frame = CGRectMake(SELF_WIDTH - TWITTER_WIDTH - PADDING, SELF_HEIGHT / 2.0f - (TWITTER_HEIGHT / 2.0f), TWITTER_WIDTH, TWITTER_HEIGHT);
 
     nameLabel.frame = CGRectMake(profileView.frame.origin.x + PROFILE_SIZE + PADDING + 1, profileView.frame.origin.y, NAME_LABEL_WIDTH, NAME_LABEL_HEIGHT);
