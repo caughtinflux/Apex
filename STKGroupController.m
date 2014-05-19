@@ -143,6 +143,9 @@
     SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
     STKGroup *group = nil;
     if ((group = [[[[STKPreferences sharedPreferences] groupForCentralIcon:removedIcon] retain] autorelease])) {
+        if (group.empty) {
+            return;
+        }
         NSArray *icons = [group.layout allIcons];
         for (SBIcon *icon in icons) {
             STKGroupSlot slot = [group.layout slotForIcon:icon];
@@ -153,6 +156,9 @@
         [model _postIconVisibilityChangedNotificationShowing:icons hiding:nil];
     }
     else if ((group = [[STKPreferences sharedPreferences] groupForSubappIcon:removedIcon])) {
+        if (group.empty) {
+            return;
+        }
         STKGroupSlot slot = [group.layout slotForIcon:removedIcon];
         [group removeIconInSlot:slot];
         [group finalizeState];
