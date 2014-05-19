@@ -53,7 +53,7 @@
     _startCenter = [_selectionView convertPoint:[_iconView iconImageCenter] fromView:_iconView];
     _selectionView.contentView.center = _startCenter;
 
-    NSTimeInterval duration = _zoomAnimator.settings.outerFolderFadeSettings.duration;
+    NSTimeInterval duration = _zoomAnimator.settings.centralAnimationSettings.duration;
     [_selectionView.backgroundView willAnimate];
     [UIView animateWithDuration:duration delay:0.05 options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
         SBWallpaperController *wallpaperController = [CLASS(SBWallpaperController) sharedInstance];
@@ -79,7 +79,7 @@
 - (void)closeSelectionViewAnimatedWithCompletion:(STKAnimatorCompletion)completion
 {
     _zoomAnimator.settings = [[CLASS(SBPrototypeController) sharedInstance] rootSettings].rootAnimationSettings.folderCloseSettings;
-    NSTimeInterval duration = [(SBFolderZoomSettings *)_zoomAnimator.settings innerFolderFadeSettings].duration;
+    NSTimeInterval duration = _zoomAnimator.settings.centralAnimationSettings.duration;
 
     [UIView animateWithDuration:duration delay:0.0 options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
         _selectionView.searchTextField.alpha = 0.f;
