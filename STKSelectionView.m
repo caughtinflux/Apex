@@ -250,7 +250,7 @@ static const CGFloat kMinimumLineSpacing      = 15;
 
 - (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section
 {
-    return (ISPAD() ? (UIEdgeInsets){14.f, 35.f, 25.f, 35.f} : (UIEdgeInsets){14.f, 26.f, 30.f, 26.f});
+    return (ISPAD() ? (UIEdgeInsets){14, 35, 25, 35} : (UIEdgeInsets){6, 26, 30, 26});
 }
 
 - (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath

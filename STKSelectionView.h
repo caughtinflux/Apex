@@ -2,7 +2,7 @@
 
 typedef void(^STKSelectionViewSelectionHandler)(void);
 
-@class SBIcon, SBIconView;
+@class SBIcon, SBIconView, SBFolderBackgroundView;
 @interface STKSelectionView : UIView <UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UITextFieldDelegate>
 
 - (instancetype)initWithFrame:(CGRect)frame selectedIcon:(SBIcon *)selectedIcon centralIcon:(SBIcon *)centralIcon;
@@ -12,6 +12,7 @@ typedef void(^STKSelectionViewSelectionHandler)(void);
 @property (nonatomic, readonly) UIView *contentView;
 @property (nonatomic, readonly) UITextField *searchTextField;
 @property (nonatomic, readonly) UIView *iconCollectionView;
+@property (nonatomic, readonly) SBFolderBackgroundView *backgroundView;
 @property (nonatomic, readonly) BOOL isKeyboardVisible;
 @property (nonatomic, copy) STKSelectionViewSelectionHandler selectionHandler;
 
