@@ -39,8 +39,9 @@
     [iconContentView addSubview:_selectionView];
 
     SBFolderController *currentFolderController = [(SBIconController *)[CLASS(SBIconController) sharedInstance] _currentFolderController];
+    SBPrototypeController *protoController = [CLASS(SBPrototypeController) sharedInstance];
     _zoomAnimator = [[CLASS(SBScaleIconZoomAnimator) alloc] initWithFolderController:currentFolderController targetIcon:_iconView.icon];    
-    _zoomAnimator.settings = [[CLASS(SBPrototypeController) sharedInstance] rootSettings].rootAnimationSettings.folderOpenSettings;
+    _zoomAnimator.settings = [protoController rootSettings].rootAnimationSettings.folderOpenSettings;
     [_zoomAnimator prepare];
     
     CGSize endSize = [CLASS(SBFolderBackgroundView) folderBackgroundSize];
@@ -54,19 +55,21 @@
     _selectionView.contentView.center = _startCenter;
 
     NSTimeInterval duration = _zoomAnimator.settings.centralAnimationSettings.duration;
-    [_selectionView.backgroundView willAnimate];
+    if (protoController.rootSettings.animationSettings.slowAnimations) {
+        duration *= [protoController rootSettings].animationSettings.slowDownFactor;
+    }
     [UIView animateWithDuration:duration delay:0.05 options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
-        SBWallpaperController *wallpaperController = [CLASS(SBWallpaperController) sharedInstance];
-        CGFloat scale = [CLASS(SBFolderController) wallpaperScaleForDepth:1];
-        [wallpaperController setHomescreenWallpaperScale:scale];
-        [_selectionView.backgroundView didAnimate];
         _selectionView.contentView.transform = CGAffineTransformIdentity;
         _selectionView.contentView.center = (CGPoint){CGRectGetMidX(_selectionView.bounds), CGRectGetMidY(_selectionView.bounds)};
+        
         STKCurrentListView().alpha = 0.f;
         [[CLASS(SBIconController) sharedInstance] dockListView].alpha = 0.f;
         _selectionView.contentView.alpha = 1.0f;
-        _iconView.alpha = 0.f;
         _selectionView.searchTextField.alpha = 1.f;
+
+        SBWallpaperController *wallpaperController = [CLASS(SBWallpaperController) sharedInstance];
+        CGFloat scale = [CLASS(SBFolderController) wallpaperScaleForDepth:1];
+        [wallpaperController setHomescreenWallpaperScale:scale];
     } completion:nil];
     [_zoomAnimator animateToFraction:1.0 afterDelay:0.05 withCompletion:^{
         [_selectionView flashScrollIndicators];
@@ -78,21 +81,23 @@
 
 - (void)closeSelectionViewAnimatedWithCompletion:(STKAnimatorCompletion)completion
 {
-    _zoomAnimator.settings = [[CLASS(SBPrototypeController) sharedInstance] rootSettings].rootAnimationSettings.folderCloseSettings;
+    SBPrototypeController *protoController = [CLASS(SBPrototypeController) sharedInstance];
+    _zoomAnimator.settings = [protoController rootSettings].rootAnimationSettings.folderCloseSettings;
     NSTimeInterval duration = _zoomAnimator.settings.centralAnimationSettings.duration;
-
+    if (protoController.rootSettings.animationSettings.slowAnimations) {
+        duration *= [protoController rootSettings].animationSettings.slowDownFactor;
+    }
     [UIView animateWithDuration:duration delay:0.0 options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
         _selectionView.searchTextField.alpha = 0.f;
         _selectionView.iconCollectionView.alpha = 0.f;
     } completion:nil];
-    [_selectionView.backgroundView willAnimate];
     [UIView animateWithDuration:(duration + 0.1) delay:(duration * 0.1) options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
-        _iconView.alpha = 1.f;
         CGAffineTransform scalingTransform = CGAffineTransformMakeScale(_startScale, _startScale);
         CGAffineTransform translationTransform = CGAffineTransformMakeTranslation((_startCenter.x - _selectionView.contentView.center.x),
                                                                                   (_startCenter.y - _selectionView.contentView.center.y + 10.0));
         CGAffineTransform finalTransform = CGAffineTransformConcat(scalingTransform, translationTransform);
         _selectionView.contentView.transform = finalTransform;
+        
         _selectionView.backgroundView.alpha = 0.0f;
         STKCurrentListView().alpha = 1.f;
         [[CLASS(SBIconController) sharedInstance] dockListView].alpha = 1.f;
@@ -100,7 +105,6 @@
         SBWallpaperController *wallpaperController = [CLASS(SBWallpaperController) sharedInstance];
         CGFloat scale = [CLASS(SBFolderController) wallpaperScaleForDepth:0];
         [wallpaperController setHomescreenWallpaperScale:scale];
-        [_selectionView.backgroundView didAnimate];
     } completion:nil];
     [_zoomAnimator animateToFraction:0.f afterDelay:0.0 withCompletion:^{
         [_zoomAnimator release];
