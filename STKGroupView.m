@@ -935,7 +935,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_setAlpha:(CGFloat)alpha forBadgeAndLabelOfIconView:(SBIconView *)iconView
 {
-    UIView *view = [iconView valueForKey:@"_labelView"];
     iconView.iconAccessoryAlpha = alpha;
     iconView.iconLabelAlpha = alpha;
     [[iconView valueForKey:@"updatedMark"] setAlpha:alpha];
