@@ -54,11 +54,11 @@
     _startCenter = [_selectionView convertPoint:[_iconView iconImageCenter] fromView:_iconView];
     _selectionView.contentView.center = _startCenter;
 
-    NSTimeInterval duration = _zoomAnimator.settings.centralAnimationSettings.duration;
+    NSTimeInterval duration = _zoomAnimator.settings.crossfadeSettings.duration;
     if (protoController.rootSettings.animationSettings.slowAnimations) {
         duration *= [protoController rootSettings].animationSettings.slowDownFactor;
     }
-    [UIView animateWithDuration:duration delay:0.05 options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
+    [UIView animateWithDuration:(duration + 0.1) delay:(duration * 0.1) options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
         _selectionView.contentView.transform = CGAffineTransformIdentity;
         _selectionView.contentView.center = (CGPoint){CGRectGetMidX(_selectionView.bounds), CGRectGetMidY(_selectionView.bounds)};
         
@@ -83,7 +83,7 @@
 {
     SBPrototypeController *protoController = [CLASS(SBPrototypeController) sharedInstance];
     _zoomAnimator.settings = [protoController rootSettings].rootAnimationSettings.folderCloseSettings;
-    NSTimeInterval duration = _zoomAnimator.settings.centralAnimationSettings.duration;
+    NSTimeInterval duration = _zoomAnimator.settings.crossfadeSettings.duration;
     if (protoController.rootSettings.animationSettings.slowAnimations) {
         duration *= [protoController rootSettings].animationSettings.slowDownFactor;
     }
