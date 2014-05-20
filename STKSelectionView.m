@@ -50,6 +50,7 @@ static const CGFloat kMinimumLineSpacing      = 15;
         _collectionView.backgroundView = [[[UIView alloc] initWithFrame:CGRectZero] autorelease];
         _collectionView.bounces = YES;
         _collectionView.alwaysBounceVertical = YES;
+        _collectionView.scrollsToTop = YES;
         [_collectionView registerClass:[STKSelectionViewCell class] forCellWithReuseIdentifier:kCellReuseIdentifier];
         [_collectionView registerClass:[STKSelectionHeaderView class] forSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:kHeaderReuseIdentifier];
 
@@ -263,7 +264,7 @@ static const CGFloat kMinimumLineSpacing      = 15;
             view.headerTitle = @"Search Results";
         }
         else if (_hasRecommendations) {
-            view.headerTitle = @"Suggested";
+            view.headerTitle = @"Related Apps";
         }
         else {
             view.headerTitle = @"All Apps";
@@ -295,6 +296,11 @@ static const CGFloat kMinimumLineSpacing      = 15;
 {
     STKSelectionViewCell *selectedCell = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:[[_collectionView indexPathsForSelectedItems] firstObject]];
     [selectedCell.iconView setHighlighted:NO];
+}
+
+- (BOOL)scrollViewShouldScrollToTop:(UIScrollView *)scrollView
+{
+    return YES;
 }
 
 - (void)_selectedCell:(STKSelectionViewCell *)cell
