@@ -130,7 +130,7 @@
 
 - (void)handleStatusBarTap
 {
-    if ([STKPreferences sharedPreferences].shouldOpenSpotlightFromStatusBarTap) {
+    if ([STKPreferences sharedPreferences].shouldOpenSpotlightFromStatusBarTap && !_selectionView) {
         [[CLASS(SBSearchGesture) sharedInstance] revealAnimated:YES];
     }
 }
