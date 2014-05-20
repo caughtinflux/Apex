@@ -107,6 +107,10 @@
         [wallpaperController setHomescreenWallpaperScale:scale];
     } completion:nil];
     [_zoomAnimator animateToFraction:0.0 afterDelay:0.0 withCompletion:^{
+        SBIconView *centralIconView = [_zoomAnimator iconViewForIcon:[_iconView containerGroupView].group.centralIcon];
+        if (centralIconView.location == SBIconLocationFolder) {
+            [_zoomAnimator cleanup];
+        }
         [_zoomAnimator release];
         _zoomAnimator = nil;
         if (completion) {
