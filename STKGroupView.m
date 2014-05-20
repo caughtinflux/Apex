@@ -910,6 +910,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_setAlphaForOtherIcons:(CGFloat)alpha
 {
+    CGFloat accessoryAlpha = STKScaleNumber(alpha, kBackgroundFadeAlpha, 1.0, 0.0, 1.0);
     void(^setter)(id, id) = ^(SBIconListView *listView, SBIcon *icon) {
         if ((icon == _group.centralIcon) || ([_centralIconView isInDock] &&[ _displacedIconLayout[STKPositionTop] containsObject:icon])) {
             return;
@@ -917,6 +918,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         SBIconView *view = [listView viewForIcon:icon];
         view.alpha = alpha;
         [self _setAlpha:alpha forBadgeAndLabelOfIconView:[listView viewForIcon:icon]];
+        view.iconAccessoryAlpha = accessoryAlpha;
     };
     SBIconController *controller = [CLASS(SBIconController) sharedInstance];
     SBIconListView *currentListView = STKCurrentListView();
@@ -935,7 +937,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     UIView *view = [iconView valueForKey:@"_labelView"];
     iconView.iconAccessoryAlpha = alpha;
-    view.alpha = alpha;
+    iconView.iconLabelAlpha = alpha;
     [[iconView valueForKey:@"updatedMark"] setAlpha:alpha];
 }
 
