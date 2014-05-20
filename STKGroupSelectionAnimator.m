@@ -71,7 +71,7 @@
         CGFloat scale = [CLASS(SBFolderController) wallpaperScaleForDepth:1];
         [wallpaperController setHomescreenWallpaperScale:scale];
     } completion:nil];
-    [_zoomAnimator animateToFraction:1.0 afterDelay:0.05 withCompletion:^{
+    [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:^{
         [_selectionView flashScrollIndicators];
         if (completion) {
             completion();
