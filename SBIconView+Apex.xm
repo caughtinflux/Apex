@@ -1,8 +1,8 @@
 #import "SBIconView+Apex.h"
 #import "STKConstants.h"
 
-static NSString * const CheckOverlayImageName = @"OverlayCheck@2x";
-static NSString * const AddOverlayImageName = @"OverlayAdd@2x";
+static NSString * const CheckOverlayImageName = @"OverlayCheck";
+static NSString * const AddOverlayImageName = @"OverlayAdd";
 
 #define kHomeScreenOverlayBlurStyle 7
 #define kFolderOverlayBlurStyle     2

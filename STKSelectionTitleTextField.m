@@ -20,11 +20,11 @@
             NSForegroundColorAttributeName: [UIColor whiteColor]
         };
 
-        UIImageView *searchIconView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"Search@2x")] autorelease];
+        UIImageView *searchIconView = [[[UIImageView alloc] initWithImage:UIIMAGE_NAMED(@"Search")] autorelease];
         UIButton *clearButton = [UIButton buttonWithType:UIButtonTypeCustom];
         clearButton.alpha = 0.5f;
         [clearButton addTarget:self action:@selector(_clearTextField) forControlEvents:UIControlEventTouchUpInside];
-        UIImage *clearImage = UIIMAGE_NAMED(@"Clear@2x");
+        UIImage *clearImage = UIIMAGE_NAMED(@"Clear");
         [clearButton setImage:clearImage forState:UIControlStateNormal];
         clearButton.frame = (CGRect){CGPointZero, clearImage.size};
 
