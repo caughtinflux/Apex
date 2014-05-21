@@ -57,7 +57,8 @@
 	/* User Guide */
 	USER_GUIDE = "User Guide";
 	GETTING_STARTED = "Getting Started";
-	GET_STARTED_TEXT = "To create a new stack, swipe up or down on any app icon on your home screen to reveal the sub-app slots available. Tap on the slot in which you want to place an app to open the selection folder. You can scroll through the available applications or search for a particular application, and tap to select.\nClose the stack with a swipe or a tap outside, and you're done!";
+
+	GET_STARTED_TEXT = "To create a new stack, swipe on any app icon on your home screen to reveal its available sub-app slots. Tap on a slot in which you want to place an app to open the selection view. Here you can scroll through your apps (divided by related apps and all) or use the search bar to find a specific app, then tap to select.\nSwipe or tap outside of the stack to close it, and you’re done!";
 	EDITING = "Editing";
-	EDITING_TEXT = "Press and hold any one of the sub-apps in a stack to enter edit mode. Tap on the slot you wish to edit (or add an app to), and navigate the selection folder to select the icon you want.\nSelection is indicated by a ✓ overlay on the icon.\n\nTo remove a sub-app, find it in the selection folder, and deselect it.";
+	EDITING_TEXT = "Tap and hold on any app in a stack to edit your existing sub-apps or add to an empty slot. Tapping on a sub-app in edit mode will enter the selection view, where you can choose a new app or see the currently selected sub-app (indicated by ✓).\nRemove a sub-app by simply deselecting it from the selection view.";
 }
