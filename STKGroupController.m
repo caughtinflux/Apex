@@ -554,7 +554,11 @@
     }
     _wasLongPressed = YES;
     [iconView setHighlighted:NO];
-    [([iconView containerGroupView] ?: [iconView groupView]).group addPlaceholders];
+
+    STKGroup *group = ([iconView containerGroupView] ?: [iconView groupView]).group;
+    if (!group.empty) {
+        [group addPlaceholders];
+    }
 }
 
 - (void)iconTouchBegan:(SBIconView *)iconView
