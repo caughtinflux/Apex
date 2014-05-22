@@ -115,7 +115,7 @@
     BOOL handled = NO;
     if (event == STKClosingEventHomeButtonPress) {
         BOOL sbIsFrontMost = ![(SpringBoard *)[UIApplication sharedApplication] _accessibilityFrontMostApplication];
-        if (sbIsFrontMost && (_openGroupView || _selectionView)) {
+        if (sbIsFrontMost && ([self _activeGroupView] || _selectionView)) {
             handled = YES;
             [self _closeOpenGroupOrSelectionView];
         }
