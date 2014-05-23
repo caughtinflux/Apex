@@ -550,11 +550,14 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ([controller isEditing] || ([controller grabbedIcon] == _group.centralIcon)) {
         shouldBegin = NO;
     }
+    else if ([recognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
+        shouldBegin = ((_activationMode & STKActivationModeSwipeUp) || (_activationMode & STKActivationModeSwipeDown));
+    }
     else if ([recognizer isKindOfClass:[UITapGestureRecognizer class]]) {
         shouldBegin = (_activationMode & STKActivationModeDoubleTap);
-        if (_delegateFlags.shouldOpen) {
-            shouldBegin = (shouldBegin && [self.delegate shouldGroupViewOpen:self]);
-        }
+    }
+    if (_delegateFlags.shouldOpen) {
+        shouldBegin = (shouldBegin && [self.delegate shouldGroupViewOpen:self]);
     }
     return shouldBegin;
 }
