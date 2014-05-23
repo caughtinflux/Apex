@@ -4,23 +4,26 @@
 
 - (id)badgeNumberOrString
 {
-    NSNumber *ret = %orig();
+    SBIconController *iconController = [CLASS(SBIconController) sharedInstance];
+    NSNumber *topBadge = %orig();
     STKGroup *group = [[STKPreferences sharedPreferences] groupForCentralIcon:self];
     if (!group || ![STKPreferences sharedPreferences].shouldShowSummedBadges || [[CLASS(SBUIController) sharedInstance] isAppSwitcherShowing]) {
-        return ret;
+        return topBadge;
     }
-    ret = ret ?: @0;
-    if ([ret isKindOfClass:[NSNumber class]]) {
+    if (![iconController iconAllowsBadging:self] || !topBadge) {
+        topBadge = @0;
+    }
+    if ([topBadge isKindOfClass:[NSNumber class]]) {
         NSInteger subAppTotal = 0;
         for (SBIcon *icon in [[STKPreferences sharedPreferences] groupForCentralIcon:self].layout) {
-            subAppTotal += [icon badgeValue];
+            subAppTotal += ([iconController iconAllowsBadging:icon] ? [icon badgeValue] : 0);
         }
-        ret = @([ret integerValue] + subAppTotal);
-        if ([ret integerValue] <= 0) {
-            ret = nil;
+        topBadge = @([topBadge integerValue] + subAppTotal);
+        if ([topBadge integerValue] <= 0) {
+            topBadge = nil;
         }
     }
-    return ret;
+    return topBadge;
 }
 
 - (NSInteger)accessoryTypeForLocation:(SBIconLocation)location
