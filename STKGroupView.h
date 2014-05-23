@@ -7,7 +7,7 @@ typedef NS_OPTIONS(NSUInteger, STKActivationMode) {
 	STKActivationModeDoubleTap = 1 << 3
 };
 
-#define STKActivationModeIsUpAndDown(_mode) ((_mode & STKActivationModeSwipeUp) && (_mode & STKActivationModeSwipeDown))
+#define STKActivationModeIsUpAndDown(_mode) (((_mode) & STKActivationModeSwipeUp) && ((_mode) & STKActivationModeSwipeDown))
 
 @protocol STKGroupViewDelegate;
 @protocol STKIconViewSource;

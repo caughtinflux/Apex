@@ -106,6 +106,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 - (void)layout
 {
     [[STKPreferences sharedPreferences] reloadPreferences];
+    [[NSNotificationCenter defaultCenter] postNotificationName:STKEditingEndedNotificationName object:nil];
     %orig();
 }
 

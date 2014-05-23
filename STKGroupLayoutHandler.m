@@ -174,7 +174,7 @@ static SBIconListView *_centralIconListView;
 + (SBIconCoordinate)coordinateForIcon:(SBIcon *)icon
 {
     SBIconListView *iconListView = STKListViewForIcon(icon);
-    NSUInteger idx = [[iconListView model] indexForIcon:icon];
+    NSUInteger idx = [[iconListView model] indexForLeafIconWithIdentifier:icon.leafIdentifier];
     return [iconListView coordinateForIconAtIndex:idx];
 }
 
