@@ -2,10 +2,10 @@
 #import "STKSelectionView.h"
 
 typedef NS_ENUM(NSUInteger, STKClosingEvent) {
-	STKClosingEventHomeButtonPress = 1,
-	STKClosingEventListViewScroll,
-	STKClosingEventSwitcherActivation,
-	STKClosingEventLock,
+    STKClosingEventHomeButtonPress = 1,
+    STKClosingEventListViewScroll,
+    STKClosingEventSwitcherActivation,
+    STKClosingEventLock,
 };
 
 
