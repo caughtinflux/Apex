@@ -3,6 +3,7 @@
 #import <SpringBoard/SpringBoard.h>
 #import <SpringBoardFoundation/SBFAnimationSettings.h>
 #import <SpringBoardFoundation/SBFWallpaperView.h>
+#import <7_0_SpringBoard/SBRootZoomSettings.h>
 
 @implementation STKGroupSelectionAnimator
 {
@@ -40,8 +41,22 @@
 
     SBFolderController *currentFolderController = [(SBIconController *)[CLASS(SBIconController) sharedInstance] _currentFolderController];
     SBPrototypeController *protoController = [CLASS(SBPrototypeController) sharedInstance];
-    _zoomAnimator = [[CLASS(SBScaleIconZoomAnimator) alloc] initWithFolderController:currentFolderController targetIcon:_iconView.icon];    
-    _zoomAnimator.settings = [protoController rootSettings].rootAnimationSettings.folderOpenSettings;
+    _zoomAnimator = [[CLASS(SBScaleIconZoomAnimator) alloc] initWithFolderController:currentFolderController targetIcon:_iconView.icon];
+    _zoomAnimator.settings = ({
+        SBRootSettings *rootSettings = [protoController rootSettings];
+        id settings = nil;
+        if ([rootSettings respondsToSelector:@selector(rootAnimationSettings)]) {
+            settings = rootSettings.rootAnimationSettings.folderOpenSettings;
+        }
+        else if ([rootSettings respondsToSelector:@selector(rootZoomSettings)]) {
+            settings = rootSettings.rootZoomSettings.folderOpenSettings;
+        }
+        else {
+            settings = [[[CLASS(SBScaleZoomSettings) alloc] init] autorelease];
+            [settings setDefaultValues];
+        }
+        settings;
+    });
     [_zoomAnimator prepare];
     
     CGSize endSize = [CLASS(SBFolderBackgroundView) folderBackgroundSize];
@@ -55,7 +70,7 @@
     _selectionView.contentView.center = _startCenter;
 
     NSTimeInterval duration = _zoomAnimator.settings.crossfadeSettings.duration;
-    if (protoController.rootSettings.animationSettings.slowAnimations) {
+    if ([protoController.rootSettings respondsToSelector:@selector(animationSettings)] &&protoController.rootSettings.animationSettings.slowAnimations) {
         duration *= [protoController rootSettings].animationSettings.slowDownFactor;
     }
     [UIView animateWithDuration:(duration + 0.1) delay:(duration * 0.1) options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
@@ -82,9 +97,24 @@
 - (void)closeSelectionViewAnimatedWithCompletion:(STKAnimatorCompletion)completion
 {
     SBPrototypeController *protoController = [CLASS(SBPrototypeController) sharedInstance];
-    _zoomAnimator.settings = [protoController rootSettings].rootAnimationSettings.folderCloseSettings;
+    _zoomAnimator.settings = ({
+        SBRootSettings *rootSettings = [protoController rootSettings];
+        id settings = nil;
+        if ([rootSettings respondsToSelector:@selector(rootAnimationSettings)]) {
+            settings = rootSettings.rootAnimationSettings.folderCloseSettings;
+        }
+        else if ([rootSettings respondsToSelector:@selector(rootZoomSettings)]) {
+            settings = rootSettings.rootZoomSettings.folderCloseSettings;
+        }
+        else {
+            settings = [[[CLASS(SBScaleZoomSettings) alloc] init] autorelease];
+            [settings setDefaultValues];
+        }
+        settings;
+    });
     NSTimeInterval duration = _zoomAnimator.settings.crossfadeSettings.duration;
-    if (protoController.rootSettings.animationSettings.slowAnimations) {
+    if ([protoController.rootSettings respondsToSelector:@selector(animationSettings)] &&
+         protoController.rootSettings.animationSettings.slowAnimations) {
         duration *= [protoController rootSettings].animationSettings.slowDownFactor;
     }
     [UIView animateWithDuration:duration delay:0.0 options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
