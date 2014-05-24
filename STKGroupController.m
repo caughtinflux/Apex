@@ -184,7 +184,7 @@
 {
     SBIconController *controller = [CLASS(SBIconController) sharedInstance];
     [self _currentScrollView].scrollEnabled = allow;
-    UIScrollView *scrollView = [controller currentRootIconList].subviews[0];
+    UIScrollView *scrollView = [[controller currentRootIconList].subviews firstObject];
     if ([scrollView isKindOfClass:CLASS(IFInfiniboardScrollView)]) {
         // Infiniboard
         scrollView.scrollEnabled = allow;

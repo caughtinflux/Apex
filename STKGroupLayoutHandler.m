@@ -162,7 +162,7 @@ static SBIconListView *_centralIconListView;
         CGRect targetFrame = provider(idx);
         for (SBIcon *icon in [rootListView icons]) {
             SBIconView *iv = [rootListView viewForIcon:icon];
-            if (CGRectIntersectsRect(targetFrame, iv.frame)) {
+            if (CGRectIntersectsRect(targetFrame, iv.frame) && iv) {
                 [displacedLayout addIcon:iv.icon toIconsAtPosition:STKPositionTop];
             }
         }
