@@ -64,7 +64,17 @@
     [group.centralIcon noteBadgeDidChange];
 }
 
-%end 
+%end
+
+%hook SBApplication
+- (void)setBadge:(id)badge
+{
+    %orig();
+    SBIconModel *iconModel = (SBIconModel *)[[CLASS(SBIconController) sharedInstance] model];
+    SBApplicationIcon *icon = [iconModel applicationIconForDisplayIdentifier:self.displayIdentifier];
+    [icon noteBadgeDidChange];
+}
+%end
 
 %ctor
 {
