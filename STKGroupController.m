@@ -213,16 +213,14 @@
         // Don't add the dimming view
         return;
     }
-
     SBIconListView *listView = STKCurrentListView();
-    SBDockIconListView *dock = [controller dockListView];
 
     // The list dimming view should cover itself, the list view before, and the one after it.
     CGRect frame = [UIScreen mainScreen].bounds;
     frame.origin.x -= frame.size.width;
-    frame.origin.y -= dock.frame.size.height;
+    frame.origin.y -= 40.f;
     frame.size.width *= 3.f;
-    frame.size.height += dock.frame.size.height;
+    frame.size.height += 40.f;
     _listDimmingView = [[UIView alloc] initWithFrame:frame];
 
     _listDimmingView.backgroundColor = [UIColor colorWithWhite:0.f alpha:1.f];
