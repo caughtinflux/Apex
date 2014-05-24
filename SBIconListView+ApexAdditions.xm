@@ -103,6 +103,21 @@ static BOOL _hasGridlock;
     [self enumerateIconViewsUsingBlock:block];
 }
 
+%new
+- (void)stk_reorderIconViews
+{
+    NSMutableArray *iconViews = [self.subviews mutableCopy];
+    [iconViews sortUsingComparator:^NSComparisonResult(UIView *view1, UIView *view2) {
+        if(fabs(view1.frame.origin.y - view2.frame.origin.y) > 0.01)
+            return [@(view1.frame.origin.y) compare:@(view2.frame.origin.y)];
+        else
+            return [@(view1.frame.origin.x) compare:@(view2.frame.origin.x)];
+    }];
+    for (UIView *view in iconViews) {
+        [view.superview bringSubviewToFront:view];
+    }
+}
+
 - (void)prepareToRotateToInterfaceOrientation:(UIInterfaceOrientation)orient
 {
     self.stk_realVerticalIconPadding = kInvalidIconPadding;

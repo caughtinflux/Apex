@@ -495,6 +495,7 @@
     [self _removeCloseGestureRecognizers];
     _openGroupView = nil;
     _openGroupViewWasModified = NO;
+    [STKCurrentListView() stk_reorderIconViews];
 }
 
 - (void)groupViewWillBeDestroyed:(STKGroupView *)groupView

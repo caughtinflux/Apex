@@ -9,6 +9,8 @@
 
 - (NSUInteger)stk_visibleIconRowsForCurrentOrientation;
 - (NSUInteger)stk_visibleIconColumnsForCurrentOrientation;
+
 - (void)stk_makeIconViewsPerformBlock:(void(^)(SBIconView *iv))block;
+- (void)stk_reorderIconViews;
 
 @end
