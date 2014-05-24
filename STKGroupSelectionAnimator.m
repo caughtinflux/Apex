@@ -42,21 +42,25 @@
     SBFolderController *currentFolderController = [(SBIconController *)[CLASS(SBIconController) sharedInstance] _currentFolderController];
     SBPrototypeController *protoController = [CLASS(SBPrototypeController) sharedInstance];
     _zoomAnimator = [[CLASS(SBScaleIconZoomAnimator) alloc] initWithFolderController:currentFolderController targetIcon:_iconView.icon];
-    _zoomAnimator.settings = ({
-        SBRootSettings *rootSettings = [protoController rootSettings];
-        id settings = nil;
-        if ([rootSettings respondsToSelector:@selector(rootAnimationSettings)]) {
-            settings = rootSettings.rootAnimationSettings.folderOpenSettings;
-        }
-        else if ([rootSettings respondsToSelector:@selector(rootZoomSettings)]) {
-            settings = rootSettings.rootZoomSettings.folderOpenSettings;
-        }
-        else {
-            settings = [[[CLASS(SBScaleZoomSettings) alloc] init] autorelease];
-            [settings setDefaultValues];
-        }
-        settings;
-    });
+    
+    SBRootSettings *rootSettings = [protoController rootSettings];
+    id settings = nil;
+    if ([rootSettings respondsToSelector:@selector(rootAnimationSettings)]) {
+        settings = rootSettings.rootAnimationSettings.folderOpenSettings;
+    }
+    else if ([rootSettings respondsToSelector:@selector(rootZoomSettings)]) {
+        settings = rootSettings.rootZoomSettings.folderOpenSettings;
+    }
+    else {
+        settings = [[[CLASS(SBScaleZoomSettings) alloc] init] autorelease];
+        [settings setDefaultValues];
+    }
+    if ([_zoomAnimator respondsToSelector:@selector(setSettings:)]) {
+        _zoomAnimator.settings = settings;
+    }
+    else if ([_zoomAnimator respondsToSelector:@selector(setZoomSettings:)]) {
+        _zoomAnimator.zoomSettings = settings;
+    }
     [_zoomAnimator prepare];
     
     CGSize endSize = [CLASS(SBFolderBackgroundView) folderBackgroundSize];
@@ -69,8 +73,14 @@
     _startCenter = [_selectionView convertPoint:[_iconView iconImageCenter] fromView:_iconView];
     _selectionView.contentView.center = _startCenter;
 
-    NSTimeInterval duration = _zoomAnimator.settings.crossfadeSettings.duration;
-    if ([protoController.rootSettings respondsToSelector:@selector(animationSettings)] &&protoController.rootSettings.animationSettings.slowAnimations) {
+    NSTimeInterval duration;
+    if ([_zoomAnimator respondsToSelector:@selector(settings)]) {
+        duration = _zoomAnimator.settings.crossfadeSettings.duration;
+    }
+    else {
+        duration = _zoomAnimator.zoomSettings.crossfadeSettings.duration;
+    }
+    if ([protoController.rootSettings respondsToSelector:@selector(animationSettings)] && protoController.rootSettings.animationSettings.slowAnimations) {
         duration *= [protoController rootSettings].animationSettings.slowDownFactor;
     }
     [UIView animateWithDuration:(duration + 0.1) delay:(duration * 0.1) options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
@@ -86,33 +96,50 @@
         CGFloat scale = [CLASS(SBFolderController) wallpaperScaleForDepth:1];
         [wallpaperController setHomescreenWallpaperScale:scale];
     } completion:nil];
-    [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:^{
+
+    void (^zoomCompletion)(void) = ^{
         [_selectionView flashScrollIndicators];
         if (completion) {
             completion();
         }
-    }];
+    };
+    if ([_zoomAnimator respondsToSelector:@selector(animateToFraction:afterDelay:withCompletion:)]) {
+        [_zoomAnimator animateToFraction:1.0 afterDelay:0.0 withCompletion:zoomCompletion];
+    }
+    else if ([_zoomAnimator respondsToSelector:@selector(animateToZoomFraction:afterDelay:withCompletion:)]) {
+        [_zoomAnimator animateToZoomFraction:1.0 afterDelay:0.0 withCompletion:zoomCompletion];
+    }
 }
 
 - (void)closeSelectionViewAnimatedWithCompletion:(STKAnimatorCompletion)completion
 {
     SBPrototypeController *protoController = [CLASS(SBPrototypeController) sharedInstance];
-    _zoomAnimator.settings = ({
-        SBRootSettings *rootSettings = [protoController rootSettings];
-        id settings = nil;
-        if ([rootSettings respondsToSelector:@selector(rootAnimationSettings)]) {
-            settings = rootSettings.rootAnimationSettings.folderCloseSettings;
-        }
-        else if ([rootSettings respondsToSelector:@selector(rootZoomSettings)]) {
-            settings = rootSettings.rootZoomSettings.folderCloseSettings;
-        }
-        else {
-            settings = [[[CLASS(SBScaleZoomSettings) alloc] init] autorelease];
-            [settings setDefaultValues];
-        }
-        settings;
-    });
-    NSTimeInterval duration = _zoomAnimator.settings.crossfadeSettings.duration;
+    SBRootSettings *rootSettings = [protoController rootSettings];
+    id settings = nil;
+    if ([rootSettings respondsToSelector:@selector(rootAnimationSettings)]) {
+        settings = rootSettings.rootAnimationSettings.folderCloseSettings;
+    }
+    else if ([rootSettings respondsToSelector:@selector(rootZoomSettings)]) {
+        settings = rootSettings.rootZoomSettings.folderCloseSettings;
+    }
+    else {
+        settings = [[[CLASS(SBScaleZoomSettings) alloc] init] autorelease];
+        [settings setDefaultValues];
+    }
+    if ([_zoomAnimator respondsToSelector:@selector(setSettings:)]) {
+        _zoomAnimator.settings = settings;
+    }
+    else if ([_zoomAnimator respondsToSelector:@selector(setZoomSettings:)]) {
+        _zoomAnimator.zoomSettings = settings;
+    }
+
+    NSTimeInterval duration;
+    if ([_zoomAnimator respondsToSelector:@selector(settings)]) {
+        duration = _zoomAnimator.settings.crossfadeSettings.duration;
+    }
+    else {
+        duration = _zoomAnimator.zoomSettings.crossfadeSettings.duration;
+    }
     if ([protoController.rootSettings respondsToSelector:@selector(animationSettings)] &&
          protoController.rootSettings.animationSettings.slowAnimations) {
         duration *= [protoController rootSettings].animationSettings.slowDownFactor;
@@ -136,7 +163,8 @@
         CGFloat scale = [CLASS(SBFolderController) wallpaperScaleForDepth:0];
         [wallpaperController setHomescreenWallpaperScale:scale];
     } completion:nil];
-    [_zoomAnimator animateToFraction:0.0 afterDelay:0.0 withCompletion:^{
+
+    void (^zoomCompletion)(void) = ^{
         SBIconView *centralIconView = [_zoomAnimator iconViewForIcon:[_iconView containerGroupView].group.centralIcon];
         if (centralIconView.location == SBIconLocationFolder) {
             [_zoomAnimator cleanup];
@@ -146,7 +174,13 @@
         if (completion) {
             completion();
         }
-    }];
+    };
+    if ([_zoomAnimator respondsToSelector:@selector(animateToFraction:afterDelay:withCompletion:)]) {
+        [_zoomAnimator animateToFraction:0.0 afterDelay:0.0 withCompletion:zoomCompletion];
+    }
+    else if ([_zoomAnimator respondsToSelector:@selector(animateToZoomFraction:afterDelay:withCompletion:)]) {
+        [_zoomAnimator animateToZoomFraction:0.0 afterDelay:0.0 withCompletion:zoomCompletion];
+    }
 }
 
 @end
