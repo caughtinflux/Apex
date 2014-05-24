@@ -243,7 +243,6 @@ static void STKPrefsChanged (
         else {
             _groups[group.centralIcon.leafIdentifier] = group;
         }
-        _groups[group.centralIcon.leafIdentifier] = group;
     }
     [self _resetSubappMap];
     [self _synchronize];   
