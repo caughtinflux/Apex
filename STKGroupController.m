@@ -381,7 +381,8 @@
 {
     SBIconController *iconController = [CLASS(SBIconController) sharedInstance];
     STKPreferences *preferences = [STKPreferences sharedPreferences];
-    NSMutableArray *listViews = [NSMutableArray arrayWithObject:[iconController dockListView]];
+    NSMutableArray *listViews = [NSMutableArray array];
+    if ([iconController dockListView]) [listViews addObject:[iconController dockListView]];
     [listViews addObjectsFromArray:[iconController _rootFolderController].iconListViews];
     if ([iconController _currentFolderController] != [iconController _rootFolderController]) {
         [listViews addObjectsFromArray:[iconController _currentFolderController].iconListViews];
