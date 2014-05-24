@@ -70,7 +70,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     SBIconLocation previousLoc = self.location;
     %orig(location);
     STKGroupController *groupController = [STKGroupController sharedController];
-    if ([self groupView] && previousLoc == location && self.delegate != groupController) {
+    if ([self groupView] && (previousLoc == location) && (self.delegate != groupController)) {
         self.delegate = [STKGroupController sharedController];
         return;
     }
@@ -341,7 +341,7 @@ static STKStatusBarRecognizerDelegate *_recognizerDelegate;
 {
     @autoreleasepool {
         STKLog(@"Initializing");
-        %init();
+
         dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
         dlopen("/Library/MobileSubstrate/DynamicLibraries/Gridlock.dylib", RTLD_NOW);
         dlopen("/Library/MobileSubstrate/DynamicLibraries/Bigify.dylib", RTLD_NOW);
@@ -350,5 +350,7 @@ static STKStatusBarRecognizerDelegate *_recognizerDelegate;
         dlopen("/Library/MobileSubstrate/DynamicLibraries/Infinidock.dylib", RTLD_NOW);
         dlopen("/Library/MobileSubstrate/DynamicLibraries/Infiniboard.dylib", RTLD_NOW);
         [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName@"DEBUG"];
+
+        %init();
     }
 }
