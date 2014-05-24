@@ -341,16 +341,7 @@ static STKStatusBarRecognizerDelegate *_recognizerDelegate;
 {
     @autoreleasepool {
         STKLog(@"Initializing");
-
-        dlopen("/Library/MobileSubstrate/DynamicLibraries/IconSupport.dylib", RTLD_NOW);
-        dlopen("/Library/MobileSubstrate/DynamicLibraries/Gridlock.dylib", RTLD_NOW);
-        dlopen("/Library/MobileSubstrate/DynamicLibraries/Bigify.dylib", RTLD_NOW);
-        dlopen("/Library/MobileSubstrate/DynamicLibraries/Bigify+.dylib", RTLD_NOW);
-        dlopen("/Library/MobileSubstrate/DynamicLibraries/Springtomize3.dylib", RTLD_NOW);
-        dlopen("/Library/MobileSubstrate/DynamicLibraries/Infinidock.dylib", RTLD_NOW);
-        dlopen("/Library/MobileSubstrate/DynamicLibraries/Infiniboard.dylib", RTLD_NOW);
         [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName@"DEBUG"];
-
         %init();
     }
 }
