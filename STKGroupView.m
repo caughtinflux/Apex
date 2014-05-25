@@ -65,6 +65,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     BOOL _ignoreRecognizer;
     BOOL _hasVerticalIcons;
     BOOL _isUpwardSwipe;
+
     CGFloat _lastDistanceFromCenter;
     CGFloat _targetDistance;
     CGFloat _distanceRatio;
@@ -383,6 +384,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
 }
 
+- (BOOL)_shouldHideIconLabels
+{
+    return ([_centralIconView _labelImage] == nil);
+}
+
 #pragma mark - Gesture Handling
 - (void)_addGestureRecognizers
 {
@@ -509,7 +515,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_adjustScaleAndTransparencyOfSubapp:(SBIconView *)subappView inSlot:(STKGroupSlot)slot forOffset:(CGFloat)offset 
 {
     CGFloat midWayDistance = (_targetDistance * 0.5f);
-    [self _setAlpha:offset forBadgeAndLabelOfIconView:subappView];
+    if (![self _shouldHideIconLabels]) {
+        [self _setAlpha:offset forBadgeAndLabelOfIconView:subappView];
+    }
     if (slot.index == 0) {
         if (_hasVerticalIcons && STKPositionIsVertical(slot.position)) {
             _lastDistanceFromCenter = fabsf(subappView.frame.origin.y - _centralIconView.bounds.origin.y);
@@ -749,7 +757,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
     void(^animationBlock)(void) = ^{
         [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition pos, NSArray *current, NSUInteger idx, BOOL *stop) {
-            [self _setAlpha:1.0 forBadgeAndLabelOfIconView:iconView];
+            if (![self _shouldHideIconLabels]) {
+                [self _setAlpha:1.0 forBadgeAndLabelOfIconView:iconView];
+            }
             CGPoint origin = [self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}];
             iconView.frame = (CGRect){origin, iconView.frame.size};
             [iconView stk_setImageViewScale:1.f];
@@ -922,7 +932,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         }
         SBIconView *view = [listView viewForIcon:icon];
         view.alpha = alpha;
-        [self _setAlpha:alpha forBadgeAndLabelOfIconView:[listView viewForIcon:icon]];
+        if (![self _shouldHideIconLabels]) {
+            [self _setAlpha:alpha forBadgeAndLabelOfIconView:[listView viewForIcon:icon]];
+        }
         view.iconAccessoryAlpha = accessoryAlpha;
     };
     SBIconController *controller = [CLASS(SBIconController) sharedInstance];
@@ -974,7 +986,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [iconView setIcon:icon];
     if (group.hasPlaceholders && [icon isLeafIcon]) {
         [iconView showApexOverlayOfType:STKOverlayTypeEditing];
-        [self _setAlpha:1.f forBadgeAndLabelOfIconView:iconView];
+        if (![self _shouldHideIconLabels]) {
+            [self _setAlpha:1.f forBadgeAndLabelOfIconView:iconView];
+        }
     }
 }
 
