@@ -239,33 +239,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
-#pragma mark - SBFolderController
-%hook SBFolderController
-- (BOOL)_iconAppearsOnCurrentPage:(SBIcon *)icon
-{
-    // Folder animation expects the icon to be on the current page
-    // However, it uses convoluted methods that I cbf about to check
-    STKGroupView *groupView = [[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon].containerGroupView;
-    if (groupView) {
-        icon = groupView.group.centralIcon;
-    }
-    return %orig(icon);
-}
-%end
-
-#pragma mark - SBFolder
-%hook SBFolder
-- (SBIconListModel *)listContainingIcon:(SBIcon *)icon
-{
-    // this hook is only necessary when the open group's status is dirty.
-    STKGroupView *groupView = [STKGroupController sharedController].openGroupView;
-    if ((groupView.group.state == STKGroupStateDirty) && [[groupView.group.layout allIcons] containsObject:icon]) {
-        return [self listContainingIcon:groupView.group.centralIcon];
-    }
-    return %orig(icon);
-}
-%end
-
 #pragma mark - SBFolderView
 %hook SBFolderView
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
