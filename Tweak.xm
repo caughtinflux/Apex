@@ -61,6 +61,14 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
 }
 
+// 7.0
+- (void)_closeFolderController:(id)controller animated:(BOOL)animated
+{
+    BOOL handled = [[STKGroupController sharedController] handleClosingEvent:STKClosingEventHomeButtonPress];
+    if (!handled) {
+        %orig();
+    }   
+}
 %end
 
 #pragma mark - SBIconView
@@ -308,7 +316,6 @@ static STKStatusBarRecognizerDelegate *_recognizerDelegate;
     [[STKGroupController sharedController] handleStatusBarTap];
 }
 %end
-
 #pragma mark - Constructor
 %ctor
 {

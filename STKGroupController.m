@@ -389,7 +389,7 @@
     }
     for (SBIconListView *listView in listViews) {
         [listView enumerateIconViewsUsingBlock:^(SBIconView *iconView) {
-            STKGroupView *groupView = [iconView groupView];
+            STKGroupView *groupView = iconView.groupView;
             groupView.activationMode = preferences.activationMode;
             groupView.showGrabbers = !(preferences.shouldHideGrabbers);
             groupView.showPreview = preferences.shouldShowPreviews;

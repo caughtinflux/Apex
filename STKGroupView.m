@@ -272,10 +272,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_configureSubappViews
 {
-    if (!CURRENTLY_SHOWS_PREVIEW) {
-        return;
+    if (CURRENTLY_SHOWS_PREVIEW) {
+        [self _reallyConfigureSubappViews];
     }
-    [self _reallyConfigureSubappViews];
 }
 
 - (void)_reallyConfigureSubappViews
