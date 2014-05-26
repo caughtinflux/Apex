@@ -1,0 +1,64 @@
+{
+	OK = "OK";
+
+	/* Settings Main Pane */
+
+	AUTHORS = "di Sentry e Aditya KD.";
+	AUTHORS_PURCHASED = "di Sentry e Aditya KD.\nGrazie per l'acquisto.";
+
+	CONFIGURATION = "Configurazione";
+	VISUAL_INDICATOR = "Indicatore visuale:";
+	SUBAPP_PREVIEWS = "Anteprime Sub-App";
+	GRABBERS = "Grabbers";
+	NONE = "Nessuno";
+
+	SUBAPP_ACCESS = "Accesso alle Sub-Apps:";
+	SWIPE_UP = "Swipe in alto";
+	SWIPE_DOWN = "Swipe in basso";
+	DOUBLE_TAP = "Doppio Tap";
+
+	SPOTLIGHT_ACCESS = "Accesso a Spotlight:";
+	TAP_SB = "Tap sulla Barra di Stato";
+
+	CLOSE_ON_LAUNCH = "Chiudi pila quando apri un'App";
+	ALLOW_NEW = "Permetti di creare nuove pile";
+
+	AGGREGATE_BADGES = "Somma i Badge di notifica";
+	
+	LOVE_GAMES = "I'm loving #Apex2 from @A3Tweaks!";
+	CANNOT_SEND_TWEET = "Impossibile inviare il tweet";
+	CANNOT_SEND_TWEET_DETAILS = "Dato che non hai configurato alcun account Twitter, non puoi inviare un tweet di ringraziamento";
+
+
+	SUPPORT_EMAIL_LINK = "Supporto A³tweaks";
+	APEX_SUPPORT = "Apex Support";
+	CANNOT_SEND_MAIL = "Impossibile inviare l'e-mail";
+	CANNOT_SEND_MAIL_DETAILS = "Dato che non hai configurato alcun account Mail, non puoi inviare una e-mail al supporto";
+
+	/* Translated to <foo> by <bar> */
+	LOCALIZATION_ABOUT = "Alberto Sala";
+
+
+	/* Settings Creators Pane */
+	THE_CREATORS = "I Creatori";
+
+	SENTRY = "Sentry";
+	SENTRY_HANDLE = "(@Sentry_NC)";
+	SENTRY_INFO = "Visual Interaction Designer,\nApex, AltKB, Auxo, Aplo,\nFondatore degli A³tweaks";
+
+	ADITYA_KD = "Aditya KD";
+	ADITYA_KD_HANDLE = "(@caughtinflux)";
+	ADITYA_KD_INFO = "Mobile Software Developer\nSviluppatore di Apex\nTinkerer Supreme";
+
+	FOLLOW_A3TWEAKS = "Segui A³tweaks";
+
+	COPYRIGHT_TEXT = "© %ld Aditya KD e Newar Choukeir";
+
+	/* User Guide */
+	USER_GUIDE = "Guida per l'Utente";
+	GETTING_STARTED = "Per Iniziare";
+
+	GET_STARTED_TEXT = "Per creare una nuova pila, esegui uno swipe verso l'alto o verso il basso su qualsiasi icona della Springboard per visualizzare le slot disponibili per le Sub-Apps. Tocca una slot nella quale vuoi posizionare un'App per aprire la finestra di selezione. In essa puoi scorrere le applicazioni (divise tra Apps correlate e tutte le altre) oppure usa la barra di ricerca per trovare un'App specifica, quindi toccane l'icona per selezionarla.\nScorri o tocca all'esterno della pila per chiuderla, e il gioco è fatto!";
+	EDITING = "Modificare le pile";
+	EDITING_TEXT = "Tocca e tieni premuto su qualsiasi App della pila per modificare le Sub-Apps esistenti o aggiungerne di nuove. Toccando su una Sub-App in modalità di modifica accederai alla finestra di selezione, dove potrai visualizzare l'App attualmente impostata (indicata dal simbolo ✓).\nPer rimuovere una Sub-App basta de-selezionarla dalla finestra di selezione.";
+}
