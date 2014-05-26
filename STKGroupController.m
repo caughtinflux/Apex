@@ -22,7 +22,7 @@
     BOOL _wasLongPressed;
     BOOL _hasInfiniBoard;
     BOOL _hasInfinidock;
-    BOOL _hasClassicDock;
+    BOOL _hasCylinder;
 
     STKIconViewRecycler *_recycler;
     NSCache *_groupCache;
@@ -59,8 +59,8 @@
         _hasInfiniBoard = !!handle;
         handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Infinidock.dylib", RTLD_NOW);
         _hasInfinidock = !!handle;
-        handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/ClassicDock.dylib", RTLD_NOW);
-        _hasClassicDock = !!handle;
+        handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Cylinder.dylib", RTLD_NOW);
+        _hasCylinder = !!handle;
     }
     return self;
 }
@@ -204,9 +204,12 @@
     return [currentFolderController.contentView scrollView];
 }
 
-- (void)_setupDimmingViews
+- (void)_setupDimmingView
 {
-    [self _removeDimmingViews];
+    if (_hasCylinder) {
+        return;
+    }
+    [self _removeDimmingView];
 
     SBIconController *controller = [CLASS(SBIconController) sharedInstance];
     if ([controller hasOpenFolder]) {
@@ -233,17 +236,23 @@
     [activeGroupView.superview.superview bringSubviewToFront:activeGroupView.superview];
 }
 
-- (void)_removeDimmingViews
+- (void)_removeDimmingView
 {
-    [_listDimmingView removeFromSuperview];
-    [_listDimmingView release];
-    _listDimmingView = nil;
+    if (_listDimmingView) {
+        [_listDimmingView removeFromSuperview];
+        [_listDimmingView release];
+        _listDimmingView = nil;
+        [STKCurrentListView() stk_reorderIconViews];
+    }
 }
 
 - (void)_setDimStrength:(CGFloat)strength
 {
+    if (_hasCylinder) {
+        return;
+    }
     if (!_listDimmingView) {
-        [self _setupDimmingViews];
+        [self _setupDimmingView];
     }
     _listDimmingView.alpha = strength;
 }
@@ -491,11 +500,10 @@
             [groupView resetLayouts];
         }
     }
-    [self _removeDimmingViews];
+    [self _removeDimmingView];
     [self _removeCloseGestureRecognizers];
     _openGroupView = nil;
     _openGroupViewWasModified = NO;
-    [STKCurrentListView() stk_reorderIconViews];
 }
 
 - (void)groupViewWillBeDestroyed:(STKGroupView *)groupView
