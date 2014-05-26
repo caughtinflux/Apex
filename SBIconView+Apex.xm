@@ -140,10 +140,8 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
     imageView.layer.transform = CATransform3DMakeScale(scale, scale, scale);
     objc_setAssociatedObject(self, @selector(stk_imageViewScale), @(scale), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     [self _updateAccessoryViewWithAnimation:YES];
-    if (![self containerGroupView]) {
-        imageView.layer.contentsScale = [UIScreen mainScreen].scale;
-        imageView.layer.rasterizationScale = imageView.layer.contentsScale;
-    }
+    imageView.layer.contentsScale = [UIScreen mainScreen].scale;
+    imageView.layer.rasterizationScale = imageView.layer.contentsScale;
 }
 
 %new

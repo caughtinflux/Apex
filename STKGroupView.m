@@ -242,9 +242,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)_setDelegateOnCentralIconView
 {
+    _centralIconView.groupView = nil;
     [_centralIconView removeObserver:self forKeyPath:@"legibilitySettings"];
     _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
     _centralIconView.delegate = self.delegate;
+    _centralIconView.groupView = self;
     [_centralIconView addObserver:self forKeyPath:@"legibilitySettings" options:0 context:NULL];
 }
 

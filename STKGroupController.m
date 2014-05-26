@@ -83,7 +83,6 @@
             [_groupCache setObject:group forKey:icon.leafIdentifier];
         }
         groupView = [[[STKGroupView alloc] initWithGroup:group iconViewSource:_recycler] autorelease];
-        iconView.groupView = groupView;
         groupView.delegate = self;
         groupView.showPreview = preferences.shouldShowPreviews;
         groupView.showGrabbers = !(preferences.shouldHideGrabbers);
