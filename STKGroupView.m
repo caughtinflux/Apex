@@ -877,10 +877,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     CGPoint target = CGPointZero;
     CGSize iconSize = [CLASS(SBIconView) defaultIconSize];
     SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
-    if (slot.position == STKPositionTop || slot.position == STKPositionBottom) {
+    if (STKPositionIsVertical(slot.position)) {
         target.y += ([listView stk_realVerticalIconPadding] + iconSize.height) * factor;
     }
-    else if (slot.position == STKPositionLeft || slot.position == STKPositionRight) {
+    else if (STKPositionIsHorizontal(slot.position)) {
         target.x += ([listView stk_realHorizontalIconPadding] + iconSize.width) * factor;
     }
     if ([_centralIconView isInDock]) {
