@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ADITYA_KD</key>
+	<string>Aditya KD</string>
+	<key>ADITYA_KD_HANDLE</key>
+	<string>(@caughtinflux)</string>
+	<key>ADITYA_KD_INFO</key>
+	<string>Nhà Phát Triển Phần Mềm Điện Thoại
+Nhà Phát Triển của Apex
+Tinkerer Supreme</string>
+	<key>AGGREGATE_BADGES</key>
+	<string>Tổng Các Thông Báo</string>
+	<key>ALLOW_NEW</key>
+	<string>Cho Phép Tạo Mới</string>
+	<key>APEX_SUPPORT</key>
+	<string>Hỗ Trợ Apex</string>
+	<key>AUTHORS</key>
+	<string>bởi Sentry và Aditya KD.</string>
+	<key>AUTHORS_PURCHASED</key>
+	<string>bởi Sentry và Aditya KD.
+Cảm ơn bạn vì đã mua.</string>
+	<key>CANNOT_SEND_MAIL</key>
+	<string>Không Thể Gửi Mail</string>
+	<key>CANNOT_SEND_MAIL_DETAILS</key>
+	<string>Nếu bạn không có bất cứ cài đặt email nào, bạn không thể gửi email.</string>
+	<key>CANNOT_SEND_TWEET</key>
+	<string>Không thể gửi tweet</string>
+	<key>CANNOT_SEND_TWEET_DETAILS</key>
+	<string>Nếu bạn không có bất cứ tài khoản Twitter nào được cài đặt, bạn không thể gửi tweet.</string>
+	<key>CLOSE_ON_LAUNCH</key>
+	<string>Tắt Khi Chạy Ứng dụng</string>
+	<key>CONFIGURATION</key>
+	<string>Cấu hình</string>
+	<key>COPYRIGHT_TEXT</key>
+	<string>© %ld Aditya KD và Newar Choukeir</string>
+	<key>DOUBLE_TAP</key>
+	<string>Chạm Hai Lần</string>
+	<key>EDITING</key>
+	<string>Chỉnh Sửa</string>
+	<key>EDITING_TEXT</key>
+	<string>Chạm và giữ vào bất kì ứng dụng trong một cụm để sửa các ứng dụng con có sẵn hoặc thêm vào một chỗ trống. Chạm vào một ứng dụng con trong chế độ chỉnh sửa để vào bảng lựa chọn, nơi bạn có thể chọn ứng dụng mới hoặc xem các ứng dụng đã chọn (được đánh dấu bởi ✓).
+Bỏ một ứng dụng con dễ dàng bằng cách bỏ chọn ở bảng lựa chọn.</string>
+	<key>FOLLOW_A3TWEAKS</key>
+	<string>Theo Dõi A³tweaks</string>
+	<key>GETTING_STARTED</key>
+	<string>Bắt Đầu</string>
+	<key>GET_STARTED_TEXT</key>
+	<string>Để tạo một cụm mới, vuốt bất kì biểu tượng ứng dụng nào ở màn hình chính để hiện ra những chỗ chứa ứng dụng con có sẵn của nó. Chạm vào chỗ mà bạn muốn đặt một ứng dụng để mở bảng lựa chọn. Tại đây bạn có thể xem qua các ứng dụng của bạn (được chia ra bởi các ứng dụng liên quan và tất cả) hoặc sử dụng thanh tìm kiếm để chọn ứng dụng riêng, sau đó chạm để Chọn.
+Vuốt hoặc chạm bên ngoài cụm để đóng nó, và bạn đã hoàn thành!</string>
+	<key>GRABBERS</key>
+	<string>Thanh Kéo</string>
+	<key>LOCALIZATION_ABOUT</key>
+	<string></string>
+	<key>LOVE_GAMES</key>
+	<string>Tôi thích #Apex2 từ @A3Tweaks!</string>
+	<key>NONE</key>
+	<string>Không</string>
+	<key>OK</key>
+	<string>OK</string>
+	<key>SENTRY</key>
+	<string>Sentry</string>
+	<key>SENTRY_HANDLE</key>
+	<string>(@Sentry_NC)</string>
+	<key>SENTRY_INFO</key>
+	<string>Thiết Kế Tương Tác Trực Quan,
+Apex, AltKB, Auxo, Aplo,
+Người Sáng Lập A³tweaks</string>
+	<key>SPOTLIGHT_ACCESS</key>
+	<string>Truy Cập Tìm Kiếm:</string>
+	<key>SUBAPP_ACCESS</key>
+	<string>Truy Cập Ứng Dụng Con:</string>
+	<key>SUBAPP_PREVIEWS</key>
+	<string>Xem Ứng Dụng Con</string>
+	<key>SUPPORT_EMAIL_LINK</key>
+	<string>Hỗ trợ A³tweaks</string>
+	<key>SWIPE_DOWN</key>
+	<string>Vuốt Xuống</string>
+	<key>SWIPE_UP</key>
+	<string>Vuốt Lên</string>
+	<key>TAP_SB</key>
+	<string>Chạm Vào Thanh Trạng Thái</string>
+	<key>THE_CREATORS</key>
+	<string>Người Sáng Tạo</string>
+	<key>USER_GUIDE</key>
+	<string>Hướng Dẫn Sử Dụng</string>
+	<key>VISUAL_INDICATOR</key>
+	<string>Chỉ Báo Trực Quan:</string>
+</dict>
+</plist>
