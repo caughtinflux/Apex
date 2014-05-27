@@ -429,12 +429,14 @@
             allow = NO;
         }
         else if ([recognizer.delegate isKindOfClass:CLASS(LAIconViewGestureRecognizerDelegate)]
-              || [recognizer.delegate isKindOfClass:CLASS(IconToolSwipeHelper)]) {
+              || [recognizer.delegate isKindOfClass:CLASS(IconToolSwipeHelper)]
+              || [recognizer isKindOfClass:CLASS(BFBadgerSwipeRecognizer)]
+              || [recognizer isKindOfClass:CLASS(BFBadgerTapRecognizer)]) {
             allow = YES;
         }
         else {
             NSArray *targets = [recognizer valueForKey:@"_targets"];
-            id target = ((targets.count > 0) ? targets[0] : nil);
+            id target = [targets firstObject];
             target = [target valueForKey:@"_target"];
             STKActivationMode activationMode = [STKPreferences sharedPreferences].activationMode;
             BOOL activationModeConflictsWithSearch = ((activationMode & STKActivationModeSwipeUp) || (activationMode & STKActivationModeSwipeDown));
