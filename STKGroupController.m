@@ -424,25 +424,31 @@
 - (BOOL)groupView:(STKGroupView *)groupView shouldRecognizeGesturesSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)recognizer
 {
     BOOL allow = YES;
-    if ([recognizer isKindOfClass:[UISwipeGestureRecognizer class]] || [recognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
-        if (recognizer == _closeSwipeRecognizer || recognizer == _closeTapRecognizer) {
+    STKActivationMode activationMode = [STKPreferences sharedPreferences].activationMode;
+    if (recognizer == _closeSwipeRecognizer || recognizer == _closeTapRecognizer) {
+        allow = NO;
+    }
+    else if ([recognizer isKindOfClass:[UISwipeGestureRecognizer class]]) {
+        UISwipeGestureRecognizerDirection recognizerDirection = [(UISwipeGestureRecognizer *)recognizer direction];
+        if ((activationMode & STKActivationModeSwipeUp) && !(activationMode & STKActivationModeSwipeDown)) {
+            // Allow all directions other than Up
+            allow = !(recognizerDirection & UISwipeGestureRecognizerDirectionUp);
+        }
+        else if ((activationMode & STKActivationModeSwipeDown) && !(activationMode & STKActivationModeSwipeUp)) {
+            // Allow all directions other than Down
+            allow = !(recognizerDirection & UISwipeGestureRecognizerDirectionDown);
+        }
+        else if (STKActivationModeIsUpAndDown(activationMode)) {
             allow = NO;
         }
-        else if ([recognizer.delegate isKindOfClass:CLASS(LAIconViewGestureRecognizerDelegate)]
-              || [recognizer.delegate isKindOfClass:CLASS(IconToolSwipeHelper)]
-              || [recognizer isKindOfClass:CLASS(BFBadgerSwipeRecognizer)]
-              || [recognizer isKindOfClass:CLASS(BFBadgerTapRecognizer)]) {
-            allow = YES;
-        }
-        else {
-            NSArray *targets = [recognizer valueForKey:@"_targets"];
-            id target = [targets firstObject];
-            target = [target valueForKey:@"_target"];
-            STKActivationMode activationMode = [STKPreferences sharedPreferences].activationMode;
-            BOOL activationModeConflictsWithSearch = ((activationMode & STKActivationModeSwipeUp) || (activationMode & STKActivationModeSwipeDown));
-            allow = (!([target isKindOfClass:CLASS(SBSearchScrollView)] && activationModeConflictsWithSearch)
-                    && [recognizer.view isKindOfClass:[UIScrollView class]]);
-        }
+    }
+    else if ([recognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
+        NSArray *targets = [recognizer valueForKey:@"_targets"];
+        id target = [targets firstObject];
+        target = [target valueForKey:@"_target"];
+        BOOL activationModeConflictsWithSearch = ((activationMode & STKActivationModeSwipeUp) || (activationMode & STKActivationModeSwipeDown));
+        allow = (!([target isKindOfClass:CLASS(SBSearchScrollView)] && activationModeConflictsWithSearch)
+                && [recognizer.view isKindOfClass:[UIScrollView class]]);
     }
     return allow;
 }

@@ -566,15 +566,27 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recog shouldReceiveTouch:(UITouch *)touch
 {
+    BOOL shouldReceive = YES;
     if ([recog isKindOfClass:[UITapGestureRecognizer class]]) {
-        return (_activationMode & STKActivationModeDoubleTap);
+        shouldReceive = (_activationMode & STKActivationModeDoubleTap);
     }
-    return YES;
+    else if ([recog isKindOfClass:[UIPanGestureRecognizer class]]) {
+        shouldReceive = ((_activationMode & STKActivationModeSwipeUp) || (_activationMode & STKActivationModeSwipeDown));
+    }
+    return shouldReceive;
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gr shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)ogr
 {
     return [self.delegate groupView:self shouldRecognizeGesturesSimultaneouslyWithGestureRecognizer:ogr]; 
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
+    if ([otherGestureRecognizer isKindOfClass:[UITapGestureRecognizer class]]) {
+        return YES;
+    }
+    return NO;
 }
 
 #pragma mark - Moving
