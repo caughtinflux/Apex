@@ -103,14 +103,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     return isVisible;
 }
 
-- (SBDownloadingIcon *)addDownloadingIconForDownload:(SBApplicationPlaceholder *)download
-{
-    SBDownloadingIcon *downloadingIcon = %orig();
-    SBIcon *icon = [self applicationIconForDisplayIdentifier:[download applicationBundleID]];
-    [[STKGroupController sharedController] handleIconRemoval:icon];
-    return downloadingIcon;
-}
-
 - (void)layout
 {
     [[STKPreferences sharedPreferences] reloadPreferences];
@@ -124,6 +116,21 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     [[STKGroupController sharedController] handleIconRemoval:icon];
     %orig();
 }
+
+- (void)removeIcon:(SBIcon *)icon
+{
+    [[icon retain] autorelease];
+    %orig();
+    if ([icon isDownloadingIcon]) {
+        NSString *appIconIdent = [(SBDownloadingIcon *)icon identifierForCorrespondingApplicationIcon];
+        SBApplicationIcon *applicationIcon = [self applicationIconForDisplayIdentifier:appIconIdent];
+        if (![applicationIcon activeDataSource]) {
+            SBApplication *app = [[CLASS(SBApplicationController) sharedInstance] applicationWithDisplayIdentifier:appIconIdent];
+            [applicationIcon addIconDataSource:app];
+        } 
+    }
+}
+
 %end
 
 #pragma mark - Search Agent Hook
