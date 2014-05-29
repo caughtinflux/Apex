@@ -286,6 +286,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     _subappLayout = [[STKGroupLayout alloc] init];
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         SBIconView *iconView = [self.iconViewSource groupView:self wantsIconViewForIcon:icon];
+        iconView.iconLabelAlpha = 0.f;
         iconView.frame = _centralIconView.bounds;
         iconView.delegate = self.delegate;
         [_subappLayout addIcon:iconView toIconsAtPosition:pos];
@@ -956,7 +957,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_setAlpha:(CGFloat)alpha forBadgeAndLabelOfIconView:(SBIconView *)iconView
 {
     iconView.iconAccessoryAlpha = alpha;
-    iconView.iconLabelAlpha = alpha;
+    if ([_centralIconView _labelImage]) {
+        iconView.iconLabelAlpha = alpha;
+    }
     [[iconView valueForKey:@"updatedMark"] setAlpha:alpha];
 }
 
@@ -1007,6 +1010,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
                 if ([icon isPlaceholder]) {
                     SBIconView *iconView = [self.iconViewSource groupView:self wantsIconViewForIcon:icon];
+                    if (![_centralIconView _labelImage]) {
+                        iconView.iconLabelAlpha = 0.f;
+                    }
                     iconView.frame = (CGRect){[self _targetOriginForSubappSlot:(STKGroupSlot){pos, idx}], iconView.frame.size};
                     iconView.delegate = self.delegate;
                     [_subappLayout addIcon:iconView toIconsAtPosition:pos];
