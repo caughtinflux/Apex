@@ -243,16 +243,12 @@ static STKLayoutPosition _PositionFromString(NSString *string)
 // layout[STKLayoutPositionTop]
 - (NSMutableArray *)objectAtIndexedSubscript:(STKLayoutPosition)position
 {
-    if (position < STKPositionTop || position > STKPositionRight) {
-        return _unknownIcons;
-    }
     NSMutableArray *icons[4] = {_topIcons, _bottomIcons, _leftIcons, _rightIcons};
     return icons[position - 1];
 }
 
 - (void)setObject:(NSArray *)obj atIndexedSubscript:(STKLayoutPosition)position
 {
-    position = (position >= STKPositionTop || position <= STKPositionRight) ? position : STKPositionUnknown;
     NSMutableArray **icons[5] = {&_unknownIcons, &_topIcons, &_bottomIcons, &_leftIcons, &_rightIcons};
     NSMutableArray **selected = NULL;
     selected = icons[position];

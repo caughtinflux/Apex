@@ -38,6 +38,7 @@
 #define kPlaceholderAddVelocity    0.5
 #define kPlaceholderRemoveDuration 0.15
 
+
 typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     STKRecognizerDirectionNone,
     STKRecognizerDirectionUp,
@@ -157,9 +158,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     if (_subappLayout) {
         [_centralIconView stk_setImageViewScale:1.f];
-        for (SBIconView *iconView in _subappLayout) {
-            [self.iconViewSource groupView:self willRelinquishIconView:iconView];
-        }
     }
     BOOL didShowGrabbers = self.showGrabbers;
     self.showGrabbers = NO;
@@ -284,6 +282,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     [_subappLayout release];
     _subappLayout = [[STKGroupLayout alloc] init];
+    BOOL scaleDown = SCALE_CENTRAL_ICON;
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         SBIconView *iconView = [self.iconViewSource groupView:self wantsIconViewForIcon:icon];
         iconView.iconLabelAlpha = 0.f;
@@ -292,38 +291,44 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [_subappLayout addIcon:iconView toIconsAtPosition:pos];
         [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
         [self addSubview:iconView];
+        [self _positionIconView:iconView inPosition:pos isLast:(idx == (c.count - 1)) scaleDown:scaleDown];
     }];
-    [self _resetDisplacedIconLayout];
     if (SCALE_CENTRAL_ICON) {
-        [self _setupPreview];
         [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];
     }
 }
 
 - (void)_setupPreview
 {
+    BOOL scaleDown = SCALE_CENTRAL_ICON;
     [_subappLayout enumerateIconsUsingBlockWithIndexes:^(SBIconView *iconView, STKLayoutPosition position, NSArray *currentArray, NSUInteger idx, BOOL *stop) {
-        CGRect frame = _centralIconView.bounds;
-        CGPoint newOrigin = frame.origin;
-        // Check if it's the last object, only if not empty
-        if (CURRENTLY_SHOWS_PREVIEW && idx == currentArray.count - 1) {
-            CGFloat *memberToModify = (STKPositionIsVertical(position) ? &newOrigin.y : &newOrigin.x);
-            CGFloat negator = (position == STKPositionTop || position == STKPositionLeft ? -1 : 1);
-            *memberToModify += kPopoutDistance * negator;
-            iconView.alpha = kSubappPreviewAlpha;
-        }
-        frame.origin = newOrigin; 
-        iconView.frame = frame;
-        if (![iconView.icon isLeafIcon] && (_group.empty == NO)) {
-            iconView.alpha = 0.f;
-        }
-        // Hide the label and badge
-        [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
-        if (SCALE_CENTRAL_ICON) {
-            // Scale the icon back down to the smaller size
-            [iconView stk_setImageViewScale:kSubappPreviewScale];
-        }
+        [self _positionIconView:iconView inPosition:position isLast:(idx == (currentArray.count - 1)) scaleDown:scaleDown];
     }];
+}
+
+- (void)_positionIconView:(SBIconView *)iconView inPosition:(STKLayoutPosition)position isLast:(BOOL)isLastInPosition scaleDown:(BOOL)scaleDown
+{
+    CGRect frame = _centralIconView.bounds;
+    CGPoint newOrigin = frame.origin;
+
+    // Only setup for preview if icon view is outside position
+    if (CURRENTLY_SHOWS_PREVIEW && isLastInPosition) {
+        CGFloat *memberToModify = (STKPositionIsVertical(position) ? &newOrigin.y : &newOrigin.x);
+        CGFloat negator = (position == STKPositionTop || position == STKPositionLeft ? -1 : 1);
+        *memberToModify += kPopoutDistance * negator;
+        iconView.alpha = kSubappPreviewAlpha;
+    }
+    frame.origin = newOrigin; 
+    iconView.frame = frame;
+    if (![iconView.icon isLeafIcon] && (_group.empty == NO)) {
+        iconView.alpha = 0.f;
+    }
+    // Hide the label and badge
+    [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
+    if (scaleDown) {
+        // Scale the icon back down to the smaller size
+        [iconView stk_setImageViewScale:kSubappPreviewScale];
+    }
 }
 
 - (void)_addGrabbers
@@ -761,6 +766,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
     if (!_subappLayout) {
         [self _reallyConfigureSubappViews];
+        [self _resetDisplacedIconLayout];
     }
     SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
     void(^animationBlock)(void) = ^{

@@ -203,9 +203,9 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
 
 - (void)prepareForRecycling
 {
-    %orig();
-    [self stk_setImageViewScale:1.0f];
+    [self stk_setImageViewScale:1.0];
     [self removeGroupView];
+    %orig();
 }
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event

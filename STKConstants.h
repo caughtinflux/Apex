@@ -70,6 +70,8 @@ extern "C" {
     extern double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax);
 
     extern NSString * NSStringFromSTKGroupSlot(STKGroupSlot slot);
+
+    extern uint64_t dispatch_benchmark(size_t count, void (^block)(void));
 #ifdef __cplusplus 
 }
 #endif
