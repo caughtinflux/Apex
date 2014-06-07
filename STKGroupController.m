@@ -1,5 +1,6 @@
 #import "STKGroupController.h"
 #import "STKConstants.h"
+#import "Asphaleia.h"
 #import <dlfcn.h>
 
 #define kFullDimStrength 0.3f
@@ -542,9 +543,12 @@
         [self _showSelectionViewForIconView:iconView];
     }
     else {
-        [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
-        if ([STKPreferences sharedPreferences].shouldCloseOnLaunch) {
-            [activeGroupView close];
+        BOOL protectedByAsphaleia = [(asphaleiaMainClass *)[objc_getClass("asphaleiaMainClass") sharedInstance] possiblyProtectApp:iconView.icon.leafIdentifier inView:iconView];
+        if (!protectedByAsphaleia) {
+            [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
+            if ([STKPreferences sharedPreferences].shouldCloseOnLaunch) {
+                [activeGroupView close];
+            }
         }
     }
 }
