@@ -44,7 +44,12 @@
 
 - (void)recycleIconView:(SBIconView *)iconView
 {
-    [iconView prepareForRecycling];
+    if ([iconView respondsToSelector:@selector(prepareForRecycling)]) {
+        [iconView prepareForRecycling];
+    }
+    else if ([iconView respondsToSelector:@selector(prepareForReuse)]) {
+        [iconView prepareForReuse];
+    }
     NSMutableSet *set = [_recycledIconViews objectForKey:[iconView class]];
     if (!set) {
         set = [NSMutableSet new];

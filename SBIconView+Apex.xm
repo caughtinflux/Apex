@@ -12,8 +12,11 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
 + (CALayer *)maskForApexEmptyIconOverlayWithBounds:(CGRect)bounds;
 
 @property (nonatomic, retain) UIView *apexOverlayView;
+
 - (void)removeGroupView;
 - (void)stk_modifyOverlayViewForFolderIfNecessary;
+- (void)stk_prepareForReuse;
+
 @end
 
 %hook SBIconView
@@ -201,10 +204,22 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
     [self.groupView setAlpha:groupAlpha];
 }
 
-- (void)prepareForRecycling
+%new
+- (void)stk_prepareForReuse
 {
     [self stk_setImageViewScale:1.0];
     [self removeGroupView];
+}
+
+// 7.1
+- (void)prepareForReuse
+{
+    [self stk_prepareForReuse];
+}
+
+- (void)prepareForRecycling
+{
+    [self stk_prepareForReuse];
     %orig();
 }
 

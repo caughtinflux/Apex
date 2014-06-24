@@ -28,16 +28,18 @@
 #define SCALE_CENTRAL_ICON (CURRENTLY_SHOWS_PREVIEW || (_showGrabbers && !_group.empty))
 
 #define kDefaultAnimationOptions (UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction)
-#define kOpenAnimationDuration     0.8
 #define kOpenAnimationFadeDuration 0.25
 #define kOpenAnimationDamping      0.5
 #define kOpenAnimationVelocity     0.5
 #define kCloseAnimationDuration    0.25
-#define kPlaceholderAddDuration    0.7
 #define kPlaceholderAddDamping     0.4
 #define kPlaceholderAddVelocity    0.5
 #define kPlaceholderRemoveDuration 0.15
 
+#define IS_7_1() (kCFCoreFoundationVersionNumber >= 847.21)
+
+static CGFloat kOpenAnimationDuration;
+static CGFloat kPlaceholderAddDuration;
 
 typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     STKRecognizerDirectionNone,
@@ -81,6 +83,18 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         NSUInteger willClose:1;
         NSUInteger didClose:1;
     } _delegateFlags;
+}
+
++ (void)initialize
+{
+    kOpenAnimationDuration = 0.8;
+    kPlaceholderAddDuration = 0.7;
+    if (IS_7_1()) {
+        static const CGFloat k7_1_AnimationFactor = 0.5625;
+        STKLog(@"Changing durations for iOS 7.1");
+        kOpenAnimationDuration *= k7_1_AnimationFactor;
+        kPlaceholderAddDuration *= k7_1_AnimationFactor;
+    }
 }
 
 - (instancetype)initWithGroup:(STKGroup *)group iconViewSource:(id<STKIconViewSource>)iconViewSource;
