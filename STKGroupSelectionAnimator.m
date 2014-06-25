@@ -83,7 +83,8 @@
     if ([protoController.rootSettings respondsToSelector:@selector(animationSettings)] && protoController.rootSettings.animationSettings.slowAnimations) {
         duration *= [protoController rootSettings].animationSettings.slowDownFactor;
     }
-    [UIView animateWithDuration:(duration + 0.1) delay:(duration * 0.1) options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
+    CGFloat timeToAdd  = IS_7_1() ? 0.0 : 0.1;
+    [UIView animateWithDuration:(duration + timeToAdd) delay:(duration * 0.1) options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
         _selectionView.contentView.transform = CGAffineTransformIdentity;
         _selectionView.contentView.center = (CGPoint){CGRectGetMidX(_selectionView.bounds), CGRectGetMidY(_selectionView.bounds)};
         
@@ -148,7 +149,8 @@
         _selectionView.searchTextField.alpha = 0.0;
         _selectionView.iconCollectionView.alpha = 0.0;
     } completion:nil];
-    [UIView animateWithDuration:(duration + 0.1) delay:(duration * 0.1) options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
+    CGFloat timeToAdd  = IS_7_1() ? 0.0 : 0.1;
+    [UIView animateWithDuration:(duration + timeToAdd) delay:(duration * 0.1) options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
         CGAffineTransform scalingTransform = CGAffineTransformMakeScale(_startScale, _startScale);
         CGAffineTransform translationTransform = CGAffineTransformMakeTranslation((_startCenter.x - _selectionView.contentView.center.x),
                                                                                   (_startCenter.y - _selectionView.contentView.center.y));

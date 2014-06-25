@@ -36,8 +36,6 @@
 #define kPlaceholderAddVelocity    0.5
 #define kPlaceholderRemoveDuration 0.15
 
-#define IS_7_1() (kCFCoreFoundationVersionNumber >= 847.21)
-
 static CGFloat kOpenAnimationDuration;
 static CGFloat kPlaceholderAddDuration;
 
