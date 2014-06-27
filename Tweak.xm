@@ -166,7 +166,9 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 %hook SBIconViewMap
 - (void)_recycleIconView:(SBIconView *)iconView
 {
-    [[STKGroupController sharedController] removeGroupViewFromIconView:iconView]; 
+    if (IS_HS_MAP()) {
+        [[STKGroupController sharedController] removeGroupViewFromIconView:iconView]; 
+    }
     %orig();
 }
 

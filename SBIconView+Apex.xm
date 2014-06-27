@@ -140,7 +140,12 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
 - (void)stk_setImageViewScale:(CGFloat)scale
 {
     SBIconImageView *imageView = [self _iconImageView]; 
-    imageView.layer.transform = CATransform3DMakeScale(scale, scale, scale);
+    if (fabs(scale - 1.0) <= 0.000001) {
+        imageView.layer.transform = CATransform3DIdentity;
+    }
+    else {
+        imageView.layer.transform = CATransform3DMakeScale(scale, scale, scale);
+    }
     objc_setAssociatedObject(self, @selector(stk_imageViewScale), @(scale), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     [self _updateAccessoryViewWithAnimation:YES];
     imageView.layer.contentsScale = [UIScreen mainScreen].scale;
