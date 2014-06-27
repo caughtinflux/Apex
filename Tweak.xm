@@ -122,7 +122,13 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     [[icon retain] autorelease];
     %orig();
     if ([icon isDownloadingIcon]) {
-        NSString *appIconIdent = [(SBDownloadingIcon *)icon identifierForCorrespondingApplicationIcon];
+        NSString *appIconIdent;
+        if ([icon respondsToSelector:@selector(identifierForCorrespondingApplicationIcon)]) {
+            appIconIdent = [(SBDownloadingIcon *)icon identifierForCorrespondingApplicationIcon];
+        }
+        else {
+            appIconIdent = [(SBDownloadingIcon *)icon applicationBundleID];
+        }
         SBApplicationIcon *applicationIcon = [self applicationIconForDisplayIdentifier:appIconIdent];
         if (![applicationIcon activeDataSource]) {
             SBApplication *app = [[CLASS(SBApplicationController) sharedInstance] applicationWithDisplayIdentifier:appIconIdent];
