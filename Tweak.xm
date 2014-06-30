@@ -91,6 +91,16 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
+#pragma mark - SBCalendarApplicationIcon
+%hook SBCalendarApplicationIcon
+- (id)generateIconImage:(NSInteger)variant
+{
+    id img = %orig();
+    [[[CLASS(SBIconViewMap) homescreenMap] mappedIconViewForIcon:self].groupView resetLayouts];
+    return img;
+}
+%end
+
 #pragma mark - SBIconModel
 %hook SBIconModel
 - (BOOL)isIconVisible:(SBIcon *)icon
