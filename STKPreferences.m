@@ -303,7 +303,11 @@ static void STKPrefsChanged (
 - (void)groupDidRelayout:(STKGroup *)group
 {
     [self addOrUpdateGroup:group];
-    notify_post("com.a3tweaks.apex.iconstatechanged");
+    CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
+                                         CFSTR("com.a3tweaks.apex.iconstatechanged"),
+                                         NULL,
+                                         NULL,
+                                         false);
 }
 
 static void
