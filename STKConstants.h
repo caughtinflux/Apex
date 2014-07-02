@@ -52,7 +52,8 @@
 #define ISPAD() (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
 #define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
 
-#define IS_7_1() (kCFCoreFoundationVersionNumber >= 847.21)
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define IS_7_1() (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.1"))
 
 #undef CLASS
 #define CLASS(cls) NSClassFromString(@#cls)

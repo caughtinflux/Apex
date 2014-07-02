@@ -215,12 +215,14 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
 {
     [self stk_setImageViewScale:1.0];
     [self removeGroupView];
+    self.alpha = 1.0;
 }
 
 // 7.1
 - (void)prepareForReuse
 {
     [self stk_prepareForReuse];
+    %orig();
 }
 
 - (void)prepareForRecycling
