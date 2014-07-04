@@ -165,7 +165,8 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
     BOOL isEmptyOrPlaceholderIcon = ([self.icon isKindOfClass:CLASS(STKEmptyIcon)]
                                   || [self.icon isKindOfClass:CLASS(STKPlaceholderIcon)]);
     if (self.containerGroupView && isEmptyOrPlaceholderIcon) {
-        BOOL isInFolder = (((SBIconView *)self.containerGroupView.superview).location == SBIconLocationFolder);
+        SBIconLocation location = ((SBIconView *)self.containerGroupView.superview).location;
+        BOOL isInFolder = ((location == SBIconLocationFolder) || (location == SBIconLocationFolder_7_1));
         if (isInFolder) {
             [(STKWallpaperBlurView *)self.apexOverlayView setStyle:kFolderOverlayBlurStyle];
         }

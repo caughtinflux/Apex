@@ -168,7 +168,7 @@
 
     void (^zoomCompletion)(void) = ^{
         SBIconView *centralIconView = [_zoomAnimator iconViewForIcon:[_iconView containerGroupView].group.centralIcon];
-        if (centralIconView.location == SBIconLocationFolder) {
+        if ((centralIconView.location == SBIconLocationFolder) || (centralIconView.location == SBIconLocationFolder_7_1)) {
             [_zoomAnimator cleanup];
         }
         [_zoomAnimator release];

@@ -89,15 +89,13 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         [[STKGroupController sharedController] addOrUpdateGroupViewForIconView:self];
     }
 }
-%end
 
-#pragma mark - SBCalendarApplicationIcon
-%hook SBCalendarApplicationIcon
-- (id)generateIconImage:(NSInteger)variant
+%new
+- (void)iconImageDidUpdate:(SBIcon *)icon
 {
-    id img = %orig();
-    [[[CLASS(SBIconViewMap) homescreenMap] mappedIconViewForIcon:self].groupView resetLayouts];
-    return img;
+    if ([self.icon isKindOfClass:CLASS(SBCalendarApplicationIcon)]) {
+        [self.containerGroupView resetLayouts];
+    }
 }
 %end
 
