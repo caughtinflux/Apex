@@ -344,7 +344,7 @@ static STKStatusBarRecognizerDelegate *_recognizerDelegate;
 {
     @autoreleasepool {
         STKLog(@"Initializing");
-        [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName@"DEBUG"];
+        [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName];
         %init();
     }
 }
