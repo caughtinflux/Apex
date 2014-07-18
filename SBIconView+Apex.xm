@@ -25,15 +25,14 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
 %new
 + (UIBezierPath *)pathForApexCrossOverlayWithBounds:(CGRect)bounds
 {
-    static const CGFloat kLineLength = 23.f;
-    static const CGFloat kHalfLength = kLineLength * 0.5f;
-    static const CGFloat kLineWidth  = 3.f;
+    static const CGFloat kLineLength = 23.0;
+    static const CGFloat kHalfLength = kLineLength * 0.5;
+    static const CGFloat kLineWidth  = 3.0;
 
-    CGPoint position = (CGPoint){(bounds.size.width * 0.5f), (bounds.size.height * 0.5f)};    
-    CGRect vertical = (CGRect){{position.x - kLineWidth * 0.5, position.y - kHalfLength}, {kLineWidth, kLineLength}};
+    CGPoint position = (CGPoint){(bounds.size.width * 0.5), (bounds.size.height * 0.5)};    
+    CGRect vertical = (CGRect){{position.x - (kLineWidth * 0.5), position.y - kHalfLength}, {kLineWidth, kLineLength}};
     CGRect horizontal = (CGRect){{vertical.origin.y, vertical.origin.x}, {kLineLength, kLineWidth}};
     CGRect intersection = CGRectIntersection(vertical, horizontal);
-    
     UIBezierPath *path = [UIBezierPath bezierPathWithRect:vertical];
     [path appendPath:[UIBezierPath bezierPathWithRect:horizontal]];
     [path appendPath:[UIBezierPath bezierPathWithRect:intersection]];
