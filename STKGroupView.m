@@ -922,6 +922,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             fmaxf(pageControl.frame.size.height, 37.0);
         });
         target.y -= (pageControlHeight - (ISPAD() ? 40.0 : [dock stk_realVerticalIconPadding]));
+        target.y += 2.0;
     }
     return target;
 }
