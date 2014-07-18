@@ -348,7 +348,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self _removeGrabbers];
 
     CGRect iconImageFrame = [self _iconImageFrame];
-    CGFloat grabberWidth = (floorf(iconImageFrame.size.width * 0.419354839) + 1.f);
+    CGFloat grabberWidth = (floorf(iconImageFrame.size.width * 0.419354839) + 1.0);
 
     _topGrabberView = [[UIView new] autorelease];
     _topGrabberView.frame = (CGRect){{0, self.bounds.origin.y - kGrabberDistanceFromEdge - kGrabberHeight + 2.f}, {grabberWidth, kGrabberHeight}};
