@@ -297,7 +297,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     BOOL scaleDown = SCALE_CENTRAL_ICON;
     [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
         SBIconView *iconView = [self.iconViewSource groupView:self wantsIconViewForIcon:icon];
-        iconView.layer.shouldRasterize = NO;
         iconView.iconLabelAlpha = 0.f;
         iconView.frame = _centralIconView.bounds;
         iconView.delegate = self.delegate;

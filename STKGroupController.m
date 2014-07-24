@@ -457,7 +457,6 @@
 - (void)groupViewWillOpen:(STKGroupView *)groupView
 {
     _openingGroupView = groupView;
-
     [self _setAllowScrolling:NO];
     [groupView.group.centralIcon noteBadgeDidChange];
     for (SBIcon *icon in groupView.group.layout) {

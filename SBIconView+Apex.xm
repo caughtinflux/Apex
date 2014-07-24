@@ -141,11 +141,9 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
 {
     SBIconImageView *imageView = [self _iconImageView]; 
     if (fabs(scale - 1.0) <= 0.000001) {
-        self.layer.shouldRasterize = NO;
         imageView.layer.transform = CATransform3DIdentity;
     }
     else {
-        self.layer.shouldRasterize = YES;
         imageView.layer.transform = CATransform3DMakeScale(scale, scale, scale);
     }
     objc_setAssociatedObject(self, @selector(stk_imageViewScale), @(scale), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
