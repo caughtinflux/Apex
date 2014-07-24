@@ -192,6 +192,14 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 #pragma mark - Animator Hooks
 %hook SBCenterIconZoomAnimator
+- (void)_prepareAnimation
+{
+    %orig();
+    [self enumerateIconsAndIconViewsWithHandler:^(SBIcon *icon, SBIconView *iv) {
+        iv.layer.shouldRasterize = YES;
+    }];
+}
+
 - (void)_positionView:(SBIconView *)iconView forIcon:(SBIcon *)icon
 {
     self.iconListView.stk_modifyDisplacedIconOrigin = YES;
@@ -201,6 +209,9 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 - (void)_cleanupAnimation
 {
+    [self enumerateIconsAndIconViewsWithHandler:^(SBIcon *icon, SBIconView *iv) {
+        iv.layer.shouldRasterize = NO;
+    }];
     STKGroupView *openGroupView = [STKGroupController sharedController].openGroupView;
     SBIconListView *listView = STKListViewForIcon(openGroupView.group.centralIcon);
     if (openGroupView) {
