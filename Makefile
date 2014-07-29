@@ -21,7 +21,6 @@ endif
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
-SUBPROJECTS += SBSHook
 SUBPROJECTS += PrefBundle
 
 before-all::
