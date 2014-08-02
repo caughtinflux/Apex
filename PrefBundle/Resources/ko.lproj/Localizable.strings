@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ADITYA_KD</key>
+	<string>Aditya KD</string>
+	<key>ADITYA_KD_HANDLE</key>
+	<string>(@caughtinflux)</string>
+	<key>ADITYA_KD_INFO</key>
+	<string>Mobile Software Developer
+Developer of Apex
+Tinkerer Supreme</string>
+	<key>AGGREGATE_BADGES</key>
+	<string>뱃지 숫자 합치기</string>
+	<key>ALLOW_NEW</key>
+	<string>새로 만들기 허용</string>
+	<key>APEX_SUPPORT</key>
+	<string>Apex Support</string>
+	<key>AUTHORS</key>
+	<string>by Sentry and Aditya KD.</string>
+	<key>AUTHORS_PURCHASED</key>
+	<string>by Sentry and Aditya KD.
+구매해 주셔서 감사합니다.</string>
+	<key>CANNOT_SEND_MAIL</key>
+	<string>메일을 전송할 수 없습니다.</string>
+	<key>CANNOT_SEND_MAIL_DETAILS</key>
+	<string>메일 계정 설정이 되어있지 않기 때문에 메일을 보낼 수 없습니다.</string>
+	<key>CANNOT_SEND_TWEET</key>
+	<string>트윗을 전송할 수 없습니다.</string>
+	<key>CANNOT_SEND_TWEET_DETAILS</key>
+	<string>As you don't have any Twitter accounts setup, you can't send a love tweet</string>
+	<key>CLOSE_ON_LAUNCH</key>
+	<string>앱 실행시 종료</string>
+	<key>CONFIGURATION</key>
+	<string>설정</string>
+	<key>COPYRIGHT_TEXT</key>
+	<string>© %ld Aditya KD and Newar Choukeir</string>
+	<key>DOUBLE_TAP</key>
+	<string>더블 탭</string>
+	<key>EDITING</key>
+	<string>편집하기</string>
+	<key>EDITING_TEXT</key>
+	<string>겹쳐진 앱을 편집하거나 빈 슬롯에 새로 추가하려면 겹친 앱 안의 아무 앱을 꾹 눌러 편집모드로 만드세요. 이 편집모드에서 편집할 겹쳐진 앱을 선택하면 선택창이 뜹니다. 그리고 여기서 새로운 앱을 선택하거나 이미 선택된 '✓' 표시가 되어있는 앱을 볼 수 있습니다. 선택창에서 이미 선택된 앱을 다시 선택하여 제거할 수 있습니다.</string>
+	<key>FOLLOW_A3TWEAKS</key>
+	<string>A³tweaks 팔로우하기</string>
+	<key>GETTING_STARTED</key>
+	<string>시작하기</string>
+	<key>GET_STARTED_TEXT</key>
+	<string>새롭게 아이콘을 겹치려면 홈화면에서 아이콘을 스와이프하여 서브 앱 슬롯을 나타내세요. 앱을 두고 싶은 슬롯을 선택하면 선택창이 뜹니다. 선택창에서 앱을 스크롤하거나 (관련앱과 모든 앱으로 나누어져 있습니다) 검색창을 이용하여 두고 싶은 앱을 선택하세요. 그리고 이제 바깥을 탭하거나 스와이프하여 닫으면 완료됩니다!</string>
+	<key>GRABBERS</key>
+	<string>손잡이</string>
+	<key>LOCALIZATION_ABOUT</key>
+	<string></string>
+	<key>LOVE_GAMES</key>
+	<string>I'm loving #Apex2 from @A3Tweaks!</string>
+	<key>NONE</key>
+	<string>없음</string>
+	<key>OK</key>
+	<string>OK</string>
+	<key>SENTRY</key>
+	<string>Sentry</string>
+	<key>SENTRY_HANDLE</key>
+	<string>(@Sentry_NC)</string>
+	<key>SENTRY_INFO</key>
+	<string>Visual Interaction Designer,
+Apex, AltKB, Auxo, Aplo,
+Founder of A³tweaks</string>
+	<key>SPOTLIGHT_ACCESS</key>
+	<string>스팟라이트 켜기</string>
+	<key>SUBAPP_ACCESS</key>
+	<string>겹쳐진 앱 접근</string>
+	<key>SUBAPP_PREVIEWS</key>
+	<string>겹쳐진 앱 보이기</string>
+	<key>SUPPORT_EMAIL_LINK</key>
+	<string>A³tweaks 피드백 보내기</string>
+	<key>SWIPE_DOWN</key>
+	<string>아래로 스와이프</string>
+	<key>SWIPE_UP</key>
+	<string>위로 스와이프</string>
+	<key>TAP_SB</key>
+	<string>상태바 탭하기</string>
+	<key>THE_CREATORS</key>
+	<string>개발자</string>
+	<key>USER_GUIDE</key>
+	<string>사용자 가이드</string>
+	<key>VISUAL_INDICATOR</key>
+	<string>겹친 앱 표시</string>
+</dict>
+</plist>
+
