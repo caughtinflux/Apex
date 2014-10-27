@@ -71,7 +71,7 @@
 {
     %orig();
     SBIconModel *iconModel = (SBIconModel *)[[CLASS(SBIconController) sharedInstance] model];
-    SBApplicationIcon *icon = [iconModel applicationIconForDisplayIdentifier:self.displayIdentifier];
+    SBApplicationIcon *icon = [iconModel applicationIconForBundleIdentifier:self.displayIdentifier];
     [icon noteBadgeDidChange];
 }
 %end

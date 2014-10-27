@@ -13,7 +13,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     if ((responseFlags & 0x3) == kCFUserNotificationAlternateResponse) {
         // Open settings to custom bundle
-        [(SpringBoard *)[UIApplication sharedApplication] applicationOpenURL:[NSURL URLWithString:@"prefs:root="kSTKTweakName] publicURLsOnly:NO];
+        [(SpringBoard *)[UIApplication sharedApplication] applicationOpenURL:[NSURL URLWithString:@"prefs:root="kSTKTweakName]];
     }
     CFRelease(userNotification);
 }
@@ -137,9 +137,9 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         else {
             appIconIdent = [(SBDownloadingIcon *)icon applicationBundleID];
         }
-        SBApplicationIcon *applicationIcon = [self applicationIconForDisplayIdentifier:appIconIdent];
+        SBApplicationIcon *applicationIcon = [self applicationIconForBundleIdentifier:appIconIdent];
         if (![applicationIcon activeDataSource]) {
-            SBApplication *app = [[CLASS(SBApplicationController) sharedInstance] applicationWithDisplayIdentifier:appIconIdent];
+            SBApplication *app = [[CLASS(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:appIconIdent];
             [applicationIcon addIconDataSource:app];
         } 
     }
