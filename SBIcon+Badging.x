@@ -73,10 +73,10 @@
     SBIconModel *iconModel = (SBIconModel *)[[CLASS(SBIconController) sharedInstance] model];
     SBApplicationIcon *icon = nil;
     if (IS_8_1()) {
-        SBApplicationIcon *icon = [iconModel applicationIconForBundleIdentifier:self.displayIdentifier];
+        icon = [iconModel applicationIconForBundleIdentifier:self.displayIdentifier];
     }
     else {
-        SBApplicationIcon *icon = [iconModel applicationIconForDisplayIdentifier:self.displayIdentifier];
+        icon = [iconModel applicationIconForDisplayIdentifier:self.displayIdentifier];
     }
     [icon noteBadgeDidChange];
 }
