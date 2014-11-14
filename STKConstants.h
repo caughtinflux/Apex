@@ -54,6 +54,7 @@
 
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 #define IS_7_1() (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.1"))
+#define IS_8_1() (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"8.1"))
 
 #undef CLASS
 #define CLASS(cls) NSClassFromString(@#cls)
