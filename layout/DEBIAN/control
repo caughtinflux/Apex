@@ -1,6 +1,6 @@
 Package: com.a3tweaks.apex2
 Name: Apex 2
-Depends: mobilesubstrate, firmware (>= 7.0), preferenceloader
+Depends: mobilesubstrate, com.chpwn.iconsupport, firmware (>= 7.0), preferenceloader
 Conflicts: com.jcorbett.bigify, org.thebigboss.bigifyplus, com.aehmlo.powerdownenhancer (<< 2.0)
 Version: 1.0.10
 Architecture: iphoneos-arm

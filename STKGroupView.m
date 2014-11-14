@@ -979,7 +979,12 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     if ([_centralIconView _labelImage]) {
         iconView.iconLabelAlpha = alpha;
     }
-    [[iconView valueForKey:@"_labelAccessoryView"] setAlpha:alpha];
+    if (IS_8_1()) {
+        [[iconView valueForKey:@"labelAccessoryView"] setAlpha:alpha];
+    }
+    else {
+        [[iconView valueForKey:@"updatedMark"] setAlpha:alpha];
+    }
 }
 
 - (void)_setAlphaForDisplacedIcons:(CGFloat)alpha

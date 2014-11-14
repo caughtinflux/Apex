@@ -137,9 +137,16 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         else {
             appIconIdent = [(SBDownloadingIcon *)icon applicationBundleID];
         }
-        SBApplicationIcon *applicationIcon = [self applicationIconForBundleIdentifier:appIconIdent];
+        SBApplicationIcon *applicationIcon = nil;
+        if (IS_8_1()) {
+            applicationIcon = [self applicationIconForBundleIdentifier:appIconIdent];
+        }
+        else {
+            applicationIcon = [self applicationIconForDisplayIdentifier:appIconIdent];
+        }
         if (![applicationIcon activeDataSource]) {
-            SBApplication *app = [[CLASS(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:appIconIdent];
+            SEL identSel = (IS_8_1() ? @selector(applicationWithBundleIdentifier:) : @selector(applicationWithDisplayIdentifier:));
+            SBApplication *app = [[CLASS(SBApplicationController) sharedInstance] performSelector:identSel withObject:appIconIdent];
             [applicationIcon addIconDataSource:app];
         } 
     }
