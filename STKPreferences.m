@@ -70,14 +70,19 @@ static void STKPrefsChanged (
     _subappToCentralMap = nil;
     _groups = nil;
 
-    CFStringRef appID = CFSTR("com.a3tweaks.Apex");
-    CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
-    if (keyList) {
-        _preferences = [(NSDictionary *)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost) mutableCopy];
-        CFRelease(keyList);
+    if (IS_8_1()) {
+        CFStringRef appID = CFSTR("com.a3tweaks.Apex");
+        CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+        if (keyList) {
+            _preferences = [(NSDictionary *)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost) mutableCopy];
+            CFRelease(keyList);
+        }
+        if (!_preferences) {
+            _preferences = [NSMutableDictionary new];
+        }
     }
-    if (!_preferences) {
-        _preferences = [NSMutableDictionary new];
+    else {
+        _preferences = [[NSMutableDictionary dictionaryWithContentsOfFile:kPrefPath] mutableCopy] ?: [NSMutableDictionary new];
     }
 
     NSDictionary *iconState = _preferences[GroupStateKey];
