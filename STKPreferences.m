@@ -210,6 +210,12 @@ static void STKPrefsChanged (
         NSDictionary *groupState = [self _groupStateFromGroups];
         _preferences[GroupStateKey] = groupState;
 
+        if (IS_8_1()) {
+            CFStringRef appID = CFSTR("com.a3tweaks.Apex");
+            CFPreferencesSetMultiple((CFDictionaryRef)_preferences, NULL, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+            return;
+        }
+
         // Write atomically.
         NSString *tempPath = [NSTemporaryDirectory() stringByAppendingString:@"/com.a3tweaks.Apex.plist"];
         NSOutputStream *outputStream = [NSOutputStream outputStreamToFileAtPath:tempPath append:NO];

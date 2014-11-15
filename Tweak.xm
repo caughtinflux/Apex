@@ -191,7 +191,9 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     SBIconView *mappedView = %orig(icon);
     if (!mappedView && IS_HS_MAP() && [STKGroupController sharedController].openGroupView) {
-        mappedView = [[STKGroupController sharedController].openGroupView subappIconViewForIcon:icon];
+        if ([STKGroupController sharedController].openGroupView.group.state != STKGroupStateDirty) {
+
+        }
     }
     return mappedView;
 }

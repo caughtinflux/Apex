@@ -166,6 +166,11 @@
     }
 }
 
+- (STKGroupView *)activeGroupView 
+{
+    return [self _activeGroupView];
+}
+
 - (STKGroup *)_groupWithEmptySlotsForIcon:(SBIcon *)icon
 {
     STKGroupLayout *slotLayout = [STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:icon]];

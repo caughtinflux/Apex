@@ -17,6 +17,11 @@ static NSString * const SwipeToSpotlightID   = @"SWIPE_DOWN_SPOTLIGHT";
 
 @implementation STKConfigurationController
 
++ (void)performSync
+{
+    CFPreferencesSynchronize(CFSTR("com.a3tweaks.Apex"), kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -53,6 +58,7 @@ static NSString * const SwipeToSpotlightID   = @"SWIPE_DOWN_SPOTLIGHT";
         [self setPreferenceValue:value specifier:spec];
         [[[self rootController] class] writePreference:spec];
     }
+    [[self class] performSync];
 }
 
 - (void)setVisualIndicator:(PSSpecifier *)selectedSpecifier
@@ -65,6 +71,7 @@ static NSString * const SwipeToSpotlightID   = @"SWIPE_DOWN_SPOTLIGHT";
     [specifiersToTurnOff removeObject:selectedSpecifier];
     [self _setValue:@NO forMultiSelectionSpecifiers:specifiersToTurnOff];
     [self _setValue:@YES forMultiSelectionSpecifiers:@[selectedSpecifier]];
+    [[self class] performSync];
 }
 
 - (void)updateSpecifier:(PSSpecifier *)specifier
@@ -74,6 +81,7 @@ static NSString * const SwipeToSpotlightID   = @"SWIPE_DOWN_SPOTLIGHT";
     [cell setChecked:newSetting];
     [self setPreferenceValue:@(newSetting) specifier:specifier];
     [[[self rootController] class] writePreference:specifier];
+    [[self class] performSync];
 }
 
 - (PSTableCell *)cellForSpecifier:(PSSpecifier *)specifier
