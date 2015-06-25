@@ -89,7 +89,7 @@
         _selectionView.contentView.center = (CGPoint){CGRectGetMidX(_selectionView.bounds), CGRectGetMidY(_selectionView.bounds)};
         
         STKCurrentListView().alpha = 0.0;
-        [[CLASS(SBIconController) sharedInstance] dockListView].alpha = 0.0;
+        ((SBDockIconListView *)[[CLASS(SBIconController) sharedInstance] dockListView]).alpha = 0.0;
         _selectionView.contentView.alpha = 1.0;
         _selectionView.searchTextField.alpha = 1.0;
 
@@ -159,7 +159,7 @@
         
         _selectionView.backgroundView.alpha = 0.0;
         STKCurrentListView().alpha = 1.0;
-        [[CLASS(SBIconController) sharedInstance] dockListView].alpha = 1.0;
+        ((SBDockIconListView *)[[CLASS(SBIconController) sharedInstance] dockListView]).alpha = 1.0;
 
         SBWallpaperController *wallpaperController = [CLASS(SBWallpaperController) sharedInstance];
         CGFloat scale = [CLASS(SBFolderController) wallpaperScaleForDepth:0];

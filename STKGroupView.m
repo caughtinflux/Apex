@@ -447,7 +447,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             CGPoint translation = [sender translationInView:self];
             _isUpwardSwipe = ([sender velocityInView:self].y < 0);
             
-            BOOL isHorizontalSwipe = !((fabsf(translation.x / translation.y) < 5.0) || translation.x == 0);
+            BOOL isHorizontalSwipe = !((fabs(translation.x / translation.y) < 5.0) || translation.x == 0);
 
             BOOL denyForConflictingActivation = NO;
             if (!STKActivationModeIsUpAndDown(_activationMode)) {
@@ -533,10 +533,10 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self _setAlpha:offset forBadgeAndLabelOfIconView:subappView];
     if (slot.index == 0) {
         if (_hasVerticalIcons && STKPositionIsVertical(slot.position)) {
-            _lastDistanceFromCenter = fabsf(subappView.frame.origin.y - _centralIconView.bounds.origin.y);
+            _lastDistanceFromCenter = fabs(subappView.frame.origin.y - _centralIconView.bounds.origin.y);
         }
         else if (!_hasVerticalIcons && STKPositionIsHorizontal(slot.position)) {
-           _lastDistanceFromCenter = fabsf(subappView.frame.origin.x - _centralIconView.bounds.origin.x);
+           _lastDistanceFromCenter = fabs(subappView.frame.origin.x - _centralIconView.bounds.origin.x);
         }
     }
     if (SCALE_CENTRAL_ICON) { 

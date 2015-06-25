@@ -194,7 +194,7 @@
         // Infiniboard
         scrollView.scrollEnabled = allow;
     }
-    scrollView = [[[CLASS(SBIconController) sharedInstance] dockListView].subviews firstObject];
+    scrollView = [((UIView *)[[CLASS(SBIconController) sharedInstance] dockListView]).subviews firstObject];
     if ([scrollView isKindOfClass:CLASS(UIScrollView)]) {
         // Infinidock
         scrollView.scrollEnabled = allow;
@@ -549,7 +549,12 @@
     else {
         BOOL protectedByAsphaleia = [(asphaleiaMainClass *)[objc_getClass("asphaleiaMainClass") sharedInstance] possiblyProtectApp:iconView.icon.leafIdentifier inView:iconView];
         if (!protectedByAsphaleia) {
-            [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
+            if ([iconView.icon respondsToSelector:@selector(launchFromLocation:)]) {
+                [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
+            }
+            else if ([iconView.icon respondsToSelector:@selector(launchFromLocation:context:)]) {
+                [iconView.icon launchFromLocation:SBIconLocationHomeScreen context:nil];
+            }
             if ([STKPreferences sharedPreferences].shouldCloseOnLaunch) {
                 [activeGroupView close];
             }
