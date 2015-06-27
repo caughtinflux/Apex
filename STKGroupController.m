@@ -5,6 +5,23 @@
 
 #define kFullDimStrength 0.3f
 
+NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
+    switch (event) {
+        case STKClosingEventHomeButtonPress: {
+            return @"STKClosingEventHomeButtonPress";
+        }
+        case STKClosingEventListViewScroll: {
+            return @"STKClosingEventListViewScroll";
+        }
+        case STKClosingEventSwitcherActivation: {
+            return @"STKClosingEventSwitcherActivation";
+        }
+        case STKClosingEventLock: {
+            return @"STKClosingEventLock";
+        }
+    }
+}
+
 @implementation STKGroupController
 {
     STKGroupView *_openGroupView;
@@ -116,14 +133,15 @@
     if (event == STKClosingEventHomeButtonPress) {
         BOOL sbIsFrontMost = ![(SpringBoard *)[UIApplication sharedApplication] _accessibilityFrontMostApplication];
         if (sbIsFrontMost && ([self _activeGroupView] || _selectionView)) {
-            handled = YES;
-            [self _closeOpenGroupOrSelectionView];
+            handled = [self _closeOpenGroupOrSelectionView];
         }
     }
     else if (!_selectionView) {
         // scroll, switcher open, or lock
-        handled = ([self _activeGroupView] != nil);
-        [self _closeOpenGroupOrSelectionView];
+        handled = [self _closeOpenGroupOrSelectionView];
+    }
+    if (handled) {
+        CLog(@"Handling closing event: %@", NSStringFromSTKClosingEvent(event));
     }
     return handled;
 }
@@ -275,22 +293,27 @@
     [_closeSwipeRecognizer.view removeGestureRecognizer:_closeSwipeRecognizer];
 }
 
-- (void)_closeOpenGroupOrSelectionView
+- (BOOL)_closeOpenGroupOrSelectionView
 {
+    BOOL closed = NO;
     if (_selectionView) {
         if (_selectionView.isKeyboardVisible) {
             [_selectionView dismissKeyboard];
         }
         else {
             [self _closeSelectionView];
+            closed = YES;
         }
     }
     else if (_openGroupView.group.hasPlaceholders && (_openGroupViewWasModified == NO)) {
         [_openGroupView.group removePlaceholders];
     }
-    else {
-        [[self _activeGroupView] close];
+    else if (!_closingGroupView) {
+        _closingGroupView = [self _activeGroupView];
+        [_closingGroupView close];
+        closed = (_closingGroupView != nil);
     }
+    return closed;
 }
 
 - (void)_showSelectionViewForIconView:(SBIconView *)selectedIconView
@@ -515,6 +538,7 @@
     [self _removeDimmingView];
     [self _removeCloseGestureRecognizers];
     _openGroupView = nil;
+    _closingGroupView = nil;
     _openGroupViewWasModified = NO;
 }
 

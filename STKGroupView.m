@@ -160,6 +160,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)closeWithCompletionHandler:(void(^)(void))completion
 {
+    _ignoreRecognizer = NO;
     [self _animateClosedWithCompletion:completion];
 }
 
@@ -438,7 +439,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 #define kBandingFactor  0.25 // The factor by which the distance should be multiplied to simulate the rubber banding effect
 - (void)_panned:(UIPanGestureRecognizer *)sender
 {
-    if (self.isOpen) {
+    if (!_ignoreRecognizer && self.isOpen) {
         _ignoreRecognizer = YES;
         return;
     }
