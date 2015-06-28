@@ -5,6 +5,23 @@
 
 #define kFullDimStrength 0.3f
 
+NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
+    switch (event) {
+        case STKClosingEventHomeButtonPress: {
+            return @"STKClosingEventHomeButtonPress";
+        }
+        case STKClosingEventListViewScroll: {
+            return @"STKClosingEventListViewScroll";
+        }
+        case STKClosingEventSwitcherActivation: {
+            return @"STKClosingEventSwitcherActivation";
+        }
+        case STKClosingEventLock: {
+            return @"STKClosingEventLock";
+        }
+    }
+}
+
 @implementation STKGroupController
 {
     STKGroupView *_openGroupView;
@@ -116,14 +133,15 @@
     if (event == STKClosingEventHomeButtonPress) {
         BOOL sbIsFrontMost = ![(SpringBoard *)[UIApplication sharedApplication] _accessibilityFrontMostApplication];
         if (sbIsFrontMost && ([self _activeGroupView] || _selectionView)) {
-            handled = YES;
-            [self _closeOpenGroupOrSelectionView];
+            handled = [self _closeOpenGroupOrSelectionView];
         }
     }
     else if (!_selectionView) {
         // scroll, switcher open, or lock
-        handled = ([self _activeGroupView] != nil);
-        [self _closeOpenGroupOrSelectionView];
+        handled = [self _closeOpenGroupOrSelectionView];
+    }
+    if (handled) {
+        CLog(@"Handling closing event: %@", NSStringFromSTKClosingEvent(event));
     }
     return handled;
 }
@@ -132,6 +150,9 @@
 {
     if ([STKPreferences sharedPreferences].shouldOpenSpotlightFromStatusBarTap && !_selectionView) {
         [[CLASS(SBSearchGesture) sharedInstance] revealAnimated:YES];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (NSEC_PER_SEC * 0.15)), dispatch_get_main_queue(), ^{
+            [[CLASS(SBSearchViewController) sharedInstance] _setShowingKeyboard:YES];
+        });
     }
 }
 
@@ -194,7 +215,7 @@
         // Infiniboard
         scrollView.scrollEnabled = allow;
     }
-    scrollView = [[[CLASS(SBIconController) sharedInstance] dockListView].subviews firstObject];
+    scrollView = [((UIView *)[[CLASS(SBIconController) sharedInstance] dockListView]).subviews firstObject];
     if ([scrollView isKindOfClass:CLASS(UIScrollView)]) {
         // Infinidock
         scrollView.scrollEnabled = allow;
@@ -275,22 +296,27 @@
     [_closeSwipeRecognizer.view removeGestureRecognizer:_closeSwipeRecognizer];
 }
 
-- (void)_closeOpenGroupOrSelectionView
+- (BOOL)_closeOpenGroupOrSelectionView
 {
+    BOOL closed = NO;
     if (_selectionView) {
         if (_selectionView.isKeyboardVisible) {
             [_selectionView dismissKeyboard];
         }
         else {
             [self _closeSelectionView];
+            closed = YES;
         }
     }
     else if (_openGroupView.group.hasPlaceholders && (_openGroupViewWasModified == NO)) {
         [_openGroupView.group removePlaceholders];
     }
-    else {
-        [[self _activeGroupView] close];
+    else if (!_closingGroupView) {
+        _closingGroupView = [self _activeGroupView];
+        [_closingGroupView close];
+        closed = (_closingGroupView != nil);
     }
+    return closed;
 }
 
 - (void)_showSelectionViewForIconView:(SBIconView *)selectedIconView
@@ -515,6 +541,7 @@
     [self _removeDimmingView];
     [self _removeCloseGestureRecognizers];
     _openGroupView = nil;
+    _closingGroupView = nil;
     _openGroupViewWasModified = NO;
 }
 
@@ -549,7 +576,12 @@
     else {
         BOOL protectedByAsphaleia = [(asphaleiaMainClass *)[objc_getClass("asphaleiaMainClass") sharedInstance] possiblyProtectApp:iconView.icon.leafIdentifier inView:iconView];
         if (!protectedByAsphaleia) {
-            [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
+            if ([iconView.icon respondsToSelector:@selector(launchFromLocation:)]) {
+                [iconView.icon launchFromLocation:SBIconLocationHomeScreen];
+            }
+            else if ([iconView.icon respondsToSelector:@selector(launchFromLocation:context:)]) {
+                [iconView.icon launchFromLocation:SBIconLocationHomeScreen context:nil];
+            }
             if ([STKPreferences sharedPreferences].shouldCloseOnLaunch) {
                 [activeGroupView close];
             }
