@@ -90,13 +90,10 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
 }
 
-
+%new
 - (void)iconImageDidUpdate:(SBIcon *)icon
 {
-    %orig();
-    if ([self.icon isKindOfClass:CLASS(SBCalendarApplicationIcon)]) {
-        [self.containerGroupView resetLayouts];
-    }
+    [(self.groupView ?: self.containerGroupView) resetLayouts];
 }
 %end
 
