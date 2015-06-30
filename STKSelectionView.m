@@ -140,8 +140,13 @@ static const CGFloat kMinimumLineSpacing      = 15;
 
 - (void)_processIcons:(NSArray *)icons
 {
-    NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
-    icons = [icons sortedArrayUsingDescriptors:@[sortDescriptor]];
+    icons = [icons sortedArrayUsingComparator:^(SBIcon *icon1, SBIcon *icon2) {
+        BOOL is8_4 = [icon1 respondsToSelector:@selector(displayNameForLocation:)];
+        if (is8_4) {
+            return [[icon1 displayNameForLocation:SBIconLocationHomeScreen] localizedCaseInsensitiveCompare:[icon2 displayNameForLocation:SBIconLocationHomeScreen]];
+        }
+        return [[icon1 displayName] localizedCaseInsensitiveCompare:[icon2 displayName]];
+    }];
 
     NSMutableArray *iconsSimilarToSelectedIcon = [NSMutableArray array];
     NSMutableArray *allIcons = [NSMutableArray array];
