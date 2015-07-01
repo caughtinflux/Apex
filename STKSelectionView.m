@@ -390,7 +390,8 @@ static const CGFloat kMinimumLineSpacing      = 15;
         _isSearching = YES;
         NSMutableArray *searchResults = [NSMutableArray new];
         for (SBIcon *icon in _allApps) {
-            if ([[icon displayName] rangeOfString:_searchTextField.text
+            NSString *displayName = [icon respondsToSelector:@selector(displayNameForLocation:)] ? [icon displayNameForLocation:SBIconLocationHomeScreen] : [icon displayName];
+            if ([displayName rangeOfString:_searchTextField.text
                                           options:(NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch)].location != NSNotFound) {
                 [searchResults addObject:icon];
             }
