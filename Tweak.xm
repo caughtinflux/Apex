@@ -165,7 +165,12 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
             STKGroup *group = [[STKPreferences sharedPreferences] groupForSubappIcon:icon];
             if (group) {
                 SBIcon *centralIcon = group.centralIcon;
-                [result setAuxiliaryTitle:centralIcon.displayName];
+                if ([centralIcon respondsToSelector:@selector(displayNameForLocation:)]) {
+                    [result setAuxiliaryTitle:[centralIcon displayNameForLocation:SBIconLocationHomeScreen]];
+                }
+                else {
+                    [result setAuxiliaryTitle:centralIcon.displayName];
+                }
             }
         }
     }
