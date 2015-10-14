@@ -336,6 +336,25 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
     %orig(enabled);
 }
+- (void)setDisabled:(BOOL)disabled forReason:(NSString *)reason
+{
+    if (!disabled && [STKPreferences sharedPreferences].shouldDisableSearchGesture) {
+        disabled = YES;
+    }
+    %orig(disabled, reason);
+}
+
+%new
+- (void)stk_setEnabled:(BOOL)enabled
+{
+    if ([self respondsToSelector:@selector(setEnabled:)]) {
+        [self setEnabled:enabled];
+    }
+    else if ([self respondsToSelector:@selector(setDisabled:forReason:)]) {
+        [self setDisabled:!enabled forReason:@"Apex!"];
+    }
+}
+
 %end
 
 #pragma mark - UIStatusBar

@@ -5,6 +5,10 @@
 
 #define kFullDimStrength 0.3f
 
+@interface SBSearchGesture (ApexAdditions)
+- (void)stk_setEnabled:(BOOL)enabled;
+@end
+
 NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
     switch (event) {
         case STKClosingEventHomeButtonPress: {
@@ -436,7 +440,7 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
             [iconView.icon noteBadgeDidChange];
         }];
     }
-    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:!preferences.shouldDisableSearchGesture];
+    [[CLASS(SBSearchGesture) sharedInstance] stk_setEnabled:!preferences.shouldDisableSearchGesture];
 }
 
 #pragma mark - Group View Delegate
@@ -494,7 +498,7 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
         [icon noteBadgeDidChange];
     }
     [self _addCloseGestureRecognizers];
-    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:NO];
+    [[CLASS(SBSearchGesture) sharedInstance] stk_setEnabled:NO];
 }
 
 - (void)groupView:(STKGroupView *)groupView didMoveToOffset:(CGFloat)offset
@@ -519,7 +523,7 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
     for (SBIcon *icon in groupView.group.layout) {
         [icon noteBadgeDidChange];
     }
-    [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
+    [[CLASS(SBSearchGesture) sharedInstance] stk_setEnabled:YES];
 }
 
 - (void)groupViewDidClose:(STKGroupView *)groupView
@@ -549,7 +553,7 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
 {
     if (groupView == _openGroupView) {
         [self groupViewDidClose:groupView];
-        [[CLASS(SBSearchGesture) sharedInstance] setEnabled:YES];
+        [[CLASS(SBSearchGesture) sharedInstance] stk_setEnabled:YES];
     }
     else if (groupView == _openingGroupView) {
         _openingGroupView = nil;

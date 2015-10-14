@@ -36,7 +36,15 @@
         classForIconView = [[CLASS(SBIconController) sharedInstance] iconViewClassForIcon:icon location:SBIconLocationHomeScreen];
     }
     NSMutableSet *set = [_recycledIconViews objectForKey:classForIconView];
-    SBIconView *iconView = [set anyObject] ?: [[[classForIconView alloc] initWithDefaultSize] autorelease];
+    SBIconView *iconView = [set anyObject];
+    if (!iconView) {
+        if ([CLASS(SBIconView) instancesRespondToSelector:@selector(initWithDefaultSize)]) {
+            iconView = [[[CLASS(SBIconView) alloc] initWithDefaultSize] autorelease];
+        }
+        else if ([CLASS(SBIconView) instancesRespondToSelector:@selector(initWithContentType:)]) {
+            iconView = [[[CLASS(SBIconView) alloc] initWithContentType:0] autorelease];
+        }
+    }
     iconView.icon = icon;
     [set removeObject:iconView];
     return iconView;

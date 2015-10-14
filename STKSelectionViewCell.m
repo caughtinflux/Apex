@@ -10,7 +10,12 @@
 - (instancetype)initWithFrame:(CGRect)frame
 {
     if ((self = [super initWithFrame:frame])) {
-        _iconView = [[[CLASS(SBIconView) alloc] initWithDefaultSize] autorelease];
+        if ([CLASS(SBIconView) instancesRespondToSelector:@selector(initWithDefaultSize)]) {
+            _iconView = [[[CLASS(SBIconView) alloc] initWithDefaultSize] autorelease];
+        }
+        else if ([CLASS(SBIconView) instancesRespondToSelector:@selector(initWithContentType:)]) {
+            _iconView = [[[CLASS(SBIconView) alloc] initWithContentType:0] autorelease];
+        }
         _iconView.delegate = self;
         [self.contentView addSubview:_iconView];
     }
