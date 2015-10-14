@@ -113,7 +113,9 @@ static void STKPrefsChanged (
     NSString *URLString = [NSString stringWithFormat:@"http://check.caughtinflux.com/stats/twox/%@/%@/%@/%@", @kPackageVersion, productType, OSVersion, UDID];
     CFRelease(productType); CFRelease(OSVersion); CFRelease(UDID);
     NSURL *URL = [NSURL URLWithString:URLString];
-    [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:URL] queue:nil completionHandler:nil];
+    [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:URL] queue:[NSOperationQueue new] completionHandler:^(id response, id data, id error) {
+        
+    }];
 }
 
 - (BOOL)swipeUpEnabled
