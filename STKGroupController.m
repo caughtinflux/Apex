@@ -533,7 +533,8 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
         [_openGroupView.group finalizeState];
         if (_iconsToHide.count > 0 || _iconsToShow.count > 0) {
             SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
-            [model _postIconVisibilityChangedNotificationShowing:_iconsToShow hiding:_iconsToHide];
+            NSDictionary *userInfo = @{@"SBIconModelIconsToShowKey": _iconsToShow, @"SBIconModelIconsToHideKey": _iconsToHide};
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"SBIconModelVisibilityDidChangeNotification" object:model userInfo:userInfo];
             [_iconsToShow release];
             [_iconsToHide release];
             _iconsToShow = nil;
