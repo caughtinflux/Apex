@@ -152,7 +152,9 @@ static const CGFloat kMinimumLineSpacing      = 15;
     NSMutableArray *allIcons = [NSMutableArray array];
     NSSet *centralIconGenres = [NSSet setWithArray:[_centralIcon folderTitleOptions]];
     for (SBIcon *icon in icons) {
-        if (icon == _centralIcon || [icon iconAppearsInNewsstand] || [icon isNewsstandApplicationIcon] || [icon isNewsstandIcon]) {
+        BOOL iconIsInNewsstand = ([icon respondsToSelector:@selector(iconAppearsInNewsstand)] && [icon iconAppearsInNewsstand]);
+        BOOL isNewsstandIcon = ([icon respondsToSelector:@selector(isNewsstandIcon)] && [icon isNewsstandIcon]);
+        if (icon == _centralIcon || iconIsInNewsstand || isNewsstandIcon) {
             continue;
         }
         NSSet *iconGenres = [NSSet setWithArray:[icon folderTitleOptions]];

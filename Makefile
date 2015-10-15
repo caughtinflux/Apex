@@ -1,6 +1,6 @@
 export DEBUG = 1
 export ARCHS = armv7 armv7s arm64
-export TARGET = iphone:clang:8.4:7.0
+export TARGET = iphone:clang:9.0:7.0
 
 ifeq ($(DEBUG), 0)
 	PACKAGE_VERSION=$(THEOS_PACKAGE_BASE_VERSION)
@@ -14,6 +14,7 @@ Apex_FRAMEWORKS = Foundation CoreFoundation UIKit CoreGraphics QuartzCore
 Apex_PRIVATE_FRAMEWORKS = SpringBoardFoundation
 Apex_LIBRARIES = mobilegestalt
 Apex_CFLAGS += -Wall -Werror -O3
+Apex_LDFLAGS += -Wl,-segalign,4000
 
 ifeq ($(DEBUG), 1)
 	ADDITIONAL_LDFLAGS += -Wl,-map,$@.map -g -x c /dev/null -x none

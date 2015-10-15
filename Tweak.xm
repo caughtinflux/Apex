@@ -158,7 +158,9 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     %orig();
     SPSearchResultSection *section = %orig();
-    if (section.hasDomain && section.domain == 4) {
+    
+    NSUInteger domain = (IS_9_0() ? SPSearchResultSectionTopHits : 4);
+    if (section.domain == domain) {
         for (SPSearchResult *result in section.results) {
             NSString *appID = result.url;
             SBIcon *icon = [[(SBIconController *)[%c(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:appID];
@@ -166,10 +168,15 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
             if (group) {
                 SBIcon *centralIcon = group.centralIcon;
                 if ([centralIcon respondsToSelector:@selector(displayNameForLocation:)]) {
-                    [result setAuxiliaryTitle:[centralIcon displayNameForLocation:SBIconLocationHomeScreen]];
+                    if (IS_9_0()) {
+                        result.subtitle = [centralIcon displayNameForLocation:SBIconLocationHomeScreen];
+                    }
+                    else {
+                        result.auxiliaryTitle = [centralIcon displayNameForLocation:SBIconLocationHomeScreen];
+                    }
                 }
                 else {
-                    [result setAuxiliaryTitle:centralIcon.displayName];
+                    result.auxiliaryTitle = centralIcon.displayName;
                 }
             }
         }
@@ -336,6 +343,25 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
     %orig(enabled);
 }
+- (void)setDisabled:(BOOL)disabled forReason:(NSString *)reason
+{
+    if (!disabled && [STKPreferences sharedPreferences].shouldDisableSearchGesture) {
+        disabled = YES;
+    }
+    %orig(disabled, reason);
+}
+
+%new
+- (void)stk_setEnabled:(BOOL)enabled
+{
+    if ([self respondsToSelector:@selector(setEnabled:)]) {
+        [self setEnabled:enabled];
+    }
+    else if ([self respondsToSelector:@selector(setDisabled:forReason:)]) {
+        [self setDisabled:!enabled forReason:@"Apex!"];
+    }
+}
+
 %end
 
 #pragma mark - UIStatusBar

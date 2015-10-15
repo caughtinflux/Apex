@@ -6,7 +6,10 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
 
 #define kHomeScreenOverlayBlurStyle     7
 #define kHomeScreenOverlayBlurStyle_7_1 9
+#define kHomeScreenOverlayBlurStyle_8_1 8
 #define kFolderOverlayBlurStyle         2
+
+#define BLUR_STYLE_FOR_CURRENT_OS() (IS_8_1() ? kHomeScreenOverlayBlurStyle_8_1 : (IS_7_1() ? kHomeScreenOverlayBlurStyle_7_1 : kHomeScreenOverlayBlurStyle))
 
 @interface SBIconView (ApexPrivate)
 + (UIBezierPath *)pathForApexCrossOverlayWithBounds:(CGRect)bounds;
@@ -120,7 +123,7 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
     else {
         overlayView = [[[CLASS(STKWallpaperBlurView) alloc] initWithWallpaperVariant:SBWallpaperVariantHomeScreen] autorelease];
         overlayView.frame = [self _iconImageView].bounds;
-        [(STKWallpaperBlurView *)overlayView setStyle:(IS_7_1() ? kHomeScreenOverlayBlurStyle_7_1 : kHomeScreenOverlayBlurStyle)];
+        [(STKWallpaperBlurView *)overlayView setStyle:BLUR_STYLE_FOR_CURRENT_OS()];
         ((STKWallpaperBlurView *)overlayView).mask = [[self class] maskForApexEmptyIconOverlayWithBounds:overlayView.layer.bounds];
     }
     self.apexOverlayView = overlayView;

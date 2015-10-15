@@ -15,7 +15,8 @@
         _wallpaperEffectView.frame = self.bounds;
         _wallpaperEffectView.center = (CGPoint){CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds)};
         _wallpaperEffectView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
-        [_wallpaperEffectView setStyle:2];
+
+        [_wallpaperEffectView setStyle:(IS_9_0() ? 3 : 2)];
 
         _titleLabel = [[[UILabel alloc] initWithFrame:self.bounds] autorelease];
         _titleLabel.autoresizingMask = _wallpaperEffectView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
