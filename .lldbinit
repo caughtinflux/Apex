@@ -1,2 +1,2 @@
 platform select remote-ios
-process connect connect://flux5.local:1234
+process connect connect://flux6.local:1234
