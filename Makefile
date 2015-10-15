@@ -14,6 +14,7 @@ Apex_FRAMEWORKS = Foundation CoreFoundation UIKit CoreGraphics QuartzCore
 Apex_PRIVATE_FRAMEWORKS = SpringBoardFoundation
 Apex_LIBRARIES = mobilegestalt
 Apex_CFLAGS += -Wall -Werror -O3
+Apex_LDFLAGS += -Wl,-segalign,4000
 
 ifeq ($(DEBUG), 1)
 	ADDITIONAL_LDFLAGS += -Wl,-map,$@.map -g -x c /dev/null -x none
