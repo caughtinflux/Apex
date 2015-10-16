@@ -32,7 +32,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 %new
 - (void)stk_showWelcomeAlert
 {
-    //if (![STKPreferences sharedPreferences].welcomeAlertShown) {
+    if (![STKPreferences sharedPreferences].welcomeAlertShown) {
         NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey: @"Apex",
                                  (id)kCFUserNotificationAlertMessageKey: @"Thanks for purchasing!\nSwipe down on any app icon and tap the \"+\" to get started.",
                                  (id)kCFUserNotificationDefaultButtonTitleKey: @"OK",
@@ -47,7 +47,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         if (error == 0) {
             [STKPreferences sharedPreferences].welcomeAlertShown = YES;
         }
-    //}
+    }
 }
 
 %end
