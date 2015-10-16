@@ -31,6 +31,7 @@
 #import "STKPreferences.h"
 
 #define kSTKTweakName @"Apex"
+#define kSTKPrefsRootName @"Apex 2"
 
 #ifdef DEBUG
     #define DLog(fmt, ...) NSLog((@"[%@] %s [Line %d] " fmt), kSTKTweakName, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)

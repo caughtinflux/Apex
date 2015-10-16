@@ -7,22 +7,31 @@
 
 #import "STKConstants.h"
 
+@interface SpringBoard (ApexWelcome)
+- (void)stk_showWelcomeAlert;
+@end
 
 #pragma mark - Wilkommen
 static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOptionFlags responseFlags)
 {
     if ((responseFlags & 0x3) == kCFUserNotificationAlternateResponse) {
         // Open settings to custom bundle
-        [(SpringBoard *)[UIApplication sharedApplication] applicationOpenURL:[NSURL URLWithString:@"prefs:root="kSTKTweakName]];
+        [(SpringBoard *)[UIApplication sharedApplication] applicationOpenURL:[NSURL URLWithString:@"prefs:root="kSTKPrefsRootName]];
     }
     CFRelease(userNotification);
 }
 
 #pragma mark - SpringBoard
 %hook SpringBoard
-- (void)_reportAppLaunchFinished
+- (void)applicationDidFinishLaunching:(id)app
 {
-    %orig;
+    %orig();
+    [self stk_showWelcomeAlert];
+}
+
+%new
+- (void)stk_showWelcomeAlert
+{
     if (![STKPreferences sharedPreferences].welcomeAlertShown) {
         NSDictionary *fields = @{(id)kCFUserNotificationAlertHeaderKey: @"Apex",
                                  (id)kCFUserNotificationAlertMessageKey: @"Thanks for purchasing!\nSwipe down on any app icon and tap the \"+\" to get started.",
@@ -40,6 +49,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         }
     }
 }
+
 %end
 
 #pragma mark - SBIconController

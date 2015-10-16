@@ -155,7 +155,9 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
     if ([STKPreferences sharedPreferences].shouldOpenSpotlightFromStatusBarTap && !_selectionView) {
         [[CLASS(SBSearchGesture) sharedInstance] revealAnimated:YES];
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (NSEC_PER_SEC * 0.15)), dispatch_get_main_queue(), ^{
-            [[CLASS(SBSearchViewController) sharedInstance] _setShowingKeyboard:YES];
+            if ([CLASS(SBSearchViewController) instancesRespondToSelector:@selector(_setShowingKeyboard:)]) {
+                [[CLASS(SBSearchViewController) sharedInstance] _setShowingKeyboard:YES];
+            }
         });
     }
 }
