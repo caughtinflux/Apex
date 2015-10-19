@@ -107,18 +107,27 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
-#pragma mark - SBIconModel
-%hook SBIconModel
-- (BOOL)isIconVisible:(SBIcon *)icon
+#pragma mark - SBIconListModel
+%hook SBIconListModel
+- (BOOL)addIcon:(SBIcon *)icon asDirty:(BOOL)dirty
 {
-    BOOL isVisible = %orig(icon);
-    if (![[%c(SBUIController) sharedInstance] isAppSwitcherShowing]
-        && [[STKPreferences sharedPreferences] groupForSubappIcon:icon]) {
-        isVisible = NO;
+    if ([[STKPreferences sharedPreferences] groupForSubappIcon:icon]) {
+        return NO;
     }
-    return isVisible;
+    return %orig();
 }
 
+- (id)insertIcon:(SBIcon *)icon atIndex:(NSUInteger *)insertionIndex
+{
+    if ([[STKPreferences sharedPreferences] groupForSubappIcon:icon]) {
+        return nil;
+    }
+    return %orig(); 
+}
+%end
+
+#pragma mark - SBIconModel
+%hook SBIconModel
 - (void)layout
 {
     [[STKPreferences sharedPreferences] reloadPreferences];
