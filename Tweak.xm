@@ -410,6 +410,7 @@ static STKStatusBarRecognizerDelegate *_recognizerDelegate;
 %ctor
 {
     @autoreleasepool {
+        dlopen("/Library/MobileSubstrate/DynamicLibraries/labelnotify.dylib", RTLD_NOW);
         STKLog(@"Initializing");
         [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName];
         %init();
