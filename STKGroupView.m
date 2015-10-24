@@ -305,6 +305,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         [self _setAlpha:0.f forBadgeAndLabelOfIconView:iconView];
         [self addSubview:iconView];
         [self _positionIconView:iconView inPosition:pos isLast:(idx == (c.count - 1)) scaleDown:scaleDown];
+
+        if ([CLASS(SBIconController) instancesRespondToSelector:@selector(viewMap:configureIconView:)]) {
+            SBIconController *controller = [CLASS(SBIconController) sharedInstance];
+            [controller viewMap:[CLASS(SBIconViewMap) homescreenMap] configureIconView:iconView];
+        }
     }];
     if (SCALE_CENTRAL_ICON) {
         [_centralIconView stk_setImageViewScale:kCentralIconPreviewScale];

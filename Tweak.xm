@@ -52,7 +52,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 %end
 
-#pragma mark - SBIconController
+#pragma mark 
 %hook SBIconController
 - (void)setIsEditing:(BOOL)editing
 {
@@ -79,6 +79,27 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         %orig();
     }   
 }
+
+- (void)_handleShortcutMenuPeek:(UILongPressGestureRecognizer *)recognizer 
+{
+    SBIconView *iconView = (SBIconView *)recognizer.view;
+    if (![iconView isKindOfClass:[%c(SBIconView) class]]) {
+        return;
+    }
+    STKGroupView *groupView = [iconView groupView];
+    if (recognizer.state == UIGestureRecognizerStateBegan && groupView != nil) {
+        CGPoint location = [recognizer locationInView:groupView];
+        SBIconView *iconViewAtTouchLocation = (SBIconView *)[groupView hitTest:location withEvent:nil];
+        if (iconView == iconViewAtTouchLocation) {
+            [self _revealMenuForIconView:iconViewAtTouchLocation presentImmediately:NO];
+            return;
+        }
+    }
+    else  {
+        %orig();
+    }
+}   
+
 %end
 
 #pragma mark - SBIconView
