@@ -456,7 +456,9 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
     else {
         shouldOpen = (_openGroupView == nil);
     }
-    return shouldOpen;
+    SBIconController *controller = [CLASS(SBIconController) sharedInstance];
+    BOOL presentingShortcutMenu = (([controller respondsToSelector:@selector(presentedShortcutMenu)]) && (controller.presentedShortcutMenu != nil));
+    return (shouldOpen && !presentingShortcutMenu);
 }
 
 - (BOOL)groupView:(STKGroupView *)groupView shouldRecognizeGesturesSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)recognizer
@@ -566,13 +568,19 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
 - (void)iconTapped:(SBIconView *)iconView
 {
     STKGroupView *activeGroupView = [self _activeGroupView];
+    SBIconController *controller = [CLASS(SBIconController) sharedInstance];
     if (!activeGroupView) {
-        [[CLASS(SBIconController) sharedInstance] iconTapped:iconView];
+        [controller iconTapped:iconView];
         return;
     }
     EXECUTE_BLOCK_AFTER_DELAY(0.2, ^{
         [iconView setHighlighted:NO];
     });
+    BOOL presentingShortcutMenu = ([controller respondsToSelector:@selector(presentedShortcutMenu)]) && (controller.presentedShortcutMenu != nil);
+    if (presentingShortcutMenu) {
+        return;
+    }
+
     if ((iconView.groupView == activeGroupView) && activeGroupView.group.hasPlaceholders) {
         [self _closeOpenGroupOrSelectionView];
         return;
@@ -598,19 +606,23 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
 
 - (BOOL)iconShouldAllowTap:(SBIconView *)iconView
 {
+    SBIconController *controller = [CLASS(SBIconController) sharedInstance];
     if (!_openGroupView) {
-        return [[CLASS(SBIconController) sharedInstance] iconShouldAllowTap:iconView];
+        return [controller iconShouldAllowTap:iconView];
     }
     if (_wasLongPressed) {
         _wasLongPressed = NO;
         return NO;
     }
-    return !_selectionView;
+    BOOL presentingShortcutMenu = (([controller respondsToSelector:@selector(presentedShortcutMenu)]) && (controller.presentedShortcutMenu != nil));
+    return (!_selectionView && !presentingShortcutMenu);
 }
 
 - (void)iconHandleLongPress:(SBIconView *)iconView
 {
-    if (![self _activeGroupView] || ![iconView.icon isLeafIcon]) {
+    SBIconController *controller = [CLASS(SBIconController) sharedInstance];
+    BOOL presentingShortcutMenu = (([controller respondsToSelector:@selector(presentedShortcutMenu)]) && (controller.presentedShortcutMenu != nil));
+    if (![self _activeGroupView] || ![iconView.icon isLeafIcon] || presentingShortcutMenu) {
         [[CLASS(SBIconController) sharedInstance] iconHandleLongPress:iconView];
         return;
     }
