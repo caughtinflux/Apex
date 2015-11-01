@@ -52,7 +52,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 %end
 
-#pragma mark - SBIconController
+#pragma mark 
 %hook SBIconController
 - (void)setIsEditing:(BOOL)editing
 {
@@ -79,6 +79,27 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         %orig();
     }   
 }
+
+- (void)_handleShortcutMenuPeek:(UILongPressGestureRecognizer *)recognizer 
+{
+    SBIconView *iconView = (SBIconView *)recognizer.view;
+    if (![iconView isKindOfClass:[%c(SBIconView) class]]) {
+        return;
+    }
+    STKGroupView *groupView = [iconView groupView];
+    if (recognizer.state == UIGestureRecognizerStateBegan && groupView != nil) {
+        CGPoint location = [recognizer locationInView:groupView];
+        SBIconView *iconViewAtTouchLocation = (SBIconView *)[groupView hitTest:location withEvent:nil];
+        if (iconView == iconViewAtTouchLocation) {
+            [self _revealMenuForIconView:iconViewAtTouchLocation presentImmediately:NO];
+            return;
+        }
+    }
+    else  {
+        %orig();
+    }
+}   
+
 %end
 
 #pragma mark - SBIconView
@@ -107,18 +128,27 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
-#pragma mark - SBIconModel
-%hook SBIconModel
-- (BOOL)isIconVisible:(SBIcon *)icon
+#pragma mark - SBIconListModel
+%hook SBIconListModel
+- (BOOL)addIcon:(SBIcon *)icon asDirty:(BOOL)dirty
 {
-    BOOL isVisible = %orig(icon);
-    if (![[%c(SBUIController) sharedInstance] isAppSwitcherShowing]
-        && [[STKPreferences sharedPreferences] groupForSubappIcon:icon]) {
-        isVisible = NO;
+    if ([[STKPreferences sharedPreferences] groupForSubappIcon:icon]) {
+        return NO;
     }
-    return isVisible;
+    return %orig();
 }
 
+- (id)insertIcon:(SBIcon *)icon atIndex:(NSUInteger *)insertionIndex
+{
+    if ([[STKPreferences sharedPreferences] groupForSubappIcon:icon]) {
+        return nil;
+    }
+    return %orig(); 
+}
+%end
+
+#pragma mark - SBIconModel
+%hook SBIconModel
 - (void)layout
 {
     [[STKPreferences sharedPreferences] reloadPreferences];
@@ -401,6 +431,7 @@ static STKStatusBarRecognizerDelegate *_recognizerDelegate;
 %ctor
 {
     @autoreleasepool {
+        dlopen("/Library/MobileSubstrate/DynamicLibraries/labelnotify.dylib", RTLD_NOW);
         STKLog(@"Initializing");
         [[%c(ISIconSupport) sharedInstance] addExtension:kSTKTweakName];
         %init();
