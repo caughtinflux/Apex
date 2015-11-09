@@ -102,7 +102,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 %end
 
-#pragma mark - SBIconView
+#pragma mark 
 %hook SBIconView
 - (void)setLocation:(SBIconLocation)location
 {
@@ -125,6 +125,14 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 - (void)iconImageDidUpdate:(SBIcon *)icon
 {
     [(self.groupView ?: self.containerGroupView) resetLayouts];
+}
+
+- (void)dealloc
+{
+    if ([self groupView] != nil) {
+        [self removeObserver:[self groupView] forKeyPath:@"legibilitySettings"];
+    }
+    %orig();
 }
 %end
 
