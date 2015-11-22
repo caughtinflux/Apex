@@ -126,14 +126,6 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     [(self.groupView ?: self.containerGroupView) resetLayouts];
 }
-
-- (void)dealloc
-{
-    if ([self groupView] != nil) {
-        [self removeObserver:[self groupView] forKeyPath:@"legibilitySettings"];
-    }
-    %orig();
-}
 %end
 
 #pragma mark - SBIconListModel
