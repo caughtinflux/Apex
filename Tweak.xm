@@ -102,7 +102,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 %end
 
-#pragma mark - SBIconView
+#pragma mark 
 %hook SBIconView
 - (void)setLocation:(SBIconLocation)location
 {

@@ -121,7 +121,6 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [_group removeObserver:self];
 
     _centralIconView.delegate = [CLASS(SBIconController) sharedInstance];
-    [_centralIconView removeObserver:self forKeyPath:@"legibilitySettings"];
 
     [_subappLayout release];
     [_displacedIconLayout release];
@@ -254,22 +253,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_setDelegateOnCentralIconView
 {
     _centralIconView.groupView = nil;
-    [_centralIconView removeObserver:self forKeyPath:@"legibilitySettings"];
     _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
     _centralIconView.delegate = self.delegate;
     _centralIconView.groupView = self;
-    [_centralIconView addObserver:self forKeyPath:@"legibilitySettings" options:0 context:NULL];
-}
-
-- (void)observeValueForKeyPath:(NSString *)kp ofObject:(SBIconView *)iconView change:(NSDictionary *)cd context:(void *)ctx
-{
-    _UILegibilitySettings *legibilitySettings = [iconView legibilitySettings];
-    if (legibilitySettings.style == 1) {
-        _topGrabberView.backgroundColor = _bottomGrabberView.backgroundColor = kGrabberLightColour;
-    }
-    else {
-        _topGrabberView.backgroundColor = _bottomGrabberView.backgroundColor = kGrabberDarkColour;
-    }
 }
 
 #pragma mark - Layout
