@@ -109,19 +109,20 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)dealloc
 {
-    if ([self.delegate respondsToSelector:@selector(groupViewWillBeDestroyed:)]) {
+    if ([self.delegatee respondsToSelector:@selector(groupViewWillBeDestroyed:)]) {
         [self.delegate groupViewWillBeDestroyed:self];
     }
     if (_subappLayout) {
         [_centralIconView stk_setImageViewScale:1.f];
     }
-    [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];   
+    [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     [self _removeGrabbers];
     [self _removeGestureRecognizers];
     [_group removeObserver:self];
 
     _centralIconView.delegate = [CLASS(SBIconController) sharedInstance];
 
+    [_centralIconView release];
     [_subappLayout release];
     [_displacedIconLayout release];
     [_group release];
@@ -253,7 +254,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 - (void)_setDelegateOnCentralIconView
 {
     _centralIconView.groupView = nil;
-    _centralIconView = [[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon];
+    [_centralIconView release];
+    _centralIconView = [[[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon] retain];
     _centralIconView.delegate = self.delegate;
     _centralIconView.groupView = self;
 }
