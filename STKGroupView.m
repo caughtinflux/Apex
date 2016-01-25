@@ -109,7 +109,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)dealloc
 {
-    if ([self.delegatee respondsToSelector:@selector(groupViewWillBeDestroyed:)]) {
+    if ([self.delegate respondsToSelector:@selector(groupViewWillBeDestroyed:)]) {
         [self.delegate groupViewWillBeDestroyed:self];
     }
     if (_subappLayout) {
