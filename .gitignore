@@ -14,3 +14,4 @@ debs/
 build/
 
 .theos/fakeroot
+HashUpdate.py
