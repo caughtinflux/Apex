@@ -15,3 +15,5 @@ build/
 
 .theos/fakeroot
 HashUpdate.py
+.theos/build_session
+.theos/obj
