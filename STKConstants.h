@@ -61,12 +61,12 @@
 #undef CLASS
 #define CLASS(cls) NSClassFromString(@#cls)
 
-#ifdef __cplusplus 
+#ifdef __cplusplus
 extern "C" {
 #endif
     extern NSString * const STKEditingEndedNotificationName;
     extern CFStringRef const STKPrefsChangedNotificationName;
-    
+
     extern SBIconListView * STKListViewForIcon(SBIcon *icon);
     extern SBIconListView * STKCurrentListView(void);
 
@@ -78,7 +78,7 @@ extern "C" {
     extern NSString * NSStringFromSTKGroupSlot(STKGroupSlot slot);
 
     extern uint64_t dispatch_benchmark(size_t count, void (^block)(void));
-#ifdef __cplusplus 
+#ifdef __cplusplus
 }
 #endif
 

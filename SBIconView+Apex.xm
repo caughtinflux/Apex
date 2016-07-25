@@ -7,9 +7,21 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
 #define kHomeScreenOverlayBlurStyle     7
 #define kHomeScreenOverlayBlurStyle_7_1 9
 #define kHomeScreenOverlayBlurStyle_8_1 8
+#define kHomeScreenOverlayBlurStyle_9_3 SBEffectStyleFlatSemiLightTintedBlur
 #define kFolderOverlayBlurStyle         2
 
-#define BLUR_STYLE_FOR_CURRENT_OS() (IS_8_1() ? kHomeScreenOverlayBlurStyle_8_1 : (IS_7_1() ? kHomeScreenOverlayBlurStyle_7_1 : kHomeScreenOverlayBlurStyle))
+static inline NSInteger BlueStyleForCurrentOS() {
+    if (IS_9_0()) {
+        return kHomeScreenOverlayBlurStyle_9_3;
+    }
+    if (IS_8_1()) {
+        return kHomeScreenOverlayBlurStyle_8_1;
+    }
+    if (IS_7_1()) {
+        return kHomeScreenOverlayBlurStyle_7_1;
+    }
+    return kHomeScreenOverlayBlurStyle;
+}
 
 @interface SBIconView (ApexPrivate)
 + (UIBezierPath *)pathForApexCrossOverlayWithBounds:(CGRect)bounds;
@@ -32,7 +44,7 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
     static const CGFloat kHalfLength = kLineLength * 0.5;
     static const CGFloat kLineWidth  = 3.0;
 
-    CGPoint position = (CGPoint){(bounds.size.width * 0.5), (bounds.size.height * 0.5)};    
+    CGPoint position = (CGPoint){(bounds.size.width * 0.5), (bounds.size.height * 0.5)};
     CGRect vertical = (CGRect){{position.x - (kLineWidth * 0.5), position.y - kHalfLength}, {kLineWidth, kLineLength}};
     CGRect horizontal = (CGRect){{vertical.origin.y, vertical.origin.x}, {kLineLength, kLineWidth}};
     CGRect intersection = CGRectIntersection(vertical, horizontal);
@@ -49,7 +61,7 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
     maskLayer.frame = bounds;
     maskLayer.strokeColor = [UIColor clearColor].CGColor;
     maskLayer.fillColor = [UIColor blackColor].CGColor;
-    
+
     UIBezierPath *cross = [[self class] pathForApexCrossOverlayWithBounds:bounds];
     [cross appendPath:[UIBezierPath bezierPathWithOvalInRect:CGRectInset(bounds, 8.f, 8.f)]];
 
@@ -69,7 +81,7 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
     [self sendSubviewToBack:groupView];
 }
 
-%new 
+%new
 - (void)removeGroupView
 {
     STKGroupView *view = [self groupView];
@@ -123,7 +135,7 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
     else {
         overlayView = [[[CLASS(STKWallpaperBlurView) alloc] initWithWallpaperVariant:SBWallpaperVariantHomeScreen] autorelease];
         overlayView.frame = [self _iconImageView].bounds;
-        [(STKWallpaperBlurView *)overlayView setStyle:BLUR_STYLE_FOR_CURRENT_OS()];
+        [(STKWallpaperBlurView *)overlayView setStyle:BlueStyleForCurrentOS()];
         ((STKWallpaperBlurView *)overlayView).mask = [[self class] maskForApexEmptyIconOverlayWithBounds:overlayView.layer.bounds];
     }
     self.apexOverlayView = overlayView;
@@ -142,7 +154,7 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
 %new
 - (void)stk_setImageViewScale:(CGFloat)scale
 {
-    SBIconImageView *imageView = [self _iconImageView]; 
+    SBIconImageView *imageView = [self _iconImageView];
     if (fabs(scale - 1.0) <= 0.000001) {
         imageView.layer.transform = CATransform3DIdentity;
     }
@@ -168,6 +180,7 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
         SBIconLocation location = ((SBIconView *)self.containerGroupView.superview).location;
         BOOL isInFolder = ((location == SBIconLocationFolder) || (location == SBIconLocationFolder_7_1));
         if (isInFolder) {
+            CLog(@"Using folder blur style for group: %@", self.containerGroupView);
             [(STKWallpaperBlurView *)self.apexOverlayView setStyle:kFolderOverlayBlurStyle];
         }
     }
@@ -236,14 +249,14 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
     UIView *view = nil;
-    STKGroupView *activeGroupView = 
+    STKGroupView *activeGroupView =
         ([STKGroupController sharedController].openGroupView ?: [STKGroupController sharedController].openingGroupView);
 
     if ([self groupView] != activeGroupView) {
         return %orig(point, event);
     }
     view = [self.groupView hitTest:point withEvent:event] ?: %orig();
-    
+
     return view;
 }
 
@@ -268,7 +281,7 @@ static NSString * const AddOverlayImageName = @"OverlayAdd";
         emptyIconDarkeningOverlay = [UIGraphicsGetImageFromCurrentImageContext() retain];
         UIGraphicsEndImageContext();
     });
-    return ([self.icon isKindOfClass:CLASS(STKEmptyIcon)] || [self.icon isKindOfClass:CLASS(STKPlaceholderIcon)] 
+    return ([self.icon isKindOfClass:CLASS(STKEmptyIcon)] || [self.icon isKindOfClass:CLASS(STKPlaceholderIcon)]
             ? emptyIconDarkeningOverlay : %orig());
 }
 %end

@@ -3,6 +3,7 @@
 #import <UIKit/_UILegibilitySettings.h>
 #import <QuartzCore/QuartzCore.h>
 
+#import "SBIconViewMap+ApexAdditions.h"
 #import "STKGroupView.h"
 #import "STKConstants.h"
 
@@ -19,7 +20,7 @@
 
 #define kGrabberDistanceFromEdge -2.f
 #define kGrabberHeight           6.f
-#define kGrabberLightColour      [UIColor colorWithWhite:1.f alpha:0.44f]      
+#define kGrabberLightColour      [UIColor colorWithWhite:1.f alpha:0.44f]
 #define kGrabberDarkColour       [UIColor colorWithWhite:0.f alpha:0.44f]
 
 #define kBackgroundFadeAlpha     0.2f
@@ -89,7 +90,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     kPlaceholderAddDuration = 0.7;
     if (IS_7_1()) {
         static const CGFloat k7_1_AnimationFactor = 0.5625;
-        STKLog(@"Changing durations for iOS 7.1");
+        STKLog(@"Changing durations for iOS 7.1+");
         kOpenAnimationDuration *= k7_1_AnimationFactor;
         kPlaceholderAddDuration *= k7_1_AnimationFactor;
     }
@@ -255,7 +256,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     _centralIconView.groupView = nil;
     [_centralIconView release];
-    _centralIconView = [[[CLASS(SBIconViewMap) homescreenMap] iconViewForIcon:_group.centralIcon] retain];
+    _centralIconView = [[[CLASS(SBIconViewMap) stk_homescreenMap] iconViewForIcon:_group.centralIcon] retain];
     _centralIconView.delegate = self.delegate;
     _centralIconView.groupView = self;
 }
@@ -296,7 +297,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
         if ([CLASS(SBIconController) instancesRespondToSelector:@selector(viewMap:configureIconView:)]) {
             SBIconController *controller = [CLASS(SBIconController) sharedInstance];
-            [controller viewMap:[CLASS(SBIconViewMap) homescreenMap] configureIconView:iconView];
+            [controller viewMap:[CLASS(SBIconViewMap) stk_homescreenMap] configureIconView:iconView];
         }
     }];
     if (SCALE_CENTRAL_ICON) {
@@ -324,7 +325,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         *memberToModify += kPopoutDistance * negator;
         iconView.alpha = kSubappPreviewAlpha;
     }
-    frame.origin = newOrigin; 
+    frame.origin = newOrigin;
     iconView.frame = frame;
     if (![iconView.icon isLeafIcon] && (_group.empty == NO)) {
         iconView.alpha = 0.f;
@@ -404,8 +405,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self _removeGestureRecognizers];
 
     _panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_panned:)];
-    _panRecognizer.delegate = self;   
-    
+    _panRecognizer.delegate = self;
+
     _tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_doubleTapped:)];
     _tapRecognizer.numberOfTapsRequired = 2;
     _tapRecognizer.delegate = self;
@@ -440,7 +441,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         case UIGestureRecognizerStateBegan: {
             CGPoint translation = [sender translationInView:self];
             _isUpwardSwipe = ([sender velocityInView:self].y < 0);
-            
+
             BOOL isHorizontalSwipe = !((fabs(translation.x / translation.y) < 5.0) || translation.x == 0);
 
             BOOL denyForConflictingActivation = NO;
@@ -468,7 +469,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             _targetDistance *= (_hasVerticalIcons == NO ? _distanceRatio : 1.f);
             _lastDistanceFromCenter = 0.f;
             _currentBandingAllowance = ([_centralIconView isInDock] ? kDockedBandingAllowance : kBandingAllowance);
-            
+
             [self _resetDisplacedIconLayout];
             [self _performScaleAnimationOnCentralIconFromScale:1.1f toScale:1.f];
             break;
@@ -495,7 +496,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             [self _moveByDistance:change performingBlockOnSubApps:^(SBIconView *subappView, STKGroupSlot slot) {
                 [self _adjustScaleAndTransparencyOfSubapp:subappView inSlot:slot forOffset:offset];
             }];
-            
+
             [sender setTranslation:CGPointZero inView:self];
             break;
         }
@@ -511,8 +512,8 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                     [self _animateClosedWithCompletion:nil];
                 }
             }
-            _ignoreRecognizer = NO; 
-            _isUpwardSwipe = NO; 
+            _ignoreRecognizer = NO;
+            _isUpwardSwipe = NO;
             _hasVerticalIcons = NO;
             _targetDistance = 0.f;
             _recognizerDirection = STKRecognizerDirectionNone;
@@ -521,7 +522,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
 }
 
-- (void)_adjustScaleAndTransparencyOfSubapp:(SBIconView *)subappView inSlot:(STKGroupSlot)slot forOffset:(CGFloat)offset 
+- (void)_adjustScaleAndTransparencyOfSubapp:(SBIconView *)subappView inSlot:(STKGroupSlot)slot forOffset:(CGFloat)offset
 {
     CGFloat midWayDistance = (_targetDistance * 0.5f);
     [self _setAlpha:offset forBadgeAndLabelOfIconView:subappView];
@@ -533,7 +534,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
            _lastDistanceFromCenter = fabs(subappView.frame.origin.x - _centralIconView.bounds.origin.x);
         }
     }
-    if (SCALE_CENTRAL_ICON) { 
+    if (SCALE_CENTRAL_ICON) {
         if (_lastDistanceFromCenter <= midWayDistance) {
             // If the icons have not passed the halfway mark, modify their scale as necessary
             CGFloat stackIconTransformScale = STKScaleNumber(_lastDistanceFromCenter, midWayDistance, 0, 1.0, kSubappPreviewScale);
@@ -590,7 +591,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gr shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)ogr
 {
-    return [self.delegate groupView:self shouldRecognizeGesturesSimultaneouslyWithGestureRecognizer:ogr]; 
+    return [self.delegate groupView:self shouldRecognizeGesturesSimultaneouslyWithGestureRecognizer:ogr];
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
@@ -614,7 +615,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     [self _moveSubappsByDistance:distance performingTask:block];
     [self _moveGrabbersByDistance:distance];
     if (_delegateFlags.didMoveToOffset) {
-        [self.delegate groupView:self didMoveToOffset:fminf((_lastDistanceFromCenter / _targetDistance), 1.f)];   
+        [self.delegate groupView:self didMoveToOffset:fminf((_lastDistanceFromCenter / _targetDistance), 1.f)];
     }
 }
 
@@ -630,11 +631,11 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
             CGPoint targetOrigin = [self _displacedOriginForIcon:icon withPosition:position];
             NSUInteger appearingIconsCount = [_subappLayout[position] count];
             CGFloat factoredDistance = (distance * appearingIconsCount);  // Factor the distance up by the number of icons that are coming in at that position
-            
+
             CGFloat *targetCoord, *currentCoord, *newCoord, *originalCoord;
             CGFloat moveDistance;
             if (STKPositionIsVertical(position)) {
-                targetCoord = &(targetOrigin.y); 
+                targetCoord = &(targetOrigin.y);
                 currentCoord = &(iconFrame.origin.y);
                 newCoord = &(newFrame.origin.y);
                 originalCoord = &(originalOrigin.y);
@@ -734,14 +735,14 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     CGPoint referencePoint = [listView originForIconAtCoordinate:(SBIconCoordinate){2, 2}];
     CGPoint verticalOrigin = [listView originForIconAtCoordinate:(SBIconCoordinate){1, 2}];
     CGPoint horizontalOrigin = [listView originForIconAtCoordinate:(SBIconCoordinate){2, 1}];
-    
+
     CGFloat verticalDistance = referencePoint.y - verticalOrigin.y;
     CGFloat horizontalDistance = referencePoint.x - horizontalOrigin.x;
     _distanceRatio = (horizontalDistance / verticalDistance);
 }
 
 - (void)_moveGrabbersByDistance:(CGFloat)distance
-{    
+{
     CGFloat midWayDistance = (_targetDistance * 0.5);
     CGFloat grabberAlpha = STKScaleNumber(_lastDistanceFromCenter, 0, midWayDistance + 10, 1.0, 0.0);
     if ([_subappLayout[STKPositionTop] count] > 0) {
@@ -859,7 +860,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
                     }
                 ];
             }
-            
+
             SBIconListView *listView = STKListViewForIcon(_centralIconView.icon);
             [listView setIconsNeedLayout];
             [listView layoutIconsIfNeeded:0.0f domino:0.f];
@@ -927,7 +928,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     SBIconListView *listView = STKListViewForIcon(_group.centralIcon);
     SBIconView *iconView = [self _iconViewForIcon:icon];
     STKGroupLayout *layout = _group.layout;
-    
+
     CGPoint originalOrigin = [listView originForIcon:icon];
     CGRect originalFrame = (CGRect){originalOrigin, {iconView.frame.size.width, iconView.frame.size.height}};
     CGPoint returnPoint = originalOrigin;
@@ -990,7 +991,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (SBIconView *)_iconViewForIcon:(SBIcon *)icon
 {
-    return [[CLASS(SBIconViewMap) homescreenMap] mappedIconViewForIcon:icon];
+    return [[CLASS(SBIconViewMap) stk_homescreenMap] mappedIconViewForIcon:icon];
 }
 
 - (void)_updateTargetDistance

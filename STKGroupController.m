@@ -39,7 +39,7 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
 
     NSMutableArray *_iconsToShow;
     NSMutableArray *_iconsToHide;
-    
+
     BOOL _openGroupViewWasModified;
     BOOL _wasLongPressed;
     BOOL _hasInfiniBoard;
@@ -176,7 +176,7 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
         NSArray *icons = [group.layout allIcons];
         for (SBIcon *icon in icons) {
             STKGroupSlot slot = [group.layout slotForIcon:icon];
-            [group removeIconInSlot:slot];    
+            [group removeIconInSlot:slot];
         }
         [group finalizeState];
         [[STKPreferences sharedPreferences] removeGroup:group];
@@ -193,7 +193,7 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
     }
 }
 
-- (STKGroupView *)activeGroupView 
+- (STKGroupView *)activeGroupView
 {
     return [self _activeGroupView];
 }
@@ -335,9 +335,9 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
     _selectionView = [[[STKSelectionView alloc] initWithFrame:CGRectZero
                                                  selectedIcon:([selectedIconView.icon isLeafIcon] ? selectedIconView.icon : nil)
                                                   centralIcon:_openGroupView.group.centralIcon] autorelease];
-    
+
     SBIconModel *model = [(SBIconController *)[CLASS(SBIconController) sharedInstance] model];
-    
+
     NSMutableSet *visibleIconIdentifiers = [[[model visibleIconIdentifiers] mutableCopy] autorelease];
     [visibleIconIdentifiers addObjectsFromArray:[STKPreferences sharedPreferences].identifiersForSubappIcons];
     [visibleIconIdentifiers removeObject:_openGroupView.group.centralIcon.leafIdentifier];
@@ -699,7 +699,7 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
 */
 - (BOOL)__selectorIsPartOfIconViewDelegateProtocol:(SEL)selector
 {
-    Protocol *iconViewDelegateProtocol = @protocol(SBIconViewDelegate);   
+    Protocol *iconViewDelegateProtocol = @protocol(SBIconViewDelegate);
     struct objc_method_description methodDescription = protocol_getMethodDescription(iconViewDelegateProtocol,
                                                                                      selector,
                                                                                      NO,

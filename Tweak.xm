@@ -4,7 +4,7 @@
 #import <SpringBoard/SpringBoard.h>
 #import <Search/SPSearchResultSection.h>
 #import <Search/SPSearchResult.h>
-
+#import "SBIconViewMap+ApexAdditions.h"
 #import "STKConstants.h"
 
 @interface SpringBoard (ApexWelcome)
@@ -52,7 +52,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 %end
 
-#pragma mark 
+#pragma mark
 %hook SBIconController
 - (void)setIsEditing:(BOOL)editing
 {
@@ -77,10 +77,10 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     BOOL handled = [[STKGroupController sharedController] handleClosingEvent:STKClosingEventHomeButtonPress];
     if (!handled) {
         %orig();
-    }   
+    }
 }
 
-- (void)_handleShortcutMenuPeek:(UILongPressGestureRecognizer *)recognizer 
+- (void)_handleShortcutMenuPeek:(UILongPressGestureRecognizer *)recognizer
 {
     SBIconView *iconView = (SBIconView *)recognizer.view;
     if (![iconView isKindOfClass:[%c(SBIconView) class]]) {
@@ -91,18 +91,23 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         CGPoint location = [recognizer locationInView:groupView];
         SBIconView *iconViewAtTouchLocation = (SBIconView *)[groupView hitTest:location withEvent:nil];
         if (iconView == iconViewAtTouchLocation) {
-            [self _revealMenuForIconView:iconViewAtTouchLocation presentImmediately:NO];
+            if ([self respondsToSelector:@selector(_revealMenuForIconView:presentImmediately:)]) {
+                [self _revealMenuForIconView:iconViewAtTouchLocation presentImmediately:NO];
+            }
+            else if ([self respondsToSelector:@selector(_revealMenuForIconView:)]) {
+                [self _revealMenuForIconView:iconViewAtTouchLocation];
+            }
             return;
         }
     }
     else  {
         %orig();
     }
-}   
+}
 
 %end
 
-#pragma mark 
+#pragma mark
 %hook SBIconView
 - (void)setLocation:(SBIconLocation)location
 {
@@ -113,7 +118,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         self.delegate = [STKGroupController sharedController];
         return;
     }
-    if ([[%c(SBIconViewMap) homescreenMap] mappedIconViewForIcon:self.icon]
+    if ([[%c(SBIconViewMap) stk_homescreenMap] mappedIconViewForIcon:self.icon]
         && STKListViewForIcon(self.icon)
         && [self.icon isLeafIcon]
         && ![self.icon isDownloadingIcon]) {
@@ -143,7 +148,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     if ([[STKPreferences sharedPreferences] groupForSubappIcon:icon]) {
         return nil;
     }
-    return %orig(); 
+    return %orig();
 }
 %end
 
@@ -186,7 +191,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
             SEL identSel = (IS_8_1() ? @selector(applicationWithBundleIdentifier:) : @selector(applicationWithDisplayIdentifier:));
             SBApplication *app = [[CLASS(SBApplicationController) sharedInstance] performSelector:identSel withObject:appIconIdent];
             [applicationIcon addIconDataSource:app];
-        } 
+        }
     }
 }
 
@@ -198,8 +203,8 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 {
     %orig();
     SPSearchResultSection *section = %orig();
-    
-    NSUInteger domain = (IS_9_0() ? SPSearchResultSectionTopHits : 4);
+
+    NSUInteger domain = (IS_9_0() ? SPSearchResultDomainTopHits : 4);
     if (section.domain == domain) {
         for (SPSearchResult *result in section.results) {
             NSString *appID = result.url;
@@ -226,12 +231,12 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 %end
 
 #pragma mark - SBIconViewMap
-#define IS_HS_MAP() (self == [[self class] homescreenMap])
+#define IS_HS_MAP() (self == [[self class] stk_homescreenMap])
 %hook SBIconViewMap
 - (void)_recycleIconView:(SBIconView *)iconView
 {
     if (IS_HS_MAP()) {
-        [[STKGroupController sharedController] removeGroupViewFromIconView:iconView]; 
+        [[STKGroupController sharedController] removeGroupViewFromIconView:iconView];
     }
     %orig();
 }
@@ -241,7 +246,8 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     SBIconView *mappedView = %orig(icon);
     if (!mappedView && IS_HS_MAP() && [STKGroupController sharedController].openGroupView) {
         if ([STKGroupController sharedController].openGroupView.group.state != STKGroupStateDirty) {
-
+            // I don't know what I meant to do here.
+            // Whoops?
         }
     }
     return mappedView;
@@ -282,7 +288,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 }
 %end
 
-%hook SBScaleIconZoomAnimator 
+%hook SBScaleIconZoomAnimator
 - (void)_prepareAnimation
 {
     %orig();
@@ -328,7 +334,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
         UIView *superview = [activeGroupView superview];
         CGPoint newPoint = [self convertPoint:point toView:superview];
         ret = [superview hitTest:newPoint withEvent:event];
-    }   
+    }
     return ret;
 }
 
@@ -342,7 +348,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 #pragma mark - SBFolderView
 %hook SBFolderView
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
-{    
+{
     if (![STKGroupController sharedController].openingGroupView) {
         [[STKGroupController sharedController] handleClosingEvent:STKClosingEventListViewScroll];
     }

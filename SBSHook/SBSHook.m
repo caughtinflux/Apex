@@ -44,8 +44,8 @@ static __attribute__((constructor)) void _construct(void)
 {
     @autoreleasepool {
         STKUpdateIdentifiers();
-        [[NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/SpringBoardServices.framework"] load];
-        MSHookFunction(SBSCopyDisplayIdentifiers, (void *)new_SBSCopyDisplayIdentifiers, (void **)&original_SBSCopyDisplayIdentifiers);
+        void *handle = dlopen("/System/Library/PrivateFrameworks/SpringBoardServices.framework", RTLD_LAZY);
+        MSHookFunction(dlsym(handle, "SBSCopyDisplayIdentifiers"), (void *)new_SBSCopyDisplayIdentifiers, (void **)&original_SBSCopyDisplayIdentifiers);
         CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
                                         NULL,
                                         STKLayoutsChanged,

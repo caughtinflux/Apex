@@ -1,6 +1,6 @@
 export DEBUG = 1
 export ARCHS = armv7 armv7s arm64
-export TARGET = iphone:clang:latest:7.0
+export TARGET = iphone:clang:8.1:7.0
 
 ifeq ($(DEBUG), 0)
 	PACKAGE_VERSION=$(THEOS_PACKAGE_BASE_VERSION)
@@ -11,7 +11,7 @@ include theos/makefiles/common.mk
 TWEAK_NAME = Apex
 Apex_FILES :=  $(wildcard *.*m) $(wildcard *.x)
 Apex_FRAMEWORKS = Foundation CoreFoundation UIKit CoreGraphics QuartzCore
-Apex_PRIVATE_FRAMEWORKS = SpringBoardFoundation
+
 Apex_LIBRARIES = mobilegestalt
 Apex_CFLAGS += -Wall -Werror -O3
 Apex_LDFLAGS += -Wl,-segalign,4000
