@@ -1024,6 +1024,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 
 - (void)groupDidAddPlaceholders:(STKGroupView *)groupView
 {
+    DLog();
     [UIView animateWithDuration:kPlaceholderAddDuration delay:0.0 usingSpringWithDamping:0.6f initialSpringVelocity:0.3f options:kDefaultAnimationOptions
         animations:^{
             [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {

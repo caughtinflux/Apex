@@ -29,14 +29,17 @@
 - (SBIconView *)iconViewForIcon:(SBIcon *)icon
 {
     Class classForIconView = nil;
-    if ([icon respondsToSelector:@selector(iconViewClassForLocation:)]) { 
+    if ([icon respondsToSelector:@selector(iconViewClassForLocation:)]) {
         classForIconView = [icon iconViewClassForLocation:SBIconLocationHomeScreen];
     }
     else if ([[CLASS(SBIconController) sharedInstance] respondsToSelector:@selector(iconViewClassForIcon:location:)]) {
         classForIconView = [[CLASS(SBIconController) sharedInstance] iconViewClassForIcon:icon location:SBIconLocationHomeScreen];
     }
+    else {
+        CLog(@"No class for iconView! :(");
+    }
     NSMutableSet *set = [_recycledIconViews objectForKey:classForIconView];
-    SBIconView *iconView = [set anyObject];
+    SBIconView *iconView = [[[set anyObject] retain] autorelease];
     if (!iconView) {
         if ([CLASS(SBIconView) instancesRespondToSelector:@selector(initWithDefaultSize)]) {
             iconView = [[[CLASS(SBIconView) alloc] initWithDefaultSize] autorelease];
@@ -64,7 +67,7 @@
         [_recycledIconViews setObject:set forKey:[iconView class]];
     }
     if (set.count < _maxRecycledIconViews) {
-        [set addObject:iconView];   
+        [set addObject:iconView];
     }
     [iconView removeFromSuperview];
 }
