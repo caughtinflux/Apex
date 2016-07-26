@@ -1,3 +1,3 @@
-ssh root@flux5.local screen -d -m /usr/bin/debugserver-jb flux-iMac.local:1337 --attach=SpringBoard
+ssh root@flux5.local screen -d -m /usr/bin/debugserver-jb stellaris.local:1337 --attach=SpringBoard
 sleep 5
 /Applications/Xcode.app/Contents/Developer/usr/bin/lldb -s ./.lldbinit
