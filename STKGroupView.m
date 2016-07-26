@@ -1028,7 +1028,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
         animations:^{
             [_group.layout enumerateIconsUsingBlockWithIndexes:^(SBIcon *icon, STKLayoutPosition pos, NSArray *c, NSUInteger idx, BOOL *stop) {
                 if ([icon isPlaceholder]) {
-                    SBIconView *iconView = [self.iconViewSource groupView:self wantsIconViewForIcon:icon];
+                    SBIconView *iconView = [[[self.iconViewSource groupView:self wantsIconViewForIcon:icon] retain] autorelease];
                     if (![_centralIconView _labelImage]) {
                         iconView.iconLabelAlpha = 0.f;
                     }
