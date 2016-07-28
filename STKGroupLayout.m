@@ -35,7 +35,7 @@ static STKLayoutPosition _PositionFromString(NSString *string)
     if ([string isEqual:STKPositionBottomKey]) return STKPositionBottom;
     if ([string isEqual:STKPositionLeftKey]) return STKPositionLeft;
     if ([string isEqual:STKPositionRightKey]) return STKPositionRight;
-    
+
     return STKPositionUnknown;
 }
 
@@ -249,11 +249,18 @@ static STKLayoutPosition _PositionFromString(NSString *string)
 
 - (void)setObject:(NSArray *)obj atIndexedSubscript:(STKLayoutPosition)position
 {
-    NSMutableArray **icons[5] = {&_unknownIcons, &_topIcons, &_bottomIcons, &_leftIcons, &_rightIcons};
+    NSAssert(position < 5, @"Invalid attempt to set object at position %@ in layout %@", @(position), self);
+
+    NSMutableArray **icons[] = {&_unknownIcons, &_topIcons, &_bottomIcons, &_leftIcons, &_rightIcons};
     NSMutableArray **selected = NULL;
     selected = icons[position];
     [*selected release];
     *selected = [obj mutableCopy] ?: [[NSMutableArray alloc] init];
+}
+
+- (BOOL)containsIcon:(id)icon
+{
+    return [[self allIcons] containsObject:icon];
 }
 
 - (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(id *)stackBuf count:(NSUInteger)count
