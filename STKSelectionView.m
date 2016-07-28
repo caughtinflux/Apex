@@ -29,7 +29,7 @@ static const CGFloat kMinimumLineSpacing      = 15;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame selectedIcon:(SBIcon *)selectedIcon centralIcon:(SBIcon *)centralIcon
-{   
+{
     if ((self = [super initWithFrame:frame])) {
         _selectedIcon = [selectedIcon retain];
         _centralIcon = [centralIcon retain];
@@ -263,7 +263,7 @@ static const CGFloat kMinimumLineSpacing      = 15;
 
 - (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath
 {
-    STKSelectionHeaderView *view = (STKSelectionHeaderView *)[collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionHeader 
+    STKSelectionHeaderView *view = (STKSelectionHeaderView *)[collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionHeader
                                                                                                 withReuseIdentifier:kHeaderReuseIdentifier
                                                                                                        forIndexPath:indexPath];
     if (indexPath.section == 0) {
@@ -322,7 +322,7 @@ static const CGFloat kMinimumLineSpacing      = 15;
         return;
     }
     _selectedIcon = cell.iconView.icon;
-    
+
     NSIndexPath *currentIndexPath = [_collectionView indexPathForCell:cell];
     STKSelectionViewCell *currentSelection = (STKSelectionViewCell *)[_collectionView cellForItemAtIndexPath:currentIndexPath];
     [currentSelection.iconView showApexOverlayOfType:STKOverlayTypeCheck];
@@ -335,7 +335,7 @@ static const CGFloat kMinimumLineSpacing      = 15;
 
 - (void)_setupTextField
 {
-    _searchTextField = [[[STKSelectionTitleTextField alloc] initWithFrame:(CGRect){{15.f, 46.f}, {290.f, 40.f}}] autorelease];
+    _searchTextField = [[[STKSelectionTitleTextField alloc] initWithFrame:(CGRect){{15.f, 46.f}, {295.0, 50.f}}] autorelease];
     CGRect frame = _searchTextField.frame;
     if (ISPAD()) {
         frame.size.width = [CLASS(SBFolderBackgroundView) folderBackgroundSize].width;
