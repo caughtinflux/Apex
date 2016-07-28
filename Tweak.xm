@@ -52,7 +52,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 
 %end
 
-#pragma mark
+#pragma mark - SBIconController
 %hook SBIconController
 - (void)setIsEditing:(BOOL)editing
 {
@@ -105,6 +105,17 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
 }
 
+%end
+
+#pragma mark - SBFolderController
+%hook SBRootFolderController
+- (BOOL)setCurrentPageIndexToListContainingIcon:(SBIcon *)icon animated:(BOOL)animated {
+    STKGroupView *currentGroupView = [STKGroupController sharedController].activeGroupView;
+    if ([currentGroupView.group.layout containsIcon:icon]) {
+        return YES;
+    }
+    return %orig();
+}
 %end
 
 #pragma mark
@@ -317,6 +328,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     SBIconView *iconView = %orig(icon);
     STKGroupView *openGroupView = ([STKGroupController sharedController].openGroupView ?: [STKGroupController sharedController].openingGroupView);
     iconView = [openGroupView subappIconViewForIcon:icon] ?: iconView;
+
     return iconView;
 }
 %end
