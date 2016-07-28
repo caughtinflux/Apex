@@ -13,7 +13,7 @@ SBIconListView * STKListViewForIcon(SBIcon *icon)
 {
     SBIconController *controller = [objc_getClass("SBIconController") sharedInstance];
     SBRootFolder *rootFolder = [controller rootFolder];
-    NSIndexPath *indexPath = [rootFolder indexPathForIcon:icon];    
+    NSIndexPath *indexPath = [rootFolder indexPathForIcon:icon];
     SBIconListView *listView = nil;
     [controller getListView:&listView folder:NULL relativePath:NULL forIndexPath:indexPath createIfNecessary:NO];
 

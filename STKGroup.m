@@ -101,7 +101,7 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
         [_layout release];
         _layout = nil;
         _layout = [[STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:self.centralIcon]] retain];
-    } 
+    }
     else {
         STKGroupLayout *newLayout = [STKGroupLayoutHandler correctLayoutForGroupIfNecessary:self];
         if (newLayout) {
@@ -110,8 +110,8 @@ NSString * const STKGroupCoordinateKey  = @"coordinate";
         }
     }
     self.centralIcon = [[(SBIconController *)[CLASS(SBIconController) sharedInstance] model] expectedIconForDisplayIdentifier:_centralIcon.leafIdentifier];
-    
-    // Notify observers irrespective of whether we needed to relayout    
+
+    // Notify observers irrespective of whether we needed to relayout
     [self _enumerateObserversUsingBlock:^(id<STKGroupObserver> obs) {
         [obs groupDidRelayout:self];
     } forSelector:@selector(groupDidRelayout:)];
@@ -231,7 +231,7 @@ notifyObservers:
 
 - (void)removeObserver:(id<STKGroupObserver>)observer
 {
-    [_observers removeObject:observer];     
+    [_observers removeObject:observer];
 }
 
 - (void)_updateState

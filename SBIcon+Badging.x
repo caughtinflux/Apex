@@ -86,5 +86,5 @@
 {
     @autoreleasepool {
         %init();
-    }   
+    }
 }

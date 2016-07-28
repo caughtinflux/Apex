@@ -47,7 +47,7 @@ typedef NS_OPTIONS(NSUInteger, STKActivationMode) {
 
 @protocol STKGroupViewDelegate <SBIconViewDelegate>
 
-@required 
+@required
 - (BOOL)shouldGroupViewOpen:(STKGroupView *)groupView;
 - (BOOL)groupView:(STKGroupView *)groupView shouldRecognizeGesturesSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)recognizer;
 

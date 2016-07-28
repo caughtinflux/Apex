@@ -96,7 +96,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     }
 }
 
-- (instancetype)initWithGroup:(STKGroup *)group iconViewSource:(id<STKIconViewSource>)iconViewSource;
+- (instancetype)initWithGroup:(STKGroup *)group iconViewSource:(id<STKIconViewSource>)iconViewSource
 {
     NSParameterAssert(group);
     NSParameterAssert(iconViewSource);

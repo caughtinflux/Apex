@@ -4,7 +4,7 @@
 %group DisplayIdentifier_Compat
 %hook SBApplication
 %new
-- (NSString *)displayIdentifier 
+- (NSString *)displayIdentifier
 {
 	return [self bundleIdentifier];
 }

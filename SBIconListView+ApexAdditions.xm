@@ -147,7 +147,7 @@ static BOOL _hasGridlock;
     self.stk_realHorizontalIconPadding = kInvalidIconPadding;
     %orig();
 }
- 
+
 - (SBIcon *)layoutIconsIfNeeded:(NSTimeInterval)duration domino:(BOOL)domino
 {
     if (self.stk_preventRelayout) {
@@ -171,5 +171,5 @@ static BOOL _hasGridlock;
         %init();
         void *handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/Gridlock.dylib", RTLD_NOW);
         _hasGridlock = (handle != nil);
-    }   
+    }
 }

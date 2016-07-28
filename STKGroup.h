@@ -42,7 +42,7 @@ typedef NS_ENUM(NSInteger, STKGroupState) {
 // Relayouts because YOLO
 
 - (void)replaceIconInSlot:(STKGroupSlot)slot withIcon:(SBIcon *)icon;
-// if `icon` is an empty placeholder, it is treated as such internally 
+// if `icon` is an empty placeholder, it is treated as such internally
 
 - (void)removeIconInSlot:(STKGroupSlot)slot;
 

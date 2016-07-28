@@ -29,7 +29,7 @@
     [_zoomAnimator release];
     [_iconView release];
     [super dealloc];
-}   
+}
 
 - (void)openSelectionViewAnimatedWithCompletion:(STKAnimatorCompletion)completion
 {
@@ -42,7 +42,7 @@
     SBFolderController *currentFolderController = [(SBIconController *)[CLASS(SBIconController) sharedInstance] _currentFolderController];
     SBPrototypeController *protoController = [CLASS(SBPrototypeController) sharedInstance];
     _zoomAnimator = [[CLASS(SBScaleIconZoomAnimator) alloc] initWithFolderController:currentFolderController targetIcon:_iconView.icon];
-    
+
     SBRootSettings *rootSettings = [protoController rootSettings];
     id settings = nil;
     if ([rootSettings respondsToSelector:@selector(rootAnimationSettings)]) {
@@ -62,7 +62,7 @@
         _zoomAnimator.zoomSettings = settings;
     }
     [_zoomAnimator prepare];
-    
+
     CGSize endSize = [CLASS(SBFolderBackgroundView) folderBackgroundSize];
     _startScale = ([_iconView _iconImageView].frame.size.width / endSize.width);
     _selectionView.contentView.bounds = (CGRect){CGPointZero, endSize};
@@ -87,7 +87,7 @@
     [UIView animateWithDuration:(duration + timeToAdd) delay:(duration * 0.1) options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
         _selectionView.contentView.transform = CGAffineTransformIdentity;
         _selectionView.contentView.center = (CGPoint){CGRectGetMidX(_selectionView.bounds), CGRectGetMidY(_selectionView.bounds)};
-        
+
         STKCurrentListView().alpha = 0.0;
         ((SBDockIconListView *)[[CLASS(SBIconController) sharedInstance] dockListView]).alpha = 0.0;
         _selectionView.contentView.alpha = 1.0;
@@ -156,7 +156,7 @@
                                                                                   (_startCenter.y - _selectionView.contentView.center.y));
         CGAffineTransform finalTransform = CGAffineTransformConcat(scalingTransform, translationTransform);
         _selectionView.contentView.transform = finalTransform;
-        
+
         _selectionView.backgroundView.alpha = 0.0;
         STKCurrentListView().alpha = 1.0;
         ((SBDockIconListView *)[[CLASS(SBIconController) sharedInstance] dockListView]).alpha = 1.0;
