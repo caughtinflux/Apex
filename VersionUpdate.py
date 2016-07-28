@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os, sys
+import sys
+
 
 def main():
     if not len(sys.argv) > 1:
