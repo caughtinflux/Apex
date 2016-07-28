@@ -947,7 +947,7 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
 {
     CGFloat accessoryAlpha = STKScaleNumber(alpha, kBackgroundFadeAlpha, 1.0, 0.0, 1.0);
     void(^setter)(id, id) = ^(SBIconListView *listView, SBIcon *icon) {
-        if ((icon == _group.centralIcon) || ([_centralIconView isInDock] &&[ _displacedIconLayout[STKPositionTop] containsObject:icon])) {
+        if ([icon isEqual:_group.centralIcon] || ([_centralIconView isInDock] && [ _displacedIconLayout[STKPositionTop] containsObject:icon])) {
             return;
         }
         SBIconView *view = [listView viewForIcon:icon];
