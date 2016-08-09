@@ -4,6 +4,8 @@
 #import "Globals.h"
 #import "../STKConstants.h"
 
+#import <notify.h>
+
 #import <dlfcn.h>
 #import <netdb.h>
 #import <arpa/inet.h>
@@ -32,7 +34,7 @@ static BOOL __didShowAlert = NO;
         UIImage *image = [UIImage imageNamed:@"GroupLogo.png" inBundle:bundle];
         UINavigationItem *item = self.navigationItem;
         item.titleView = [[[UIImageView alloc] initWithImage:image] autorelease];
-        
+
         UIImage *heart = [UIImage imageNamed:@"Heart.png" inBundle:bundle];
         UIButton *buttonView = [[[UIButton alloc] initWithFrame:(CGRect){CGPointZero, heart.size}] autorelease];
         [buttonView setImage:heart forState:UIControlStateNormal];
@@ -61,11 +63,10 @@ static BOOL __didShowAlert = NO;
     // Always make the target self so that things will resolve properly
     NSMutableArray *specifiers = [[[super loadSpecifiersFromPlistName:plistName target:self] mutableCopy] autorelease];
 
-#ifdef DEBUG
-    PSSpecifier *spec = [PSSpecifier preferenceSpecifierNamed:@"Delete Preferences" target:self set:NULL get:NULL detail:nil cell:PSButtonCell edit:nil];
+    PSSpecifier *spec = [PSSpecifier preferenceSpecifierNamed:@"Reset Layouts and Preferences" target:self set:NULL get:NULL detail:nil cell:PSButtonCell edit:nil];
     spec.buttonAction = @selector(__deletePreferences);
     [specifiers addObject:spec];
-#endif
+
     for (PSSpecifier *specifier in specifiers) {
         [specifier setName:Localize([specifier name])];
         NSString *footerText = [specifier propertyForKey:@"footerText"];
@@ -73,13 +74,12 @@ static BOOL __didShowAlert = NO;
             [specifier setProperty:Localize(footerText) forKey:@"footerText"];
         }
         if ([[specifier identifier] isEqual:@"copyright"]) {
-            [specifier setProperty:[NSString stringWithFormat:LOCALIZE(COPYRIGHT_TEXT), _year] forKey:@"footerText"];        
+            [specifier setProperty:[NSString stringWithFormat:LOCALIZE(COPYRIGHT_TEXT), _year] forKey:@"footerText"];
         }
     }
     return specifiers;
 }
 
-#ifdef DEBUG
 - (void)__deletePreferences
 {
     UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:@"All layouts will be destroyed." delegate:(id<UIActionSheetDelegate>)self cancelButtonTitle:@"Cancel" destructiveButtonTitle:@"Confirm" otherButtonTitles:nil];
@@ -89,14 +89,19 @@ static BOOL __didShowAlert = NO;
 - (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)idx
 {
     if (idx == actionSheet.destructiveButtonIndex) {
-        [[NSFileManager defaultManager] removeItemAtPath:kPrefPath error:nil];
+        if (IS_8_1()) {
+            CFStringRef appID = CFSTR("com.a3tweaks.Apex");
+            CFPreferencesSetMultiple((CFDictionaryRef)@{}, NULL, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+        }
+        else {
+            [[NSFileManager defaultManager] removeItemAtPath:kPrefPath error:nil];
+        }
         [[UIApplication sharedApplication] performSelector:@selector(suspend)];
         EXECUTE_BLOCK_AFTER_DELAY(0.5, ^{
             system("killall -9 backboardd");
         });
     }
 }
-#endif
 
 - (id)navigationTitle
 {
@@ -104,7 +109,7 @@ static BOOL __didShowAlert = NO;
 }
 
 - (NSString *)title
-{    
+{
     return @"Apex";
 }
 
@@ -185,14 +190,14 @@ static BOOL __didShowAlert = NO;
 - (void)showHeartDialog
 {
     if ([TWTweetComposeViewController canSendTweet])
-    {        
+    {
         TWTweetComposeViewController *controller = [[TWTweetComposeViewController alloc] init];
         controller.completionHandler = ^(TWTweetComposeViewControllerResult res) {
-            [controller dismissModalViewControllerAnimated:YES];            
+            [controller dismissModalViewControllerAnimated:YES];
             [controller release];
         };
         [controller setInitialText:LOCALIZE(LOVE_GAMES)];
-        
+
         UIViewController *presentController = self;
         [presentController presentViewController:controller animated:YES completion:NULL];
     } else {
@@ -255,7 +260,7 @@ static inline void LoadDeviceKey(NSMutableDictionary *dict, NSString *key)
 }
 
 - (void)mailComposeController:(MFMailComposeViewController*)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError*)error
-{              
+{
     [self dismissViewControllerAnimated:YES completion:NULL];
 }
 
@@ -285,7 +290,7 @@ static inline __attribute__((always_inline)) void STKAntiPiracy(void (^callback)
             // Something is blocking us on purpose
             GET_OUT(YES);
         }
-        
+
         NSData *data = [NSData dataWithContentsOfURL:URL options:NSDataReadingUncached error:&error];
         if (error) {
             GET_OUT(NO);

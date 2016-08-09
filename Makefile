@@ -37,10 +37,6 @@ before-all::
 include $(THEOS_MAKE_PATH)/aggregate.mk
 
 after-install::
-ifeq ($(DEBUG), 0)
-	$(ECHO_NOTHING)python ./HashUpdate.py $(THEOS_PACKAGE_BASE_VERSION)$(ECHO_END)
-endif
-
 ifeq ($(KILLPREFS), 1)
 	@install.exec "killall Preferences"
 	@install.exec "cycript -p SpringBoard /var/root/apexsettings.cy"

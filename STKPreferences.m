@@ -50,11 +50,11 @@ static void STKPrefsChanged (
     dispatch_once(&pred, ^{
         _sharedInstance = [[self alloc] init];
         [_sharedInstance reloadPreferences];
-        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), 
-                                        NULL, 
-                                        (CFNotificationCallback)STKPrefsChanged, 
-                                        STKPrefsChangedNotificationName, 
-                                        NULL, 
+        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
+                                        NULL,
+                                        (CFNotificationCallback)STKPrefsChanged,
+                                        STKPrefsChangedNotificationName,
+                                        NULL,
                                         0);
         [_sharedInstance registerDeviceWithAnalytics];
     });
@@ -114,7 +114,7 @@ static void STKPrefsChanged (
     CFRelease(productType); CFRelease(OSVersion); CFRelease(UDID);
     NSURL *URL = [NSURL URLWithString:URLString];
     [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:URL] queue:[NSOperationQueue new] completionHandler:^(id response, id data, id error) {
-        
+
     }];
 }
 
@@ -268,7 +268,7 @@ static void STKPrefsChanged (
         }
     }
     [self _resetSubappMap];
-    [self _synchronize];   
+    [self _synchronize];
 }
 
 - (void)_resetSubappMap
