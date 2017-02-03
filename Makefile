@@ -19,8 +19,6 @@ ifeq ($(DEBUG), 0)
 Apex_CFLAGS += -O3
 endif
 
-Apex_LDFLAGS += -Wl,-segalign,4000
-
 ifeq ($(DEBUG), 1)
 	ADDITIONAL_LDFLAGS += -Wl,-map,$@.map -g -x c /dev/null -x none
 endif
