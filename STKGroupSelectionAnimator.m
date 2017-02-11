@@ -94,7 +94,10 @@
         _selectionView.searchTextField.alpha = 1.0;
 
         SBWallpaperController *wallpaperController = [CLASS(SBWallpaperController) sharedInstance];
-        CGFloat scale = [CLASS(SBFolderController) wallpaperScaleForDepth:1];
+        CGFloat scale = 1.0;
+        if ([CLASS(SBFolderController) respondsToSelector:@selector(wallpaperScaleForDepth:)]) {
+            scale = [CLASS(SBFolderController) wallpaperScaleForDepth:1];
+        }
         [wallpaperController setHomescreenWallpaperScale:scale];
     } completion:nil];
 
@@ -162,17 +165,17 @@
         ((SBDockIconListView *)[[CLASS(SBIconController) sharedInstance] dockListView]).alpha = 1.0;
 
         SBWallpaperController *wallpaperController = [CLASS(SBWallpaperController) sharedInstance];
-        CGFloat scale = [CLASS(SBFolderController) wallpaperScaleForDepth:0];
+        CGFloat scale = 1.0;
+        if ([CLASS(SBFolderController) respondsToSelector:@selector(wallpaperScaleForDepth:)]) {
+            scale = [CLASS(SBFolderController) wallpaperScaleForDepth:1];
+        }
         [wallpaperController setHomescreenWallpaperScale:scale];
     } completion:nil];
 
     void (^zoomCompletion)(void) = ^{
         SBIconView *centralIconView = [_zoomAnimator iconViewForIcon:[_iconView containerGroupView].group.centralIcon];
         if ((centralIconView.location == SBIconLocationFolder) || (centralIconView.location == SBIconLocationFolder_7_1) || IS_8_1()) {
-            VLog(@"%@", _iconView);
             [_zoomAnimator cleanup];
-            VLog(@"%@", @(_iconView.hidden));
-            VLog(@"%@", _iconView.icon);
         }
         [_zoomAnimator release];
         _zoomAnimator = nil;
