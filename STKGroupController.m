@@ -635,6 +635,11 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
     }
 }
 
+// iOS 10
+- (void)iconHandleLongPress:(SBIconView *)iconView withFeedbackBehavior:(id)feedbackBehavior {
+    [self iconHandleLongPress:iconView];
+}
+
 - (void)iconTouchBegan:(SBIconView *)iconView
 {
     if (![self _activeGroupView]) {
