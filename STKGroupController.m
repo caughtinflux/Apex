@@ -618,13 +618,12 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
     return (!_selectionView && !presentingShortcutMenu);
 }
 
-- (void)iconHandleLongPress:(SBIconView *)iconView
-{
+/// If this method returns YES, then the delegate call does not needed to be forwarded to the icon controller
+- (BOOL)handleLongPressOnIconView:(SBIconView *)iconView {
     SBIconController *controller = [CLASS(SBIconController) sharedInstance];
     BOOL presentingShortcutMenu = (([controller respondsToSelector:@selector(presentedShortcutMenu)]) && (controller.presentedShortcutMenu != nil));
     if (![self _activeGroupView] || ![iconView.icon isLeafIcon] || presentingShortcutMenu) {
-        [[CLASS(SBIconController) sharedInstance] iconHandleLongPress:iconView];
-        return;
+        return NO;
     }
     _wasLongPressed = YES;
     [iconView setHighlighted:NO];
@@ -633,11 +632,22 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
     if (!group.empty) {
         [group addPlaceholders];
     }
+    return YES;
+}
+
+- (void)iconHandleLongPress:(SBIconView *)iconView
+{
+    if (![self handleLongPressOnIconView:iconView]) {
+        [[CLASS(SBIconController) sharedInstance] iconHandleLongPress:iconView];
+    }
 }
 
 // iOS 10
-- (void)iconHandleLongPress:(SBIconView *)iconView withFeedbackBehavior:(id)feedbackBehavior {
-    [self iconHandleLongPress:iconView];
+- (void)iconHandleLongPress:(SBIconView *)iconView withFeedbackBehavior:(id)feedbackBehavior
+{
+    if (![self handleLongPressOnIconView:iconView]) {
+        [[CLASS(SBIconController) sharedInstance] iconHandleLongPress:iconView withFeedbackBehavior:feedbackBehavior];
+    }
 }
 
 - (void)iconTouchBegan:(SBIconView *)iconView
