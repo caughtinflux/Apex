@@ -2,6 +2,7 @@
 #import "STKProfileController.h"
 #import "Localization.h"
 #import "Globals.h"
+
 #import "../STKConstants.h"
 
 #import <notify.h>
@@ -86,6 +87,7 @@ static BOOL __didShowAlert = NO;
     [actionSheet showInView:self.view];
 }
 
+#define STKVersionGreaterThanOrEqualTo(v) ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 - (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)idx
 {
     if (idx == actionSheet.destructiveButtonIndex) {
