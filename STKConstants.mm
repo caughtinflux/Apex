@@ -3,8 +3,9 @@
 #import <UIKit/UIKit.h>
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
+#include <string>
+#include <mutex>
 
-NSString * const STKTweakName = @"Apex";
 NSString * const STKEditingEndedNotificationName = @"STKEditingEnded";
 
 CFStringRef const STKPrefsChangedNotificationName = CFSTR("com.a3tweaks.apex2.prefschanged");
@@ -47,3 +48,21 @@ NSString * NSStringFromSTKGroupSlot(STKGroupSlot slot)
     return [NSString stringWithFormat:@"%@, index: %@", NSStringFromLayoutPosition(slot.position), @(slot.index)];
 }
 
+static std::mutex _versionMapMutex;
+static NSMutableDictionary<NSString *, NSNumber *> *_versionDictionary;
+BOOL STKVersionGreaterThanOrEqualTo(NSString *version) {
+    std::lock_guard<std::mutex> lock(_versionMapMutex);
+    const std::string key(version.UTF8String);
+
+    if (!_versionDictionary) {
+        _versionDictionary = [[NSMutableDictionary dictionaryWithSharedKeySet:[NSDictionary sharedKeySetForKeys:@[@"7.1", @"8.1", @"9.0", @"10.0"]]] retain];
+    }
+
+    auto value = _versionDictionary[version];
+    if (value) {
+        return value.boolValue;
+    }
+    value = @([UIDevice.currentDevice.systemVersion compare:version options:NSNumericSearch] != NSOrderedAscending);
+    _versionDictionary[version] = value;
+    return value.boolValue;
+}

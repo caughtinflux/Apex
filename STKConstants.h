@@ -7,6 +7,7 @@
 #import <CoreFoundation/CFUserNotification.h>
 #import <SpringBoard/SpringBoard.h>
 #import <objc/runtime.h>
+#import <os/log.h>
 
 #import "STKTypes.h"
 #import "STKVersion.h"
@@ -15,8 +16,8 @@
 #import "STKGroupView.h"
 #import "STKGroupLayout.h"
 #import "STKGroupLayoutHandler.h"
-#import "STKGroupController.h"
 #import "STKIconViewRecycler.h"
+#import "STKGroupController.h"
 
 #import "STKOverlayIcons.h"
 #import "STKWallpaperBlurView.h"
@@ -53,10 +54,10 @@
 #define ISPAD() (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
 #define EXECUTE_BLOCK_AFTER_DELAY(delayInSeconds, block) (dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block))
 
-#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
-#define IS_7_1() (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.1"))
-#define IS_8_1() (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"8.1"))
-#define IS_9_0() (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"9.0"))
+#define IS_7_1()  (STKVersionGreaterThanOrEqualTo(@"7.1"))
+#define IS_8_1()  (STKVersionGreaterThanOrEqualTo(@"8.1"))
+#define IS_9_0()  (STKVersionGreaterThanOrEqualTo(@"9.0"))
+#define IS_10_0() (STKVersionGreaterThanOrEqualTo(@"10.0"))
 
 #undef CLASS
 #define CLASS(cls) NSClassFromString(@#cls)
@@ -76,6 +77,8 @@ extern "C" {
     extern double STKScaleNumber(double numToScale, double prevMin, double prevMax, double newMin, double newMax);
 
     extern NSString * NSStringFromSTKGroupSlot(STKGroupSlot slot);
+
+    extern BOOL STKVersionGreaterThanOrEqualTo(NSString *version);
 
     extern uint64_t dispatch_benchmark(size_t count, void (^block)(void));
 #ifdef __cplusplus
