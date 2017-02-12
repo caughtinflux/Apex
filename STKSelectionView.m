@@ -43,7 +43,7 @@ static const CGFloat kMinimumLineSpacing      = 15;
         _collectionView.delegate = self;
         _collectionView.dataSource = self;
         _collectionView.backgroundColor = [UIColor clearColor];
-        _collectionView.layer.cornerRadius = (ISPAD() ? 58.f : 35.f);
+        _collectionView.layer.cornerRadius = (ISPAD() ? 50.f : 27.f);
         _collectionView.layer.masksToBounds = YES;
         _collectionView.allowsSelection = YES;
         _collectionView.scrollIndicatorInsets = ISPAD() ? (UIEdgeInsets){35.f, 0.f, 35.f, 0.f} : (UIEdgeInsets){28.f, 0.f, 28.f, 0.f};
@@ -56,6 +56,8 @@ static const CGFloat kMinimumLineSpacing      = 15;
 
         _backgroundView = [[CLASS(SBFolderBackgroundView) alloc] initWithFrame:_contentView.frame];
         _backgroundView.center = _collectionView.center;
+        _backgroundView.layer.cornerRadius = _collectionView.layer.cornerRadius;
+        _backgroundView.layer.masksToBounds = YES;
 
         [_contentView addSubview:_backgroundView];
         [_contentView addSubview:_collectionView];

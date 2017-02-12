@@ -94,11 +94,18 @@
         _selectionView.searchTextField.alpha = 1.0;
 
         SBWallpaperController *wallpaperController = [CLASS(SBWallpaperController) sharedInstance];
-        CGFloat scale = 1.0;
+        CGFloat scale = 1.2;
         if ([CLASS(SBFolderController) respondsToSelector:@selector(wallpaperScaleForDepth:)]) {
             scale = [CLASS(SBFolderController) wallpaperScaleForDepth:1];
         }
         [wallpaperController setHomescreenWallpaperScale:scale];
+
+        if (IS_10_0()) {
+            _zoomAnimator.targetIconView.alpha = 0.0;
+            SBIconController *iconController = [CLASS(SBIconController) sharedInstance];
+            iconController.dockListView.superview.alpha = 0.0;
+            [[iconController _currentFolderController].contentView setPageControlAlpha:0.0];
+        }
     } completion:nil];
 
     void (^zoomCompletion)(void) = ^{
@@ -151,6 +158,12 @@
     [UIView animateWithDuration:duration delay:0.0 options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{
         _selectionView.searchTextField.alpha = 0.0;
         _selectionView.iconCollectionView.alpha = 0.0;
+        if (IS_10_0()) {
+            _zoomAnimator.targetIconView.alpha = 1.0;
+            SBIconController *iconController = [CLASS(SBIconController) sharedInstance];
+            iconController.dockListView.superview.alpha = 1.0;
+            [[iconController _currentFolderController].contentView setPageControlAlpha:1.0];
+        }
     } completion:nil];
     CGFloat timeToAdd  = IS_7_1() ? 0.0 : 0.1;
     [UIView animateWithDuration:(duration + timeToAdd) delay:(duration * 0.1) options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut) animations:^{

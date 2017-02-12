@@ -1,13 +1,12 @@
 #import <Foundation/Foundation.h>
 #import "STKConstants.h"
 
-extern NSString * const STKPositionTopKey;
-extern NSString * const STKPositionBottomKey;
-extern NSString * const STKPositionLeftKey;
-extern NSString * const STKPositionRightKey;
-extern NSString * const STKPositionUnknownKey;
-
-extern NSString * NSStringFromLayoutPosition(STKLayoutPosition position);
+FOUNDATION_EXPORT NSString * const STKPositionTopKey;
+FOUNDATION_EXPORT NSString * const STKPositionBottomKey;
+FOUNDATION_EXPORT NSString * const STKPositionLeftKey;
+FOUNDATION_EXPORT NSString * const STKPositionRightKey;
+FOUNDATION_EXPORT NSString * const STKPositionUnknownKey;
+FOUNDATION_EXPORT NSString * NSStringFromLayoutPosition(STKLayoutPosition position);
 
 #define STKPositionIsVertical(_pos) (_pos == STKPositionTop || _pos == STKPositionBottom)
 #define STKPositionIsHorizontal(_pos) (_pos == STKPositionLeft || _pos == STKPositionRight)

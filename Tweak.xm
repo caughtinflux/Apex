@@ -263,6 +263,18 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     }
     return mappedView;
 }
+
+- (SBIconView *)extraIconViewForIcon:(SBIcon *)icon
+{
+    auto iconView = %orig();
+    // on iOS 10, this returns `nil` for icons that return `YES` from `isPlaceholder`, which our placeholder icon (STKPlaceholderIcon) does
+    // The SBScaleIconZoomAnimator.targetIconView needs this hack to work
+    if (!iconView && IS_10_0() && [icon isKindOfClass:%c(STKPlaceholderIcon)]) {
+        iconView = [[STKGroupController sharedController].iconViewRecycler iconViewForIcon:icon];
+    }
+    return iconView;
+}
+
 %end
 
 #pragma mark - Animator Hooks
@@ -297,6 +309,7 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
     %orig();
     listView.stk_modifyDisplacedIconOrigin = NO;
 }
+
 %end
 
 %hook SBScaleIconZoomAnimator
