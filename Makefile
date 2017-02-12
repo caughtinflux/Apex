@@ -15,7 +15,7 @@ Apex_FILES :=  $(wildcard *.*m) $(wildcard *.x)
 Apex_FRAMEWORKS = Foundation CoreFoundation UIKit CoreGraphics QuartzCore
 
 Apex_LIBRARIES = mobilegestalt
-Apex_CFLAGS += -Wall -Werror
+Apex_CFLAGS += -Wall -Werror -Wno-c++11-extensions
 
 ifeq ($(DEBUG), 0)
 Apex_CFLAGS += -O3
