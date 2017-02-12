@@ -10,6 +10,8 @@ typedef NS_ENUM(NSUInteger, STKClosingEvent) {
 
 FOUNDATION_EXTERN NSString * NSStringFromSTKClosingEvent(STKClosingEvent);
 
+@class STKIconViewRecycler;
+
 @interface STKGroupController : NSObject <STKGroupViewDelegate, UIGestureRecognizerDelegate>
 
 + (instancetype)sharedController;
@@ -18,6 +20,7 @@ FOUNDATION_EXTERN NSString * NSStringFromSTKClosingEvent(STKClosingEvent);
 @property (nonatomic, readonly) STKGroupView *openingGroupView;
 @property (nonatomic, readonly) STKGroupView *closingGroupView;
 @property (nonatomic, readonly) STKGroupView *activeGroupView;
+@property (nonatomic, readonly) STKIconViewRecycler *iconViewRecycler;
 
 - (void)addOrUpdateGroupViewForIconView:(SBIconView *)iconView;
 - (void)removeGroupViewFromIconView:(SBIconView *)iconView;

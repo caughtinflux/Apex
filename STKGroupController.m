@@ -198,6 +198,11 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
     return [self _activeGroupView];
 }
 
+- (STKIconViewRecycler *)iconViewRecycler
+{
+    return _recycler;
+}
+
 - (STKGroup *)_groupWithEmptySlotsForIcon:(SBIcon *)icon
 {
     STKGroupLayout *slotLayout = [STKGroupLayoutHandler emptyLayoutForIconAtLocation:[STKGroupLayoutHandler locationForIcon:icon]];
