@@ -4,10 +4,6 @@ export SDKVERSION = 10.1
 export SYSROOT = $(THEOS)/sdks/iPhoneOS10.1.sdk
 export TARGET = iphone:clang:10.1:7.0
 
-ifeq ($(DEBUG), 0)
-	PACKAGE_VERSION=$(THEOS_PACKAGE_BASE_VERSION)
-endif
-
 include theos/makefiles/common.mk
 
 TWEAK_NAME = Apex
