@@ -1,5 +1,5 @@
 export DEBUG = 1
-export ARCHS = armv7 armv7s arm64
+export ARCHS = armv7 arm64
 export SDKVERSION = 10.1
 export SYSROOT = $(THEOS)/sdks/iPhoneOS10.1.sdk
 export TARGET = iphone:clang:10.1:7.0

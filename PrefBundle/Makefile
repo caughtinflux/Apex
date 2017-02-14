@@ -10,7 +10,6 @@ ApexSettings_INSTALL_PATH = /Library/PreferenceBundles
 ApexSettings_FRAMEWORKS = UIKit Foundation CoreFoundation CoreGraphics MessageUI Twitter Social QuartzCore
 ApexSettings_PRIVATE_FRAMEWORKS = Preferences
 ApexSettings_LIBRARIES = mobilegestalt
-ApexSettings_LDFLAGS += -Wl,-segalign,4000
 
 include $(THEOS_MAKE_PATH)/bundle.mk
 
