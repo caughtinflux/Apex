@@ -214,7 +214,7 @@ NSString * NSStringFromSTKClosingEvent(STKClosingEvent event) {
 
 - (STKGroupView *)_activeGroupView
 {
-    return (_openGroupView ?: _openingGroupView);
+    return [[(_openGroupView ?: _openingGroupView) retain] autorelease];
 }
 
 - (void)_setAllowScrolling:(BOOL)allow
