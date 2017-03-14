@@ -382,11 +382,27 @@ static void STKWelcomeAlertCallback(CFUserNotificationRef userNotification, CFOp
 %end
 
 #pragma mark - SBUIController
+
+@interface SBUIController (ApexAdditions)
+- (BOOL)stk_handleHomeButtonPress;
+@end
+
 %hook SBUIController
+
+%new
+- (BOOL)stk_handleHomeButtonPress
+{
+    return [[STKGroupController sharedController] handleClosingEvent:STKClosingEventHomeButtonPress];
+}
+
+// 10.0
+- (BOOL)handleHomeButtonSinglePressUp {
+    return [self stk_handleHomeButtonPress] ?: %orig();
+}
+
 - (BOOL)clickedMenuButton
 {
-    BOOL didReact = [[STKGroupController sharedController] handleClosingEvent:STKClosingEventHomeButtonPress];
-    return (didReact ?: %orig());
+    return [self stk_handleHomeButtonPress] ?: %orig();
 }
 
 - (BOOL)_activateAppSwitcherFromSide:(NSInteger)side
