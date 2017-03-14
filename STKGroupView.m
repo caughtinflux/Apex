@@ -176,8 +176,9 @@ typedef NS_ENUM(NSInteger, STKRecognizerDirection) {
     BOOL didShowGrabbers = self.showGrabbers;
     self.showGrabbers = NO;
     [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    [_subappLayout release];
+    STKGroupLayout *subappLayout = _subappLayout;
     _subappLayout = nil;
+    [subappLayout release];
     [_displacedIconLayout release];
     _displacedIconLayout = nil;
     [self _configureSubappViews];
