@@ -2,7 +2,7 @@ Package: com.a3tweaks.apex2
 Name: Apex 2
 Depends: mobilesubstrate, com.chpwn.iconsupport, firmware (>= 7.0), preferenceloader
 Conflicts: com.jcorbett.bigify, com.eldwin.iwidgets, org.thebigboss.bigifyplus, com.aehmlo.powerdownenhancer (<< 2.0)
-Version: 1.6.2
+Version: 1.6.3
 Architecture: iphoneos-arm
 Description: Grouping apps has never been so fun.
 Maintainer: A3Tweaks
